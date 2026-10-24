@@ -49,7 +49,7 @@ export function App() {
         <p className="intro">Restaurant platform administration is managed separately from the customer storefront and Restaurant Owner workspace. Sign-in uses its own protected application and the new Web2Table authorization checks.</p>
         <section className="panel">
           <p>Existing administrator accounts from the older identity project are not automatically authorized in Web2Table V10. A verified, approved administrator identity and MFA are required.</p>
-          <a className="status-pill" href="https://jrnotjunior.github.io/web2table-system-admin/">Open Web2Table System Admin ↗</a>
+          <a className="status-pill" href="https://admin.web2table.io/">Open Web2Table System Admin ↗</a>
         </section>
       </main>
     </div>;

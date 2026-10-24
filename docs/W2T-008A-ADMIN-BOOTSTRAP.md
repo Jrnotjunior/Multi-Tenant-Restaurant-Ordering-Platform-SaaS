@@ -23,9 +23,9 @@ Only then does the trusted private function create an active `platform_admins` r
 ## Human activation step
 
 1. Open the **Web2Table** Supabase project `wvibrchebfwirbgkcnbr`.
-2. Configure Authentication > URL Configuration with `https://jrnotjunior.github.io/web2table-system-admin/` as an allowed redirect and verify the Auth invitation email sender works.
+2. Configure Authentication > URL Configuration with `https://admin.web2table.io/` as the canonical approved System Admin redirect. You may keep the existing GitHub Pages preview redirect separately for testing. Verify that the custom domain serves the V10 app, not a legacy build, and that the Auth invitation email sender works.
 3. Go to Authentication > Users > Add user > Send invitation and enter the approved first-admin email.
-4. Click the received email invite link. Set up TOTP MFA in the System Admin GitHub Pages interface. The authenticated V10 app claims access once all security checks pass.
+4. Click the received invitation link and open the verified V10 System Admin interface at `https://admin.web2table.io/`. Set up TOTP MFA there. The authenticated V10 app claims access once all security checks pass.
 5. Optionally set a strong 12+ character password for future sign-ins.
 6. Verify live account access with a real browser login before allowing any privileged restaurant provisioning.
 
@@ -36,3 +36,6 @@ Only then does the trusted private function create an active `platform_admins` r
 A rollback-only SQL test with synthetic Auth users passed: outsider rejection, unconfirmed-email rejection, AAL1 rejection, AAL2 activation for correctly invited verified email, claim consumption, duplicate denial, and no direct browser table privileges. No test accounts or administrators were retained.
 
 No customer orders or real restaurants were created, no existing accounts were migrated, and no legacy database was modified.
+
+## Custom-domain update
+The approved System Admin domain is `https://admin.web2table.io/`. Its live deployment could not be independently inspected in this environment. The existing Hostinger pipeline has a different application-mode setting from the GitHub Pages V10 preview; do not claim this domain can complete the bootstrap until its deployed build has been checked.
