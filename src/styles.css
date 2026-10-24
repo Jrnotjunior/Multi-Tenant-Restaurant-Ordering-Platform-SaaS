@@ -84,18 +84,14 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .onboarding-card .auth-qr{display:block;margin:18px auto 22px}
 
 
-/* Keep the verify button full width; match Sign out to its height only. */
+/* Keep Sign out's original compact size; make Verify match its height. */
 .onboarding-card .onboarding-mfa-form .onboarding-mfa-verify {
-  width: 100%;
-  min-height: 58px;
-  height: 58px;
-  padding: 0 16px;
+  min-height: 42px;
+  height: 42px;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 .onboarding-card .onboarding-signout {
-  width: 100%;
   min-height: 58px;
   height: 58px;
-  padding: 0 16px;
-  margin-top: 8px;
-  box-sizing: border-box;
 }
