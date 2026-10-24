@@ -22,7 +22,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 
 
 /* Restaurant owner invitation onboarding */
-.privileged-onboarding{--onboard-red:#f21f2b;min-height:calc(100vh - 76px);display:grid;grid-template-columns:minmax(340px,.82fr) minmax(480px,1.18fr);background:#101012;color:#f7f7f8}
+.privileged-onboarding{--onboard-red:#f21f2b;min-height:calc(100vh - 76px);display:grid;grid-template-columns:minmax(0,1fr);background:#101012;color:#f7f7f8place-items:center;}
 .onboarding-story{min-height:calc(100vh - 76px);position:relative;overflow:hidden;isolation:isolate;padding:clamp(28px,5.6vw,86px);display:flex;flex-direction:column;justify-content:space-between;background:radial-gradient(ellipse at 72% 30%,#57341f 0,transparent 38%),radial-gradient(ellipse at 20% 82%,#40251b 0,transparent 35%),linear-gradient(135deg,#171514,#201813 54%,#090909)}
 .onboarding-story:before,.onboarding-story:after{content:"";position:absolute;z-index:-1;pointer-events:none}
 .onboarding-story:before{inset:0;background:linear-gradient(90deg,#08080855,#08080812),repeating-linear-gradient(90deg,transparent 0 24%,#ffffff04 24.2% 24.6%,transparent 25% 40%)}
@@ -85,24 +85,3 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 
 /* Sign-in and existing-account MFA use a single-column layout; the welcome hero is onboarding-only. */
 .privileged-auth-only{grid-template-columns:minmax(0,1fr)}
-
-/* Center the existing-account MFA challenge in the full viewport.
-   This state intentionally has no onboarding hero, so it must not retain
-   the two-column onboarding grid or its left-column alignment. */
-.privileged-onboarding.existing-account-mfa{
-  min-height:100vh;
-  grid-template-columns:minmax(0,1fr);
-  place-items:center;
-  padding:32px 20px;
-  box-sizing:border-box;
-}
-.privileged-onboarding.existing-account-mfa .onboarding-card{
-  width:min(546px,100%);
-  margin:0;
-  align-self:center;
-  justify-self:center;
-}
-@media(max-width:650px){
-  .privileged-onboarding.existing-account-mfa{padding:20px 14px;min-height:100vh}
-  .privileged-onboarding.existing-account-mfa .onboarding-card{width:100%;padding:26px 22px}
-}
