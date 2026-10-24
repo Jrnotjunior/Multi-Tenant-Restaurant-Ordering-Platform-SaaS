@@ -44,7 +44,7 @@ The initial dependency set uses exact versions. A committed `package-lock.json` 
 - `/` — customer-facing sample restaurant menu, optimized for mobile screens
 - `/order` — same public sample menu (no account required for browsing)
 - `/order/baryo-kitchen` — direct restaurant menu URL for search results and shared links
-- `/restaurant` — protected restaurant workspace (not live)
+- `/restaurant` — MFA-protected, role-aware Restaurant Owner, Cashier, Kitchen, Dispatcher or Rider workspace. The owner can open existing menu/branding management; operational queues remain empty until order operations are implemented.
 - `/admin` — protected platform administration workspace (not live)
 
 The storefront is an interactive **preview** using fictional restaurant details, sample prices and emoji artwork. Menu search, categories, quantities and basket work locally; **checkout is disabled**. Privileged workspaces require Supabase Auth, MFA and database permissions. See [Mobile-first storefront](docs/MOBILE_FIRST_STOREFRONT.md).
