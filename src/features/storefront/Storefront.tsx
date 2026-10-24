@@ -223,11 +223,9 @@ export function Storefront({ baseUrl, requestedSlug }: {
   const addCustomized=(item:MenuItem,selected:Selection)=>setCustomized(previous=>addCustom(previous,item,selected));
   const change = (itemId: string, delta: number) =>
     setCart((previous) => updateCart(previous, itemId, delta, menu));
-  const menuUrl = restaurantMenuPath(restaurant.slug, baseUrl)
-    + (restaurant.branchSlug ? '?branch=' + restaurant.branchSlug : '');
 
   function switchBranch(slug:string) {
-    if(slug === restaurant.branchSlug) return;
+    if(!restaurant || !catalog || slug === restaurant.branchSlug) return;
     // The backend is authoritative about active branches. A query parameter
     // merely chooses a branch and never authorizes a tenant or a payment.
     if(!catalog?.branches.some(b => b.slug === slug)) return;
@@ -258,6 +256,8 @@ export function Storefront({ baseUrl, requestedSlug }: {
   }
 
   if (!restaurant) return null;
+  const menuUrl = restaurantMenuPath(restaurant.slug, baseUrl)
+    + (restaurant.branchSlug ? '?branch=' + restaurant.branchSlug : '');
   const tenantFontClass = restaurant.fontFamily === 'classic' ? ' sf-font-classic' : restaurant.fontFamily === 'rounded' ? ' sf-font-rounded' : ' sf-font-modern';
   return <div className={'sf-storefront' + tenantFontClass} style={{ '--sf-red':restaurant.primaryColor } as CSSProperties}>
     <a className="sf-skip-link" href="#sf-menu">Skip to menu</a>
@@ -363,7 +363,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
         <form className="sf-checkout-form" onSubmit={event => {
           event.preventDefault();
           const validation=buildCheckoutReadiness({
-            sample:catalog.sample,slug:restaurant.slug,branchSlug:restaurant.branchSlug,
+            slug:restaurant.slug,branchSlug:restaurant.branchSlug,
             menu,cart,customized,details:checkoutDetails,
           });
           setCheckoutMessage(validation.ready
