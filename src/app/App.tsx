@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { pathFor, storefrontSlugFromPath, viewForPath, type View } from './routes';
 import { PrivilegedGate } from '../features/auth/PrivilegedGate';
 import { Storefront } from '../features/storefront/Storefront';
-import { supabase } from '../lib/supabase';
+import { OwnerDashboard } from '../features/management/OwnerDashboard';
+import { AdminDashboard } from '../features/management/AdminDashboard';
 
 const protectedViews = {
   restaurant: {
@@ -41,17 +42,9 @@ export function App() {
     return <Storefront key={storefrontSlugFromPath(pathname, baseUrl) ?? 'sample'} baseUrl={baseUrl} requestedSlug={storefrontSlugFromPath(pathname, baseUrl)} />;
   }
 
-  const details = protectedViews[view];
-  const workspaceContent = <main className="content">
-    <p className="eyebrow">WEB2TABLE · PHILIPPINES</p>
-    <h1>{details.title}</h1>
-    <p className="intro">{details.body}</p>
-    <section className="panel">
-      <div className="status-line"><span className="status-dot" /><strong>Protected workspace · under development</strong></div>
-      <p>Restaurant and platform administration are not public storefront features. Authentication, MFA, tenant membership and verified permissions are required, and live operations are not enabled yet.</p>
-      <span className="status-pill">{supabase ? 'Supabase connected · invitation-only access' : 'Supabase not configured'}</span>
-    </section>
-  </main>;
+  const workspaceContent = view === 'restaurant'
+    ? <OwnerDashboard baseUrl={baseUrl} />
+    : <AdminDashboard />;
 
   return <div className="app">
     <header className="topbar">
