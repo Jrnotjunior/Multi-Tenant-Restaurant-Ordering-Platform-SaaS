@@ -400,8 +400,12 @@ export function Storefront({ baseUrl, requestedSlug }: {
             <input aria-label="Search menu items" placeholder="Search dishes, drinks and more..." type="search" value={query} onChange={(event) => setQuery(event.target.value)}/>
           </div>
           <div className="sf-category-list" aria-label="Menu categories">
-            {categories.map((option) => <button type="button" key={option} onClick={() => setCategory(option)}
-              aria-pressed={category === option} className={'sf-category' + (category === option ? ' sf-category-active' : '')}>{option}</button>)}
+            <label className="sf-category-select-label">
+              <span>Category</span>
+              <select aria-label="Filter menu by category" className="sf-category-select" value={category} onChange={(event) => setCategory(event.target.value as Category)}>
+                {categories.map((option) => <option key={option} value={option}>{option === 'All' ? 'All categories' : option}</option>)}
+              </select>
+            </label>
           </div>
           {results.length ? <div className="sf-menu-grid" style={{display:'grid',gridTemplateColumns:'minmax(0,1fr)',gap:12}}> 
             {results.map((item) => <MenuCard item={item} quantity={cart[item.id] ?? 0} add={change} customize={setCustomizing} key={item.id}/>)}
