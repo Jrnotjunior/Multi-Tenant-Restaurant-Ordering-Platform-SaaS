@@ -16,6 +16,7 @@ export type StorefrontCatalog = Readonly<{
     primaryColor: string;
     websiteColors: WebsiteColors;
     logoUrl: string | null;
+    faviconUrl: string | null;
     fontFamily: 'modern' | 'rounded' | 'classic';
     branchName: string;
     branchSlug: string;
@@ -94,7 +95,7 @@ function getLogoUrl(path:unknown):string|null {
 export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
   if (value === null) return null;
   if (!record(value)) throw new Error('Invalid published storefront response');
-  const {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors,logoPath,fontFamily,branchName,branchSlug,branches,categories,items} = value;
+  const {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors,logoPath,faviconPath,fontFamily,branchName,branchSlug,branches,categories,items} = value;
   if (!validText(slug,64) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)
     || !validText(name,160) || !validText(heroHeading,90)
     || !validText(heroEmphasis,90) || !validText(branchName,160)
@@ -152,7 +153,7 @@ export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
   const initials = name.split(/\s+/).slice(0,2).map((word) => word.charAt(0)).join('').toUpperCase();
   const normalizedWebsiteColors = Object.fromEntries(WEBSITE_COLOR_KEYS.map(key => [key, websiteColors[key] as string])) as WebsiteColors;
   return {
-    restaurant: {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors:normalizedWebsiteColors,logoUrl:getLogoUrl(logoPath),fontFamily:(fontFamily==='rounded'||fontFamily==='classic'?fontFamily:'modern'),branchName,branchSlug:typeof branchSlug==='string'?branchSlug:'',initials},
+    restaurant: {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors:normalizedWebsiteColors,logoUrl:getLogoUrl(logoPath),faviconUrl:getLogoUrl(faviconPath),fontFamily:(fontFamily==='rounded'||fontFamily==='classic'?fontFamily:'modern'),branchName,branchSlug:typeof branchSlug==='string'?branchSlug:'',initials},
     branches:branchChoices,
     categories:['All',...categories.map((entry:Row) => entry.name as string)],
     menu,
@@ -165,7 +166,11 @@ export async function loadPublishedMenu(slug:string,branchSlug:string|null=null)
   if(branchSlug!==null && (branchSlug.length<2 || branchSlug.length>64 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(branchSlug))) return null;
   const {data,error} = await supabase.rpc('get_branch_storefront',{p_slug:slug,p_branch_slug:branchSlug});
   if (error) throw new Error('Published menu service unavailable');
-  return parsePublishedMenu(data);
+  if (!data) return null;
+  const {data:assets,error:assetsError} = await supabase.rpc('get_public_storefront_favicon',{p_slug:slug});
+  if (assetsError) throw new Error('Published storefront assets service unavailable');
+  const assetRow = record(assets) ? assets : {};
+  return parsePublishedMenu({...data,faviconPath:assetRow.faviconPath ?? null});
 }
 
 
