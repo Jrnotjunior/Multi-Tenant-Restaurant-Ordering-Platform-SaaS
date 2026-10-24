@@ -179,6 +179,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
     'loading'
   );
   const [category, setCategory] = useState<Category>('All');
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [cart, setCart] = useState<Cart>({});
@@ -399,13 +400,16 @@ export function Storefront({ baseUrl, requestedSlug }: {
             <SearchIcon/>
             <input aria-label="Search menu items" placeholder="Search dishes, drinks and more..." type="search" value={query} onChange={(event) => setQuery(event.target.value)}/>
           </div>
-          <div className="sf-category-list" aria-label="Menu categories">
-            <label className="sf-category-select-label">
-              <span>Category</span>
-              <select aria-label="Filter menu by category" className="sf-category-select" value={category} onChange={(event) => setCategory(event.target.value as Category)}>
-                {categories.map((option) => <option key={option} value={option}>{option === 'All' ? 'All categories' : option}</option>)}
-              </select>
-            </label>
+          <div className="sf-category-list sf-category-dropdown-wrap" aria-label="Menu categories">
+            <span className="sf-category-label">Category</span>
+            <div className="sf-category-dropdown">
+              <button type="button" className="sf-category-select" aria-haspopup="listbox" aria-expanded={categoryDropdownOpen} onClick={() => setCategoryDropdownOpen(open => !open)}>
+                <span>{category === 'All' ? 'All categories' : category}</span><span aria-hidden="true">⌄</span>
+              </button>
+              {categoryDropdownOpen && <div className="sf-category-options" role="listbox" aria-label="Menu categories">
+                {categories.map(option => <button type="button" role="option" aria-selected={category === option} key={option} className={'sf-category-option' + (category === option ? ' is-selected' : '')} onClick={() => { setCategory(option as Category); setCategoryDropdownOpen(false); }}>{option === 'All' ? 'All categories' : option}</button>)}
+              </div>}
+            </div>
           </div>
           {results.length ? <div className="sf-menu-grid" style={{display:'grid',gridTemplateColumns:'minmax(0,1fr)',gap:12}}> 
             {results.map((item) => <MenuCard item={item} quantity={cart[item.id] ?? 0} add={change} customize={setCustomizing} key={item.id}/>)}
