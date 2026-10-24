@@ -354,8 +354,35 @@ export function Storefront({ baseUrl, requestedSlug }: {
     </div>}
     <dialog ref={dialogRef} className="sf-basket-dialog" onClose={() => setCartOpen(false)} aria-labelledby="sf-dialog-heading">
       <div className="sf-dialog-top"><div><span className="sf-section-kicker">YOUR ORDER</span><h2 id="sf-dialog-heading">Your basket <span>({count})</span></h2></div><button type="button" className="sf-close" onClick={() => setCartOpen(false)} aria-label="Close basket">×</button></div>
-      <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} close={() => setCartOpen(false)}/>
+      <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} close={() => setCartOpen(false)} onCheckout={() => { setCheckoutMessage(''); setCheckoutOpen(true); setCartOpen(false); }}/>
     </dialog>
+    <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} onCheckout={() => { setCheckoutMessage(''); setCheckoutOpen(true); }}/>
+    {checkoutOpen && <div className="sf-checkout-backdrop" role="presentation" onMouseDown={event => {if(event.target===event.currentTarget)setCheckoutOpen(false);}}>
+      <section className="sf-checkout-panel" role="dialog" aria-modal="true" aria-labelledby="sf-checkout-heading">
+        <div className="sf-dialog-top"><div><span className="sf-section-kicker">DELIVERY ONLY</span><h2 id="sf-checkout-heading">Delivery details</h2></div><button type="button" className="sf-close" onClick={() => setCheckoutOpen(false)} aria-label="Close checkout preparation">×</button></div>
+        <p className="sf-checkout-explainer">Prepare the information needed for delivery. This step does not submit an order.</p>
+        {checkoutMessage && <p className="sf-checkout-warning" role="alert">{checkoutMessage}</p>}
+        <form className="sf-checkout-form" onSubmit={event => {
+          event.preventDefault();
+          const validation=buildCheckoutReadiness({
+            sample:catalog.sample,slug:restaurant.slug,branchSlug:restaurant.branchSlug,
+            menu,cart,customized,details:checkoutDetails,
+          });
+          setCheckoutMessage(validation.ready
+            ? 'Your delivery details are complete, but live ordering is not connected yet. No order has been placed and no payment was taken.'
+            : validation.reason);
+        }}>
+          <label>Full name<input autoComplete="name" required minLength={2} maxLength={120} value={checkoutDetails.customerName} onChange={event=>setCheckoutDetails(previous=>({...previous,customerName:event.target.value}))} /></label>
+          <label>Contact number<input autoComplete="tel" type="tel" required minLength={7} maxLength={24} value={checkoutDetails.phone} onChange={event=>setCheckoutDetails(previous=>({...previous,phone:event.target.value}))} placeholder="+63 9xx xxx xxxx" /></label>
+          <label>Delivery address<textarea autoComplete="street-address" required minLength={8} maxLength={500} rows={3} value={checkoutDetails.deliveryAddress} onChange={event=>setCheckoutDetails(previous=>({...previous,deliveryAddress:event.target.value}))} placeholder="House/building, street, barangay, city" /></label>
+          <label>Delivery instructions (optional)<textarea maxLength={300} rows={2} value={checkoutDetails.deliveryNotes} onChange={event=>setCheckoutDetails(previous=>({...previous,deliveryNotes:event.target.value}))} placeholder="Landmark or delivery instructions" /></label>
+          <div className="sf-checkout-summary"><span>Basket subtotal (estimate)</span><strong>{peso(subtotal)}</strong></div>
+          <p className="sf-cart-note">Final price, availability, delivery fee and order ID must be confirmed by the server at launch.</p>
+          <button type="submit" className="sf-checkout-disabled">Validate delivery details</button>
+          <button type="button" className="sf-continue" onClick={() => setCheckoutOpen(false)}>Return to menu</button>
+        </form>
+      </section>
+    </div>}
     <CustomizeDialog item={customizing} onAdd={addCustomized} onClose={()=>setCustomizing(null)}/>
     <span className="sf-visually-hidden" aria-live="polite" aria-atomic="true">{count} items in basket, subtotal {peso(subtotal)}</span>
   </div>;
