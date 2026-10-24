@@ -1,8 +1,9 @@
-export type Role = 'platform_admin' | 'restaurant_owner' | 'kitchen' | 'dispatcher' | 'rider' | 'customer';
+export type Role = 'platform_admin' | 'restaurant_owner' | 'cashier' | 'kitchen' | 'dispatcher' | 'rider' | 'customer';
 export type Permission = 'tenants.manage' | 'restaurant.manage' | 'orders.read' | 'kitchen.update' | 'dispatch.assign' | 'delivery.update' | 'customer.order';
 const grants: Readonly<Record<Role, readonly Permission[]>> = {
   platform_admin: ['tenants.manage'],
   restaurant_owner: ['restaurant.manage', 'orders.read', 'kitchen.update', 'dispatch.assign'],
+  cashier: ['orders.read'],
   kitchen: ['orders.read', 'kitchen.update'],
   dispatcher: ['orders.read', 'dispatch.assign'],
   rider: ['delivery.update'],
