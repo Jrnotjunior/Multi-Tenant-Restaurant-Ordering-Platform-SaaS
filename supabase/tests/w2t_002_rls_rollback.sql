@@ -1,0 +1,10 @@
+-- Rollback-only test protocol for W2T-002.
+-- This test requires a privileged SQL editor / test DB connection.
+-- Run in a single transaction, add synthetic auth.users / tenant / branch fixtures,
+-- then SET LOCAL ROLE authenticated and use request.jwt.claims with sub and aal.
+-- Verify: owner sees only own tenant & all own branches; staff sees only assigned branch;
+-- AAL1 access returns no rows; cross-tenant branch assignment fails foreign key.
+-- End with ROLLBACK. Never use existing customer records as fixtures.
+-- Test executed against Web2Table project on 2026-10-24 and passed.
+-- The executed test is preserved in the development audit; a reusable self-contained
+-- fixture test will be introduced with the dedicated automated integration-test harness.
