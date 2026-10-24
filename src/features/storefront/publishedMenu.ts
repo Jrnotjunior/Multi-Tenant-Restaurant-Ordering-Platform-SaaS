@@ -1,7 +1,9 @@
 import { demoMenu, demoRestaurant, type MenuItem } from './demoCatalog';
 import { supabase } from '../../lib/supabase';
 
+export type BranchChoice = Readonly<{slug:string;name:string}>;
 export type StorefrontCatalog = Readonly<{
+  branches: readonly BranchChoice[];
   restaurant: {
     slug: string;
     name: string;
@@ -11,6 +13,7 @@ export type StorefrontCatalog = Readonly<{
     heroEmphasis: string;
     primaryColor: string;
     branchName: string;
+    branchSlug: string;
   };
   categories: readonly string[];
   menu: readonly MenuItem[];
@@ -18,7 +21,12 @@ export type StorefrontCatalog = Readonly<{
 }>;
 
 export const sampleCatalog: StorefrontCatalog = {
+  branches: [
+    {slug:'main',name:'Sample Main'},
+    {slug:'makati',name:'Sample Makati'},
+  ],
   restaurant: {
+    branchSlug: 'main',
     slug: demoRestaurant.slug,
     name: demoRestaurant.name,
     initials: demoRestaurant.initials,
@@ -26,12 +34,34 @@ export const sampleCatalog: StorefrontCatalog = {
     heroHeading: 'Good food.',
     heroEmphasis: 'Great cravings.',
     primaryColor: '#ad2935',
-    branchName: 'Sample branch',
+    branchName: 'Sample Main',
   },
   categories: ['All', 'Rice Meals', 'Burgers', 'Sides', 'Drinks', 'Desserts'],
   menu: demoMenu,
   sample: true,
 };
+
+/** Distinct sample branch menu for testing touch UI. Never persisted or charged. */
+export function getSampleCatalog(branchSlug:string|null):StorefrontCatalog|null {
+  if(branchSlug === null || branchSlug === 'main') return sampleCatalog;
+  if(branchSlug !== 'makati') return null;
+  return {
+    ...sampleCatalog,
+    restaurant:{...sampleCatalog.restaurant,branchName:'Sample Makati',branchSlug:'makati'},
+    menu:demoMenu.filter(item=>item.id!=='sisig' && item.id!=='halo')
+      .map(item=>({...item,priceCentavos:item.priceCentavos+1500})),
+  };
+}
+
+/** Null means default branch, empty string means malformed requested branch. */
+export function branchSlugFromSearch(search:string):string|null {
+  const p=new URLSearchParams(search);
+  if(!p.has('branch')) return null;
+  const slugs=p.getAll('branch');
+  if(slugs.length!==1) return '';
+  const slug=slugs[0];
+  return slug.length>=2 && slug.length<=64 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ? slug : '';
+}
 
 const backgrounds = [
   'linear-gradient(140deg,#f9deb0,#eaa968)',
@@ -50,15 +80,30 @@ const validText = (value: unknown, max: number): value is string =>
 export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
   if (value === null) return null;
   if (!record(value)) throw new Error('Invalid published storefront response');
-  const {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,branchName,categories,items} = value;
+  const {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,branchName,branchSlug,branches,categories,items} = value;
   if (!validText(slug,64) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)
     || !validText(name,160) || !validText(heroHeading,90)
     || !validText(heroEmphasis,90) || !validText(branchName,160)
     || typeof tagline !== 'string' || tagline.length > 300
     || typeof primaryColor !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(primaryColor)
+    || (branchSlug !== undefined && (!validText(branchSlug,64) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(branchSlug)))
+    || (branches !== undefined && (!Array.isArray(branches) || branches.length > 20))
     || !Array.isArray(categories) || categories.length > 40
     || !Array.isArray(items) || items.length > 200) {
     throw new Error('Invalid published storefront data');
+  }
+  const branchChoices: BranchChoice[]=[];
+  if(Array.isArray(branches)) {
+    const usedSlugs=new Set<string>();
+    for(const branch of branches) {
+      if(!record(branch) || !validText(branch.name,160) || !validText(branch.slug,64)
+        || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(branch.slug) || usedSlugs.has(branch.slug)) {
+        throw new Error('Invalid published branch list');
+      }
+      branchChoices.push({slug:branch.slug,name:branch.name});
+      usedSlugs.add(branch.slug);
+    }
+    if(typeof branchSlug==='string' && !usedSlugs.has(branchSlug)) throw new Error('Selected branch unavailable');
   }
   const namesById = new Map<string,string>();
   for (const category of categories) {
@@ -87,17 +132,19 @@ export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
   });
   const initials = name.split(/\s+/).slice(0,2).map((word) => word.charAt(0)).join('').toUpperCase();
   return {
-    restaurant: {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,branchName,initials},
+    restaurant: {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,branchName,branchSlug:typeof branchSlug==='string'?branchSlug:'',initials},
+    branches:branchChoices,
     categories:['All',...categories.map((entry:Row) => entry.name as string)],
     menu,
     sample:false,
   };
 }
 
-export async function loadPublishedMenu(slug:string):Promise<StorefrontCatalog|null> {
+export async function loadPublishedMenu(slug:string,branchSlug:string|null=null):Promise<StorefrontCatalog|null> {
   if (!supabase) throw new Error('Menu service is not configured');
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return null;
-  const {data,error} = await supabase.rpc('get_published_storefront',{p_slug:slug});
+  if(branchSlug!==null && (branchSlug.length<2 || branchSlug.length>64 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(branchSlug))) return null;
+  const {data,error} = await supabase.rpc('get_branch_storefront',{p_slug:slug,p_branch_slug:branchSlug});
   if (error) throw new Error('Published menu service unavailable');
   return parsePublishedMenu(data);
 }
