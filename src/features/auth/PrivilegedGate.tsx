@@ -5,7 +5,7 @@ import { clearPendingMfa, getMfaFlow, restartIncompleteMfa, verifyMfa, type MfaF
 
 type Mode = 'admin' | 'restaurant';
 type State = 'checking' | 'signedout' | 'passwordsetup' | 'mfa' | 'authorized' | 'denied' | 'error';
-const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\n\n// Keep the already-authorized workspace mounted through ordinary navigation/remounts.\n// Authorization is still checked on sign-in or identity changes; this only avoids\n// flashing a full-screen access check for the same active browser session.\nconst authorizedSessionByMode = new Map<string, string>();
+const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\n\n// Cache successful access checks for this browser session to prevent loading flashes on navigation.\nconst authorizedSessionByMode = new Map<string, string>();
 
 export function PrivilegedGate({ mode, children }: { mode: Mode; children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -151,12 +151,12 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
           const { data, error } = await client.from('platform_admins').select('user_id')
             .eq('user_id', user.id).eq('is_active', true).maybeSingle();
           if (error) throw error;
-          if (active) {\n            if (data) authorizedSessionByMode.set(`${mode}:${user.id}`, user.id);\n            else authorizedSessionByMode.delete(`${mode}:${user.id}`);\n            setStatus(data ? 'authorized' : 'denied');\n          }
+          if (active) {\n          if (data) authorizedSessionByMode.set(`${mode}:${user.id}`, user.id);\n          else authorizedSessionByMode.delete(`${mode}:${user.id}`);\n          setStatus(data ? 'authorized' : 'denied');\n        }
         } else {
           const { data, error } = await client.from('tenant_memberships')
             .select('id').eq('user_id', user.id).eq('status', 'active').limit(1);
           if (error) throw error;
-          if (active) {\n            const isAuthorized = (data?.length ?? 0) > 0;\n            if (isAuthorized) authorizedSessionByMode.set(`${mode}:${user.id}`, user.id);\n            else authorizedSessionByMode.delete(`${mode}:${user.id}`);\n            setStatus(isAuthorized ? 'authorized' : 'denied');\n          }
+          if (active) {\n          const isAuthorized = (data?.length ?? 0) > 0;\n          if (isAuthorized) authorizedSessionByMode.set(`${mode}:${user.id}`, user.id);\n          else authorizedSessionByMode.delete(`${mode}:${user.id}`);\n          setStatus(isAuthorized ? 'authorized' : 'denied');\n        }
         }
       } catch (err) {
         if (active) { setStatus('error'); setMessage(err instanceof Error ? err.message : 'Authorization check failed.'); }
