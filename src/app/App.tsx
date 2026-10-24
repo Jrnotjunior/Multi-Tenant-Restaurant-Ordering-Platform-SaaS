@@ -3,18 +3,12 @@ import { pathFor, storefrontSlugFromPath, viewForPath, type View } from './route
 import { PrivilegedGate } from '../features/auth/PrivilegedGate';
 import { Storefront } from '../features/storefront/Storefront';
 import { OwnerDashboard } from '../features/management/OwnerDashboard';
-import { AdminDashboard } from '../features/management/AdminDashboard';
 
 const protectedViews = {
   restaurant: {
     label: 'Restaurant Workspace',
     title: 'Restaurant management',
     body: 'Owners and authorized staff will manage their restaurant, kitchen, riders, inventory, recipes and loyalty here.',
-  },
-  admin: {
-    label: 'System Administration',
-    title: 'Platform administration',
-    body: 'Tenant onboarding, subscription management and platform security require a verified system administrator.',
   },
 };
 
@@ -42,9 +36,26 @@ export function App() {
     return <Storefront key={storefrontSlugFromPath(pathname, baseUrl) ?? 'sample'} baseUrl={baseUrl} requestedSlug={storefrontSlugFromPath(pathname, baseUrl)} />;
   }
 
-  const workspaceContent = view === 'restaurant'
-    ? <OwnerDashboard baseUrl={baseUrl} />
-    : <AdminDashboard />;
+  // The System Admin lives in its established, separate repository.
+  // We link there instead of duplicating its implementation or routing its
+  // privileged authentication through the restaurant-owner workspace.
+  if (view === 'admin') {
+    return <div className="app">
+      <header className="topbar"><a className="brand" href={pathFor('home',baseUrl)}>
+        <span className="brandmark">W2T</span> Web2Table</a></header>
+      <main className="content">
+        <p className="eyebrow">WEB2TABLE · SYSTEM ADMIN</p>
+        <h1>System administration has its own application.</h1>
+        <p className="intro">Restaurant platform administration is managed separately from the customer storefront and Restaurant Owner workspace. Sign-in uses its own protected application and the new Web2Table authorization checks.</p>
+        <section className="panel">
+          <p>Existing administrator accounts from the older identity project are not automatically authorized in Web2Table V10. A verified, approved administrator identity and MFA are required.</p>
+          <a className="status-pill" href="https://jrnotjunior.github.io/web2table-system-admin/">Open Web2Table System Admin ↗</a>
+        </section>
+      </main>
+    </div>;
+  }
+
+  const workspaceContent = <OwnerDashboard baseUrl={baseUrl} />;
 
   return <div className="app">
     <header className="topbar">
