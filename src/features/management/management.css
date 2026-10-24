@@ -48,3 +48,10 @@
 .mg-branch-product-heading>div{display:flex;flex-direction:column;gap:4px}
 .mg-branch-product-heading strong{font-size:13px}.mg-branch-product-heading span{color:#a8a2aa;font-size:11px}
 @media(max-width:760px){.mg-branch-row{grid-template-columns:1fr;gap:10px}.mg-branch-actions{justify-content:space-between}}
+
+.mg-photo-row{display:flex;align-items:center;gap:14px;padding:15px 0;border-bottom:1px solid #35353d}
+.mg-photo-thumb{height:80px;width:80px;display:grid;place-items:center;flex-shrink:0;background:#3a3438;border-radius:12px;overflow:hidden;font-size:33px}
+.mg-photo-thumb img{height:100%;width:100%;object-fit:cover}
+.mg-photo-fields{flex:1;min-width:0;display:grid;gap:7px}.mg-photo-fields>strong{font-size:13px}
+.mg-photo-fields input[type=file]{font-size:11px;width:100%;max-width:100%}
+@media(max-width:600px){.mg-photo-row{display:grid;grid-template-columns:70px minmax(0,1fr)}.mg-photo-thumb{height:70px;width:70px}.mg-photo-row>button{grid-column:2;justify-self:start}}

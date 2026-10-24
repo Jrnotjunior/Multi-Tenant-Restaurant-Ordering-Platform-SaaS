@@ -6,6 +6,7 @@ import {
   setPublication,toggleCategory,type Brand,type OwnerData,type Product,type Tenant,
 } from './menuService';
 import './management.css';
+import {ProductExtrasManager} from './ProductExtrasManager';
 
 type ItemDraft = {id:string|null;name:string;description:string;category_id:string;price:string;is_popular:boolean;status:Product['status']};
 const blankItem = (category_id=''):ItemDraft =>
@@ -297,6 +298,8 @@ export function OwnerDashboard({baseUrl}:{baseUrl:string}) {
         </div>
         <p className="mg-hint">Additional branches start inactive and have no available products. Activate only when configured. The initial branch remains the default and cannot be deactivated here.</p>
       </section>
+
+      <ProductExtrasManager key={data.tenant.id} data={data} busy={busy} run={run}/>
 
       <section className="mg-card">
         <div className="mg-card-title"><div><h2>Branch availability</h2><p>Mark which published products are available from each location.</p></div></div>
