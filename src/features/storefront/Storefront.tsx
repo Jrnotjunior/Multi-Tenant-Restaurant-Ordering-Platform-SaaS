@@ -168,6 +168,11 @@ export function Storefront({ baseUrl, requestedSlug }: {
   const [customized,setCustomized]=useState<CustomCart>({});
   const [customizing,setCustomizing]=useState<MenuItem|null>(null);
   const [cartOpen, setCartOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutDetails,setCheckoutDetails]=useState<CheckoutDetails>({
+    customerName:'',phone:'',deliveryAddress:'',deliveryNotes:'',
+  });
+  const [checkoutMessage,setCheckoutMessage]=useState('');
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
