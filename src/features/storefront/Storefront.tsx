@@ -383,9 +383,9 @@ export function Storefront({ baseUrl, requestedSlug }: {
       <section className="sf-footer-social-section" aria-label="Follow the restaurant">
         <h2 className="sf-footer-heading">Follow Us</h2>
         <nav className="sf-footer-socials" aria-label="Social media links">
-          <a className="sf-footer-social-link" href="https://www.facebook.com/" target="_blank" rel="noreferrer" aria-label="Facebook"><span aria-hidden="true">f</span></a>
-          <a className="sf-footer-social-link" href="https://www.instagram.com/" target="_blank" rel="noreferrer" aria-label="Instagram"><span aria-hidden="true">◎</span></a>
-          <a className="sf-footer-social-link" href="https://www.tiktok.com/" target="_blank" rel="noreferrer" aria-label="TikTok"><span aria-hidden="true">♪</span></a>
+          <span className="sf-footer-social-link is-disabled" aria-label="Facebook not configured" aria-disabled="true"><span aria-hidden="true">f</span></span>
+          <span className="sf-footer-social-link is-disabled" aria-label="Instagram not configured" aria-disabled="true"><span aria-hidden="true">◎</span></span>
+          <span className="sf-footer-social-link is-disabled" aria-label="TikTok not configured" aria-disabled="true"><span aria-hidden="true">♪</span></span>
         </nav>
       </section>
       <div className="sf-footer-bottom">
