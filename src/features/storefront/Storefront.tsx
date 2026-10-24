@@ -140,7 +140,6 @@ function MenuCard({ item, quantity, add, customize }: { item: MenuItem; quantity
       {item.popular && <span className="sf-popular">★ Popular</span>}
     </div>
     <div className="sf-card-details">
-      <span className="sf-card-category">{item.category}</span>
       <h3>{item.name}</h3>
       <p>{item.description}</p>
       <div className="sf-card-bottom">
