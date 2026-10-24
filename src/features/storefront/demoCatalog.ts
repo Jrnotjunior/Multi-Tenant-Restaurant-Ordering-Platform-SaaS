@@ -1,5 +1,4 @@
-// Illustrative restaurant data for the UI preview only.
-// Future tenant websites must load a verified, published menu from a trusted backend.
+// Shared storefront menu types and utilities. Restaurant data is loaded from the published tenant catalog.
 export type Category = string;
 export type ModifierOption = Readonly<{id:string;name:string;priceCentavos:number}>;
 export type ModifierGroup = Readonly<{
