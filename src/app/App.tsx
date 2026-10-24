@@ -17,7 +17,9 @@ export function App() {
   const baseUrl = import.meta.env.BASE_URL;
   const [pathname, setPathname] = useState(window.location.pathname);
   const view = viewForPath(pathname, baseUrl);
-  const authMode = pathname.replace(/\\/+$/, '') === baseUrl.replace(/\\/+$/, '') + '/account/sign-up' ? 'sign-up' : pathname.replace(/\\/+$/, '') === baseUrl.replace(/\\/+$/, '') + '/account/sign-in' ? 'sign-in' : null;
+  const cleanPath = pathname.replace(/\/+$/, '');
+  const cleanBase = baseUrl.replace(/\/+$/, '');
+  const authMode = cleanPath === cleanBase + '/account/sign-up' ? 'sign-up' : cleanPath === cleanBase + '/account/sign-in' ? 'sign-in' : null;
 
   useEffect(() => {
     const syncHistory = () => setPathname(window.location.pathname);
