@@ -84,24 +84,22 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .onboarding-card .auth-qr{display:block;margin:18px auto 22px}
 
 
-/* Keep sign out aligned with the primary MFA action width. */
-.onboarding-card .onboarding-signout {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-  margin-top: 12px;
+/* Keep both MFA actions compact and the same width; grid forms otherwise stretch buttons. */
+.onboarding-card .onboarding-mfa-form {
+  justify-items: start;
 }
-
-
-/* Keep the primary MFA action the same compact width as Sign out. */
-.onboarding-card .onboarding-mfa-form .onboarding-mfa-verify {
-  display: flex;
-  width: 100%;
+.onboarding-card .onboarding-mfa-form .onboarding-mfa-verify,
+.onboarding-card .onboarding-signout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
   min-width: 0;
   min-height: 42px;
   height: 42px;
-  padding: 0 14px;
-  align-self: stretch;
+  padding: 0 16px;
+  margin-top: 8px;
+  align-self: start;
   box-sizing: border-box;
   border-radius: 9px;
 }
