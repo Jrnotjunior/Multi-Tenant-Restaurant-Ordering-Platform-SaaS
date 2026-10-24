@@ -228,6 +228,18 @@ export function OwnerMenuPage({ tenantId }: Props) {
   if (loading) {
     return <main className="owner-content"><section className="owner-orders-empty"><h1>Menu</h1><p>Loading products…</p></section></main>;
   }
+  if (!data) {
+    return <main className="owner-content"><section className="owner-orders-empty">
+      <h1>Menu</h1><p role="alert">{error || 'The restaurant menu could not be loaded.'}</p>
+      <button type="button" onClick={() => {
+        setLoading(true);
+        setError('');
+        void loadOwnerDataForTenant(tenantId).then((next) => { setData(next); })
+          .catch((reason: unknown) => setError(formatError(reason)))
+          .finally(() => setLoading(false));
+      }}>Retry</button>
+    </section></main>;
+  }
 
   return (
     <main className="owner-content">
