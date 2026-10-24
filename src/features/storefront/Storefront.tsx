@@ -391,15 +391,14 @@ export function Storefront({ baseUrl, requestedSlug }: {
       </section>}
 
       <section className="sf-hero" aria-label="Restaurant introduction">
-        <span className="sf-hero-eyebrow">WELCOME TO OUR MENU</span>
-        <h1>{restaurant.name}</h1>
+        <h1>{restaurant.heroHeading} <span>{restaurant.heroEmphasis}</span></h1>
         {restaurant.tagline && <p>{restaurant.tagline}</p>}
       </section>
 
       <div className="sf-layout" id="sf-menu">
         <div className="sf-catalog">
           <div className="sf-section-heading">
-            <div><span className="sf-section-kicker">THE GOOD STUFF</span><h2>What are you craving?</h2><p>Browse the published restaurant menu.</p></div>
+            <div><span className="sf-section-kicker">{restaurant.heroHeading}</span><h2>{restaurant.heroEmphasis}</h2>{restaurant.tagline && <p>{restaurant.tagline}</p>}</div>
             <span className="sf-menu-count">{results.length} {results.length === 1 ? 'item' : 'items'}</span>
           </div>
           <div className="sf-search-wrap">
