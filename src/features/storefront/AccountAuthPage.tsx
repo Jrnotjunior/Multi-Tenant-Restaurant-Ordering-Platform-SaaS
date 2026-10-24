@@ -1,10 +1,11 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '../../lib/supabase';
-import { normalizeAppBase } from '../../app/routes';
+import { normalizeAppBase, restaurantMenuPath } from '../../app/routes';
+import { loadPublishedMenu } from './publishedMenu';
 
 type AuthMode = 'sign-in' | 'sign-up';
 
-export function AccountAuthPage({ mode, baseUrl }: { mode: AuthMode; baseUrl: string }) {
+export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthMode; baseUrl: string; restaurantSlug: string | null }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -14,6 +15,8 @@ export function AccountAuthPage({ mode, baseUrl }: { mode: AuthMode; baseUrl: st
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(false);
   const [resetMode, setResetMode] = useState(false);
+  const [tenantLogo, setTenantLogo] = useState<string | null>(null);
+  const [tenantName, setTenantName] = useState<string | null>(null);
   const isSignUp = mode === 'sign-up';
   const passwordRules = [
     { label: 'At least 8 characters', valid: password.length >= 8 },
@@ -24,6 +27,23 @@ export function AccountAuthPage({ mode, baseUrl }: { mode: AuthMode; baseUrl: st
   ];
   const passwordMeetsStandard = passwordRules.every(rule => rule.valid);
   const base = normalizeAppBase(baseUrl);
+  const backToMenu = restaurantSlug ? restaurantMenuPath(restaurantSlug, baseUrl) : base;
+
+  useEffect(() => {
+    let active = true;
+    setTenantLogo(null);
+    setTenantName(null);
+    if (!restaurantSlug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(restaurantSlug)) return () => { active = false; };
+    void loadPublishedMenu(restaurantSlug).then(catalog => {
+      if (active && catalog && !catalog.sample) {
+        setTenantLogo(catalog.restaurant.logoUrl);
+        setTenantName(catalog.restaurant.name);
+      }
+    }).catch(() => {
+      // Branding is optional on auth pages; a missing/unpublished logo uses the clean fallback.
+    });
+    return () => { active = false; };
+  }, [restaurantSlug]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -129,7 +149,7 @@ export function AccountAuthPage({ mode, baseUrl }: { mode: AuthMode; baseUrl: st
         <button type="submit" disabled={busy}>{busy ? 'Please wait…' : resetMode ? 'Send reset link' : isSignUp ? 'Create account' : 'Sign in'}</button>
       </form>
       <p className="sf-auth-switch">
-        {resetMode ? <button className="sf-auth-text-button" type="button" onClick={() => { setResetMode(false); setMessage(''); setSuccess(false); }}>Back to sign in</button> : <>{isSignUp ? 'Already have an account? ' : "Don't have an account? "}<a href={base + (isSignUp ? 'account/sign-in' : 'account/sign-up')}>{isSignUp ? 'Sign in' : 'Sign up'}</a></>}
+        {resetMode ? <button className="sf-auth-text-button" type="button" onClick={() => { setResetMode(false); setMessage(''); setSuccess(false); }}>Back to sign in</button> : <>{isSignUp ? 'Already have an account? ' : "Don't have an account? "}<a href={base + (isSignUp ? 'account/sign-in' : 'account/sign-up') + (restaurantSlug ? '?restaurant=' + encodeURIComponent(restaurantSlug) : '')}>{isSignUp ? 'Sign in' : 'Sign up'}</a></>}
       </p>
       <p className="sf-auth-legal">By continuing, you agree to the restaurant's applicable terms and privacy policy.</p>
     </section>
