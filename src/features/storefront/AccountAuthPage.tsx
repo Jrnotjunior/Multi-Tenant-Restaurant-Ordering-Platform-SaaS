@@ -41,7 +41,7 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
     setTenantName(null);
     if (!slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return () => { active = false; };
     void loadPublishedMenu(slug).then(catalog => {
-      if (active && catalog && !catalog.sample) {
+      if (active && catalog) {
         setTenantLogo(catalog.restaurant.logoUrl);
         setTenantName(catalog.restaurant.name);
       }
