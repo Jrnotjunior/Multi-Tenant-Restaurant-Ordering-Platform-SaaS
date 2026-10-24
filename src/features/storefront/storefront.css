@@ -115,7 +115,7 @@
 .sf-no-results h3{font-size:17px;margin:10px 0}
 .sf-no-results p{color:var(--sf-muted,#526782);font-size:12px}
 .sf-no-results button,.sf-continue{border:0;background:var(--sf-primary-button,#101B2F);color:var(--sf-primary-button-font,#FFFFFF);padding:12px 20px;border-radius:100px;margin-top:10px;font-weight:800;font-size:12px}
-.sf-main{flex:1 0 auto;width:100%;box-sizing:border-box}.sf-footer{flex:0 0 auto;width:100%;box-sizing:border-box;margin-top:auto;border-top:1px solid var(--sf-border);background:var(--sf-footer-background,#101B2F);color:var(--sf-footer-font,#FFFFFF);padding:10px clamp(16px,4vw,48px) 9px}
+.sf-main{flex:1 0 auto;width:min(900px,calc(100% - 2rem));max-width:900px;box-sizing:border-box}.sf-footer{flex:0 0 auto;width:100%;box-sizing:border-box;margin-top:auto;border-top:1px solid var(--sf-border);background:var(--sf-footer-background,#101B2F);color:var(--sf-footer-font,#FFFFFF);padding:10px clamp(16px,4vw,48px) 9px}
 .sf-footer-social-section{display:flex;flex-direction:column;align-items:center;gap:5px;padding:0 0 8px}
 .sf-footer-heading{margin:0;color:inherit;font-size:15px;font-weight:650;letter-spacing:-.02em}
 .sf-footer-socials{display:flex;align-items:center;justify-content:center;gap:11px}
@@ -206,7 +206,7 @@
 .sf-storefront.sf-font-rounded h1,.sf-storefront.sf-font-rounded h2,.sf-storefront.sf-font-rounded h3,.sf-storefront.sf-font-rounded h4,.sf-storefront.sf-font-rounded h5,.sf-storefront.sf-font-rounded h6,.sf-storefront.sf-font-rounded .sf-logo-mark,.sf-storefront.sf-font-rounded .sf-logo-name strong{font-family:var(--font-body)}
 .sf-storefront.sf-font-classic{font-family:var(--font-heading)}
 .sf-storefront.sf-font-classic h1,.sf-storefront.sf-font-classic h2,.sf-storefront.sf-font-classic h3,.sf-storefront.sf-font-classic h4,.sf-storefront.sf-font-classic h5,.sf-storefront.sf-font-classic h6,.sf-storefront.sf-font-classic .sf-logo-mark,.sf-storefront.sf-font-classic .sf-logo-name strong{font-family:var(--font-heading)}
-.sf-logo-image{display:block;flex:0 0 auto;width:46px;height:46px;object-fit:contain;border-radius:10px}
+.sf-logo-image{display:block;flex:0 0 auto;width:46px;height:46px;max-width:46px;max-height:46px;object-fit:contain;border-radius:10px}
 @media(max-width:680px){.sf-logo-image{width:39px;height:39px}}
 
 
