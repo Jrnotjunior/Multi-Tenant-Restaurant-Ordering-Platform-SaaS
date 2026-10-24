@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { cartCount, cartLines, cartSubtotal, updateCart, type Cart } from './cart';
 import {addCustom,changeCustom,customCount,customLines,customSubtotal,type CustomCart,type Selection} from './customCart';
 import {CustomizeDialog} from './CustomizeDialog';
-import { demoRestaurant, filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
-import { branchSlugFromSearch, getSampleCatalog, loadPublishedMenu, sampleCatalog, type StorefrontCatalog } from './publishedMenu';
+import { filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
+import { branchSlugFromSearch, loadPublishedMenu, type StorefrontCatalog } from './publishedMenu';
 import { normalizeAppBase, restaurantMenuPath } from '../../app/routes';
 import './storefront.css';
 
@@ -160,11 +160,11 @@ function MenuCard({ item, quantity, add, customize }: { item: MenuItem; quantity
 export function Storefront({ baseUrl, requestedSlug }: {
   baseUrl: string; requestedSlug: string | null;
 }) {
-  const isSample = requestedSlug === null || requestedSlug === demoRestaurant.slug;
+  const isSample = requestedSlug === null;
   const [selectedBranch, setSelectedBranch] = useState<string|null>(() => branchSlugFromSearch(window.location.search));
   const [remoteCatalog, setRemoteCatalog] = useState<StorefrontCatalog | null>(null);
   const [loadStatus, setLoadStatus] = useState<'loading'|'ready'|'unavailable'>(
-    isSample ? 'ready' : 'loading'
+    isSample ? 'unavailable' : 'loading'
   );
   const [category, setCategory] = useState<Category>('All');
   const [query, setQuery] = useState('');
@@ -195,10 +195,10 @@ export function Storefront({ baseUrl, requestedSlug }: {
 
   useEffect(() => {
     let active = true;
-    if (isSample) { setLoadStatus('ready'); return; }
+    if (!requestedSlug) { setRemoteCatalog(null); setLoadStatus('unavailable'); return; }
     setLoadStatus('loading');
     setRemoteCatalog(null);
-    void loadPublishedMenu(requestedSlug ?? '',selectedBranch).then((result) => {
+    void loadPublishedMenu(requestedSlug,selectedBranch).then((result) => {
       if (!active) return;
       setRemoteCatalog(result);
       setLoadStatus(result ? 'ready' : 'unavailable');
@@ -206,10 +206,10 @@ export function Storefront({ baseUrl, requestedSlug }: {
     return () => { active = false; };
   }, [requestedSlug, isSample, selectedBranch]);
 
-  const catalog = isSample ? getSampleCatalog(selectedBranch) : remoteCatalog;
+  const catalog = remoteCatalog;
   const menu = catalog?.menu ?? [];
   const categories = catalog?.categories ?? ['All'];
-  const restaurant = catalog?.restaurant ?? sampleCatalog.restaurant;
+  const restaurant = catalog?.restaurant;
   const results = useMemo(() => filterMenu(menu, category, query), [menu, category, query]);
   const count = cartCount(cart, menu)+customCount(customized,menu);
   const subtotal = cartSubtotal(cart, menu)+customSubtotal(customized,menu);
@@ -254,13 +254,12 @@ export function Storefront({ baseUrl, requestedSlug }: {
         <h1>{loadStatus === 'loading' ? 'Loading restaurant menu…' : 'Restaurant menu unavailable'}</h1>
         <p>{loadStatus === 'loading'
           ? 'Checking for a published restaurant menu.'
-          : 'This restaurant has no public menu available. Check the restaurant link or try again later.'}</p>
-        <a href={normalizeAppBase(baseUrl)} className="sf-back-link">
-          View sample menu <ArrowIcon /></a>
+          : (requestedSlug ? 'This restaurant has no published menu available. Check the restaurant link or try again later.' : 'No restaurant has been published yet. Once System Admin creates a tenant and its owner publishes a menu, the storefront will appear here.')}</p>
       </main>
     </div>;
   }
 
+  if (!restaurant) return null;
   const tenantFontClass = restaurant.fontFamily === 'classic' ? ' sf-font-classic' : restaurant.fontFamily === 'rounded' ? ' sf-font-rounded' : ' sf-font-modern';
   return <div className={'sf-storefront' + tenantFontClass} style={{ '--sf-red':restaurant.primaryColor } as CSSProperties}>
     <a className="sf-skip-link" href="#sf-menu">Skip to menu</a>
