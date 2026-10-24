@@ -278,11 +278,14 @@ export function Storefront({ baseUrl, requestedSlug }: {
             <button type="button" className="sf-account-button" aria-label="Customer account options" title="Customer account" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(open => !open)}>
               <AccountIcon/>
             </button>
-            {accountMenuOpen && <div className="sf-account-menu" role="menu" aria-label="Customer account">
-              <a role="menuitem" href={baseUrl + 'legal'} onClick={() => setAccountMenuOpen(false)}>Legal</a>
-              <a role="menuitem" href={baseUrl + 'account/sign-in'} onClick={() => setAccountMenuOpen(false)}>Sign in</a>
-              <a role="menuitem" href={baseUrl + 'account/sign-up'} onClick={() => setAccountMenuOpen(false)}>Sign up</a>
-              <button role="menuitem" type="button" onClick={() => { setAccountMenuOpen(false); window.location.assign(baseUrl + 'account/sign-in'); }}>Log out</button>
+            {accountMenuOpen && <div className="sf-account-menu" role="menu" aria-label="Your account">
+              <div className="sf-account-menu-heading">
+                <strong>Your account</strong>
+                <span>Sign in or review our policies.</span>
+              </div>
+              <a role="menuitem" href={baseUrl + 'legal'} onClick={() => setAccountMenuOpen(false)}>Legal &amp; Policies</a>
+              <a role="menuitem" href={baseUrl + 'account/sign-in'} onClick={() => setAccountMenuOpen(false)}>Log in</a>
+              <a role="menuitem" href={baseUrl + 'account/sign-up'} onClick={() => setAccountMenuOpen(false)}>Register</a>
             </div>}
           </div>
         </nav>
