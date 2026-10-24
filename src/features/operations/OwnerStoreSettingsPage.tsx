@@ -86,7 +86,15 @@ function normalizeHours(value: unknown): OperatingHours {
 }
 function normalizeMethods(value: unknown): OnlinePaymentMethods {
   const source = asObject(value);
-  return Object.fromEntries(Object.keys(DEFAULT_METHODS).map(key => [key, source[key] === true])) as unknown as OnlinePaymentMethods;
+  return {
+    card: source.card === true,
+    gcash: source.gcash !== false,
+    qrph: source.qrph !== false,
+    grab_pay: source.grab_pay !== false,
+    paymaya: source.paymaya !== false,
+    dob: source.dob !== false,
+    billease: source.billease === true,
+  };
 }
 function normalizeOnlinePayments(value: unknown): OnlinePayments {
   const source = asObject(value);
@@ -297,6 +305,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
     {message && <div className="w2t-settings-feedback success" role="status"><strong>Changes saved</strong><p>{message}</p></div>}
     <form className="w2t-settings-form" onSubmit={(event: FormEvent) => { event.preventDefault(); if (canSave) setConfirmOpen(true); }}>
       {activeTab === 'profile' && <section className="w2t-settings-card" role="tabpanel">
+        <p className="w2t-settings-help w2t-settings-profile-intro">Update the customer-facing profile for {row.display_name ?? restaurantName ?? 'your restaurant'}.</p>
         <label className="w2t-setting-field"><span>Restaurant address</span><input type="text" maxLength={500} value={restaurantAddress} disabled={saving} placeholder="Enter the address customers should see" onChange={event => { setRestaurantAddress(event.target.value); setMessage(''); setError(''); }} /><small>This is the pickup address shown to customers. Set delivery routing location under Delivery pricing.</small></label>
         <label className="w2t-setting-field"><span>Restaurant tagline</span><input type="text" maxLength={120} value={tagline} disabled={saving} placeholder="Enter your restaurant tagline" onChange={event => { setTagline(event.target.value); setMessage(''); setError(''); }} /></label>
       </section>}
