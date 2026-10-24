@@ -3,6 +3,7 @@ import { OperationalDashboard, type StaffWorkspaceRole } from './OperationalDash
 import { OwnerAppShell } from './OwnerAppShell';
 import { OwnerBrandingPage } from './OwnerBrandingPage';
 import { OwnerOrdersPage } from './OwnerOrdersPage';
+import { OwnerMenuPage } from './OwnerMenuPage';
 import { OwnerStoreSettingsPage } from './OwnerStoreSettingsPage';
 import { OwnerSectionPage } from './OwnerSectionPage';
 import { ownerNavGroups, type OwnerPage } from './ownerWorkspaceConfig';
@@ -82,6 +83,8 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
   let pageContent;
   if (ownerPage === 'orders') {
     pageContent = <OwnerOrdersPage filter={orderFilter} onFilterChange={setOrderFilter} />;
+  } else if (ownerPage === 'menu') {
+    pageContent = <OwnerMenuPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
   } else if (ownerPage === 'settings') {
     pageContent = <OwnerStoreSettingsPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
   } else if (ownerPage === 'branding') {
