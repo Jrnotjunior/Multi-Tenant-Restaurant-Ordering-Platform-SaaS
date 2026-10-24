@@ -113,3 +113,11 @@
 .owner-branding-actions button:disabled{opacity:.65;cursor:wait}
 .owner-branding-message{font-size:12px;color:#526782;margin:12px 0}
 @media(max-width:760px){.owner-branding-social,.owner-branding-colors{grid-template-columns:1fr}.owner-branding-panel{padding:12px}.owner-branding-tabs{gap:18px}}
+
+/* Store Settings module uses the shared settings controls. */
+.owner-settings-toggle{display:flex;align-items:center;gap:10px;margin-top:18px;color:#102039;font-size:12px;font-weight:750}
+.owner-settings-toggle input{width:17px;height:17px;accent-color:#102039}
+.owner-settings-note{margin-top:14px;padding:12px;border:1px solid #dce5f0;border-radius:8px;background:#f7f9fc;color:#657791;font-size:12px;line-height:1.6}
+.owner-store-settings .owner-branding-panel h2{margin:0 0 8px;color:#102039;font-size:15px}
+.owner-store-settings .owner-branding-panel>p{color:#657791;font-size:12px;line-height:1.6}
+.owner-store-settings .owner-branding-input select{width:100%;border:1px solid #d7e0ec;border-radius:8px;background:#fff;color:#102039;padding:11px;font:inherit;font-size:12px;box-sizing:border-box}
