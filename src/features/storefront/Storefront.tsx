@@ -334,24 +334,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
     </header>
 
     <main className="sf-main">
-      <section className="sf-hero" aria-labelledby="sf-hero-title">
-        <div className="sf-hero-copy">
-          <span className="sf-hero-eyebrow"><span aria-hidden="true">✦</span> FRESH FROM OUR KITCHEN</span>
-          <div className="sf-hero-restaurant-name">{restaurant.name}</div>
-          {restaurant.tagline && <p className="sf-hero-tagline">{restaurant.tagline}</p>}
-          <h1 id="sf-hero-title">{restaurant.heroHeading} <em>{restaurant.heroEmphasis}</em></h1>
-          <p>Freshly prepared favorites, made for your cravings.</p>
-          <a className="sf-hero-action" href="#sf-menu">Explore the menu <ArrowIcon /></a>
-        </div>
-        <div className="sf-hero-decor" aria-hidden="true">
-          <span className="sf-orbit-one" />
-          <span className="sf-orbit-two" />
-          <span className="sf-hero-spark sf-spark-one">✦</span>
-          <span className="sf-hero-spark sf-spark-two">✧</span>
-          <div className="sf-hero-plate"><span>🍜</span></div>
-          <div className="sf-hero-sticker">MADE WITH<br/>LOVE<span>♥</span></div>
-        </div>
-      </section>
+
 
 
       {catalog.branches.length > 1 && <section className="sf-branch-selector" aria-label="Choose restaurant branch">
