@@ -17,9 +17,9 @@ describe('mobile-first customer storefront data', () => {
   });
   it('filters by both category and item search terms', () => {
     expect(filterMenu(menu, 'Rice Meals', 'chicken').map((item) => item.id)).toEqual(['inasal']);
-    expect(filterMenu(demoMenu, 'Drinks', 'MANGO').map((item) => item.id)).toEqual(['mango']);
-    expect(filterMenu(demoMenu, 'All', 'does-not-exist')).toEqual([]);
-    expect(filterMenu(demoMenu, 'All', '  sisig ')).toHaveLength(1);
+    expect(filterMenu(menu, 'Drinks', 'MANGO').map((item) => item.id)).toEqual(['mango']);
+    expect(filterMenu(menu, 'All', 'does-not-exist')).toEqual([]);
+    expect(filterMenu(menu, 'All', '  sisig ')).toHaveLength(1);
   });
   it('calculates integer centavo totals and lets people remove items', () => {
     let cart = updateCart({}, 'inasal', 1, menu);
@@ -28,7 +28,7 @@ describe('mobile-first customer storefront data', () => {
     expect(cartSubtotal(cart, menu)).toBe(18900 + 9900 * 2);
     expect(cartLines(cart, menu)).toHaveLength(2);
     cart = updateCart(cart, 'inasal', -1, menu);
-    expect(cartCount(cart)).toBe(2);
+    expect(cartCount(cart, menu)).toBe(2);
     expect(cart.inasal).toBeUndefined();
   });
   it('rejects invalid items and clamps quantities', () => {
