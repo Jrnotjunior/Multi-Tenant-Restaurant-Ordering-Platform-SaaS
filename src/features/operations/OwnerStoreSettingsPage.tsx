@@ -240,11 +240,13 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
       const parsedDistance = Number(delivery.distanceIncrementMeters);
       const parsedPerIncrement = Number(delivery.feePerIncrement);
       const parsedMaxDistanceKm = Number(delivery.maxDistanceKm);
-      if (!Number.isFinite(parsedBase) || parsedBase < 0 || !Number.isFinite(parsedDistance) || parsedDistance <= 0 ||
-        !Number.isFinite(parsedPerIncrement) || parsedPerIncrement < 0 || !Number.isFinite(parsedMaxDistanceKm) || parsedMaxDistanceKm <= 0) {
-        throw new Error('Enter valid delivery pricing values. Fees cannot be negative and distances must be greater than zero.');
+      if (activeTab === 'delivery') {
+        if (!Number.isFinite(parsedBase) || parsedBase < 0 || !Number.isFinite(parsedDistance) || parsedDistance <= 0 ||
+          !Number.isFinite(parsedPerIncrement) || parsedPerIncrement < 0 || !Number.isFinite(parsedMaxDistanceKm) || parsedMaxDistanceKm <= 0) {
+          throw new Error('Enter valid delivery pricing values. Fees cannot be negative and distances must be greater than zero.');
+        }
+        if ((latitude === null) !== (longitude === null)) throw new Error('Select an exact store location on the map before saving delivery settings.');
       }
-      if ((latitude === null) !== (longitude === null)) throw new Error('Select an exact store location on the map before saving delivery settings.');
 
       const currentHours = Object.fromEntries(DAYS.map(({ key }) => [key, {
         isOpen: Boolean(hours[key].isOpen),
