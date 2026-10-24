@@ -373,3 +373,7 @@
   .restaurant-management-product-card .product-card-image,.restaurant-management-product-card .product-card-image-placeholder{width:140px;height:140px}
   .restaurant-management-product-icon{width:32px;height:32px;min-height:32px}
 }
+
+.w2t-map-picker-crash{padding:14px;border:1px solid #FECACA;border-radius:10px;background:#FEF2F2;color:#991B1B;font-size:12px;line-height:1.55}
+.w2t-map-picker-crash p{margin:5px 0 11px}
+.w2t-map-picker-crash button{min-height:34px;border:1px solid #DCE3ED;border-radius:8px;padding:7px 11px;background:#FFFFFF;color:#263754;font-size:11px;font-weight:750;cursor:pointer}
