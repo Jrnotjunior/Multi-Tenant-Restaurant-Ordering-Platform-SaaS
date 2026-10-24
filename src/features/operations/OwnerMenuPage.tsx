@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import {
   deleteMenuItem, getOrCreateMenuCategory, loadOwnerDataForTenant, publicMenuPhoto,
   saveItem, setBranchItem, uploadMenuPhoto, type OwnerData, type Product,
@@ -9,7 +9,7 @@ type ProductForm = { name: string; description: string; price: string; categoryN
 const emptyForm: ProductForm = { name: '', description: '', price: '', categoryName: '' };
 const formatError = (error: unknown) => error instanceof Error ? error.message : 'Unable to save the menu change.';
 
-export function OwnerMenuPage({ tenantId, restaurantName }: Props) {
+export function OwnerMenuPage({ tenantId }: Props) {
   const [data, setData] = useState<OwnerData | null>(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showUnavailable, setShowUnavailable] = useState(true);
@@ -26,21 +26,21 @@ export function OwnerMenuPage({ tenantId, restaurantName }: Props) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteProductTarget, setDeleteProductTarget] = useState<Product | null>(null);
 
-  async function fetchMenu(): Promise<OwnerData> {
-    return loadOwnerDataForTenant(tenantId);
-  }
-
   useEffect(() => {
     let active = true;
     setLoading(true);
     setError('');
-    fetchMenu().then((next) => {
-      if (active) setData(next);
-    }).catch((reason: unknown) => {
-      if (active) setError(formatError(reason));
-    }).finally(() => {
-      if (active) setLoading(false);
-    });
+    async function loadMenu() {
+      try {
+        const next = await loadOwnerDataForTenant(tenantId);
+        if (active) setData(next);
+      } catch (reason) {
+        if (active) setError(formatError(reason));
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    void loadMenu();
     return () => { active = false; };
   }, [tenantId]);
 
@@ -63,22 +63,20 @@ export function OwnerMenuPage({ tenantId, restaurantName }: Props) {
     return product.status === 'published' && category?.is_published === true && branchAssignment(product)?.is_available === true;
   };
 
-  const filteredProducts = useMemo(() => {
-    const query = searchProduct.trim().toLowerCase();
-    return products.filter((product) => {
-      const categoryMatch = selectedCategory === 'all' || product.category_id === selectedCategory;
-      const availabilityMatch = showUnavailable || isAvailable(product);
-      const category = categories.find((item) => item.id === product.category_id);
-      const searchMatch = !query
-        || product.name.toLowerCase().includes(query)
-        || product.description.toLowerCase().includes(query)
-        || Boolean(category?.name.toLowerCase().includes(query));
-      return categoryMatch && availabilityMatch && searchMatch;
-    });
-  }, [products, categories, selectedCategory, showUnavailable, searchProduct, data]);
+  const query = searchProduct.trim().toLowerCase();
+  const filteredProducts = products.filter((product) => {
+    const categoryMatch = selectedCategory === 'all' || product.category_id === selectedCategory;
+    const availabilityMatch = showUnavailable || isAvailable(product);
+    const category = categories.find((item) => item.id === product.category_id);
+    const searchMatch = !query
+      || product.name.toLowerCase().includes(query)
+      || product.description.toLowerCase().includes(query)
+      || Boolean(category?.name.toLowerCase().includes(query));
+    return categoryMatch && availabilityMatch && searchMatch;
+  });
 
   async function refreshMenu() {
-    const next = await fetchMenu();
+    const next = await loadOwnerDataForTenant(tenantId);
     setData(next);
   }
 
@@ -157,7 +155,7 @@ export function OwnerMenuPage({ tenantId, restaurantName }: Props) {
       for (const branch of branchesToAssign) {
         const existing = data.assignments.find((assignment) => assignment.branch_id === branch.id && assignment.item_id === itemId);
         const available = existing ? existing.is_available : true;
-        await setBranchItem(tenantId, branch.id, itemId, available);
+        await setBranchItem(tenantId, branch.id, itemId, available, existing?.price_override_centavos ?? null);
       }
       await refreshMenu();
       setEditingProduct(null);
