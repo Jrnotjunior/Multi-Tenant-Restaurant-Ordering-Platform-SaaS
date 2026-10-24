@@ -277,6 +277,8 @@ export function Storefront({ baseUrl, requestedSlug }: {
     <main className="sf-main">
       <section className="sf-hero" aria-labelledby="sf-hero-title">
         <div className="sf-hero-copy">
+          <div className="sf-hero-restaurant-name">{restaurant.name}</div>
+          {restaurant.tagline && <p className="sf-hero-tagline">{restaurant.tagline}</p>}
           <h1 id="sf-hero-title">{restaurant.heroHeading}<br/><em>{restaurant.heroEmphasis}</em></h1>
         </div>
       </section>
