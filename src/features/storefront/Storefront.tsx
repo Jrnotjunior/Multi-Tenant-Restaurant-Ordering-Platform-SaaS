@@ -390,6 +390,12 @@ export function Storefront({ baseUrl, requestedSlug }: {
         </label>
       </section>}
 
+      <section className="sf-hero" aria-label="Restaurant introduction">
+        <span className="sf-hero-eyebrow">WELCOME TO OUR MENU</span>
+        <h1>{restaurant.name}</h1>
+        {restaurant.tagline && <p>{restaurant.tagline}</p>}
+      </section>
+
       <div className="sf-layout" id="sf-menu">
         <div className="sf-catalog">
           <div className="sf-section-heading">
