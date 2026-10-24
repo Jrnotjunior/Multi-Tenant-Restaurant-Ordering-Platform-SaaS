@@ -8,7 +8,7 @@
 .sf-skip-link{position:absolute;left:12px;top:-100px;background:var(--sf-product-card,#FFFFFF);color:var(--sf-font-color,#101B2F);padding:12px;z-index:100}
 .sf-skip-link:focus{top:12px}
 .sf-header{background:var(--sf-header-color,#FFFFFF);border-bottom:1px solid var(--sf-border);position:sticky;top:0;z-index:20;box-shadow:0 3px 20px rgba(30,20,15,.025)}
-.sf-header-inner{max-width:815px;margin:auto;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;min-height:76px;gap:16px}
+.sf-header-inner{max-width:1120px;margin:auto;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;min-height:76px;gap:16px}
 .sf-logo{display:flex;align-items:center;gap:11px;color:var(--sf-ink);text-decoration:none;min-width:0}
 .sf-logo-mark{display:grid;place-items:center;background:var(--sf-primary-button,#101B2F);color:var(--sf-primary-button-font,#FFFFFF);width:46px;height:46px;border-radius:14px;letter-spacing:-.05em;font-size:17px;font-weight:850;flex-shrink:0}
 .sf-logo-name{display:flex;flex-direction:column;line-height:1.3;gap:2px}
@@ -22,7 +22,7 @@
 .sf-account-button{display:grid;place-items:center;width:40px;height:44px;padding:0;border:0;background:transparent;color:var(--sf-header-icon,#101B2F);border-radius:10px;cursor:pointer}.sf-account-button:hover{background:var(--sf-soft)}.sf-account-button:focus-visible{outline:2px solid var(--sf-red);outline-offset:2px}
 .sf-account-wrap{position:relative;display:flex;align-items:center}.sf-account-menu{position:absolute;top:calc(100% + 8px);right:0;z-index:50;width:292px;max-width:calc(100vw - 24px);padding:0;background:var(--sf-product-card,#FFFFFF);border:1px solid var(--sf-border);border-radius:16px;box-shadow:0 12px 32px rgba(38,24,20,.14);display:flex;flex-direction:column;overflow:hidden}.sf-account-menu-heading{display:flex;flex-direction:column;gap:3px;padding:18px 20px;border-bottom:1px solid var(--sf-border)}.sf-account-menu-heading strong{font-size:14px;font-weight:800;color:var(--sf-ink)}.sf-account-menu-heading span{font-size:13px;font-weight:400;color:var(--sf-muted,#526782)}.sf-account-menu a,.sf-account-menu button{display:flex;align-items:center;width:100%;min-height:48px;padding:12px 20px;border:0;border-radius:0;background:transparent;color:var(--sf-ink);font-size:14px;font-weight:650;text-align:left;text-decoration:none;white-space:nowrap}.sf-account-menu a:hover,.sf-account-menu button:hover{background:var(--sf-page-background,#F7F9FC)}.sf-account-menu a:focus-visible,.sf-account-menu button:focus-visible{outline:2px solid var(--sf-red);outline-offset:-2px}
 .sf-bag-count{display:grid;place-items:center;background:var(--sf-primary-button,#101B2F);color:var(--sf-primary-button-font,#FFFFFF);width:23px;height:23px;border-radius:100%;font-size:11px}
-.sf-main{max-width:815px;padding:26px 0 72px;margin:0 auto}
+.sf-main{width:min(900px,calc(100% - 2rem));max-width:900px;padding:26px 0 72px;margin:0 auto}
 .sf-hero{display:grid;grid-template-columns:1fr .8fr;min-height:250px;border-radius:24px;overflow:hidden;background:var(--sf-hero-color,#F7F9FC);position:relative;color:var(--sf-font-color,#101B2F);isolation:isolate}
 .sf-hero-copy{position:relative;z-index:2;padding:30px clamp(24px,4vw,52px);display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
 .sf-hero-restaurant-name{font-size:clamp(18px,2vw,25px);font-weight:800;line-height:1.15;letter-spacing:-.035em;color:var(--sf-font-color,#101B2F);margin-bottom:6px}
