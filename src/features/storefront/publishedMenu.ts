@@ -12,6 +12,8 @@ export type StorefrontCatalog = Readonly<{
     heroHeading: string;
     heroEmphasis: string;
     primaryColor: string;
+    logoUrl: string | null;
+    fontFamily: 'modern' | 'rounded' | 'classic';
     branchName: string;
     branchSlug: string;
   };
@@ -34,6 +36,8 @@ export const sampleCatalog: StorefrontCatalog = {
     heroHeading: 'Good food.',
     heroEmphasis: 'Great cravings.',
     primaryColor: '#ad2935',
+    logoUrl: null,
+    fontFamily: 'modern',
     branchName: 'Sample Main',
   },
   categories: ['All', 'Rice Meals', 'Burgers', 'Sides', 'Drinks', 'Desserts'],
@@ -110,16 +114,27 @@ function getImageUrl(path:unknown):string|undefined {
   return supabase.storage.from('menu-images').getPublicUrl(path).data.publicUrl;
 }
 
+
+function getLogoUrl(path:unknown):string|null {
+  if(path==null)return null;
+  if(typeof path!=='string' || !/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(?:jpg|jpeg|png|webp)$/.test(path))
+    throw new Error('Invalid published restaurant logo path');
+  if(!supabase)return null;
+  return supabase.storage.from('storefront-logos').getPublicUrl(path).data.publicUrl;
+}
+
 /** Parse and whitelist RPC output; never substitute preview items for a live tenant. */
 export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
   if (value === null) return null;
   if (!record(value)) throw new Error('Invalid published storefront response');
-  const {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,branchName,branchSlug,branches,categories,items} = value;
+  const {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,logoPath,fontFamily,branchName,branchSlug,branches,categories,items} = value;
   if (!validText(slug,64) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)
     || !validText(name,160) || !validText(heroHeading,90)
     || !validText(heroEmphasis,90) || !validText(branchName,160)
     || typeof tagline !== 'string' || tagline.length > 300
     || typeof primaryColor !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(primaryColor)
+    || (logoPath!==null && logoPath!==undefined && typeof logoPath!=='string')
+    || (fontFamily!==undefined && !['modern','rounded','classic'].includes(String(fontFamily)))
     || (branchSlug !== undefined && (!validText(branchSlug,64) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(branchSlug)))
     || (branches !== undefined && (!Array.isArray(branches) || branches.length > 20))
     || !Array.isArray(categories) || categories.length > 40
@@ -168,7 +183,7 @@ export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
   });
   const initials = name.split(/\s+/).slice(0,2).map((word) => word.charAt(0)).join('').toUpperCase();
   return {
-    restaurant: {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,branchName,branchSlug:typeof branchSlug==='string'?branchSlug:'',initials},
+    restaurant: {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,logoUrl:getLogoUrl(logoPath),fontFamily:(fontFamily==='rounded'||fontFamily==='classic'?fontFamily:'modern'),branchName,branchSlug:typeof branchSlug==='string'?branchSlug:'',initials},
     branches:branchChoices,
     categories:['All',...categories.map((entry:Row) => entry.name as string)],
     menu,
