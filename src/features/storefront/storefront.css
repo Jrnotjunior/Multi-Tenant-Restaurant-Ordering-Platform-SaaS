@@ -1,6 +1,6 @@
 
 /* Storefront uses the same default design tokens as the rest of Web2Table. */
-.sf-storefront{--sf-ink:var(--color-text,#101B2F);--sf-muted:var(--color-muted,#526782);--sf-red:var(--color-sidebar,#101B2F);--sf-red-dark:var(--color-active,#263754);--sf-border:var(--color-border,#DCE3ED);--sf-soft:#EEF2F8;min-height:100vh;background:var(--color-page,#F7F9FC);color:var(--sf-ink);font-family:var(--font-body);line-height:1.45}
+.sf-storefront{--sf-ink:var(--sf-font-color,var(--color-text,#101B2F));--sf-muted:var(--color-muted,#526782);--sf-red:var(--sf-primary-button,var(--color-sidebar,#101B2F));--sf-red-dark:var(--sf-secondary-button,var(--color-active,#263754));--sf-border:var(--color-border,#DCE3ED);--sf-soft:var(--sf-page-background,var(--color-page,#F7F9FC));min-height:100vh;background:var(--sf-page-background,var(--color-page,#F7F9FC));color:var(--sf-font-color,var(--color-text,#101B2F));font-family:var(--font-body);line-height:1.45}
 .sf-storefront button,.sf-storefront input{font:inherit}
 .sf-storefront button{cursor:pointer}
 .sf-storefront button:disabled{cursor:not-allowed}
@@ -144,7 +144,7 @@
 .sf-storefront .sf-logo-mark,.sf-storefront .sf-add,.sf-storefront .sf-bag-count,
 .sf-storefront .sf-mobile-cart-bar button,.sf-storefront .sf-back-link,
 .sf-storefront .sf-continue{background:var(--sf-red)}
-.sf-storefront .sf-hero{background:linear-gradient(125deg,#38262b,var(--sf-red))}
+.sf-storefront .sf-hero{background:var(--sf-hero-color,#F7F9FC)}
 
 
 /* Mobile-first, accessible branch chooser. */
