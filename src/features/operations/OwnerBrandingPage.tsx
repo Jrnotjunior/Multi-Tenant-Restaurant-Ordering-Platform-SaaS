@@ -11,7 +11,7 @@ type WebsiteColors = {
 };
 const defaults: WebsiteColors = {
   pageBackground:'#F7F9FC',headerColor:'#FFFFFF',footerBackground:'#101B2F',footerFont:'#FFFFFF',
-  heroColor:'#263754',productCard:'#FFFFFF',fontColor:'#101B2F',headerIcon:'#101B2F',
+  heroColor:'#F7F9FC',productCard:'#FFFFFF',fontColor:'#101B2F',headerIcon:'#101B2F',
   primaryButton:'#101B2F',primaryButtonFont:'#FFFFFF',secondaryButton:'#263754',secondaryButtonFont:'#FFFFFF',
 };
 const colorLabels: {key:keyof WebsiteColors;label:string}[] = [
