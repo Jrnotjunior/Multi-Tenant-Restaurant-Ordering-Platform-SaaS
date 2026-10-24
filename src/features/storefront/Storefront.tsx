@@ -289,9 +289,19 @@ export function Storefront({ baseUrl, requestedSlug }: {
           <button type="button" className="sf-bag-button" onClick={() => setCartOpen(true)} aria-label={'Open basket with ' + count + ' items'}>
             <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
           </button>
-          <a className="sf-account-button" aria-label="Sign in to Web2Table" title="Sign in to Web2Table" href={baseUrl + 'account/sign-in' + (requestedSlug && !isSample ? '?restaurant=' + encodeURIComponent(requestedSlug) : '')}>
-            <AccountIcon/>
-          </a>
+          <div className="sf-account-wrap">
+            <button type="button" className="sf-account-button" aria-label="Open account menu" title="Account" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(open => !open)}>
+              <AccountIcon/>
+            </button>
+            {accountMenuOpen && <div className="sf-account-menu" role="menu" aria-label="Choose account">
+              <div className="sf-account-menu-heading">
+                <strong>Sign in to Web2Table</strong>
+                <span>Choose the account you want to access.</span>
+              </div>
+              <a role="menuitem" href={normalizeAppBase(baseUrl) + 'restaurant'} onClick={() => setAccountMenuOpen(false)}>Restaurant owner / team</a>
+              <a role="menuitem" href={normalizeAppBase(baseUrl) + 'account/sign-in' + (requestedSlug && !isSample ? '?restaurant=' + encodeURIComponent(requestedSlug) : '')} onClick={() => setAccountMenuOpen(false)}>Customer account</a>
+            </div>}
+          </div>
         </nav>
       </div>
     </header>
