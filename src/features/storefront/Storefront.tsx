@@ -256,7 +256,8 @@ export function Storefront({ baseUrl, requestedSlug }: {
     </div>;
   }
 
-  return <div className="sf-storefront" style={{ '--sf-red':restaurant.primaryColor } as CSSProperties}>
+  const tenantFont = restaurant.fontFamily === 'classic' ? 'Georgia, Times New Roman, serif' : restaurant.fontFamily === 'rounded' ? 'Trebuchet MS, Arial, sans-serif' : 'Inter, Arial, sans-serif';
+  return <div className="sf-storefront" style={{ '--sf-red':restaurant.primaryColor, '--sf-font-body':tenantFont, '--sf-font-heading':tenantFont } as CSSProperties}>
     <a className="sf-skip-link" href="#sf-menu">Skip to menu</a>
     <div className="sf-demo-banner"><span className="sf-demo-dot" />{catalog.sample ? 'SAMPLE RESTAURANT MENU' : 'PUBLISHED RESTAURANT MENU'} <span className="sf-demo-banner-hide">· Checkout not yet available</span></div>
     <header className="sf-header">
