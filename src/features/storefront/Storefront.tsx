@@ -210,7 +210,11 @@ export function Storefront({ baseUrl, requestedSlug }: {
 
   const catalog = remoteCatalog;
   const menu = catalog?.menu ?? [];
-  const categories = catalog?.categories ?? ['All'];
+  // Categories originate in the published tenant catalog, but only show a category
+  // when this selected branch actually has at least one published/available item in it.
+  const categories = catalog
+    ? ['All', ...catalog.categories.slice(1).filter(name => menu.some(item => item.category === name))]
+    : ['All'];
   const restaurant = catalog?.restaurant;
   const results = useMemo(() => filterMenu(menu, category, query), [menu, category, query]);
   const count = cartCount(cart, menu)+customCount(customized,menu);
