@@ -16,6 +16,14 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const passwordRules = [
+    { label: 'At least 8 characters', valid: newPassword.length >= 8 },
+    { label: 'One uppercase letter (A–Z)', valid: /[A-Z]/.test(newPassword) },
+    { label: 'One lowercase letter (a–z)', valid: /[a-z]/.test(newPassword) },
+    { label: 'One number (0–9)', valid: /[0-9]/.test(newPassword) },
+    { label: 'One special character (!@#$…)', valid: /[^A-Za-z0-9]/.test(newPassword) },
+  ];
+  const passwordMeetsStandard = passwordRules.every(rule => rule.valid);
   const [code, setCode] = useState('');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -104,7 +112,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
   }
   async function savePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!client || busy || newPassword.length < 12) { setMessage('Use a password of at least 12 characters.'); return; }
+    if (!client || busy || !passwordMeetsStandard) { setMessage('Please meet all password requirements before continuing.'); return; }
     if (newPassword !== confirmPassword) { setMessage('The passwords do not match.'); return; }
     setBusy(true); setMessage('');
     try {
@@ -149,8 +157,9 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
     {status === 'checking' && <p>Verifying your session and access permissions…</p>}
     {status === 'passwordsetup' && <form onSubmit={(e) => void savePassword(e)} className="auth-form">
       <p>Welcome! Create a password for your restaurant owner account before setting up multi-factor authentication.</p>
-      <label>Create password<input type="password" autoComplete="new-password" minLength={12} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required /></label>
-      <label>Confirm password<input type="password" autoComplete="new-password" minLength={12} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required /></label>
+      <label>Create password<input type="password" autoComplete="new-password" minLength={8} maxLength={128} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required /></label>
+      <ul className="sf-password-checklist" aria-label="Password requirements">{passwordRules.map(rule => <li key={rule.label} className={rule.valid ? 'is-valid' : ''}><span className="sf-password-check-icon" aria-hidden="true">{rule.valid ? '✓' : '○'}</span>{rule.label}</li>)}</ul>
+      <label>Confirm password<input type="password" autoComplete="new-password" minLength={8} maxLength={128} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required /></label>
       <button type="submit" disabled={busy}>{busy ? 'Saving password…' : 'Save password and continue'}</button>
     </form>}
     {status === 'signedout' && <form onSubmit={(e) => void login(e)} className="auth-form">
