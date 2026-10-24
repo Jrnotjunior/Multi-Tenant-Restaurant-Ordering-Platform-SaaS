@@ -231,7 +231,8 @@ BEGIN
 
   FOR v_line IN SELECT value FROM jsonb_array_elements(p_items) AS entries(value) LOOP
     v_line_number := v_line_number + 1;
-    IF jsonb_typeof(v_line) IS DISTINCT FROM 'object' OR jsonb_object_length(v_line) <> 3
+    IF jsonb_typeof(v_line) IS DISTINCT FROM 'object'
+       OR (v_line - ARRAY['item_id','quantity','option_ids']) <> '{}'::jsonb
        OR NOT (v_line ?& ARRAY['item_id','quantity','option_ids'])
        OR jsonb_typeof(v_line->'item_id') IS DISTINCT FROM 'string'
        OR jsonb_typeof(v_line->'quantity') IS DISTINCT FROM 'number'
