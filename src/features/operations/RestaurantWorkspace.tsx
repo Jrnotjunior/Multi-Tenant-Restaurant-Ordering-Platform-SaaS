@@ -52,6 +52,7 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
 
   useEffect(() => {
     if (!supabase || !membership || membership.role !== 'restaurant_owner') return;
+    const client = supabase;
     let active = true;
     let managedLink: HTMLLinkElement | null = null;
     const applyFavicon = (url: string | null) => {
@@ -67,11 +68,11 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
       managedLink = link;
     };
     const loadFavicon = async () => {
-      const { data, error } = await supabase.from('tenant_storefronts')
+      const { data, error } = await client.from('tenant_storefronts')
         .select('favicon_path').eq('tenant_id', membership.tenant_id).maybeSingle();
       if (error) throw error;
       if (!active || !data?.favicon_path) return;
-      applyFavicon(supabase.storage.from('storefront-logos').getPublicUrl(data.favicon_path).data.publicUrl);
+      applyFavicon(client.storage.from('storefront-logos').getPublicUrl(data.favicon_path).data.publicUrl);
     };
     const handleFaviconUpdate = (event: Event) => {
       const detail = (event as CustomEvent<{ tenantId?: string; url?: string }>).detail;
