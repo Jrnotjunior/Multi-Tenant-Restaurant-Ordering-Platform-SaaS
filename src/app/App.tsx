@@ -61,25 +61,7 @@ export function App() {
     </div>;
   }
 
-  const workspaceContent = <RestaurantWorkspace baseUrl={baseUrl} />;
-
-  return <div className="app">
-    <header className="topbar">
-      <a className="brand" href={pathFor('home', baseUrl)} onClick={(event) => { event.preventDefault(); navigate('home'); }}>
-        <span className="brandmark">W2T</span> Web2Table
-      </a>
-      <span className="environment">WEB2TABLE · SECURE WORKSPACE</span>
-    </header>
-    <div className="workspace">
-      <nav className="sidebar" aria-label="Platform areas">
-        <p className="nav-heading">WORKSPACES</p>
-        <a href={pathFor('order', baseUrl)} onClick={(event) => { event.preventDefault(); navigate('order'); }}>← Customer menu</a>
-        {(['restaurant'] as const).map((item) => <a key={item}
-          href={pathFor(item, baseUrl)} aria-current={view === item ? 'page' : undefined}
-          onClick={(event) => { event.preventDefault(); navigate(item); }}>{protectedViews[item].label}</a>)}
-      </nav>
-      <PrivilegedGate mode={view}>{workspaceContent}</PrivilegedGate>
-    </div>
-    <footer>Web2Table · Secure development workspace · No live orders</footer>
-  </div>;
+  // Restaurant Owner has its own application shell. Do not wrap it in the legacy
+  // platform workspace navigation/header/footer.
+  return <PrivilegedGate mode={view}><RestaurantWorkspace baseUrl={baseUrl} /></PrivilegedGate>;
 }
