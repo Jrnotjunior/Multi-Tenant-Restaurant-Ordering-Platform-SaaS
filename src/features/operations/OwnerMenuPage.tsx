@@ -7,7 +7,11 @@ import {
 type Props = { tenantId: string; restaurantName: string | null };
 type ProductForm = { name: string; description: string; price: string; categoryName: string };
 const emptyForm: ProductForm = { name: '', description: '', price: '', categoryName: '' };
-const formatError = (error: unknown) => error instanceof Error ? error.message : 'Unable to save the menu change.';\n\n// Reuse the last loaded menu when owners switch workspace sections. Refresh quietly\n// in the background so menu editing doesn't restart with a loading screen each time.\nconst ownerMenuCache = new Map<string, OwnerData>();
+const formatError = (error: unknown) => error instanceof Error ? error.message : 'Unable to save the menu change.';
+
+// Reuse the last loaded menu when owners switch workspace sections. Refresh quietly
+// in the background so menu editing doesn't restart with a loading screen each time.
+const ownerMenuCache = new Map<string, OwnerData>();
 
 export function OwnerMenuPage({ tenantId }: Props) {
   const [data, setData] = useState<OwnerData | null>(() => ownerMenuCache.get(tenantId) ?? null);
@@ -28,12 +32,13 @@ export function OwnerMenuPage({ tenantId }: Props) {
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
+    setLoading(!ownerMenuCache.has(tenantId));
     setError('');
     async function loadMenu() {
       try {
         const next = await loadOwnerDataForTenant(tenantId);
-        ownerMenuCache.set(tenantId, next);\n        if (active) setData(next);
+        ownerMenuCache.set(tenantId, next);
+        if (active) setData(next);
       } catch (reason) {
         if (active) setError(formatError(reason));
       } finally {
@@ -230,7 +235,12 @@ export function OwnerMenuPage({ tenantId }: Props) {
     setError('');
     try {
       await deleteMenuItem(tenantId, product.id);
-      setData((current) => {\n        if (!current) return current;\n        const next = { ...current, items: current.items.filter((item) => item.id !== product.id), assignments: current.assignments.filter((item) => item.item_id !== product.id) };\n        ownerMenuCache.set(tenantId, next);\n        return next;\n      });
+      setData((current) => {
+        if (!current) return current;
+        const next = { ...current, items: current.items.filter((item) => item.id !== product.id), assignments: current.assignments.filter((item) => item.item_id !== product.id) };
+        ownerMenuCache.set(tenantId, next);
+        return next;
+      });
     } catch (reason) {
       setError(formatError(reason));
     } finally {
