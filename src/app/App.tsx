@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { pathFor, storefrontSlugFromPath, viewForPath, type View } from './routes';
 import { PrivilegedGate } from '../features/auth/PrivilegedGate';
 import { Storefront } from '../features/storefront/Storefront';
+import { AccountAuthPage } from '../features/storefront/AccountAuthPage';
 import { OwnerDashboard } from '../features/management/OwnerDashboard';
 
 const protectedViews = {
@@ -16,6 +17,7 @@ export function App() {
   const baseUrl = import.meta.env.BASE_URL;
   const [pathname, setPathname] = useState(window.location.pathname);
   const view = viewForPath(pathname, baseUrl);
+  const authMode = pathname.replace(/\\/+$/, '') === baseUrl.replace(/\\/+$/, '') + '/account/sign-up' ? 'sign-up' : pathname.replace(/\\/+$/, '') === baseUrl.replace(/\\/+$/, '') + '/account/sign-in' ? 'sign-in' : null;
 
   useEffect(() => {
     const syncHistory = () => setPathname(window.location.pathname);
@@ -29,6 +31,8 @@ export function App() {
     setPathname(path);
     window.scrollTo(0, 0);
   }
+
+  if (authMode) return <AccountAuthPage mode={authMode} baseUrl={baseUrl} />;
 
   // The homepage of a restaurant ordering site is its menu, not an app dashboard.
   // For the public preview, both / and /order display a clearly labeled sample restaurant.
