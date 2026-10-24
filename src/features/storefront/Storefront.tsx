@@ -280,7 +280,6 @@ export function Storefront({ baseUrl, requestedSlug }: {
           <span className="sf-hero-eyebrow"><span aria-hidden="true">✦</span> MADE FRESH. MADE FOR YOU.</span>
           <h1 id="sf-hero-title">{restaurant.heroHeading}<br/><em>{restaurant.heroEmphasis}</em></h1>
           <p>{restaurant.tagline}</p>
-          <a href="#sf-menu" className="sf-hero-action">Explore the menu <ArrowIcon/></a>
         </div>
         <div className="sf-hero-decor" aria-hidden="true">
           <div className="sf-orbit sf-orbit-one"/>
@@ -292,11 +291,6 @@ export function Storefront({ baseUrl, requestedSlug }: {
         </div>
       </section>
 
-      <section className="sf-info-strip" aria-label="Restaurant information">
-        <div><span className="sf-info-icon" aria-hidden="true">🛵</span><div><strong>Delivery only</strong><small>Made to enjoy at home</small></div></div>
-        <div><span className="sf-info-icon" aria-hidden="true">📍</span><div><strong>{restaurant.branchName}</strong><small>Philippines · Delivery only</small></div></div>
-        <div><span className="sf-info-icon" aria-hidden="true">✨</span><div><strong>Freshly made</strong><small>Explore our favorites</small></div></div>
-      </section>
 
       {catalog.branches.length > 1 && <section className="sf-branch-selector" aria-label="Choose restaurant branch">
         <div>
