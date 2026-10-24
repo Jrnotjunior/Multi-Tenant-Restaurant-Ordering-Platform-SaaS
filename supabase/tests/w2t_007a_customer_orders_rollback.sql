@@ -24,6 +24,21 @@ BEGIN
     VALUES(v_branch,v_tenant,'main','Main Branch',true);
   INSERT INTO public.tenant_storefronts(tenant_id,default_branch_id,display_name,status)
     VALUES(v_storefront,v_branch,'Checkout Test Restaurant','published');
+
+  BEGIN
+    PERFORM public.create_customer_order(
+      'checkout-test-tenant','main','Test Guest','+63 917 123 4567',
+      '12 Sample Street, Quezon City','Ring the bell',v_key,
+      jsonb_build_array(jsonb_build_object(
+        'item_id',v_item::text,'quantity',1,'option_ids','[]'::jsonb
+      ))
+    );
+    RAISE EXCEPTION 'Order request was accepted while the restaurant gate was off';
+  EXCEPTION WHEN SQLSTATE 'P0002' THEN
+    NULL;
+  END;
+
+  UPDATE public.tenant_storefronts SET accepting_orders=true WHERE tenant_id=v_storefront;
   INSERT INTO public.menu_categories(id,tenant_id,name,is_published)
     VALUES(v_category,v_tenant,'Mains',true);
   INSERT INTO public.menu_items(id,tenant_id,category_id,name,description,price_centavos,status)
