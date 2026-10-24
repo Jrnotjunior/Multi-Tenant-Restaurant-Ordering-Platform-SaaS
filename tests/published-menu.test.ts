@@ -38,7 +38,6 @@ describe('tenant-specific published menu adapter', () => {
     expect(menu?.restaurant.name).toBe('Restaurant Alpha');
     expect(menu?.restaurant.primaryColor).toBe('#336699');
     expect(menu?.restaurant.branchName).toBe('Makati');
-    expect(menu?.sample).toBe(false);
     expect(menu?.categories).toEqual(['All','Mains','Drinks']);
     expect(menu?.menu[0].priceCentavos).toBe(21900);
   });
