@@ -2,7 +2,7 @@
 
 Production-oriented, multi-tenant SaaS foundation for restaurant self-ordering in the Philippines.
 
-> **Status:** Mobile-first customer storefront preview plus W2T-002/003 tenant security and identity foundation. The storefront currently uses an illustrative menu and is not ready to accept live orders, payments or customer data.
+> **Status:** Mobile-first storefront preview, tenant/branch/menu foundation, owner menu management, and a rollback-tested server-side order-request API (W2T-007A). Customer checkout remains preparation-only: order intake defaults off until restaurant order operations are ready. No live payments are enabled.
 
 ## Approved scope
 
