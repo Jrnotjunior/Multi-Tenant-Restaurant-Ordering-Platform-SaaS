@@ -74,8 +74,23 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
           ?? (typeof user.user_metadata?.tenant_invitation_id === 'string' ? user.user_metadata.tenant_invitation_id : null);
         if (invitationId) {
           if (!uuid.test(invitationId)) throw new Error('Invalid invitation link.');
-          const { error } = await client.rpc('accept_privileged_invitation', { p_invitation_id: invitationId });
-          if (error) throw error;
+
+          // Invitation metadata remains on the auth user after onboarding. Do not
+          // try to accept that same invitation on every future sign-in: once MFA
+          // is verified, an existing active membership means setup already finished.
+          const { data: existingMemberships, error: membershipLookupError } = await client
+            .from('tenant_memberships')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .limit(1);
+          if (membershipLookupError) throw membershipLookupError;
+
+          if ((existingMemberships?.length ?? 0) === 0) {
+            const { error } = await client.rpc('accept_privileged_invitation', { p_invitation_id: invitationId });
+            if (error) throw error;
+          }
+
           const url = new URL(window.location.href);
           url.searchParams.delete('invite_id');
           window.history.replaceState({}, '', url.pathname + url.search + url.hash);
