@@ -164,11 +164,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
 
   // Keep internal role and database checks out of the customer-facing UI.
   // Render a quiet branded transition while access is being resolved.
-  if (status === 'checking') return <main className="workspace-loading" aria-label="Loading workspace">
-    <div className="workspace-loading-brand"><span className="workspace-loading-mark">W2T</span><span>Web2Table</span></div>
-    <div className="workspace-loading-indicator" aria-hidden="true"><span /></div>
-    <p>Preparing your workspace…</p>
-  </main>;
+  if (status === 'checking') return <main className="workspace-loading" aria-label="Loading workspace"><div className="workspace-loading-indicator" role="status" aria-label="Loading"><span /></div></main>;
 
   const isSetup = status === 'passwordsetup';
   const isMfa = status === 'mfa';
