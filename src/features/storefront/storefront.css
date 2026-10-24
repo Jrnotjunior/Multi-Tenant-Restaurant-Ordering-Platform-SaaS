@@ -242,3 +242,9 @@
 .sf-auth-form .sf-auth-password-toggle:hover:not(:disabled),.sf-auth-form .sf-auth-password-toggle:focus-visible{background:transparent;box-shadow:none;color:#ad2935}
 .sf-auth-form .sf-auth-password-toggle:focus-visible{outline:2px solid #ad2935;outline-offset:2px}
 .sf-auth-form .sf-auth-password-toggle svg{display:block}
+
+.sf-password-checklist{display:grid;gap:6px;list-style:none;margin:9px 0 2px;padding:0;font-size:12px;line-height:1.4;color:#817975}
+.sf-password-checklist li{display:flex;align-items:center;gap:8px;min-width:0}
+.sf-password-check-icon{display:inline-flex;flex:0 0 16px;width:16px;height:16px;align-items:center;justify-content:center;border:1px solid #c8c1bc;border-radius:50%;font-size:10px;font-weight:800;color:#817975}
+.sf-password-checklist li.is-valid{color:#247548}
+.sf-password-checklist li.is-valid .sf-password-check-icon{border-color:#247548;background:#eaf7ef;color:#247548}
