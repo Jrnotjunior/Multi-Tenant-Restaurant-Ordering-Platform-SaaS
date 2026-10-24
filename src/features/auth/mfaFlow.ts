@@ -47,24 +47,33 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
     throw new Error('Incomplete authenticator enrollment detected. Contact the platform administrator to reset MFA safely.');
   }
 
-  const { data, error } = await client.auth.mfa.enroll({
+  let { data, error } = await client.auth.mfa.enroll({
     factorType: 'totp',
     friendlyName: 'Web2Table Authenticator',
   });
   if (error) {
-    // Supabase can reject a duplicate factor name if an earlier enrollment
-    // succeeded but its response was interrupted. Re-read factors before
-    // surfacing the original error, and continue the existing enrollment.
+    // Re-check first: the initial request may have succeeded server-side even
+    // if its response was interrupted, or another tab may have enrolled MFA.
     const { data: latestFactors, error: latestFactorsError } = await client.auth.mfa.listFactors();
     if (!latestFactorsError) {
       const latestVerified = latestFactors.totp.find((factor) => factor.status === 'verified');
       if (latestVerified) return { kind: 'challenge', factorId: latestVerified.id };
       const latestPending = latestFactors.totp.find((factor) => factor.status !== 'verified');
       if (latestPending) {
-        throw new Error('An authenticator setup is already pending for this account. Use the existing authenticator setup, or choose “Restart incomplete authenticator setup” to safely restart it.');
+        throw new Error('An authenticator setup is already pending for this account. Sign out and reopen your invitation link to resume setup, or ask the platform administrator to reset the incomplete setup.');
       }
     }
-    throw error;
+
+    // Supabase requires factor friendly names to be unique for a user. If a
+    // stale factor name still conflicts but isn't returned by listFactors,
+    // retry once with a unique label rather than looping on the same 422.
+    if (/friendly name|already exists|duplicate/i.test(error.message)) {
+      const uniqueName = `Web2Table Authenticator ${Date.now()}`;
+      const retry = await client.auth.mfa.enroll({ factorType: 'totp', friendlyName: uniqueName });
+      data = retry.data;
+      error = retry.error;
+    }
+    if (error) throw error;
   }
   if (!data?.totp?.qr_code || !data.totp.uri) throw new Error('Authenticator enrollment information unavailable.');
   const result: MfaFlow = { kind: 'enroll', factorId: data.id, qrCode: data.totp.qr_code, uri: data.totp.uri };
