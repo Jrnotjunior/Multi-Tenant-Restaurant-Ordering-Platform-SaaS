@@ -192,7 +192,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
       {flow.kind === 'challenge' && <p>Enter the current six-digit code from your authenticator app.</p>}
       <form onSubmit={(e) => void submitMfa(e)} className="auth-form onboarding-mfa-form">
         <label>Authenticator code<input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={code} onChange={(e) => setCode(e.target.value)} required /></label>
-        <button className="onboarding-mfa-verify" type="submit" disabled={busy}>{busy ? 'Verifying…' : 'Verify'}</button>
+        <button className="onboarding-mfa-verify" type="submit" disabled={busy}>{busy ? 'Verifying…' : 'Verify authenticator'}</button>
       </form>
 
     </div>}
