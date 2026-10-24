@@ -162,6 +162,14 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
 
   if (status === 'authorized') return <>{children}{mode === 'admin' && <p className="auth-footer"><button type="button" onClick={() => void logout()}>Sign out</button></p>}</>;
 
+  // Keep internal role and database checks out of the customer-facing UI.
+  // Render a quiet branded transition while access is being resolved.
+  if (status === 'checking') return <main className="workspace-loading" aria-label="Loading workspace">
+    <div className="workspace-loading-brand"><span className="workspace-loading-mark">W2T</span><span>Web2Table</span></div>
+    <div className="workspace-loading-indicator" aria-hidden="true"><span /></div>
+    <p>Preparing your workspace…</p>
+  </main>;
+
   const isSetup = status === 'passwordsetup';
   const isMfa = status === 'mfa';
   // Existing accounts with a verified authenticator must verify that factor;
@@ -193,7 +201,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
       <h2>{isSetup ? 'Create your password' : isExistingAccountMfa ? 'Verify your identity' : isMfa ? 'Secure your account' : mode === 'admin' ? 'System administrator sign-in' : 'Restaurant team sign-in'}</h2>
       <p>{isSetup ? 'Set a secure password to activate your restaurant owner account.' : isExistingAccountMfa ? 'Your authenticator is already set up. Enter its current six-digit code to continue to your workspace.' : isMfa ? 'One quick security step, then you’re ready to get started.' : 'Accounts are provisioned by invitation only. Access is based on your verified role and database membership.'}</p>
       {message && <p className="auth-message" role="alert">{message}</p>}
-    {status === 'checking' && <p>Verifying your session and access permissions…</p>}
+
     {status === 'passwordsetup' && <form onSubmit={(e) => void savePassword(e)} className="auth-form">
       <label>Password<div className="onboarding-password-wrap"><input type={showNewPassword ? 'text' : 'password'} autoComplete="new-password" minLength={8} maxLength={128} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required /><button className="onboarding-password-toggle" type="button" onClick={() => setShowNewPassword(v => !v)} aria-label={showNewPassword ? 'Hide password' : 'Show password'}>{showNewPassword ? 'Hide' : 'Show'}</button></div></label>
       <div className="onboarding-password-rules"><strong>Your password must have:</strong><ul className="sf-password-checklist" aria-label="Password requirements">{passwordRules.map(rule => <li key={rule.label} className={rule.valid ? 'is-valid' : ''}><span className="sf-password-check-icon" aria-hidden="true">{rule.valid ? '✓' : '○'}</span>{rule.label}</li>)}<li className={newPassword.length <= 128 ? 'is-valid' : ''}><span className="sf-password-check-icon" aria-hidden="true">✓</span>Maximum 128 characters</li></ul></div>
