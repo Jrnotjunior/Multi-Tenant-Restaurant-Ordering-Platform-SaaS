@@ -251,3 +251,43 @@
 
 .sf-auth-tenant-brand{display:flex;justify-content:center;align-items:center;width:100%;margin:0 auto 18px;text-decoration:none}
 .sf-auth-tenant-brand img{display:block;max-width:min(180px,70%);max-height:76px;width:auto;height:auto;object-fit:contain}
+
+/* Published restaurant directory uses the database-backed platform theme. */
+.sf-directory{min-height:100vh;display:flex;flex-direction:column;background:var(--directory-page,var(--color-page,#F7F9FC));color:var(--directory-text,var(--color-text,#101B2F));font-family:var(--font-body);line-height:1.45}
+.sf-directory-header{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;gap:24px;height:70px;padding:0 clamp(18px,4vw,58px);background:var(--directory-header,#FFFFFF);border-bottom:1px solid var(--color-border,#DCE3ED)}
+.sf-directory-brand{display:inline-flex;align-items:center;gap:11px;color:var(--directory-text,#101B2F);font-size:15px;font-weight:800;text-decoration:none}
+.sf-directory-logo{display:grid;place-items:center;width:35px;height:35px;border-radius:10px;background:var(--directory-primary,#101B2F);color:var(--directory-primary-font,#FFFFFF);font-size:11px;font-weight:900;letter-spacing:-.04em}
+.sf-directory-nav{display:flex;align-items:center;gap:14px}
+.sf-directory-main{flex:1;width:min(1160px,calc(100% - 40px));margin:0 auto;padding:50px 0 64px}
+.sf-directory-intro{max-width:680px;margin:0 0 30px}
+.sf-directory-kicker{display:inline-block;margin-bottom:9px;color:var(--directory-secondary,#263754);font-size:10px;font-weight:850;letter-spacing:.13em}
+.sf-directory-intro h1{margin:0;color:var(--directory-text,#101B2F);font-size:clamp(30px,4vw,44px);line-height:1.12;letter-spacing:-.045em}
+.sf-directory-intro p{max-width:600px;margin:13px 0 0;color:var(--color-muted,#526782);font-size:14px;line-height:1.7}
+.sf-directory-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch}
+.sf-directory-card{display:flex;flex-direction:column;min-width:0;padding:19px;border:1px solid var(--color-border,#DCE3ED);border-radius:15px;background:var(--color-surface,#FFFFFF);box-shadow:0 6px 24px #101B2F08}
+.sf-directory-card-brand{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:15px}
+.sf-directory-card-logo{width:52px;height:52px;flex:0 0 52px;object-fit:cover;border-radius:12px;border:1px solid var(--color-border,#DCE3ED)}
+.sf-directory-card-logo.is-placeholder{display:grid;place-items:center;background:var(--directory-secondary,#263754);color:var(--directory-secondary-font,#FFFFFF);font-size:15px;font-weight:850}
+.sf-directory-open{display:inline-flex;align-items:center;max-width:60%;padding:5px 9px;border:1px solid var(--color-border,#DCE3ED);border-radius:99px;background:var(--directory-page,#F7F9FC);color:var(--color-muted,#526782);font-size:10px;font-weight:750}
+.sf-directory-open.is-open{border-color:#BBF7D0;background:#F0FDF4;color:#166534}
+.sf-directory-card h2{margin:0 0 6px;color:var(--directory-text,#101B2F);font-size:18px;letter-spacing:-.02em;overflow-wrap:anywhere}
+.sf-directory-tagline{min-height:38px;margin:0;color:var(--color-muted,#526782);font-size:12px;line-height:1.55;overflow-wrap:anywhere}
+.sf-directory-card-meta{display:flex;justify-content:space-between;gap:12px;margin:17px 0 12px;padding-top:12px;border-top:1px solid var(--color-border,#DCE3ED);color:var(--color-muted,#526782);font-size:10px;font-weight:700}
+.sf-directory-coming-soon{margin:0 0 12px;padding:10px;border-radius:8px;background:var(--directory-page,#F7F9FC);color:var(--color-muted,#526782);font-size:11px;line-height:1.5}
+.sf-directory-open-menu{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;min-height:40px;padding:9px 12px;border:1px solid var(--directory-primary,#101B2F);border-radius:8px;background:var(--directory-primary,#101B2F);color:var(--directory-primary-font,#FFFFFF);font-size:12px;font-weight:800;text-decoration:none}
+.sf-directory-open-menu:hover{filter:brightness(.96)}
+.sf-directory-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:250px;padding:28px;text-align:center;border:1px solid var(--color-border,#DCE3ED);border-radius:14px;background:var(--color-surface,#FFFFFF)}
+.sf-directory-state h2{margin:10px 0 6px;color:var(--directory-text,#101B2F);font-size:20px}
+.sf-directory-state p{max-width:510px;margin:0;color:var(--color-muted,#526782);font-size:13px;line-height:1.6}
+.sf-directory-state.is-error{border-color:#FCA5A5}
+.sf-directory-state button{margin-top:15px;border:1px solid var(--directory-primary,#101B2F);border-radius:8px;padding:9px 13px;background:var(--directory-primary,#101B2F);color:var(--directory-primary-font,#FFFFFF);font-size:12px;font-weight:750;cursor:pointer}
+.sf-directory-empty-art{font-size:36px}
+.sf-directory-spinner{width:25px;height:25px;border:2px solid var(--color-border,#DCE3ED);border-top-color:var(--directory-primary,#101B2F);border-radius:50%;animation:sf-directory-spin .8s linear infinite}
+@keyframes sf-directory-spin{to{transform:rotate(360deg)}}
+.sf-directory-footer{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:19px clamp(18px,4vw,58px);border-top:1px solid var(--color-border,#DCE3ED);background:var(--directory-footer,#101B2F);color:var(--directory-footer-font,#FFFFFF);font-size:11px}
+.sf-directory-footer>span{flex:1;color:var(--directory-footer-font,#FFFFFF);opacity:.8}
+.sf-directory-footer a{color:var(--directory-footer-font,#FFFFFF);text-decoration:none}
+.sf-menu-coming-soon{min-height:240px;justify-content:center}
+.sf-menu-coming-soon>span{font-size:31px}
+@media(max-width:900px){.sf-directory-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.sf-directory-main{padding-top:38px}}
+@media(max-width:600px){.sf-directory-header{height:60px;padding:0 14px}.sf-directory-main{width:calc(100% - 28px);padding:28px 0 42px}.sf-directory-grid{grid-template-columns:1fr;gap:12px}.sf-directory-card{padding:15px}.sf-directory-intro h1{font-size:30px}.sf-directory-intro p{font-size:13px}.sf-directory-footer{gap:9px;padding:16px 14px}.sf-directory-footer>span{flex-basis:100%;order:3}}
