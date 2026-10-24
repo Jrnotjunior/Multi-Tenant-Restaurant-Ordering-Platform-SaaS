@@ -84,23 +84,18 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .onboarding-card .auth-qr{display:block;margin:18px auto 22px}
 
 
-/* Match the MFA verify action to the compact Sign out button. */
-.onboarding-card .onboarding-mfa-form {
-  justify-items: start;
+/* Keep the verify button full width; match Sign out to its height only. */
+.onboarding-card .onboarding-mfa-form .onboarding-mfa-verify {
+  width: 100%;
+  min-height: 58px;
+  height: 58px;
+  padding: 0 16px;
 }
-.onboarding-card .onboarding-mfa-form .onboarding-mfa-verify,
 .onboarding-card .onboarding-signout {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 88px;
-  min-width: 88px;
-  min-height: 42px;
-  height: 42px;
-  padding: 0 8px;
+  width: 100%;
+  min-height: 58px;
+  height: 58px;
+  padding: 0 16px;
   margin-top: 8px;
-  align-self: start;
   box-sizing: border-box;
-  border-radius: 9px;
-  white-space: nowrap;
 }
