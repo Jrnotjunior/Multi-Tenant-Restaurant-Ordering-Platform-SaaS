@@ -116,7 +116,10 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
 
   return <main className="sf-auth-page">
     <section className="sf-auth-card" aria-labelledby="sf-auth-title">
-      <a className="sf-auth-back" href={base}>← Back to menu</a>
+      <a className="sf-auth-back" href={backToMenu}>← Back to menu</a>
+      {tenantLogo ? <a className="sf-auth-tenant-brand" href={backToMenu} aria-label={tenantName ? tenantName + ' home' : 'Restaurant home'}>
+        <img src={tenantLogo} alt={tenantName ? tenantName + ' logo' : 'Restaurant logo'} />
+      </a> : null}
       <p className="sf-auth-eyebrow">YOUR ACCOUNT</p>
       <h1 id="sf-auth-title">{resetMode ? 'Reset your password' : isSignUp ? 'Create your account' : 'Welcome back'}</h1>
       <p className="sf-auth-intro">{resetMode ? 'Enter your email and we’ll send you a link to reset your password.' : isSignUp ? 'Sign up to make ordering easier and keep your details in one place.' : 'Sign in to continue to your restaurant ordering experience.'}</p>
