@@ -24,11 +24,25 @@ function ArrowIcon() {
 }
 
 function FoodArt({ item, small = false }: { item: MenuItem; small?: boolean }) {
-  return <div className={'sf-food-art' + (small ? ' sf-food-art-small' : '')} style={{ background: item.background }} aria-hidden="true">
-    <span className="sf-art-disc" />
-    <span className="sf-food-emoji">{item.emoji}</span>
-    {item.imageUrl&&<img loading="lazy" className="sf-food-photo" src={item.imageUrl} alt={item.name} />}
-  </div>;
+  const [imageFailed, setImageFailed] = useState(false);
+  const hasImage = Boolean(item.imageUrl) && !imageFailed;
+  return (
+    <div
+      className={'sf-food-art' + (small ? ' sf-food-art-small' : '') + (hasImage ? ' sf-food-art-has-photo' : ' sf-food-art-no-photo')}
+      style={hasImage ? undefined : { background: '#f1f3f5' }}
+      aria-hidden="true"
+    >
+      {hasImage
+        ? <img
+            loading="lazy"
+            className="sf-food-photo"
+            src={item.imageUrl}
+            alt=""
+            onError={() => setImageFailed(true)}
+          />
+        : <span className="sf-no-photo-mark">No photo</span>}
+    </div>
+  );
 }
 
 function QuantityControl({ itemId, quantity, change }: {
