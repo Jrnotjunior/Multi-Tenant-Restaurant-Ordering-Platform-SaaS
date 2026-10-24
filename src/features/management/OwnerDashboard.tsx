@@ -3,7 +3,7 @@ import { restaurantMenuPath } from '../../app/routes';
 import { centavosToPesoInput,pesoInputToCentavos } from './pricing';
 import {
   createCategory,createOwnerBranch,updateOwnerBranch,loadOwnerData,ownerTenantChoices,saveBrand,saveItem,setBranchItem,
-  setPublication,toggleCategory,type Brand,type OwnerData,type Product,type Tenant,
+  setPublication,toggleCategory,uploadStorefrontLogo,clearStorefrontLogo,publicStorefrontLogo,type Brand,type OwnerData,type Product,type Tenant,
 } from './menuService';
 import './management.css';
 import {ProductExtrasManager} from './ProductExtrasManager';
@@ -11,7 +11,7 @@ import {ProductExtrasManager} from './ProductExtrasManager';
 type ItemDraft = {id:string|null;name:string;description:string;category_id:string;price:string;is_popular:boolean;status:Product['status']};
 const blankItem = (category_id=''):ItemDraft =>
   ({id:null,name:'',description:'',category_id,price:'',is_popular:false,status:'draft'});
-type BrandDraft = Pick<Brand,'display_name'|'tagline'|'hero_heading'|'hero_emphasis'|'primary_color'>;
+type BrandDraft = Pick<Brand,'display_name'|'tagline'|'hero_heading'|'hero_emphasis'|'primary_color'|'font_family'>;
 
 export function OwnerDashboard({baseUrl}:{baseUrl:string}) {
   const [tenants,setTenants]=useState<Tenant[]>([]);
@@ -47,7 +47,7 @@ export function OwnerDashboard({baseUrl}:{baseUrl:string}) {
     setBrand({
       display_name:next.brand.display_name,tagline:next.brand.tagline,
       hero_heading:next.brand.hero_heading,hero_emphasis:next.brand.hero_emphasis,
-      primary_color:next.brand.primary_color,
+      primary_color:next.brand.primary_color,font_family:next.brand.font_family,
     });
     setBranchId((previous)=>next.branches.some(b=>b.id===previous)
       ?previous:next.brand.default_branch_id);
@@ -65,7 +65,7 @@ export function OwnerDashboard({baseUrl}:{baseUrl:string}) {
       setData(next);
       setBrand({display_name:next.brand.display_name,tagline:next.brand.tagline,
         hero_heading:next.brand.hero_heading,hero_emphasis:next.brand.hero_emphasis,
-        primary_color:next.brand.primary_color});
+        primary_color:next.brand.primary_color,font_family:next.brand.font_family});
       setBranchId(next.brand.default_branch_id);
       setDraft(blankItem(next.categories[0]?.id??''));
     }).catch(e=>{if(active)setError(e instanceof Error?e.message:'Unable to load menu');})
@@ -91,6 +91,12 @@ export function OwnerDashboard({baseUrl}:{baseUrl:string}) {
     if(!data||!brand)return;
     void run('Branding',()=>saveBrand(data.tenant.id,brand));
   }
+
+  function uploadLogo(file:File|null) {
+    if(!data||!file)return;
+    void run('Restaurant logo',()=>uploadStorefrontLogo(data.tenant.id,file));
+  }
+
   function submitCategory(event:FormEvent) {
     event.preventDefault();
     if(!data||categoryName.trim().length<2)return;
@@ -170,12 +176,34 @@ export function OwnerDashboard({baseUrl}:{baseUrl:string}) {
           <span className={'mg-pill '+(data.brand.status==='published'?'mg-live':'')}>{data.brand.status}</span>
         </div>
         {brand&&<form onSubmit={submitBrand} className="mg-form">
+          <div className="mg-brand-preview">
+            <div className="mg-brand-logo">
+              {publicStorefrontLogo(data.brand.logo_path)
+                ? <img src={publicStorefrontLogo(data.brand.logo_path)??''} alt={data.brand.display_name+' logo preview'}/>
+                : <span aria-hidden="true">{data.brand.display_name.trim().split(/\\s+/).slice(0,2).map(word=>word[0]).join('').toUpperCase()||'R'}</span>}
+            </div>
+            <div className="mg-brand-logo-fields">
+              <strong>Restaurant logo</strong>
+              <p>Upload your own logo. JPEG, PNG or WebP, maximum 2 MB. If you skip this, the storefront uses initials from your restaurant name.</p>
+              <input aria-label="Upload restaurant logo" type="file" accept="image/png,image/jpeg,image/webp"
+                disabled={busy} onChange={e=>{uploadLogo(e.currentTarget.files?.[0]??null);e.currentTarget.value='';}}/>
+              {data.brand.logo_path&&<button type="button" className="mg-secondary" disabled={busy}
+                onClick={()=>void run('Restaurant logo',()=>clearStorefrontLogo(data.tenant.id))}>Remove logo</button>}
+            </div>
+          </div>
           <div className="mg-fields-two">
             <label className="mg-field">Restaurant name<input required minLength={2} maxLength={160} value={brand.display_name}
               onChange={e=>setBrand({...brand,display_name:e.target.value})}/></label>
             <label className="mg-field">Brand color <input aria-label="Brand color" type="color" value={brand.primary_color}
               onChange={e=>setBrand({...brand,primary_color:e.target.value})}/></label>
           </div>
+          <label className="mg-field">Storefront font
+            <select value={brand.font_family} onChange={e=>setBrand({...brand,font_family:e.target.value as Brand['font_family']})}>
+              <option value="modern">Modern — clean sans serif</option>
+              <option value="rounded">Rounded — friendly and casual</option>
+              <option value="classic">Classic — serif headings</option>
+            </select>
+          </label>
           <label className="mg-field">Short restaurant description<textarea rows={2} maxLength={300} value={brand.tagline}
             onChange={e=>setBrand({...brand,tagline:e.target.value})}/></label>
           <div className="mg-fields-two">
