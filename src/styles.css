@@ -12,7 +12,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .auth-form input{background:#101114;border:1px solid #45464f;color:#fff;border-radius:9px;padding:12px;font-size:1rem;min-width:0;width:100%}
 .auth-panel button{cursor:pointer;border:0;border-radius:9px;background:#ac2230;color:white;font-weight:600;padding:12px 16px;margin-top:8px}
 .auth-panel button:disabled{opacity:.5;cursor:not-allowed}
-.auth-panel .auth-secondary,.auth-footer button{background:transparent;color:#b1b1ba;border:1px solid #50505a}
+.auth-panel .auth-secondary,.auth-footer button,.onboarding-card .onboarding-signout{background:transparent;color:#b1b1ba;border:1px solid #50505a}.onboarding-card .onboarding-signout{width:100%;box-sizing:border-box}
 .auth-footer{text-align:center}
 .auth-message{color:#ffb5b5!important;border-left:3px solid #dc4655;padding:9px 14px;background:#2e1b22}
 .auth-qr{width:min(220px,100%);height:auto;background:white;border-radius:10px;padding:10px}
