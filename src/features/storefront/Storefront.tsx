@@ -273,20 +273,9 @@ export function Storefront({ baseUrl, requestedSlug }: {
           <button type="button" className="sf-bag-button" onClick={() => setCartOpen(true)} aria-label={'Open basket with ' + count + ' items'}>
             <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
           </button>
-          <div className="sf-account-wrap">
-            <button type="button" className="sf-account-button" aria-label="Customer account options" title="Customer account" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(open => !open)}>
-              <AccountIcon/>
-            </button>
-            {accountMenuOpen && <div className="sf-account-menu" role="menu" aria-label="Your account">
-              <div className="sf-account-menu-heading">
-                <strong>Your account</strong>
-                <span>Sign in or review our policies.</span>
-              </div>
-              <a role="menuitem" href={baseUrl + 'legal'} onClick={() => setAccountMenuOpen(false)}>Legal &amp; Policies</a>
-              <a role="menuitem" href={baseUrl + 'account/sign-in' + (requestedSlug && !isSample ? '?restaurant=' + encodeURIComponent(requestedSlug) : '')} onClick={() => { if (requestedSlug && !isSample) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', requestedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign in</a>
-              <a role="menuitem" href={baseUrl + 'account/sign-up' + (requestedSlug && !isSample ? '?restaurant=' + encodeURIComponent(requestedSlug) : '')} onClick={() => { if (requestedSlug && !isSample) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', requestedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign up</a>
-            </div>}
-          </div>
+          <a className="sf-account-button" aria-label="Sign in to Web2Table" title="Sign in to Web2Table" href={baseUrl + 'account/sign-in' + (requestedSlug && !isSample ? '?restaurant=' + encodeURIComponent(requestedSlug) : '')}>
+            <AccountIcon/>
+          </a>
         </nav>
       </div>
     </header>
