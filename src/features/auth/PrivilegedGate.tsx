@@ -42,6 +42,14 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
       if (!client || !user) return;
       setStatus('checking');
       try {
+        // AAL1 preflight only checks whether this identity may attempt privileged access.
+        // The backend still requires AAL2 and tenant/branch permissions for all private data.
+        const { data: eligible, error: eligibilityError } = await client.rpc('privileged_route_eligible', {
+          p_workspace: mode,
+        });
+        if (eligibilityError) throw eligibilityError;
+        if (!active) return;
+        if (eligible !== true) { setStatus('denied'); return; }
         const next = await getMfaFlow(client);
         if (!active) return;
         if (next.kind !== 'ready') { setFlow(next); setStatus('mfa'); return; }
@@ -144,7 +152,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
         <button type="submit" disabled={busy}>Save password</button>
       </form>}
     </div>}
-    {status === 'denied' && <p>Your account has no active authorization for this workspace. Contact your platform or restaurant administrator.</p>}
+    {status === 'denied' && <p>This account has no active access or valid invitation for this workspace. Contact your platform or restaurant administrator.</p>}
     {status === 'error' && <div>
       <button type="button" onClick={() => { setMessage(''); setRevision((previous) => previous + 1); }}>Retry secure access check</button>
       {message.includes('Incomplete authenticator enrollment') && client && <button className="auth-secondary" type="button" disabled={busy} onClick={() => {
