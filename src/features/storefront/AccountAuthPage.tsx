@@ -5,7 +5,8 @@ import { normalizeAppBase } from '../../app/routes';
 type AuthMode = 'sign-in' | 'sign-up';
 
 export function AccountAuthPage({ mode, baseUrl }: { mode: AuthMode; baseUrl: string }) {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -29,8 +30,8 @@ export function AccountAuthPage({ mode, baseUrl }: { mode: AuthMode; baseUrl: st
       setMessage('Use a password with at least 8 characters.');
       return;
     }
-    if (isSignUp && name.trim().length < 2) {
-      setMessage('Enter your name (at least 2 characters).');
+    if (isSignUp && (!firstName.trim() || !lastName.trim())) {
+      setMessage('Enter both your first name and last name.');
       return;
     }
 
@@ -48,7 +49,7 @@ export function AccountAuthPage({ mode, baseUrl }: { mode: AuthMode; baseUrl: st
           email: email.trim(),
           password,
           options: {
-            data: { full_name: name.trim() },
+            data: { first_name: firstName.trim(), last_name: lastName.trim(), full_name: `${firstName.trim()} ${lastName.trim()}` },
             emailRedirectTo: new URL(base, window.location.origin).toString(),
           },
         });
@@ -82,10 +83,16 @@ export function AccountAuthPage({ mode, baseUrl }: { mode: AuthMode; baseUrl: st
       <h1 id="sf-auth-title">{resetMode ? 'Reset your password' : isSignUp ? 'Create your account' : 'Welcome back'}</h1>
       <p className="sf-auth-intro">{resetMode ? 'Enter your email and we’ll send you a link to reset your password.' : isSignUp ? 'Sign up to make ordering easier and keep your details in one place.' : 'Sign in to continue to your restaurant ordering experience.'}</p>
       <form className="sf-auth-form" onSubmit={submit} noValidate>
-        {isSignUp && <label>
-          Full name
-          <input autoComplete="name" name="name" value={name} onChange={event => setName(event.target.value)} required minLength={2} maxLength={120} placeholder="Your name" />
-        </label>}
+        {isSignUp && <>
+          <label>
+            First name
+            <input autoComplete="given-name" name="firstName" value={firstName} onChange={event => setFirstName(event.target.value)} required maxLength={60} placeholder="First name" />
+          </label>
+          <label>
+            Last name
+            <input autoComplete="family-name" name="lastName" value={lastName} onChange={event => setLastName(event.target.value)} required maxLength={60} placeholder="Last name" />
+          </label>
+        </>}
         <label>
           Email address
           <input autoComplete="email" inputMode="email" type="email" name="email" value={email} onChange={event => setEmail(event.target.value)} required maxLength={254} placeholder="you@example.com" />
