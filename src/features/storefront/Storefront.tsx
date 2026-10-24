@@ -278,7 +278,24 @@ export function Storefront({ baseUrl, requestedSlug }: {
   const menuUrl = restaurantMenuPath(restaurant.slug, baseUrl)
     + (restaurant.branchSlug ? '?branch=' + restaurant.branchSlug : '');
   const tenantFontClass = restaurant.fontFamily === 'classic' ? ' sf-font-classic' : restaurant.fontFamily === 'rounded' ? ' sf-font-rounded' : ' sf-font-modern';
-  return <div className={'sf-storefront' + tenantFontClass} style={{ '--sf-red':restaurant.primaryColor } as CSSProperties}>
+  const websiteColors = restaurant.websiteColors;
+  const storefrontTheme = {
+    '--sf-page-background': websiteColors.pageBackground,
+    '--sf-header-color': websiteColors.headerColor,
+    '--sf-footer-background': websiteColors.footerBackground,
+    '--sf-footer-font': websiteColors.footerFont,
+    '--sf-hero-color': websiteColors.heroColor,
+    '--sf-product-card': websiteColors.productCard,
+    '--sf-font-color': websiteColors.fontColor,
+    '--sf-header-icon': websiteColors.headerIcon,
+    '--sf-primary-button': websiteColors.primaryButton,
+    '--sf-primary-button-font': websiteColors.primaryButtonFont,
+    '--sf-secondary-button': websiteColors.secondaryButton,
+    '--sf-secondary-button-font': websiteColors.secondaryButtonFont,
+    '--sf-red': websiteColors.primaryButton,
+    '--sf-red-dark': websiteColors.secondaryButton,
+  } as CSSProperties;
+  return <div className={'sf-storefront' + tenantFontClass} style={storefrontTheme}>
     <a className="sf-skip-link" href="#sf-menu">Skip to menu</a>
     <header className="sf-header">
       <div className="sf-header-inner">
