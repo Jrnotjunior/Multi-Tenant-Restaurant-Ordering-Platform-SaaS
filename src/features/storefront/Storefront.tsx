@@ -308,7 +308,9 @@ export function Storefront({ baseUrl, requestedSlug }: {
     <header className="sf-header">
       <div className="sf-header-inner">
         <a href={menuUrl} className="sf-logo" aria-label={restaurant.name + " menu"}>
-          <span className="sf-logo-mark">{restaurant.initials}</span>
+          {restaurant.logoUrl
+            ? <img className="sf-logo-image" src={restaurant.logoUrl} alt={restaurant.name + " logo"} />
+            : <span className="sf-logo-mark">{restaurant.initials}</span>}
         </a>
         <nav className="sf-header-actions" aria-label="Store navigation">
           <span className="sf-header-divider" aria-hidden="true"/>
