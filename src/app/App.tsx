@@ -3,7 +3,7 @@ import { pathFor, storefrontSlugFromPath, viewForPath, type View } from './route
 import { PrivilegedGate } from '../features/auth/PrivilegedGate';
 import { Storefront } from '../features/storefront/Storefront';
 import { AccountAuthPage } from '../features/storefront/AccountAuthPage';
-import { OwnerDashboard } from '../features/management/OwnerDashboard';
+import { RestaurantWorkspace } from '../features/operations/RestaurantWorkspace';
 
 const protectedViews = {
   restaurant: {
@@ -61,7 +61,7 @@ export function App() {
     </div>;
   }
 
-  const workspaceContent = <OwnerDashboard baseUrl={baseUrl} />;
+  const workspaceContent = <RestaurantWorkspace baseUrl={baseUrl} />;
 
   return <div className="app">
     <header className="topbar">
