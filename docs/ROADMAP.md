@@ -6,9 +6,9 @@
 - **W2T-004 — Tenant/domain/branch settings:** verified DNS, TLS, branch settings and secure hostname resolution.
 - **W2T-005 — Plans:** three packages and backend entitlements; baseline ordering, kitchen, dispatch, riders, inventory, recipes, loyalty and advanced reports remain in all tiers.
 - **W2T-006 — Multi-branch menus (delivered):** owner-guarded branch creation and activation, branch-specific prices, public branch selection, and branch-scoped carts.
-- **Customer ordering slice (upcoming):** server-validated checkout, guest/registered delivery ordering, and reliable order lifecycle.
-- **W2T-007 — Payments and order state:** PayMongo linked merchant readiness, checkout, signed child webhooks, refunds, separate payment/fulfillment state.
-- **W2T-007A — Checkout readiness (in progress):** delivery-detail form and explicit server-readiness gate; no client-only order submission. Live checkout remains disabled until a server-validated order RPC, authoritative price/modifier validation, availability checks, order snapshots, and idempotency are deployed and tested.
+- **W2T-007A — Server order-request API (implemented and rollback-tested):** private order/order-line snapshots, server-calculated prices and modifiers, branch availability, idempotency, bounded guest details, RLS/table-grant isolation, and a default-off `accepting_orders` gate. Checkout remains preparation-only until restaurant operations can receive and act on requests.
+- **W2T-007B — Restaurant order operations (next):** owner/MFA-protected order inbox, confirm/reject transitions and explicit order-acceptance controls. Then connect the checkout UI to the verified RPC.
+- **W2T-007 — Payments and order state:** PayMongo linked merchant readiness, signed child webhooks, refunds, separate payment/fulfillment state. No live payments are enabled.
 - **W2T-008 — Kitchen and realtime:** state machine, queues, event history and replay/recovery.
 - **W2T-009 — Dispatch and delivery:** Mapbox central location integration, rider assignments and external Google Maps/Waze navigation.
 - **W2T-010 — Operations:** branch inventory/recipes, restaurant-wide loyalty ledger and analytics.
