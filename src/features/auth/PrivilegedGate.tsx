@@ -209,5 +209,6 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
       }}>Restart incomplete authenticator setup</button>}
     </div>}
     {user && <button className="auth-secondary" type="button" onClick={() => void logout()}>Sign out</button>}
-  </section>;
+    </section>
+  </main>;
 }
