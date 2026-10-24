@@ -29,7 +29,7 @@ function FoodArt({ item, small = false }: { item: MenuItem; small?: boolean }) {
   return (
     <div
       className={'sf-food-art' + (small ? ' sf-food-art-small' : '') + (hasImage ? ' sf-food-art-has-photo' : ' sf-food-art-no-photo')}
-      style={hasImage ? undefined : { background: '#f1f3f5' }}
+      style={{width:'100%',height:'100%',minHeight:0,...(hasImage ? {} : { background: '#f1f3f5' })}}
       aria-hidden="true"
     >
       {hasImage
@@ -149,15 +149,15 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
 }
 
 function MenuCard({ item, quantity, add, customize }: { item: MenuItem; quantity: number; add: (id: string, delta: number) => void; customize:(item:MenuItem)=>void }) {
-  return <article className="sf-menu-card">
-    <div className="sf-card-image">
+  return <article className="sf-menu-card" style={{display:'grid',gridTemplateColumns:'150px minmax(0,1fr)',minHeight:150,borderRadius:13}}>
+    <div className="sf-card-image" style={{height:150,minHeight:150,alignSelf:'stretch'}}>
       <FoodArt item={item}/>
       {item.popular && <span className="sf-popular">★ Popular</span>}
     </div>
-    <div className="sf-card-details">
-      <h3>{item.name}</h3>
+    <div className="sf-card-details" style={{display:'flex',flexDirection:'column',minWidth:0,padding:'12px 14px'}}>
+      <h3 style={{marginTop:0}}>{item.name}</h3>
       <p>{item.description}</p>
-      <div className="sf-card-bottom">
+      <div className="sf-card-bottom" style={{marginTop:'auto',paddingTop:8}}>
         <strong>{peso(item.priceCentavos)}</strong>
         {(item.modifierGroups?.length??0)>0
           ? <button type="button" className="sf-customize-action" onClick={()=>customize(item)}>Customize</button>
@@ -403,7 +403,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
             {categories.map((option) => <button type="button" key={option} onClick={() => setCategory(option)}
               aria-pressed={category === option} className={'sf-category' + (category === option ? ' sf-category-active' : '')}>{option}</button>)}
           </div>
-          {results.length ? <div className="sf-menu-grid">
+          {results.length ? <div className="sf-menu-grid" style={{display:'grid',gridTemplateColumns:'minmax(0,1fr)',gap:12}}> 
             {results.map((item) => <MenuCard item={item} quantity={cart[item.id] ?? 0} add={change} customize={setCustomizing} key={item.id}/>)}
           </div> : menu.length === 0 ? <div className="sf-no-results sf-menu-coming-soon"><span aria-hidden="true">🍽️</span><h3>Menu coming soon</h3><p>{restaurant.name} is preparing its menu. Please check back soon.</p></div>
           : <div className="sf-no-results"><span aria-hidden="true">🔎</span><h3>Nothing on the menu matched</h3><p>Try another search or choose a different category.</p><button type="button" onClick={() => {setQuery('');setCategory('All');}}>Clear filters</button></div>}
