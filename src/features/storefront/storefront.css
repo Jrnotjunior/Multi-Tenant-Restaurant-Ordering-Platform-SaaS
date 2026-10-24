@@ -152,7 +152,7 @@
 .sf-branch-selector label{display:flex;flex-direction:column;gap:6px;color:#5d514e;font-size:11px;font-weight:750;min-width:195px}
 .sf-branch-selector select{height:46px;border-radius:10px;background:#faf8f4;color:#30282a;border:1px solid #dcd2cc;padding:0 12px;min-width:0;font-size:14px;font-weight:700}
 .sf-branch-selector select:focus-visible{outline:3px solid #c53e50;outline-offset:2px}
-@media(max-width:680px){.sf-branch-selector{flex-direction:column;align-items:stretch;margin:-17px 0 30px;padding:16px;gap:14px}.sf-branch-selector h2{font-size:17px}.sf-branch-selector label{width:100%}.sf-branch-selector select{width:100%;height:49px}}
+@media(max-width:680px){.sf-branch-selector{flex-direction:column;align-items:stretch;margin:10px 0 30px;padding:16px;gap:14px}.sf-branch-selector h2{font-size:17px}.sf-branch-selector label{width:100%}.sf-branch-selector select{width:100%;height:49px}}
 
 
 .sf-customize-dialog{border:0;border-radius:19px;width:min(510px,calc(100% - 24px));max-height:88dvh;overflow:auto;padding:24px;background:#fff;color:#292322;box-shadow:0 24px 70px #20121c5c}
