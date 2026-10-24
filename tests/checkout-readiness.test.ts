@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { buildCheckoutReadiness } from '../src/features/storefront/Storefront';
-import { enrichSampleMenu, demoMenu } from '../src/features/storefront/demoCatalog';
+import type { MenuItem } from '../src/features/storefront/demoCatalog';
 import { addCustom, type CustomCart } from '../src/features/storefront/customCart';
 import { updateCart, type Cart } from '../src/features/storefront/cart';
 
-const menu = enrichSampleMenu(demoMenu);
-const item = menu.find(row => row.id === 'inasal')!;
+const item: MenuItem = {id:'inasal',category:'Rice Meals',name:'Chicken Inasal',description:'Grilled chicken',priceCentavos:18900,emoji:'🍗',background:'#eee',modifierGroups:[{id:'size',name:'Size',minSelect:1,maxSelect:1,options:[{id:'large',name:'Large',priceCentavos:4900}]},{id:'extras',name:'Extras',minSelect:0,maxSelect:1,options:[{id:'egg',name:'Egg',priceCentavos:2500}]}]};
+const menu = [item];
 const details = {
   customerName: 'Alex Santos',
   phone: '+63 917 123 4567',
@@ -13,9 +13,8 @@ const details = {
   deliveryNotes: 'Near the blue gate',
 };
 
-function build(sample: boolean, cart: Cart = {}, customized: CustomCart = {}, input = details) {
+function build(_legacySample: boolean, cart: Cart = {}, customized: CustomCart = {}, input = details) {
   return buildCheckoutReadiness({
-    sample,
     slug: 'restaurant-alpha',
     branchSlug: 'main',
     menu,
