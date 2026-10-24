@@ -126,6 +126,20 @@ BEGIN
   BEGIN
     PERFORM public.create_customer_order(
       'checkout-test-tenant','main','Test Guest','+63 917 123 4567',
+      '12 Sample Street, Quezon City','Ring the bell','20000000-0000-4000-8000-000000000004',
+      jsonb_build_array(jsonb_build_object(
+        'item_id',v_item::text,'quantity',1,'option_ids',jsonb_build_array(v_option::text),
+        'price_centavos',1
+      ))
+    );
+    RAISE EXCEPTION 'Client-supplied price was accepted';
+  EXCEPTION WHEN SQLSTATE '22023' THEN
+    NULL;
+  END;
+
+  BEGIN
+    PERFORM public.create_customer_order(
+      'checkout-test-tenant','main','Test Guest','+63 917 123 4567',
       '12 Sample Street, Quezon City','Ring the bell','20000000-0000-4000-8000-000000000003',
       jsonb_build_array(jsonb_build_object(
         'item_id',v_item::text,'quantity',1,'option_ids','[]'::jsonb
