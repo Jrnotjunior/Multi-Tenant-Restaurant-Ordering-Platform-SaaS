@@ -272,7 +272,7 @@ export function OwnerMenuPage({ tenantId }: Props) {
           <div className="restaurant-menu-search">
             <label className="restaurant-menu-search-label" htmlFor="restaurant-product-search">Search products</label>
             <div className="restaurant-menu-search-input-wrap">
-              <input id="restaurant-product-search" type="search" value={searchProduct}
+              <input id="restaurant-product-search" type="text" role="searchbox" value={searchProduct}
                 onChange={(event) => setSearchProduct(event.target.value)} placeholder="Search by product name, description, or category"/>
               {searchProduct && <button type="button" className="restaurant-menu-search-clear" onClick={() => setSearchProduct('')} aria-label="Clear product search">×</button>}
             </div>
