@@ -160,7 +160,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
     else { setUser(null); setStatus('signedout'); setMessage(''); }
   }
 
-  if (status === 'authorized') return <>{children}<p className="auth-footer"><button type="button" onClick={() => void logout()}>Sign out</button></p></>;
+  if (status === 'authorized') return <>{children}{mode === 'admin' && <p className="auth-footer"><button type="button" onClick={() => void logout()}>Sign out</button></p>}</>;
 
   const isSetup = status === 'passwordsetup';
   const isMfa = status === 'mfa';
