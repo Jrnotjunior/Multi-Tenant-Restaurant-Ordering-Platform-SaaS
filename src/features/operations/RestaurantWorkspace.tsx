@@ -11,14 +11,16 @@ import './operations.css';
 
 type WorkspaceRole = 'restaurant_owner' | StaffWorkspaceRole;
 type Membership = { tenant_id: string; role: WorkspaceRole };
+type CachedWorkspace = { userId: string; membership: Membership | null; restaurantName: string | null; accountEmail: string };
+let cachedWorkspace: CachedWorkspace | null = null;
 
 export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
-  const [membership, setMembership] = useState<Membership | null>(null);
-  const [restaurantName, setRestaurantName] = useState<string | null>(null);
-  const [accountEmail, setAccountEmail] = useState('Store Owner');
+  const [membership, setMembership] = useState<Membership | null>(cachedWorkspace?.membership ?? null);
+  const [restaurantName, setRestaurantName] = useState<string | null>(cachedWorkspace?.restaurantName ?? null);
+  const [accountEmail, setAccountEmail] = useState(cachedWorkspace?.accountEmail ?? 'Store Owner');
   const [ownerPage, setOwnerPage] = useState<OwnerPage>('orders');
   const [orderFilter, setOrderFilter] = useState<'active' | 'all'>('active');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cachedWorkspace);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -33,6 +35,7 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
         const { data: authData, error: authError } = await supabase.auth.getUser();
         if (authError) throw authError;
         if (!authData.user) throw new Error('Sign in again to access your restaurant workspace.');
+        if (active && cachedWorkspace?.userId !== authData.user.id) setLoading(true);
         if (active && authData.user.email) setAccountEmail(authData.user.email);
         const { data, error: membershipError } = await supabase
           .from('tenant_memberships').select('tenant_id,role')
@@ -50,6 +53,7 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
         }
       } catch (reason) {
         if (active) setError(reason instanceof Error ? reason.message : 'Unable to load your restaurant workspace.');
+        if (active) cachedWorkspace = { userId: authData.user.id, membership: selected, restaurantName: selected ? (await supabase.from('tenants').select('name').eq('id', selected.tenant_id).maybeSingle()).data?.name ?? null : null, accountEmail: authData.user.email ?? 'Store Owner' };
       } finally {
         if (active) setLoading(false);
       }
