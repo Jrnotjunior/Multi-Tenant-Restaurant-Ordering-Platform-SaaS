@@ -263,7 +263,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
               </div>
               <a role="menuitem" href={baseUrl + 'legal'} onClick={() => setAccountMenuOpen(false)}>Legal &amp; Policies</a>
               <a role="menuitem" href={baseUrl + 'account/sign-in' + (resolvedSlug ? '?restaurant=' + encodeURIComponent(resolvedSlug) : '')} onClick={() => { if (resolvedSlug) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', resolvedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign in</a>
-              <a role="menuitem" href={baseUrl + 'account/sign-up' + (requestedSlug && !isSample ? '?restaurant=' + encodeURIComponent(requestedSlug) : '')} onClick={() => { if (requestedSlug && !isSample) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', requestedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign up</a>
+              <a role="menuitem" href={baseUrl + 'account/sign-up' + (resolvedSlug ? '?restaurant=' + encodeURIComponent(resolvedSlug) : '')} onClick={() => { if (resolvedSlug) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', resolvedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign up</a>
             </div>}
           </div>
         </nav>
@@ -321,8 +321,8 @@ export function Storefront({ baseUrl, requestedSlug }: {
                 <span>Sign in or review our policies.</span>
               </div>
               <a role="menuitem" href={baseUrl + 'legal'} onClick={() => setAccountMenuOpen(false)}>Legal &amp; Policies</a>
-              <a role="menuitem" href={baseUrl + 'account/sign-in' + (requestedSlug && !isSample ? '?restaurant=' + encodeURIComponent(requestedSlug) : '')} onClick={() => { if (requestedSlug && !isSample) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', requestedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign in</a>
-              <a role="menuitem" href={baseUrl + 'account/sign-up' + (requestedSlug && !isSample ? '?restaurant=' + encodeURIComponent(requestedSlug) : '')} onClick={() => { if (requestedSlug && !isSample) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', requestedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign up</a>
+              <a role="menuitem" href={baseUrl + 'account/sign-in' + (resolvedSlug ? '?restaurant=' + encodeURIComponent(resolvedSlug) : '')} onClick={() => { if (resolvedSlug) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', resolvedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign in</a>
+              <a role="menuitem" href={baseUrl + 'account/sign-up' + (resolvedSlug ? '?restaurant=' + encodeURIComponent(resolvedSlug) : '')} onClick={() => { if (resolvedSlug) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', resolvedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign up</a>
             </div>}
           </div>
         </nav>
