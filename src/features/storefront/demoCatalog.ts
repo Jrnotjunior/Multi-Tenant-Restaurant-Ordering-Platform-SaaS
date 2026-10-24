@@ -1,6 +1,10 @@
 // Illustrative restaurant data for the UI preview only.
 // Future tenant websites must load a verified, published menu from a trusted backend.
 export type Category = string;
+export type ModifierOption = Readonly<{id:string;name:string;priceCentavos:number}>;
+export type ModifierGroup = Readonly<{
+  id:string;name:string;minSelect:number;maxSelect:number;options:readonly ModifierOption[];
+}>;
 export type MenuItem = Readonly<{
   id: string;
   category: string;
@@ -10,6 +14,8 @@ export type MenuItem = Readonly<{
   emoji: string;
   background: string;
   popular?: boolean;
+  imageUrl?: string;
+  modifierGroups?: readonly ModifierGroup[];
 }>;
 
 export const demoRestaurant = Object.freeze({
@@ -49,4 +55,20 @@ export function peso(centavos: number): string {
   return new Intl.NumberFormat('en-PH', {
     style: 'currency', currency: 'PHP', minimumFractionDigits: 0, maximumFractionDigits: 2,
   }).format(centavos / 100);
+}
+
+
+/** Preview-only modifiers; do not persist demo data into tenant tables. */
+export function enrichSampleMenu(menu:readonly MenuItem[]):MenuItem[] {
+  return menu.map(item=>item.id==='inasal'?{...item,modifierGroups:[
+    {id:'sample-size',name:'Choose your size',minSelect:1,maxSelect:1,options:[
+      {id:'sample-regular',name:'Regular',priceCentavos:0},
+      {id:'sample-large',name:'Large',priceCentavos:4900},
+    ]},
+    {id:'sample-extras',name:'Make it extra',minSelect:0,maxSelect:2,options:[
+      {id:'sample-rice',name:'Extra rice',priceCentavos:3500},
+      {id:'sample-egg',name:'Fried egg',priceCentavos:2500},
+      {id:'sample-sauce',name:'Extra sauce',priceCentavos:1500},
+    ]},
+  ]}:item);
 }

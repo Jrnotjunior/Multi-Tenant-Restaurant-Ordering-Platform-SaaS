@@ -1,4 +1,4 @@
-import { demoMenu, demoRestaurant, type MenuItem } from './demoCatalog';
+import { demoMenu, demoRestaurant, enrichSampleMenu, type MenuItem, type ModifierGroup } from './demoCatalog';
 import { supabase } from '../../lib/supabase';
 
 export type BranchChoice = Readonly<{slug:string;name:string}>;
@@ -37,7 +37,7 @@ export const sampleCatalog: StorefrontCatalog = {
     branchName: 'Sample Main',
   },
   categories: ['All', 'Rice Meals', 'Burgers', 'Sides', 'Drinks', 'Desserts'],
-  menu: demoMenu,
+  menu: enrichSampleMenu(demoMenu),
   sample: true,
 };
 
@@ -48,8 +48,8 @@ export function getSampleCatalog(branchSlug:string|null):StorefrontCatalog|null 
   return {
     ...sampleCatalog,
     restaurant:{...sampleCatalog.restaurant,branchName:'Sample Makati',branchSlug:'makati'},
-    menu:demoMenu.filter(item=>item.id!=='sisig' && item.id!=='halo')
-      .map(item=>({...item,priceCentavos:item.priceCentavos+1500})),
+    menu:enrichSampleMenu(demoMenu.filter(item=>item.id!=='sisig' && item.id!=='halo')
+      .map(item=>({...item,priceCentavos:item.priceCentavos+1500}))),
   };
 }
 
@@ -75,6 +75,40 @@ const record = (value: unknown): value is Row =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 const validText = (value: unknown, max: number): value is string =>
   typeof value === 'string' && value.trim().length > 0 && value.length <= max;
+
+
+function validateModifiers(value:unknown):ModifierGroup[] {
+  if(value===undefined)return [];
+  if(!Array.isArray(value)||value.length>8)throw new Error('Invalid modifier groups');
+  return value.map((g:unknown)=>{
+    if(!record(g) || !validText(g.id,64) || !validText(g.name,100) ||
+       !Number.isInteger(g.minSelect)||!Number.isInteger(g.maxSelect) ||
+       (g.minSelect as number)<0 || (g.maxSelect as number)>20 ||
+       (g.maxSelect as number)<1 || (g.minSelect as number)>(g.maxSelect as number) ||
+       !Array.isArray(g.options)||g.options.length>20) throw new Error('Invalid modifier group');
+    const optionIds=new Set<string>();
+    const options=g.options.map((o:unknown)=>{
+      if(!record(o)||!validText(o.id,64)||!validText(o.name,100)||
+         !Number.isInteger(o.priceCentavos)||(o.priceCentavos as number)<0||
+         (o.priceCentavos as number)>100000000||optionIds.has(o.id)) {
+        throw new Error('Invalid modifier option');
+      }
+      optionIds.add(o.id);
+      return {id:o.id,name:o.name,priceCentavos:o.priceCentavos as number};
+    });
+    return {id:g.id as string,name:g.name as string,
+      minSelect:g.minSelect as number,maxSelect:g.maxSelect as number,options};
+  });
+}
+
+function getImageUrl(path:unknown):string|undefined {
+  if(path==null)return undefined;
+  if(typeof path!=='string' ||
+    !/^[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.(?:jpg|jpeg|png|webp)$/.test(path))
+    throw new Error('Invalid published image path');
+  if(!supabase) return undefined;
+  return supabase.storage.from('menu-images').getPublicUrl(path).data.publicUrl;
+}
 
 /** Parse and whitelist RPC output; never substitute preview items for a live tenant. */
 export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
@@ -128,6 +162,8 @@ export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
       popular:item.popular,
       emoji:'🍽️',
       background:backgrounds[index % backgrounds.length],
+      imageUrl:getImageUrl(item.imagePath),
+      modifierGroups:validateModifiers(item.modifierGroups),
     };
   });
   const initials = name.split(/\s+/).slice(0,2).map((word) => word.charAt(0)).join('').toUpperCase();
