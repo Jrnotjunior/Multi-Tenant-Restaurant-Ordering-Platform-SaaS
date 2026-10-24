@@ -313,3 +313,14 @@
   .sf-storefront .sf-card-details h3{font-size:14px}
   .sf-storefront .sf-card-details p{font-size:11px;line-height:1.4}
 }
+
+/* Keep storefront chrome fully visible on narrow/mobile viewports. */
+.sf-storefront{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+.sf-storefront .sf-header,.sf-storefront .sf-footer{width:100%;max-width:900px;box-sizing:border-box}
+.sf-storefront .sf-header-inner{width:calc(100% - 2rem);max-width:900px;min-width:0;box-sizing:border-box}
+@media(max-width:680px){
+  .sf-storefront .sf-header-inner{width:100%;max-width:100%;padding-left:14px;padding-right:14px}
+  .sf-storefront .sf-footer{width:100%;max-width:100%;padding-left:14px;padding-right:14px}
+  .sf-storefront .sf-footer-bottom{min-width:0;flex-wrap:wrap;justify-content:center;text-align:center}
+  .sf-storefront .sf-footer-powered-by{max-width:100%;white-space:normal}
+}
