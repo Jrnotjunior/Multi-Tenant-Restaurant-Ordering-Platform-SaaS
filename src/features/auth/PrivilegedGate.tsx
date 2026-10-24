@@ -9,6 +9,7 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function PrivilegedGate({ mode, children }: { mode: Mode; children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [status, setStatus] = useState<State>('checking');
   const [flow, setFlow] = useState<MfaFlow | null>(null);
   const [revision, setRevision] = useState(0);
@@ -30,16 +31,39 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
   const client = supabase;
 
   useEffect(() => {
-    if (!client) { setStatus('error'); setMessage('Supabase must be configured for account access.'); return; }
+    if (!client) {
+      setStatus('error');
+      setMessage('Supabase must be configured for account access.');
+      setAuthReady(true);
+      return;
+    }
     let active = true;
+    // Do not treat the initial null React state as a signed-out session.
+    // Supabase must finish restoring its persisted browser session first.
     void client.auth.getUser().then(({ data, error }) => {
-      if (active) { if (error) setMessage(error.message); setUser(data.user ?? null); setStatus(data.user ? 'checking' : 'signedout'); }
-    }).catch((err: unknown) => { if (active) { setMessage(String(err)); setStatus('error'); } });
+      if (!active) return;
+      if (error) {
+        setMessage(error.message);
+        setStatus('error');
+        setAuthReady(true);
+        return;
+      }
+      setUser(data.user ?? null);
+      setStatus(data.user ? 'checking' : 'signedout');
+      setAuthReady(true);
+    }).catch((err: unknown) => {
+      if (active) {
+        setMessage(String(err));
+        setStatus('error');
+        setAuthReady(true);
+      }
+    });
     const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
       if (!active) return;
       if (event === 'SIGNED_OUT') {
         clearPendingMfa(client);
         setUser(null);
+        setAuthReady(true);
         setRevision((previous) => previous + 1);
         return;
       }
@@ -47,10 +71,18 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
       // Supabase emits TOKEN_REFRESHED when a browser tab resumes or its
       // access token is renewed. Refreshing a token does not change the
       // user's identity, so don't restart the privileged access check.
-      if (event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') return;
+      if (event === 'TOKEN_REFRESHED') return;
+
+      if (event === 'INITIAL_SESSION') {
+        // Use the first resolved session event as a second signal that auth
+        // hydration completed. Keep getUser's verified identity authoritative.
+        setAuthReady(true);
+        return;
+      }
 
       if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'MFA_CHALLENGE_VERIFIED') {
         setUser(session?.user ?? null);
+        setAuthReady(true);
         setRevision((previous) => previous + 1);
       }
     });
@@ -58,7 +90,11 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
   }, [client]);
 
   useEffect(() => {
-    if (!client || !user) { if (client) setStatus('signedout'); return; }
+    // Wait for auth session hydration before sending anyone to sign-in.
+    // Without this guard, the initial user=null render wins the race against
+    // getUser() and creates a sign-in -> workspace -> sign-in redirect loop.
+    if (!client || !authReady) return;
+    if (!user) { setStatus('signedout'); return; }
     let active = true;
     async function checkAccess() {
       if (!client || !user) return;
@@ -125,7 +161,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
     }
     void checkAccess();
     return () => { active = false; };
-  }, [client, user, mode, revision]);
+  }, [client, user, authReady, mode, revision]);
 
   useEffect(() => {
     if (status !== 'signedout') return;
