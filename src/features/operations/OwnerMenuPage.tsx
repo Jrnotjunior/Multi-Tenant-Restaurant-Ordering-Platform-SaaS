@@ -145,18 +145,31 @@ export function OwnerMenuPage({ tenantId }: Props) {
     setError('');
     try {
       const categoryId = await getOrCreateMenuCategory(tenantId, categoryName);
+      const wasAdding = !editingProduct;
+      const isPopular = editingProduct?.is_popular ?? false;
+      const priceCentavos = Math.round(price * 100);
       const itemId = await saveItem(tenantId, editingProduct?.id ?? null, {
-        name, description, category_id: categoryId, price_centavos: Math.round(price * 100),
-        is_popular: editingProduct?.is_popular ?? false, status: 'published',
+        name, description, category_id: categoryId, price_centavos: priceCentavos,
+        is_popular: isPopular, status: 'published',
       });
-      if (imageFile) await uploadMenuPhoto(tenantId, itemId, imageFile);
 
-      const branchesToAssign = activeBranches;
-      for (const branch of branchesToAssign) {
+      // If a later photo upload fails, keep the saved item in edit mode so retry
+      // updates this record instead of creating a duplicate menu item.
+      if (wasAdding) {
+        setEditingProduct({
+          id: itemId, tenant_id: tenantId, category_id: categoryId, name, description,
+          image_path: null, price_centavos: priceCentavos, status: 'published',
+          is_popular: isPopular, sort_order: data.items.length,
+        });
+        setIsAddingProduct(false);
+      }
+
+      for (const branch of activeBranches) {
         const existing = data.assignments.find((assignment) => assignment.branch_id === branch.id && assignment.item_id === itemId);
         const available = existing ? existing.is_available : true;
         await setBranchItem(tenantId, branch.id, itemId, available, existing?.price_override_centavos ?? null);
       }
+      if (imageFile) await uploadMenuPhoto(tenantId, itemId, imageFile);
       await refreshMenu();
       setEditingProduct(null);
       setIsAddingProduct(false);
@@ -165,6 +178,7 @@ export function OwnerMenuPage({ tenantId }: Props) {
       setImagePreview('');
     } catch (reason) {
       setError(formatError(reason));
+      try { await refreshMenu(); } catch { /* Preserve the original save/upload error. */ }
     } finally {
       setSavingForm(false);
     }
