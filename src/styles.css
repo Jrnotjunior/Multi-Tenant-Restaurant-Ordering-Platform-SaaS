@@ -82,3 +82,6 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 
 /* Center authenticator QR code in the MFA setup card */
 .onboarding-card .auth-qr{display:block;margin:18px auto 22px}
+
+/* Sign-in and existing-account MFA use a single-column layout; the welcome hero is onboarding-only. */
+.privileged-auth-only{grid-template-columns:minmax(0,1fr)}
