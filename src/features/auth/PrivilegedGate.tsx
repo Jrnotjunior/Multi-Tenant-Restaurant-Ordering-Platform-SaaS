@@ -164,7 +164,10 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
 
   const isSetup = status === 'passwordsetup';
   const isMfa = status === 'mfa';
-  return <main className="privileged-onboarding" aria-live="polite">
+  // Existing accounts with a verified authenticator must verify that factor;
+  // they are not in the new-account onboarding flow.
+  const isExistingAccountMfa = isMfa && flow?.kind === 'challenge';
+  return <main className={isExistingAccountMfa ? 'privileged-onboarding existing-account-mfa' : 'privileged-onboarding'} aria-live="polite">
     <aside className="onboarding-story">
       <a className="onboarding-brand" href="/" aria-label="Web2Table home"><span>W2T</span><strong>Web2Table</strong></a>
       <div className="onboarding-story-copy">
@@ -180,14 +183,14 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
       <div className="onboarding-story-glow" aria-hidden="true" />
     </aside>
     <section className="auth-panel onboarding-card">
-      {(isSetup || isMfa) && <div className="onboarding-steps" aria-label="Account setup progress">
+      {(isSetup || (isMfa && !isExistingAccountMfa)) && <div className="onboarding-steps" aria-label="Account setup progress">
         <div className={isSetup ? 'active' : 'done'}><span>1</span><small>Create password</small></div><i />
         <div className={isMfa ? 'active' : ''}><span>2</span><small>Set up MFA</small></div><i />
         <div className={''}><span>3</span><small>Get started</small></div>
       </div>}
-      <span className="auth-eyebrow">{isSetup ? 'STEP 1 OF 3 · ACCOUNT SECURITY' : isMfa ? 'STEP 2 OF 3 · ACCOUNT SECURITY' : 'PRIVILEGED ACCESS · MFA REQUIRED'}</span>
-      <h2>{isSetup ? 'Create your password' : isMfa ? 'Secure your account' : mode === 'admin' ? 'System administrator sign-in' : 'Restaurant team sign-in'}</h2>
-      <p>{isSetup ? 'Set a secure password to activate your restaurant owner account.' : isMfa ? 'One quick security step, then you’re ready to get started.' : 'Accounts are provisioned by invitation only. Access is based on your verified role and database membership.'}</p>
+      <span className="auth-eyebrow">{isSetup ? 'STEP 1 OF 3 · ACCOUNT SECURITY' : isExistingAccountMfa ? 'EXISTING ACCOUNT · MFA VERIFICATION' : isMfa ? 'STEP 2 OF 3 · ACCOUNT SECURITY' : 'PRIVILEGED ACCESS · MFA REQUIRED'}</span>
+      <h2>{isSetup ? 'Create your password' : isExistingAccountMfa ? 'Verify your identity' : isMfa ? 'Secure your account' : mode === 'admin' ? 'System administrator sign-in' : 'Restaurant team sign-in'}</h2>
+      <p>{isSetup ? 'Set a secure password to activate your restaurant owner account.' : isExistingAccountMfa ? 'Your authenticator is already set up. Enter its current six-digit code to continue to your workspace.' : isMfa ? 'One quick security step, then you’re ready to get started.' : 'Accounts are provisioned by invitation only. Access is based on your verified role and database membership.'}</p>
       {message && <p className="auth-message" role="alert">{message}</p>}
     {status === 'checking' && <p>Verifying your session and access permissions…</p>}
     {status === 'passwordsetup' && <form onSubmit={(e) => void savePassword(e)} className="auth-form">
@@ -204,7 +207,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
         <img className="auth-qr" src={flow.qrCode} alt="Authenticator enrollment QR code" />
         <p>Scan the QR code in an authenticator app. Keep it private.</p>
       </div>}
-      {flow.kind === 'challenge' && <p>Enter the current six-digit code from your authenticator app.</p>}
+      {flow.kind === 'challenge' && !isExistingAccountMfa && <p>Enter the current six-digit code from your authenticator app.</p>}
       <form onSubmit={(e) => void submitMfa(e)} className="auth-form onboarding-mfa-form">
         <label>Authenticator code<input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={code} onChange={(e) => setCode(e.target.value)} required /></label>
         <button className="onboarding-mfa-verify" type="submit" disabled={busy}>{busy ? 'Verifying…' : 'Verify authenticator'}</button>
