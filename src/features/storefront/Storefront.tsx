@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { cartCount, cartLines, cartSubtotal, updateCart, type Cart } from './cart';
+import {addCustom,changeCustom,customCount,customLines,customSubtotal,type CustomCart,type Selection} from './customCart';
+import {CustomizeDialog} from './CustomizeDialog';
 import { demoRestaurant, filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
 import { branchSlugFromSearch, getSampleCatalog, loadPublishedMenu, sampleCatalog, type StorefrontCatalog } from './publishedMenu';
 import { normalizeAppBase, restaurantMenuPath } from '../../app/routes';
@@ -21,6 +23,7 @@ function FoodArt({ item, small = false }: { item: MenuItem; small?: boolean }) {
   return <div className={'sf-food-art' + (small ? ' sf-food-art-small' : '')} style={{ background: item.background }} aria-hidden="true">
     <span className="sf-art-disc" />
     <span className="sf-food-emoji">{item.emoji}</span>
+    {item.imageUrl&&<img loading="lazy" className="sf-food-photo" src={item.imageUrl} alt={item.name} />}
   </div>;
 }
 
@@ -34,11 +37,12 @@ function QuantityControl({ itemId, quantity, change }: {
   </div>;
 }
 
-function CartContents({ cart, menu, change, close }: {
-  cart: Cart; menu: readonly MenuItem[]; change: (id: string, delta: number) => void; close?: () => void;
+function CartContents({ cart, customized, menu, change, changeCustomized, close }: {
+  cart: Cart; customized: CustomCart; menu: readonly MenuItem[]; change: (id: string, delta: number) => void;
+  changeCustomized:(key:string,delta:number)=>void; close?: () => void;
 }) {
   const lines = cartLines(cart, menu);
-  const count = cartCount(cart, menu);
+  const count = cartCount(cart, menu)+customCount(customized,menu);
   return <>
     {count === 0 ? <div className="sf-cart-empty">
       <div className="sf-cart-empty-icon"><BagIcon /></div>
@@ -47,6 +51,22 @@ function CartContents({ cart, menu, change, close }: {
       {close && <button type="button" className="sf-continue" onClick={close}>Browse menu</button>}
     </div> : <>
       <div className="sf-cart-items">
+        {customLines(customized,menu).map(line=><div className="sf-cart-item" key={line.key}>
+          <FoodArt item={line.item} small />
+          <div className="sf-cart-item-content">
+            <strong>{line.item.name}</strong>
+            <p className="sf-custom-cart-line">{line.options.map(option=>option.name).join(' · ')}</p>
+            <span>{peso(line.unitPriceCentavos)} each</span>
+            <div className="sf-qty">
+              <button type="button" aria-label={'Remove one customized '+line.item.name}
+                onClick={()=>changeCustomized(line.key,-1)}>−</button>
+              <span>{line.quantity}</span>
+              <button type="button" aria-label={'Add one customized '+line.item.name}
+                disabled={line.quantity>=20} onClick={()=>changeCustomized(line.key,1)}>+</button>
+            </div>
+          </div>
+          <strong className="sf-cart-lineprice">{peso(line.totalCentavos)}</strong>
+        </div>)}
         {lines.map(({ item, quantity }) => <div className="sf-cart-item" key={item.id}>
           <FoodArt item={item} small />
           <div className="sf-cart-item-content">
@@ -58,7 +78,7 @@ function CartContents({ cart, menu, change, close }: {
         </div>)}
       </div>
       <div className="sf-price-breakdown">
-        <div><span>Subtotal</span><strong>{peso(cartSubtotal(cart, menu))}</strong></div>
+        <div><span>Subtotal</span><strong>{peso(cartSubtotal(cart, menu)+customSubtotal(customized,menu))}</strong></div>
         <div><span>Delivery fee</span><span>At checkout</span></div>
       </div>
       <button type="button" className="sf-checkout-disabled" disabled>Checkout coming soon <ArrowIcon /></button>
@@ -67,7 +87,7 @@ function CartContents({ cart, menu, change, close }: {
   </>;
 }
 
-function MenuCard({ item, quantity, add }: { item: MenuItem; quantity: number; add: (id: string, delta: number) => void }) {
+function MenuCard({ item, quantity, add, customize }: { item: MenuItem; quantity: number; add: (id: string, delta: number) => void; customize:(item:MenuItem)=>void }) {
   return <article className="sf-menu-card">
     <div className="sf-card-image">
       <FoodArt item={item}/>
@@ -79,7 +99,9 @@ function MenuCard({ item, quantity, add }: { item: MenuItem; quantity: number; a
       <p>{item.description}</p>
       <div className="sf-card-bottom">
         <strong>{peso(item.priceCentavos)}</strong>
-        {quantity > 0
+        {(item.modifierGroups?.length??0)>0
+          ? <button type="button" className="sf-customize-action" onClick={()=>customize(item)}>Customize</button>
+          : quantity > 0
           ? <QuantityControl itemId={item.id} quantity={quantity} change={add}/>
           : <button type="button" className="sf-add" onClick={() => add(item.id, 1)} aria-label={'Add ' + item.name + ' to basket'}>+</button>}
       </div>
@@ -99,6 +121,8 @@ export function Storefront({ baseUrl, requestedSlug }: {
   const [category, setCategory] = useState<Category>('All');
   const [query, setQuery] = useState('');
   const [cart, setCart] = useState<Cart>({});
+  const [customized,setCustomized]=useState<CustomCart>({});
+  const [customizing,setCustomizing]=useState<MenuItem|null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -106,6 +130,8 @@ export function Storefront({ baseUrl, requestedSlug }: {
     function syncBranchFromHistory() {
       setSelectedBranch(branchSlugFromSearch(window.location.search));
       setCart({});
+      setCustomized({});
+      setCustomizing(null);
       setCategory('All');
       setCartOpen(false);
     }
@@ -131,8 +157,8 @@ export function Storefront({ baseUrl, requestedSlug }: {
   const categories = catalog?.categories ?? ['All'];
   const restaurant = catalog?.restaurant ?? sampleCatalog.restaurant;
   const results = useMemo(() => filterMenu(menu, category, query), [menu, category, query]);
-  const count = cartCount(cart, menu);
-  const subtotal = cartSubtotal(cart, menu);
+  const count = cartCount(cart, menu)+customCount(customized,menu);
+  const subtotal = cartSubtotal(cart, menu)+customSubtotal(customized,menu);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -141,6 +167,8 @@ export function Storefront({ baseUrl, requestedSlug }: {
     if (!cartOpen && dialog.open) dialog.close();
   }, [cartOpen]);
 
+  const changeCustomized=(key:string,delta:number)=>setCustomized(previous=>changeCustom(previous,key,delta));
+  const addCustomized=(item:MenuItem,selected:Selection)=>setCustomized(previous=>addCustom(previous,item,selected));
   const change = (itemId: string, delta: number) =>
     setCart((previous) => updateCart(previous, itemId, delta, menu));
   const menuUrl = restaurantMenuPath(restaurant.slug, baseUrl)
@@ -156,6 +184,8 @@ export function Storefront({ baseUrl, requestedSlug }: {
     window.history.pushState({},'',url.pathname+url.search+url.hash);
     setSelectedBranch(slug);
     setCart({});
+    setCustomized({});
+    setCustomizing(null);
     setCartOpen(false);
     setCategory('All');
     setQuery('');
@@ -249,13 +279,13 @@ export function Storefront({ baseUrl, requestedSlug }: {
               aria-pressed={category === option} className={'sf-category' + (category === option ? ' sf-category-active' : '')}>{option}</button>)}
           </div>
           {results.length ? <div className="sf-menu-grid">
-            {results.map((item) => <MenuCard item={item} quantity={cart[item.id] ?? 0} add={change} key={item.id}/>)}
+            {results.map((item) => <MenuCard item={item} quantity={cart[item.id] ?? 0} add={change} customize={setCustomizing} key={item.id}/>)}
           </div> : <div className="sf-no-results"><span aria-hidden="true">🔎</span><h3>Nothing on the menu matched</h3><p>Try another search or choose a different category.</p><button type="button" onClick={() => {setQuery('');setCategory('All');}}>Clear filters</button></div>}
         </div>
 
         <aside className="sf-desktop-cart" aria-label="Your basket">
           <div className="sf-desktop-cart-header"><div><BagIcon/><strong>Your basket</strong></div><span>{count} {count === 1 ? 'item' : 'items'}</span></div>
-          <CartContents cart={cart} menu={menu} change={change}/>
+          <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized}/>
         </aside>
       </div>
     </main>
@@ -275,8 +305,9 @@ export function Storefront({ baseUrl, requestedSlug }: {
     </div>}
     <dialog ref={dialogRef} className="sf-basket-dialog" onClose={() => setCartOpen(false)} aria-labelledby="sf-dialog-heading">
       <div className="sf-dialog-top"><div><span className="sf-section-kicker">YOUR ORDER</span><h2 id="sf-dialog-heading">Your basket <span>({count})</span></h2></div><button type="button" className="sf-close" onClick={() => setCartOpen(false)} aria-label="Close basket">×</button></div>
-      <CartContents cart={cart} menu={menu} change={change} close={() => setCartOpen(false)}/>
+      <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} close={() => setCartOpen(false)}/>
     </dialog>
+    <CustomizeDialog item={customizing} onAdd={addCustomized} onClose={()=>setCustomizing(null)}/>
     <span className="sf-visually-hidden" aria-live="polite" aria-atomic="true">{count} items in basket, subtotal {peso(subtotal)}</span>
   </div>;
 }
