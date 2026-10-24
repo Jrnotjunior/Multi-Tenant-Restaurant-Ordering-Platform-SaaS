@@ -19,7 +19,6 @@ export type StorefrontCatalog = Readonly<{
   };
   categories: readonly string[];
   menu: readonly MenuItem[];
-  sample: boolean;
 }>;
 
 /** Null means default branch, empty string means malformed requested branch. */
@@ -152,7 +151,6 @@ export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
     branches:branchChoices,
     categories:['All',...categories.map((entry:Row) => entry.name as string)],
     menu,
-    sample:false,
   };
 }
 
