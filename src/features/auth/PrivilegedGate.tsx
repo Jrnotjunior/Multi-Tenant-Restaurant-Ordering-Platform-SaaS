@@ -206,7 +206,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
         <div className={isMfa ? 'active' : ''}><span>2</span><small>Set up MFA</small></div><i />
         <div className={''}><span>3</span><small>Get started</small></div>
       </div>}
-      <span className="auth-eyebrow">{isSetup ? 'STEP 1 OF 3 · ACCOUNT SECURITY' : isExistingAccountMfa ? 'EXISTING ACCOUNT · MFA VERIFICATION' : isMfa ? 'STEP 2 OF 3 · ACCOUNT SECURITY' : 'PRIVILEGED ACCESS · MFA REQUIRED'}</span>
+      {!isExistingAccountMfa && <span className="auth-eyebrow">{isSetup ? 'STEP 1 OF 3 · ACCOUNT SECURITY' : isMfa ? 'STEP 2 OF 3 · ACCOUNT SECURITY' : 'PRIVILEGED ACCESS · MFA REQUIRED'}</span>}
       <h2>{isSetup ? 'Create your password' : isExistingAccountMfa ? 'Verify your identity' : isMfa ? 'Secure your account' : mode === 'admin' ? 'System administrator sign-in' : 'Restaurant team sign-in'}</h2>
       <p>{isSetup ? 'Set a secure password to activate your restaurant owner account.' : isExistingAccountMfa ? 'Your authenticator is already set up. Enter its current six-digit code to continue to your workspace.' : isMfa ? 'One quick security step, then you’re ready to get started.' : 'Accounts are provisioned by invitation only. Access is based on your verified role and database membership.'}</p>
       {message && <p className="auth-message" role="alert">{message}</p>}
