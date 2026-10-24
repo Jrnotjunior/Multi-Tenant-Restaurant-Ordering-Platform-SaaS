@@ -268,7 +268,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
         <nav className="sf-header-actions" aria-label="Store navigation">
           <span className="sf-header-divider" aria-hidden="true"/>
           <button type="button" className="sf-bag-button" onClick={() => setCartOpen(true)} aria-label={'Open basket with ' + count + ' items'}>
-            <BagIcon/><span className="sf-bag-label">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
+            <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
           </button>
         </nav>
       </div>
