@@ -329,3 +329,7 @@
   .sf-storefront .sf-footer-bottom{flex-direction:column;align-items:center;justify-content:center;gap:5px}
   .sf-storefront .sf-footer-bottom small,.sf-storefront .sf-footer-powered-by{display:flex;width:100%;justify-content:center;text-align:center}
 }
+
+@media(max-width:680px){
+  .sf-storefront .sf-footer-bottom{gap:10px;padding-top:12px}
+}
