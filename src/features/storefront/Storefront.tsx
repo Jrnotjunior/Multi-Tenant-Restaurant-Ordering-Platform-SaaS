@@ -380,10 +380,17 @@ export function Storefront({ baseUrl, requestedSlug }: {
     </main>
 
     <footer className="sf-footer">
-      <div className="sf-footer-inner">
-        <div><strong>{restaurant.name}</strong><p>Published restaurant menu · Checkout not yet available.</p></div>
-        <div className="sf-footer-links"><a href={menuUrl}>Restaurant menu link</a></div>
-        <small>Powered by Web2Table</small>
+      <section className="sf-footer-social-section" aria-label="Follow the restaurant">
+        <h2 className="sf-footer-heading">Follow Us</h2>
+        <nav className="sf-footer-socials" aria-label="Social media links">
+          <a className="sf-footer-social-link" href="https://www.facebook.com/" target="_blank" rel="noreferrer" aria-label="Facebook"><span aria-hidden="true">f</span></a>
+          <a className="sf-footer-social-link" href="https://www.instagram.com/" target="_blank" rel="noreferrer" aria-label="Instagram"><span aria-hidden="true">◎</span></a>
+          <a className="sf-footer-social-link" href="https://www.tiktok.com/" target="_blank" rel="noreferrer" aria-label="TikTok"><span aria-hidden="true">♪</span></a>
+        </nav>
+      </section>
+      <div className="sf-footer-bottom">
+        <small>© {new Date().getFullYear()} All rights reserved.</small>
+        <a className="sf-footer-powered-by" href="https://web2table.io" target="_blank" rel="noreferrer">Powered by <strong>Web2Table</strong></a>
       </div>
     </footer>
 
