@@ -1,4 +1,4 @@
-import { demoMenu, demoRestaurant, enrichSampleMenu, type MenuItem, type ModifierGroup } from './demoCatalog';
+import { type MenuItem, type ModifierGroup } from './demoCatalog';
 import { supabase } from '../../lib/supabase';
 
 export type BranchChoice = Readonly<{slug:string;name:string}>;
@@ -21,41 +21,6 @@ export type StorefrontCatalog = Readonly<{
   menu: readonly MenuItem[];
   sample: boolean;
 }>;
-
-export const sampleCatalog: StorefrontCatalog = {
-  branches: [
-    {slug:'main',name:'Sample Main'},
-    {slug:'makati',name:'Sample Makati'},
-  ],
-  restaurant: {
-    branchSlug: 'main',
-    slug: demoRestaurant.slug,
-    name: demoRestaurant.name,
-    initials: demoRestaurant.initials,
-    tagline: demoRestaurant.tagline,
-    heroHeading: 'Good food.',
-    heroEmphasis: 'Great cravings.',
-    primaryColor: '#ad2935',
-    logoUrl: null,
-    fontFamily: 'modern',
-    branchName: 'Sample Main',
-  },
-  categories: ['All', 'Rice Meals', 'Burgers', 'Sides', 'Drinks', 'Desserts'],
-  menu: enrichSampleMenu(demoMenu),
-  sample: true,
-};
-
-/** Distinct sample branch menu for testing touch UI. Never persisted or charged. */
-export function getSampleCatalog(branchSlug:string|null):StorefrontCatalog|null {
-  if(branchSlug === null || branchSlug === 'main') return sampleCatalog;
-  if(branchSlug !== 'makati') return null;
-  return {
-    ...sampleCatalog,
-    restaurant:{...sampleCatalog.restaurant,branchName:'Sample Makati',branchSlug:'makati'},
-    menu:enrichSampleMenu(demoMenu.filter(item=>item.id!=='sisig' && item.id!=='halo')
-      .map(item=>({...item,priceCentavos:item.priceCentavos+1500}))),
-  };
-}
 
 /** Null means default branch, empty string means malformed requested branch. */
 export function branchSlugFromSearch(search:string):string|null {
