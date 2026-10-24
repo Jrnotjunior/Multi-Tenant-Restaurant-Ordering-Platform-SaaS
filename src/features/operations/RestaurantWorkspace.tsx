@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { OperationalDashboard, type StaffWorkspaceRole } from './OperationalDashboard';
 import { OwnerAppShell } from './OwnerAppShell';
+import { OwnerBrandingPage } from './OwnerBrandingPage';
 import { OwnerOrdersPage } from './OwnerOrdersPage';
 import { OwnerSectionPage } from './OwnerSectionPage';
 import { ownerNavGroups, type OwnerPage } from './ownerWorkspaceConfig';
@@ -71,6 +72,8 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
   let pageContent;
   if (ownerPage === 'orders') {
     pageContent = <OwnerOrdersPage filter={orderFilter} onFilterChange={setOrderFilter} />;
+  } else if (ownerPage === 'branding') {
+    pageContent = <OwnerBrandingPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
   } else {
     pageContent = <OwnerSectionPage page={ownerPage} restaurantName={restaurantName} onNavigate={setOwnerPage} />;
   }
