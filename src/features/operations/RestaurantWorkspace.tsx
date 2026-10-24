@@ -73,7 +73,9 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
   let pageContent;
   if (ownerPage === 'orders') {
     pageContent = <OwnerOrdersPage filter={orderFilter} onFilterChange={setOrderFilter} />;
-  } else if (ownerPage === 'settings') {\n    pageContent = <OwnerStoreSettingsPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;\n  } else if (ownerPage === 'branding') {
+  } else if (ownerPage === 'settings') {
+    pageContent = <OwnerStoreSettingsPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
+  } else if (ownerPage === 'branding') {
     pageContent = <OwnerBrandingPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
   } else {
     pageContent = <OwnerSectionPage page={ownerPage} restaurantName={restaurantName} onNavigate={setOwnerPage} />;
