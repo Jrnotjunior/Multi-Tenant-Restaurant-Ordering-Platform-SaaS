@@ -324,3 +324,8 @@
   .sf-storefront .sf-footer-bottom{min-width:0;flex-wrap:wrap;justify-content:center;text-align:center}
   .sf-storefront .sf-footer-powered-by{max-width:100%;white-space:normal}
 }
+
+@media(max-width:680px){
+  .sf-storefront .sf-footer-bottom{flex-direction:column;align-items:center;justify-content:center;gap:5px}
+  .sf-storefront .sf-footer-bottom small,.sf-storefront .sf-footer-powered-by{display:flex;width:100%;justify-content:center;text-align:center}
+}
