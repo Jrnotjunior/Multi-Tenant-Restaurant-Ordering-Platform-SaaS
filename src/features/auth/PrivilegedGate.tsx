@@ -168,20 +168,6 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
   // they are not in the new-account onboarding flow.
   const isExistingAccountMfa = isMfa && flow?.kind === 'challenge';
   return <main className={isExistingAccountMfa ? 'privileged-onboarding existing-account-mfa' : 'privileged-onboarding'} aria-live="polite">
-    <aside className="onboarding-story">
-      <a className="onboarding-brand" href="/" aria-label="Web2Table home"><span>W2T</span><strong>Web2Table</strong></a>
-      <div className="onboarding-story-copy">
-        <span className="onboarding-kicker">YOUR RESTAURANT. ONE WORKSPACE.</span>
-        <h1>Welcome to<br />Web2Table</h1>
-        <p>Everything you need to manage your restaurant — in one place.</p>
-        <div className="onboarding-benefits">
-          <div><span className="onboarding-benefit-icon">▣</span><span><strong>Manage your restaurant</strong><small>Menus, orders, and team access</small></span></div>
-          <div><span className="onboarding-benefit-icon">▥</span><span><strong>Grow your business</strong><small>Insights and real-time analytics</small></span></div>
-          <div><span className="onboarding-benefit-icon">♧</span><span><strong>Built for your team</strong><small>Simple, secure, and reliable</small></span></div>
-        </div>
-      </div>
-      <div className="onboarding-story-glow" aria-hidden="true" />
-    </aside>
     <section className="auth-panel onboarding-card">
       {(isSetup || (isMfa && !isExistingAccountMfa)) && <div className="onboarding-steps" aria-label="Account setup progress">
         <div className={isSetup ? 'active' : 'done'}><span>1</span><small>Create password</small></div><i />
