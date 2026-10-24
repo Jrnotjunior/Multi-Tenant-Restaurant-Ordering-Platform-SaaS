@@ -37,9 +37,53 @@ function QuantityControl({ itemId, quantity, change }: {
   </div>;
 }
 
-function CartContents({ cart, customized, menu, change, changeCustomized, close }: {
+type CheckoutDetails = Readonly<{
+  customerName: string;
+  phone: string;
+  deliveryAddress: string;
+  deliveryNotes: string;
+}>;
+
+function buildCheckoutReadiness(input: {
+  sample: boolean;
+  slug: string;
+  branchSlug: string;
+  menu: readonly MenuItem[];
+  cart: Cart;
+  customized: CustomCart;
+  details: CheckoutDetails;
+}): { ready: boolean; reason: string; subtotalCentavos: number } {
+  const regularLines = cartLines(input.cart, input.menu);
+  const custom = customLines(input.customized, input.menu);
+  const quantity = regularLines.reduce((sum, line) => sum + line.quantity, 0) +
+    custom.reduce((sum, line) => sum + line.quantity, 0);
+  const subtotalCentavos = cartSubtotal(input.cart, input.menu) + customSubtotal(input.customized, input.menu);
+
+  if (input.sample) return { ready: false, reason: 'This is a sample menu. Orders cannot be placed from preview data.', subtotalCentavos };
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.slug) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.branchSlug)) {
+    return { ready: false, reason: 'A valid published restaurant and branch are required.', subtotalCentavos };
+  }
+  if (quantity < 1 || quantity > 100) return { ready: false, reason: 'Add valid items to your basket before continuing.', subtotalCentavos };
+  if (regularLines.length + custom.length === 0) return { ready: false, reason: 'Your basket has no valid menu items.', subtotalCentavos };
+  if (!Number.isSafeInteger(subtotalCentavos) || subtotalCentavos <= 0) return { ready: false, reason: 'The basket total is invalid.', subtotalCentavos };
+  if (input.details.customerName.trim().length < 2 || input.details.customerName.trim().length > 120) {
+    return { ready: false, reason: 'Enter your name (2–120 characters).', subtotalCentavos };
+  }
+  if (!/^[+0-9() .-]{7,24}$/.test(input.details.phone.trim())) {
+    return { ready: false, reason: 'Enter a valid contact number.', subtotalCentavos };
+  }
+  if (input.details.deliveryAddress.trim().length < 8 || input.details.deliveryAddress.trim().length > 500) {
+    return { ready: false, reason: 'Enter a complete delivery address (8–500 characters).', subtotalCentavos };
+  }
+  if (input.details.deliveryNotes.trim().length > 300) {
+    return { ready: false, reason: 'Delivery instructions must be 300 characters or fewer.', subtotalCentavos };
+  }
+  return { ready: true, reason: 'Details are complete, but server-side order submission is not available yet. No order has been placed.', subtotalCentavos };
+}
+
+function CartContents({ cart, customized, menu, change, changeCustomized, close, onCheckout }: {
   cart: Cart; customized: CustomCart; menu: readonly MenuItem[]; change: (id: string, delta: number) => void;
-  changeCustomized:(key:string,delta:number)=>void; close?: () => void;
+  changeCustomized:(key:string,delta:number)=>void; close?: () => void; onCheckout: () => void;
 }) {
   const lines = cartLines(cart, menu);
   const count = cartCount(cart, menu)+customCount(customized,menu);
