@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { loadOwnerData, saveBrand, type Brand, type Tenant } from '../management/menuService';
+import { saveBrand, type Brand } from '../management/menuService';
 
 type Props = { tenantId: string; restaurantName: string | null };
 
