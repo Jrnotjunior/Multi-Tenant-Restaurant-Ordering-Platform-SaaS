@@ -208,6 +208,20 @@ export function Storefront({ baseUrl, requestedSlug }: {
     return () => { active = false; };
   }, [requestedSlug, selectedBranch]);
 
+  useEffect(() => {
+    const faviconUrl = remoteCatalog?.restaurant.faviconUrl;
+    if (!faviconUrl) return;
+    const existing = document.querySelector<HTMLLinkElement>('link[rel~="icon"]');
+    const link = existing ?? document.createElement('link');
+    const created = !existing;
+    link.rel = 'icon';
+    link.href = faviconUrl;
+    if (created) document.head.appendChild(link);
+    return () => {
+      if (created) link.remove();
+    };
+  }, [remoteCatalog?.restaurant.faviconUrl]);
+
   const catalog = remoteCatalog;
   const menu = catalog?.menu ?? [];
   // Categories originate in the published tenant catalog, but only show a category
