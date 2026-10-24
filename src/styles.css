@@ -79,3 +79,6 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .app:has(.privileged-onboarding) .privileged-onboarding{min-height:100vh}
 .app:has(.privileged-onboarding) .onboarding-story{min-height:100vh}
 @media(max-width:900px){.app:has(.privileged-onboarding) .onboarding-story{min-height:auto}}
+
+/* Center authenticator QR code in the MFA setup card */
+.onboarding-card .auth-qr{display:block;margin:18px auto 22px}
