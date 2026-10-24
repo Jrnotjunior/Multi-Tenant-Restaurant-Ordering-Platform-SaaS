@@ -2,6 +2,8 @@ import { type MenuItem, type ModifierGroup } from './demoCatalog';
 import { supabase } from '../../lib/supabase';
 
 export type BranchChoice = Readonly<{slug:string;name:string}>;
+export type WebsiteColors = Readonly<{pageBackground:string;headerColor:string;footerBackground:string;footerFont:string;heroColor:string;productCard:string;fontColor:string;headerIcon:string;primaryButton:string;primaryButtonFont:string;secondaryButton:string;secondaryButtonFont:string}>;
+const WEBSITE_COLOR_KEYS: Array<keyof WebsiteColors> = ['pageBackground','headerColor','footerBackground','footerFont','heroColor','productCard','fontColor','headerIcon','primaryButton','primaryButtonFont','secondaryButton','secondaryButtonFont'];
 export type StorefrontCatalog = Readonly<{
   branches: readonly BranchChoice[];
   restaurant: {
@@ -12,6 +14,7 @@ export type StorefrontCatalog = Readonly<{
     heroHeading: string;
     heroEmphasis: string;
     primaryColor: string;
+    websiteColors: WebsiteColors;
     logoUrl: string | null;
     fontFamily: 'modern' | 'rounded' | 'classic';
     branchName: string;
@@ -91,12 +94,13 @@ function getLogoUrl(path:unknown):string|null {
 export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
   if (value === null) return null;
   if (!record(value)) throw new Error('Invalid published storefront response');
-  const {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,logoPath,fontFamily,branchName,branchSlug,branches,categories,items} = value;
+  const {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors,logoPath,fontFamily,branchName,branchSlug,branches,categories,items} = value;
   if (!validText(slug,64) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)
     || !validText(name,160) || !validText(heroHeading,90)
     || !validText(heroEmphasis,90) || !validText(branchName,160)
     || typeof tagline !== 'string' || tagline.length > 300
     || typeof primaryColor !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(primaryColor)
+    || !record(websiteColors) || !WEBSITE_COLOR_KEYS.every(key => typeof websiteColors[key] === 'string' && /^#[0-9a-fA-F]{6}$/.test(websiteColors[key] as string))
     || (logoPath!==null && logoPath!==undefined && typeof logoPath!=='string')
     || (fontFamily!==undefined && !['modern','rounded','classic'].includes(String(fontFamily)))
     || (branchSlug !== undefined && (!validText(branchSlug,64) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(branchSlug)))
@@ -146,8 +150,9 @@ export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
     };
   });
   const initials = name.split(/\s+/).slice(0,2).map((word) => word.charAt(0)).join('').toUpperCase();
+  const normalizedWebsiteColors = Object.fromEntries(WEBSITE_COLOR_KEYS.map(key => [key, websiteColors[key] as string])) as WebsiteColors;
   return {
-    restaurant: {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,logoUrl:getLogoUrl(logoPath),fontFamily:(fontFamily==='rounded'||fontFamily==='classic'?fontFamily:'modern'),branchName,branchSlug:typeof branchSlug==='string'?branchSlug:'',initials},
+    restaurant: {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors:normalizedWebsiteColors,logoUrl:getLogoUrl(logoPath),fontFamily:(fontFamily==='rounded'||fontFamily==='classic'?fontFamily:'modern'),branchName,branchSlug:typeof branchSlug==='string'?branchSlug:'',initials},
     branches:branchChoices,
     categories:['All',...categories.map((entry:Row) => entry.name as string)],
     menu,
