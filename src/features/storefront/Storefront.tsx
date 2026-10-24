@@ -284,8 +284,8 @@ export function Storefront({ baseUrl, requestedSlug }: {
                 <span>Sign in or review our policies.</span>
               </div>
               <a role="menuitem" href={baseUrl + 'legal'} onClick={() => setAccountMenuOpen(false)}>Legal &amp; Policies</a>
-              <a role="menuitem" href={baseUrl + 'account/sign-in'} onClick={() => setAccountMenuOpen(false)}>Log in</a>
-              <a role="menuitem" href={baseUrl + 'account/sign-up'} onClick={() => setAccountMenuOpen(false)}>Register</a>
+              <a role="menuitem" href={baseUrl + 'account/sign-in'} onClick={() => setAccountMenuOpen(false)}>Sign in</a>
+              <a role="menuitem" href={baseUrl + 'account/sign-up'} onClick={() => setAccountMenuOpen(false)}>Sign up</a>
             </div>}
           </div>
         </nav>
