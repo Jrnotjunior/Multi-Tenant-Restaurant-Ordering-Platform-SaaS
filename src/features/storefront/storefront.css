@@ -1,10 +1,10 @@
 
-/* Customer storefront is isolated from the dark platform-workspace styles. */
-.sf-storefront{--sf-ink:#262323;--sf-muted:#77706c;--sf-red:#ad2935;--sf-red-dark:#8c1824;--sf-border:#ece7e1;min-height:100vh;background:#faf8f4;color:var(--sf-ink);font-family:var(--font-body);line-height:1.45}
+/* Storefront uses the same default design tokens as the rest of Web2Table. */
+.sf-storefront{--sf-ink:var(--color-text,#101B2F);--sf-muted:var(--color-muted,#526782);--sf-red:var(--color-sidebar,#101B2F);--sf-red-dark:var(--color-active,#263754);--sf-border:var(--color-border,#DCE3ED);--sf-soft:#EEF2F8;min-height:100vh;background:var(--color-page,#F7F9FC);color:var(--sf-ink);font-family:var(--font-body);line-height:1.45}
 .sf-storefront button,.sf-storefront input{font:inherit}
 .sf-storefront button{cursor:pointer}
 .sf-storefront button:disabled{cursor:not-allowed}
-.sf-storefront :focus-visible{outline:3px solid #cc3948;outline-offset:3px}
+.sf-storefront :focus-visible{outline:3px solid var(--sf-red);outline-offset:3px}
 .sf-skip-link{position:absolute;left:12px;top:-100px;background:#fff;color:#262323;padding:12px;z-index:100}
 .sf-skip-link:focus{top:12px}
 .sf-header{background:rgba(255,255,255,.97);border-bottom:1px solid var(--sf-border);position:sticky;top:0;z-index:20;box-shadow:0 3px 20px rgba(30,20,15,.025)}
