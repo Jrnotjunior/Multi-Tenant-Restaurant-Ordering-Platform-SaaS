@@ -44,7 +44,7 @@ type CheckoutDetails = Readonly<{
   deliveryNotes: string;
 }>;
 
-function buildCheckoutReadiness(input: {
+export function buildCheckoutReadiness(input: {
   sample: boolean;
   slug: string;
   branchSlug: string;
@@ -334,7 +334,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
 
         <aside className="sf-desktop-cart" aria-label="Your basket">
           <div className="sf-desktop-cart-header"><div><BagIcon/><strong>Your basket</strong></div><span>{count} {count === 1 ? 'item' : 'items'}</span></div>
-          <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized}/>
+          <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} onCheckout={() => { setCheckoutMessage(''); setCheckoutOpen(true); setCartOpen(false); }}/>
         </aside>
       </div>
     </main>
@@ -356,7 +356,6 @@ export function Storefront({ baseUrl, requestedSlug }: {
       <div className="sf-dialog-top"><div><span className="sf-section-kicker">YOUR ORDER</span><h2 id="sf-dialog-heading">Your basket <span>({count})</span></h2></div><button type="button" className="sf-close" onClick={() => setCartOpen(false)} aria-label="Close basket">×</button></div>
       <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} close={() => setCartOpen(false)} onCheckout={() => { setCheckoutMessage(''); setCheckoutOpen(true); setCartOpen(false); }}/>
     </dialog>
-    <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} onCheckout={() => { setCheckoutMessage(''); setCheckoutOpen(true); }}/>
     {checkoutOpen && <div className="sf-checkout-backdrop" role="presentation" onMouseDown={event => {if(event.target===event.currentTarget)setCheckoutOpen(false);}}>
       <section className="sf-checkout-panel" role="dialog" aria-modal="true" aria-labelledby="sf-checkout-heading">
         <div className="sf-dialog-top"><div><span className="sf-section-kicker">DELIVERY ONLY</span><h2 id="sf-checkout-heading">Delivery details</h2></div><button type="button" className="sf-close" onClick={() => setCheckoutOpen(false)} aria-label="Close checkout preparation">×</button></div>
