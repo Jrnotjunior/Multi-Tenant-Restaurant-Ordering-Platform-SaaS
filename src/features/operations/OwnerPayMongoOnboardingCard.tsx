@@ -178,7 +178,7 @@ export function OwnerPayMongoOnboardingCard({ tenantId }: Props) {
     {accountId && status !== 'active' && <>
       <div className="w2t-paymongo-section"><h3>Authorized representative</h3><div className="w2t-paymongo-grid">
         {field('First name', person.first_name, v => setPerson(p => ({ ...p, first_name: v })), true)}
-        {field('Middle name', person.middle_name, v => setPerson(p => ({ ...p, middle_name: v }))}
+        {field('Middle name', person.middle_name, v => setPerson(p => ({ ...p, middle_name: v })))}
         {field('Last name', person.last_name, v => setPerson(p => ({ ...p, last_name: v })), true)}
         {field('Mobile number', person.mobile_number, v => setPerson(p => ({ ...p, mobile_number: v })), true)}
         {field('Email address', person.email_address, v => setPerson(p => ({ ...p, email_address: v })), true, 'email')}
@@ -193,12 +193,12 @@ export function OwnerPayMongoOnboardingCard({ tenantId }: Props) {
       <div className="w2t-paymongo-section"><h3>Business information</h3><div className="w2t-paymongo-grid">
         {field('Trade name', business.trade_name, v => setBusiness(b => ({ ...b, trade_name: v })), true)}
         {field('Legal name', business.legal_name, v => setBusiness(b => ({ ...b, legal_name: v })), true)}
-        {field('DTI registered name', business.dti_registered_name, v => setBusiness(b => ({ ...b, dti_registered_name: v }))}
+        {field('DTI registered name', business.dti_registered_name, v => setBusiness(b => ({ ...b, dti_registered_name: v })))}
         {field('Business TIN', business.tin, v => setBusiness(b => ({ ...b, tin: v })), true)}
         {field('Industry MCC', business.industry, v => setBusiness(b => ({ ...b, industry: v })), true)}
         {field('Business description', business.description, v => setBusiness(b => ({ ...b, description: v })), true)}
         {field('Customer service number', business.customer_service_number, v => setBusiness(b => ({ ...b, customer_service_number: v })), true)}
-        {field('Website', business.website, v => setBusiness(b => ({ ...b, website: v }))}
+        {field('Website', business.website, v => setBusiness(b => ({ ...b, website: v })))}
         <label className="w2t-paymongo-field"><span>Business type *</span><select value={business.type} disabled={busy || status === 'active'} onChange={e => setBusiness(b => ({ ...b, type: e.target.value }))}><option value="sole_proprietor">Sole proprietor</option><option value="partnership">Partnership</option><option value="corporation">Corporation</option></select></label>
         <label className="w2t-paymongo-field"><span>Business age *</span><select value={business.age} disabled={busy || status === 'active'} onChange={e => setBusiness(b => ({ ...b, age: e.target.value }))}><option value="less_than_1_year">Less than 1 year</option><option value="1_to_3_years">1–3 years</option><option value="3_to_5_years">3–5 years</option><option value="more_than_5_years">More than 5 years</option></select></label>
         <label className="w2t-paymongo-field"><span>Business size *</span><select value={business.size} disabled={busy || status === 'active'} onChange={e => setBusiness(b => ({ ...b, size: e.target.value }))}><option value="less_than_10">Fewer than 10 employees</option><option value="10_to_50">10–50 employees</option><option value="more_than_50">More than 50 employees</option></select></label>
