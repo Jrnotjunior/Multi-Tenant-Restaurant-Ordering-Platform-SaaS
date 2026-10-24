@@ -16,6 +16,23 @@ const published = {
 };
 
 describe('tenant-specific published menu adapter', () => {
+
+  it('accepts safe public modifier groups and prices',()=>{
+    const payload={...published,items:[{...published.items[0],imagePath:null,
+      modifierGroups:[{id:'grp-a',name:'Choose size',minSelect:1,maxSelect:1,
+        options:[{id:'op-large',name:'Large',priceCentavos:4900}]}]}]};
+    const result=parsePublishedMenu(payload)!;
+    expect(result.menu[0].modifierGroups?.[0].minSelect).toBe(1);
+    expect(result.menu[0].modifierGroups?.[0].options[0].priceCentavos).toBe(4900);
+  });
+  it('rejects unsafe image paths and malformed modifier price data',()=>{
+    expect(()=>parsePublishedMenu({...published,items:[{...published.items[0],
+      imagePath:'https://example.com/private.png'}]})).toThrow();
+    expect(()=>parsePublishedMenu({...published,items:[{...published.items[0],
+      modifierGroups:[{id:'bad',name:'Group',minSelect:0,maxSelect:1,
+        options:[{id:'bad-2',name:'Extra',priceCentavos:-200}]}]}]})).toThrow();
+  });
+
   it('parses restaurant branding and the branch-specific menu', () => {
     const menu=parsePublishedMenu(published);
     expect(menu?.restaurant.name).toBe('Restaurant Alpha');

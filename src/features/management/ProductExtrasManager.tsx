@@ -5,7 +5,7 @@ import {
  uploadMenuPhoto,publicMenuPhoto,type OwnerData,
 } from './menuService';
 
-type Run=(label:string,work:()=>Promise<unknown>)=>Promise<OwnerData|null>;
+type Run=(label:string,work:()=>Promise<unknown>)=>Promise<OwnerData|null|undefined>;
 
 export function ProductExtrasManager({data,busy,run}:{data:OwnerData;busy:boolean;run:Run}) {
   const [selectedItem,setSelectedItem]=useState('');
