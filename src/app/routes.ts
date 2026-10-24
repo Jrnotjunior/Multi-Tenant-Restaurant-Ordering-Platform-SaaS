@@ -1,10 +1,10 @@
-/** Vite BASE_URL: '/' locally, '/<repo>/' on GitHub Pages. */
+/** Vite BASE_URL is '/' locally and '/<repo>/' on GitHub Pages. */
 export type View = 'home' | 'order' | 'restaurant' | 'admin';
 
 export function normalizeAppBase(baseUrl: string): string {
   const base = baseUrl.trim();
   if (!base.startsWith('/') || base.startsWith('//') || base.includes('?') || base.includes('#')) {
-    throw new Error('Application base URL must be a root-relative path.');
+    throw new Error('Application base URL must be root-relative.');
   }
   return base.endsWith('/') ? base : base + '/';
 }
@@ -14,11 +14,25 @@ export function pathFor(view: View, baseUrl: string): string {
   return view === 'home' ? base : base + view;
 }
 
+/** Customer restaurant search links should resolve straight to the menu. */
+export function restaurantMenuPath(slug: string, baseUrl: string): string {
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) throw new Error('Invalid restaurant slug');
+  return pathFor('order', baseUrl) + '/' + slug;
+}
+
+export function storefrontSlugFromPath(pathname: string, baseUrl: string): string | null {
+  const prefix = pathFor('order', baseUrl) + '/';
+  if (!pathname.startsWith(prefix)) return null;
+  const slug = pathname.slice(prefix.length).replace(/\/+$/, '');
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ? slug : '';
+}
+
 export function viewForPath(pathname: string, baseUrl: string): View {
   const base = normalizeAppBase(baseUrl);
   if (pathname === base.slice(0, -1)) return 'home';
   if (!pathname.startsWith(base)) return 'home';
   const relative = pathname.slice(base.length).replace(/\/+$/, '');
-  if (relative === 'order' || relative === 'restaurant' || relative === 'admin') return relative;
+  if (relative === 'order' || relative.startsWith('order/')) return 'order';
+  if (relative === 'restaurant' || relative === 'admin') return relative;
   return 'home';
 }
