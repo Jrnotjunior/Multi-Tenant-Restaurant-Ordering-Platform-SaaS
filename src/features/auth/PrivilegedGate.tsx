@@ -37,9 +37,22 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
     }).catch((err: unknown) => { if (active) { setMessage(String(err)); setStatus('error'); } });
     const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
       if (!active) return;
-      if (event === 'SIGNED_OUT') clearPendingMfa(client);
-      setUser(session?.user ?? null);
-      setRevision((previous) => previous + 1);
+      if (event === 'SIGNED_OUT') {
+        clearPendingMfa(client);
+        setUser(null);
+        setRevision((previous) => previous + 1);
+        return;
+      }
+
+      // Supabase emits TOKEN_REFRESHED when a browser tab resumes or its
+      // access token is renewed. Refreshing a token does not change the
+      // user's identity, so don't restart the privileged access check.
+      if (event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') return;
+
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'MFA_CHALLENGE_VERIFIED') {
+        setUser(session?.user ?? null);
+        setRevision((previous) => previous + 1);
+      }
     });
     return () => { active = false; subscription.unsubscribe(); };
   }, [client]);
