@@ -229,7 +229,14 @@ export function Storefront({ baseUrl, requestedSlug }: {
     ? ['All', ...catalog.categories.slice(1).filter(name => menu.some(item => item.category === name))]
     : ['All'];
   const restaurant = catalog?.restaurant;
-  const results = useMemo(() => filterMenu(menu, category, query), [menu, category, query]);
+  const results = useMemo(() => {
+    const categoryOrder = new Map((catalog?.categories ?? ['All']).map((name, index) => [name, index]));
+    return filterMenu(menu, category, query)
+      .map((item, index) => ({ item, index }))
+      .sort((a, b) => (categoryOrder.get(a.item.category) ?? Number.MAX_SAFE_INTEGER)
+        - (categoryOrder.get(b.item.category) ?? Number.MAX_SAFE_INTEGER) || a.index - b.index)
+      .map(({ item }) => item);
+  }, [menu, category, query, catalog?.categories]);
   const count = cartCount(cart, menu)+customCount(customized,menu);
   const subtotal = cartSubtotal(cart, menu)+customSubtotal(customized,menu);
 
