@@ -248,3 +248,6 @@
 .sf-password-check-icon{display:inline-flex;flex:0 0 16px;width:16px;height:16px;align-items:center;justify-content:center;border:1px solid #c8c1bc;border-radius:50%;font-size:10px;font-weight:800;color:#817975}
 .sf-password-checklist li.is-valid{color:#247548}
 .sf-password-checklist li.is-valid .sf-password-check-icon{border-color:#247548;background:#eaf7ef;color:#247548}
+
+.sf-auth-tenant-brand{display:flex;justify-content:center;align-items:center;width:100%;margin:0 auto 18px;text-decoration:none}
+.sf-auth-tenant-brand img{display:block;max-width:min(180px,70%);max-height:76px;width:auto;height:auto;object-fit:contain}
