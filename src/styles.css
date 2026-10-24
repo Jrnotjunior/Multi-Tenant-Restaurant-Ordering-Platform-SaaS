@@ -82,16 +82,3 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 
 /* Center authenticator QR code in the MFA setup card */
 .onboarding-card .auth-qr{display:block;margin:18px auto 22px}
-
-
-/* Keep Sign out's original compact size; make Verify match its height. */
-.onboarding-card .onboarding-mfa-form .onboarding-mfa-verify {
-  min-height: 42px;
-  height: 42px;
-  padding-top: 0;
-  padding-bottom: 0;
-}
-.onboarding-card .onboarding-signout {
-  min-height: 58px;
-  height: 58px;
-}
