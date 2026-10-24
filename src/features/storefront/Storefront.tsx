@@ -263,7 +263,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
       <div className="sf-header-inner">
         <a href={menuUrl} className="sf-logo" aria-label={restaurant.name + " menu"}>
           <span className="sf-logo-mark">{restaurant.initials}</span>
-          <span className="sf-logo-name"><strong>{restaurant.name}</strong><small>powered by <b>Web2Table</b></small></span>
+          <span className="sf-logo-name"><strong>{restaurant.name}</strong></span>
         </a>
         <nav className="sf-header-actions" aria-label="Store navigation">
           <span className="sf-header-divider" aria-hidden="true"/>
