@@ -232,3 +232,33 @@
   .w2t-settings-confirm-actions{flex-direction:column-reverse}
   .w2t-settings-confirm-actions button{width:100%}
 }
+
+/* Tenant-scoped PayMongo merchant onboarding card, styled with platform tokens. */
+.w2t-paymongo-card{margin-top:16px}
+.w2t-paymongo-card>h2{margin:0 0 8px;color:var(--color-text,#101B2F);font-size:16px;font-weight:800}
+.w2t-paymongo-status{display:grid;gap:7px;margin:15px 0;padding:14px;border:1px solid var(--color-border,#DCE3ED);border-radius:10px;background:var(--color-page,#F7F9FC);color:var(--color-text,#101B2F);font-size:12px}
+.w2t-paymongo-status>div{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.w2t-paymongo-status small{color:var(--color-muted,#526782);font-size:11px;overflow-wrap:anywhere}
+.w2t-paymongo-badge{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;background:#EEF2F8;color:#263754;font-size:11px;font-weight:800;text-transform:capitalize}
+.w2t-paymongo-badge.is-active{background:#DCFCE7;color:#166534}
+.w2t-paymongo-badge.is-pending,.w2t-paymongo-badge.is-linked{background:#FEF3C7;color:#92400E}
+.w2t-paymongo-badge.is-error,.w2t-paymongo-badge.is-revoked{background:#FEE2E2;color:#991B1B}
+.w2t-paymongo-action{display:inline-flex;align-items:center;justify-content:center;min-height:38px;margin:8px 8px 0 0;border:1px solid var(--color-border,#DCE3ED);border-radius:8px;padding:9px 13px;background:#FFFFFF;color:#263754;font-size:12px;font-weight:750;text-decoration:none;cursor:pointer}
+.w2t-paymongo-action.is-primary{border-color:#101B2F;background:#101B2F;color:#FFFFFF}
+.w2t-paymongo-action:hover:not(:disabled){filter:brightness(.97)}
+.w2t-paymongo-action:disabled{opacity:.55;cursor:not-allowed}
+.w2t-paymongo-feedback{display:grid;gap:4px;margin:0 0 12px;padding:12px 14px;border:1px solid var(--color-border,#DCE3ED);border-radius:9px;font-size:12px;line-height:1.5}
+.w2t-paymongo-feedback p{margin:0;overflow-wrap:anywhere}
+.w2t-paymongo-feedback.is-error{border-color:#FCA5A5;background:#FEF2F2;color:#991B1B}
+.w2t-paymongo-feedback.is-success{border-color:#BBF7D0;background:#F0FDF4;color:#166534}
+.w2t-paymongo-section{margin-top:18px;padding-top:17px;border-top:1px solid var(--color-border,#DCE3ED)}
+.w2t-paymongo-section h3{margin:0 0 12px;color:var(--color-text,#101B2F);font-size:14px;font-weight:800}
+.w2t-paymongo-grid,.w2t-paymongo-address{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+.w2t-paymongo-address{margin-top:15px;padding-top:13px;border-top:1px dashed var(--color-border,#DCE3ED)}
+.w2t-paymongo-address h4{grid-column:1/-1;margin:0;color:var(--color-text,#101B2F);font-size:12px;font-weight:800}
+.w2t-paymongo-field{display:grid;align-content:start;gap:6px;min-width:0;color:var(--color-text,#101B2F);font-size:11px;font-weight:750}
+.w2t-paymongo-field input,.w2t-paymongo-field select{box-sizing:border-box;width:100%;min-width:0;min-height:39px;border:1px solid var(--color-border,#DCE3ED);border-radius:8px;background:#FFFFFF;padding:9px 10px;color:var(--color-text,#101B2F);font:inherit;font-size:12px;font-weight:500}
+.w2t-paymongo-field input:focus-visible,.w2t-paymongo-field select:focus-visible{outline:2px solid var(--color-active,#263754);outline-offset:2px}
+.w2t-paymongo-field input:disabled,.w2t-paymongo-field select:disabled{background:var(--color-page,#F7F9FC);color:var(--color-muted,#526782)}
+.w2t-paymongo-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:16px}
+@media(max-width:700px){.w2t-paymongo-grid,.w2t-paymongo-address{grid-template-columns:1fr}.w2t-paymongo-actions{flex-direction:column;align-items:stretch}.w2t-paymongo-actions .w2t-paymongo-action{width:100%;margin-right:0}.w2t-paymongo-section{margin-top:15px;padding-top:14px}}
