@@ -64,7 +64,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .onboarding-card .sf-password-check-icon{display:grid;place-items:center;width:23px;height:23px;flex-shrink:0;border-radius:50%;border:1px solid #64646b;color:#aaaab0;font-size:12px}
 .onboarding-card .sf-password-checklist li.is-valid .sf-password-check-icon{background:#3fc77b;border-color:#3fc77b;color:#102519;font-weight:900}
 .onboarding-card .sf-password-checklist li.is-valid{color:#c6c6ca}
-.onboarding-card .auth-form>button[type=submit],.onboarding-card .auth-form .auth-primary-link{display:flex;align-items:center;justify-content:center;min-height:58px;margin-top:3px;border:0;border-radius:12px;background:var(--onboard-red);color:#fff;font-size:14px;font-weight:800;text-align:center}
+.onboarding-card .auth-form>button[type=submit],.onboarding-card .auth-form .auth-primary-link{display:flex;align-items:center;justify-content:center;min-height:42px;margin-top:3px;border:0;border-radius:12px;background:var(--onboard-red);color:#fff;font-size:14px;font-weight:800;text-align:center}
 .onboarding-card .auth-form>button[type=submit]:hover:not(:disabled){background:#d91926}
 .onboarding-card .auth-form>button[type=submit]:disabled{opacity:.48}
 .onboarding-card .auth-qr{width:min(260px,100%);margin:10px 0}
