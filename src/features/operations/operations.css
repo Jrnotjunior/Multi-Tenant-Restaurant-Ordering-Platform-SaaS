@@ -121,3 +121,31 @@
 .owner-store-settings .owner-branding-panel h2{margin:0 0 8px;color:#102039;font-size:15px}
 .owner-store-settings .owner-branding-panel>p{color:#657791;font-size:12px;line-height:1.6}
 .owner-store-settings .owner-branding-input select{width:100%;border:1px solid #d7e0ec;border-radius:8px;background:#fff;color:#102039;padding:11px;font:inherit;font-size:12px;box-sizing:border-box}
+
+/* Store Settings page, aligned with the original restaurant platform controls. */
+.w2t-settings-tabs{display:flex;align-items:center;gap:0;overflow-x:auto;border-bottom:1px solid #d9e2ef;margin:0 0 10px;padding:0 0 1px}
+.w2t-settings-tabs button{flex:0 0 auto;border:0;border-bottom:2px solid transparent;background:transparent;padding:13px 16px;color:#526581;font:inherit;font-size:12px;font-weight:500;white-space:nowrap;cursor:pointer}
+.w2t-settings-tabs button.is-active{border-bottom-color:#14233d;color:#14233d;font-weight:750}
+.w2t-settings-form{display:grid;gap:14px}
+.w2t-settings-card{background:#fff;border:1px solid #dbe4ef;border-radius:12px;padding:20px 18px}
+.w2t-settings-card h2{margin:0 0 14px;color:#102039;font-size:15px;font-weight:750}
+.w2t-settings-help{margin:8px 0 16px;color:#657791;font-size:12px;line-height:1.55}
+.w2t-setting-field{display:grid;gap:7px;margin:14px 0;color:#14233d;font-size:12px;font-weight:700}
+.w2t-setting-field input,.w2t-setting-field select{box-sizing:border-box;width:100%;min-height:42px;border:1px solid #d5dfed;border-radius:8px;background:#fff;padding:10px 12px;color:#14233d;font:inherit;font-size:13px;font-weight:500}
+.w2t-setting-field small,.w2t-setting-switch-row small{display:block;color:#657791;font-size:12px;font-weight:400;line-height:1.5}
+.w2t-setting-switch-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px 4px;border-bottom:1px solid #e8edf4;color:#14233d;font-size:13px;font-weight:650}
+.w2t-setting-switch-row:last-child{border-bottom:0}
+.w2t-setting-switch-row input[type=checkbox]{width:18px;height:18px;flex:0 0 auto;accent-color:#14233d}
+.w2t-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 18px}
+.w2t-hours-table{width:100%;display:grid}
+.w2t-hours-head,.w2t-hours-row{display:grid;grid-template-columns:minmax(110px,1fr) minmax(120px,1fr) minmax(120px,1fr) 60px;align-items:center;gap:12px;padding:12px 8px;border-bottom:1px solid #e8edf4;color:#14233d;font-size:12px}
+.w2t-hours-head{color:#657791;font-size:11px;font-weight:750}
+.w2t-hours-row input[type=time]{box-sizing:border-box;width:100%;min-width:0;border:1px solid #d5dfed;border-radius:8px;padding:9px;background:#fff;color:#14233d;font:inherit;font-size:12px}
+.w2t-hours-row input[type=checkbox]{width:17px;height:17px;accent-color:#14233d}
+.w2t-settings-actions{display:flex;justify-content:flex-end;margin:2px 0 18px}
+.w2t-settings-actions button{border:0;border-radius:9px;background:#111f37;color:#fff;padding:11px 18px;font-size:12px;font-weight:750;cursor:pointer}
+.w2t-settings-actions button:disabled{opacity:.55;cursor:wait}
+.w2t-settings-feedback{margin:10px 0;padding:12px 14px;border-radius:8px;font-size:12px;line-height:1.5}
+.w2t-settings-feedback.error{border:1px solid #fecaca;background:#fef2f2;color:#991b1b}
+.w2t-settings-feedback.success{border:1px solid #bbf7d0;background:#f0fdf4;color:#166534}
+@media(max-width:700px){.w2t-settings-card{padding:15px 12px}.w2t-settings-grid{grid-template-columns:1fr}.w2t-hours-head{display:none}.w2t-hours-row{grid-template-columns:1fr 1fr;padding:10px 4px}.w2t-hours-row strong{grid-column:1/-1}.w2t-hours-row input[type=checkbox]{justify-self:start}.w2t-settings-actions button{width:100%}}
