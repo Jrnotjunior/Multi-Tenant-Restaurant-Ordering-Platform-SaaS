@@ -158,11 +158,10 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
       <ul className="sf-password-checklist" aria-label="Password requirements">{passwordRules.map(rule => <li key={rule.label} className={rule.valid ? 'is-valid' : ''}><span className="sf-password-check-icon" aria-hidden="true">{rule.valid ? '✓' : '○'}</span>{rule.label}</li>)}</ul>
       <button type="submit" disabled={busy}>{busy ? 'Saving password…' : 'Save password and continue'}</button>
     </form>}
-    {status === 'signedout' && <form onSubmit={(e) => void login(e)} className="auth-form">
-      <label>Email<input type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} /></label>
-      <label>Password<input type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} /></label>
-      <button disabled={busy} type="submit">{busy ? 'Signing in…' : 'Sign in securely'}</button>
-    </form>}
+    {status === 'signedout' && <div className="auth-form">
+      <p>Sign in through the Web2Table storefront. After authentication, your verified role and membership determine which workspace you can access.</p>
+      <a className="auth-primary-link" href={new URL('account/sign-in', window.location.origin + (import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/')).toString()}>Continue to storefront sign-in</a>
+    </div>}
     {status === 'mfa' && flow && flow.kind !== 'ready' && <div>
       {flow.kind === 'enroll' && <div><p>Set up an authenticator app, then enter a six-digit code.</p>
         <img className="auth-qr" src={flow.qrCode} alt="Authenticator enrollment QR code" />
