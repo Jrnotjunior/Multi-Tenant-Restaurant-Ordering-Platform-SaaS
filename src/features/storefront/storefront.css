@@ -333,3 +333,7 @@
 @media(max-width:680px){
   .sf-storefront .sf-footer-bottom{gap:10px;padding-top:12px}
 }
+
+.sf-category-select-label{display:flex;align-items:center;gap:10px;min-width:0;font-size:13px;font-weight:650;color:var(--sf-ink)}
+.sf-category-select{width:min(100%,240px);min-width:0;min-height:42px;padding:0 36px 0 13px;border:1px solid var(--sf-border);border-radius:10px;background:var(--sf-card-background,#fff);color:var(--sf-ink);font:inherit;font-weight:500}
+@media(max-width:680px){.sf-category-list{display:block;overflow:visible}.sf-category-select-label{width:100%}.sf-category-select{flex:1;width:100%;min-height:42px}}
