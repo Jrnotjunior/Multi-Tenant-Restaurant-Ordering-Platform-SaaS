@@ -48,6 +48,14 @@ export async function ownerTenantChoices():Promise<Tenant[]> {
   check(result.error);
   return (result.data??[]) as Tenant[];
 }
+export async function loadOwnerDataForTenant(tenantId:string):Promise<OwnerData> {
+  const db=requireClient();
+  const {data,error}=await db.from('tenants').select('id,name,slug').eq('id',tenantId).maybeSingle();
+  check(error);
+  if(!data) throw new Error('Restaurant tenant was not found or is not accessible to this account.');
+  return loadOwnerData(data as Tenant);
+}
+
 export async function loadOwnerData(tenant:Tenant):Promise<OwnerData> {
   const db=requireClient();
   const [branches,brand,categories,items,assignments,groups,options]=await Promise.all([
@@ -132,6 +140,16 @@ export async function createCategory(tenantId:string,name:string) {
   check(error);
   if(!data) throw new Error('Category was not saved.');
 }
+export async function updateCategory(tenantId:string,id:string,name:string) {
+  const db=requireClient();
+  const cleanName=name.trim();
+  if(cleanName.length<2||cleanName.length>100) throw new Error('Category name must be between 2 and 100 characters.');
+  const {data,error}=await db.from('menu_categories').update({name:cleanName})
+    .eq('tenant_id',tenantId).eq('id',id).select('id').single();
+  check(error);
+  if(!data) throw new Error('Category name was not updated.');
+}
+
 export async function toggleCategory(tenantId:string,id:string,visible:boolean) {
   const db=requireClient();
   const {data,error}=await db.from('menu_categories')
