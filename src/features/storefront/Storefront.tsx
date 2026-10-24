@@ -373,6 +373,10 @@ export function Storefront({ baseUrl, requestedSlug }: {
     </header>
 
     <main className="sf-main">
+      <section className="sf-hero" aria-label="Restaurant introduction">
+        <h1>{restaurant.name}</h1>
+        {restaurant.tagline?.trim() && <p>{restaurant.tagline}</p>}
+      </section>
 
 
 
