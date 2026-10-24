@@ -17,14 +17,39 @@ type InitMessage = {
   initialLongitude: number | null;
 };
 
-function mapServiceUrl() {
-  const configured = String(import.meta.env.VITE_MAP_SERVICE_URL ?? '').trim();
+function mapServiceUrl(): { href: string; origin: string; configurationError: string } {
   const fallback = 'https://app.web2table.io/maps.html';
-  const url = new URL(configured || fallback, window.location.origin);
-  if (url.protocol !== 'https:' && !['localhost', '127.0.0.1', '::1'].includes(url.hostname)) {
-    throw new Error('The central map service must use HTTPS.');
+  const fallbackUrl = new URL(fallback);
+  const configured = String(import.meta.env.VITE_MAP_SERVICE_URL ?? '').trim();
+  if (!configured) return { href: fallbackUrl.href, origin: fallbackUrl.origin, configurationError: '' };
+
+  // Never throw from render because the delivery tab mounts this component lazily.
+  // A bad deployment URL must produce a local warning, not unmount the owner workspace.
+  try {
+    const url = new URL(configured, window.location.origin);
+    const isLocal = ['localhost', '127.0.0.1', '::1'].includes(url.hostname);
+    if (url.protocol !== 'https:' && !isLocal) {
+      return {
+        href: fallbackUrl.href,
+        origin: fallbackUrl.origin,
+        configurationError: 'The configured map service does not use HTTPS. The secure central map service will be used instead.',
+      };
+    }
+    if (url.username || url.password) {
+      return {
+        href: fallbackUrl.href,
+        origin: fallbackUrl.origin,
+        configurationError: 'The configured map service URL is invalid. The secure central map service will be used instead.',
+      };
+    }
+    return { href: url.href, origin: url.origin, configurationError: '' };
+  } catch {
+    return {
+      href: fallbackUrl.href,
+      origin: fallbackUrl.origin,
+      configurationError: 'The configured map service URL is invalid. The secure central map service will be used instead.',
+    };
   }
-  return { href: url.href, origin: url.origin };
 }
 
 export function MapboxDeliveryLocationPicker({
@@ -46,7 +71,7 @@ export function MapboxDeliveryLocationPicker({
   const callbacksRef = useRef({ onSelect, onLocationChange, disabled, variant, initialLatitude, initialLongitude });
   const readyRef = useRef(false);
   const service = mapServiceUrl();
-  const [serviceError, setServiceError] = useState('');
+  const [serviceError, setServiceError] = useState(service.configurationError);
   const [frameHeight, setFrameHeight] = useState(520);
 
   callbacksRef.current = { onSelect, onLocationChange, disabled, variant, initialLatitude, initialLongitude };
@@ -74,7 +99,7 @@ export function MapboxDeliveryLocationPicker({
 
       if (message.type === 'ready') {
         readyRef.current = true;
-        setServiceError('');
+        if (!service.configurationError) setServiceError('');
         sendInit();
         return;
       }
