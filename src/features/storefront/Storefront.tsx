@@ -225,9 +225,10 @@ export function Storefront({ baseUrl, requestedSlug }: {
   const menu = catalog?.menu ?? [];
   // Categories originate in the published tenant catalog, but only show a category
   // when this selected branch actually has at least one published/available item in it.
-  const categories = catalog
-    ? ['All', ...catalog.categories.slice(1).filter(name => menu.some(item => item.category === name))]
-    : ['All'];
+  // The published item list is ordered by each category's configured sort_order.
+  // Derive chips from that list so category buttons follow the restaurant's menu order,
+  // rather than the alphabetical order of the separate category metadata.
+  const categories = ['All', ...Array.from(new Set(menu.map(item => item.category)))];
   const restaurant = catalog?.restaurant;
   const results = useMemo(() => {
     const categoryOrder = new Map((catalog?.categories ?? ['All']).map((name, index) => [name, index]));
