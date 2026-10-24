@@ -143,7 +143,8 @@ export function Storefront({ baseUrl, requestedSlug }: {
 
   const change = (itemId: string, delta: number) =>
     setCart((previous) => updateCart(previous, itemId, delta, menu));
-  const menuUrl = restaurantMenuPath(restaurant.slug, baseUrl);
+  const menuUrl = restaurantMenuPath(restaurant.slug, baseUrl)
+    + (restaurant.branchSlug ? '?branch=' + restaurant.branchSlug : '');
 
   function switchBranch(slug:string) {
     if(slug === restaurant.branchSlug) return;
@@ -181,7 +182,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
     <div className="sf-demo-banner"><span className="sf-demo-dot" />{catalog.sample ? 'SAMPLE RESTAURANT MENU' : 'PUBLISHED RESTAURANT MENU'} <span className="sf-demo-banner-hide">· Checkout not yet available</span></div>
     <header className="sf-header">
       <div className="sf-header-inner">
-        <a href={normalizeAppBase(baseUrl)} className="sf-logo" aria-label={restaurant.name + " menu"}>
+        <a href={menuUrl} className="sf-logo" aria-label={restaurant.name + " menu"}>
           <span className="sf-logo-mark">{restaurant.initials}</span>
           <span className="sf-logo-name"><strong>{restaurant.name}</strong><small>powered by <b>Web2Table</b></small></span>
         </a>
@@ -262,7 +263,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
     <footer className="sf-footer">
       <div className="sf-footer-inner">
         <div><strong>{restaurant.name}</strong><p>{catalog.sample ? 'Sample storefront · No real restaurant or transaction data.' : 'Published restaurant menu · Checkout not yet available.'}</p></div>
-        <div className="sf-footer-links"><a href={menuUrl}>Restaurant menu link</a><a href={normalizeAppBase(baseUrl) + 'restaurant'}>Restaurant workspace</a><a href={normalizeAppBase(baseUrl) + 'admin'}>System admin</a></div>
+        <div className="sf-footer-links"><a href={menuUrl}>Restaurant menu link</a></div>
         <small>Powered by Web2Table</small>
       </div>
     </footer>

@@ -57,7 +57,7 @@ export function App() {
       <nav className="sidebar" aria-label="Platform areas">
         <p className="nav-heading">WORKSPACES</p>
         <a href={pathFor('order', baseUrl)} onClick={(event) => { event.preventDefault(); navigate('order'); }}>← Customer menu</a>
-        {(['restaurant', 'admin'] as const).map((item) => <a key={item}
+        {(['restaurant'] as const).map((item) => <a key={item}
           href={pathFor(item, baseUrl)} aria-current={view === item ? 'page' : undefined}
           onClick={(event) => { event.preventDefault(); navigate(item); }}>{protectedViews[item].label}</a>)}
       </nav>
