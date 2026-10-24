@@ -36,6 +36,7 @@ function FoodArt({ item, small = false }: { item: MenuItem; small?: boolean }) {
         ? <img
             loading="lazy"
             className="sf-food-photo"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', objectPosition: 'center', zIndex: 2 }}
             src={item.imageUrl}
             alt=""
             onError={() => setImageFailed(true)}
