@@ -2,7 +2,7 @@
 
 Production-oriented, multi-tenant SaaS foundation for restaurant self-ordering in the Philippines.
 
-> **Status:** W2T-001 foundation only. This commit is not a complete restaurant ordering service and is not ready to accept live orders, payments, or customer data.
+> **Status:** Mobile-first customer storefront preview plus W2T-002/003 tenant security and identity foundation. The storefront currently uses an illustrative menu and is not ready to accept live orders, payments or customer data.
 
 ## Approved scope
 
@@ -37,12 +37,13 @@ The initial dependency set uses exact versions. A committed `package-lock.json` 
 
 ## Foundation routes
 
-- `/` — platform entry point / project status
-- `/order` — customer ordering shell (not active)
-- `/restaurant` — restaurant workspace shell (not active)
-- `/admin` — system administration shell (not active)
+- `/` — customer-facing sample restaurant menu, optimized for mobile screens
+- `/order` — same public sample menu (no account required for browsing)
+- `/order/baryo-kitchen` — direct restaurant menu URL for search results and shared links
+- `/restaurant` — protected restaurant workspace (not live)
+- `/admin` — protected platform administration workspace (not live)
 
-These are UI shells, **not authenticated dashboards**. Do not connect real data until server-side authorization and RLS have been verified.
+The storefront is an interactive **preview** using fictional restaurant details, sample prices and emoji artwork. Menu search, categories, quantities and basket work locally; **checkout is disabled**. Privileged workspaces require Supabase Auth, MFA and database permissions. See [Mobile-first storefront](docs/MOBILE_FIRST_STOREFRONT.md).
 
 ## Architecture
 
