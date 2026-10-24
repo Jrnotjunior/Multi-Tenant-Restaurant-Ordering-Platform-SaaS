@@ -1,7 +1,7 @@
 import { supabase } from '../../lib/supabase';
 
 export type Tenant = {id:string;name:string;slug:string};
-export type Branch = {id:string;tenant_id:string;name:string;is_active:boolean};
+export type Branch = {id:string;tenant_id:string;slug:string;name:string;is_active:boolean};
 export type Brand = {
   tenant_id:string;default_branch_id:string;display_name:string;tagline:string;
   hero_heading:string;hero_emphasis:string;primary_color:string;
@@ -41,7 +41,7 @@ export async function ownerTenantChoices():Promise<Tenant[]> {
 export async function loadOwnerData(tenant:Tenant):Promise<OwnerData> {
   const db=requireClient();
   const [branches,brand,categories,items,assignments]=await Promise.all([
-    db.from('branches').select('id,tenant_id,name,is_active').eq('tenant_id',tenant.id),
+    db.from('branches').select('id,tenant_id,slug,name,is_active').eq('tenant_id',tenant.id),
     db.from('tenant_storefronts').select('tenant_id,default_branch_id,display_name,tagline,hero_heading,hero_emphasis,primary_color,status')
       .eq('tenant_id',tenant.id).single(),
     db.from('menu_categories').select('id,tenant_id,name,is_published,sort_order').eq('tenant_id',tenant.id)
@@ -145,4 +145,27 @@ export async function queueOwnerInvitation(tenantId:string,email:string):Promise
   check(error);
   if(typeof data!=='string') throw new Error('Invitation was not recorded.');
   return data;
+}
+
+
+/** Server RPCs enforce verified MFA, active owner membership, and tenant isolation. */
+export async function createOwnerBranch(tenantId:string,slug:string,name:string):Promise<string> {
+  const db=requireClient();
+  const {data,error}=await db.rpc('create_owner_branch',{
+    p_tenant_id:tenantId,p_slug:slug.trim().toLowerCase(),p_name:name.trim(),
+  });
+  check(error);
+  if(typeof data!=='string')throw new Error('Branch could not be created.');
+  return data;
+}
+
+export async function updateOwnerBranch(
+  tenantId:string,branchId:string,name:string,active:boolean
+):Promise<void> {
+  const db=requireClient();
+  const {data,error}=await db.rpc('update_owner_branch',{
+    p_tenant_id:tenantId,p_branch_id:branchId,p_name:name.trim(),p_active:active,
+  });
+  check(error);
+  if(data!==true)throw new Error('Branch change was not applied.');
 }

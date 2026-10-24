@@ -36,3 +36,15 @@
 .mg-hint{font-size:11px!important;margin-bottom:0}
 .mg-product-row .mg-secondary{padding:8px 12px;min-height:36px}
 @media(max-width:700px){.mg-shell{padding:23px 16px 60px}.mg-fields-two{grid-template-columns:1fr}.mg-card{padding:17px}.mg-heading{align-items:flex-start}.mg-card-title{flex-wrap:wrap}.mg-inline-form{align-items:stretch}.mg-inline-form button{width:100%}}
+
+.mg-branch-row{padding:14px 0;display:grid;grid-template-columns:minmax(100px,.8fr) minmax(160px,1.5fr) auto;gap:15px;align-items:end;border-bottom:1px solid #383841}
+.mg-branch-meta{display:flex;flex-direction:column;gap:5px;align-self:center;min-width:0}
+.mg-branch-meta strong{font-size:13px}.mg-branch-meta span{color:#9d97a2;font-size:11px}
+.mg-branch-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding-bottom:2px}
+.mg-branch-price-controls{display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px}
+.mg-branch-price-controls .mg-field{min-width:160px;flex:1}
+.mg-branch-product-row{padding:16px 0;border-bottom:1px solid #383841}
+.mg-branch-product-heading{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:12px}
+.mg-branch-product-heading>div{display:flex;flex-direction:column;gap:4px}
+.mg-branch-product-heading strong{font-size:13px}.mg-branch-product-heading span{color:#a8a2aa;font-size:11px}
+@media(max-width:760px){.mg-branch-row{grid-template-columns:1fr;gap:10px}.mg-branch-actions{justify-content:space-between}}
