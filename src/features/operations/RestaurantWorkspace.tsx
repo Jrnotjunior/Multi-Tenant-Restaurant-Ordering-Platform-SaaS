@@ -80,20 +80,30 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
   }
 
   const signOut = () => { void supabase?.auth.signOut(); };
-  let pageContent;
-  if (ownerPage === 'orders') {
-    pageContent = <OwnerOrdersPage filter={orderFilter} onFilterChange={setOrderFilter} />;
-  } else if (ownerPage === 'menu') {
-    pageContent = <OwnerMenuPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
-  } else if (ownerPage === 'settings') {
-    pageContent = <OwnerStoreSettingsPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
-  } else if (ownerPage === 'branding') {
-    pageContent = <OwnerBrandingPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
-  } else {
-    pageContent = <OwnerSectionPage page={ownerPage} restaurantName={restaurantName} onNavigate={setOwnerPage} />;
-  }
+  const [visitedOwnerPages, setVisitedOwnerPages] = useState<Set<OwnerPage>>(() => new Set<OwnerPage>(['orders']));
+  const navigateOwnerPage = (nextPage: OwnerPage) => {
+    setVisitedOwnerPages(current => {
+      if (current.has(nextPage)) return current;
+      const next = new Set(current);
+      next.add(nextPage);
+      return next;
+    });
+    setOwnerPage(nextPage);
+  };
 
-  return <OwnerAppShell baseUrl={baseUrl} groups={ownerNavGroups} page={ownerPage} email={accountEmail} onNavigate={setOwnerPage} onSignOut={signOut}>
-    {pageContent}
+  const renderOwnerPage = (page: OwnerPage) => {
+    if (page === 'orders') return <OwnerOrdersPage filter={orderFilter} onFilterChange={setOrderFilter} />;
+    if (page === 'menu') return <OwnerMenuPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
+    if (page === 'settings') return <OwnerStoreSettingsPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
+    if (page === 'branding') return <OwnerBrandingPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
+    return <OwnerSectionPage page={page} restaurantName={restaurantName} onNavigate={navigateOwnerPage} />;
+  };
+
+  return <OwnerAppShell baseUrl={baseUrl} groups={ownerNavGroups} page={ownerPage} email={accountEmail} onNavigate={navigateOwnerPage} onSignOut={signOut}>
+    {ownerNavGroups.flatMap(group => group.items).filter(item => visitedOwnerPages.has(item.key)).map(item => (
+      <div key={item.key} style={{ display: ownerPage === item.key ? 'contents' : 'none' }} aria-hidden={ownerPage !== item.key}>
+        {renderOwnerPage(item.key)}
+      </div>
+    ))}
   </OwnerAppShell>;
 }
