@@ -1,6 +1,6 @@
 
 /* Storefront uses the same default design tokens as the rest of Web2Table. */
-.sf-storefront{--sf-ink:var(--sf-font-color,var(--color-text,#101B2F));--sf-muted:var(--color-muted,#526782);--sf-red:var(--sf-primary-button,var(--color-sidebar,#101B2F));--sf-red-dark:var(--sf-secondary-button,var(--color-active,#263754));--sf-border:var(--color-border,#DCE3ED);--sf-soft:var(--sf-page-background,var(--color-page,#F7F9FC));min-height:100vh;background:var(--sf-page-background,var(--color-page,#F7F9FC));color:var(--sf-font-color,var(--color-text,#101B2F));font-family:var(--font-body);line-height:1.45}
+.sf-storefront{--sf-ink:var(--sf-font-color,var(--color-text,#101B2F));--sf-muted:var(--color-muted,#526782);--sf-red:var(--sf-primary-button,var(--color-sidebar,#101B2F));--sf-red-dark:var(--sf-secondary-button,var(--color-active,#263754));--sf-border:var(--color-border,#DCE3ED);--sf-soft:var(--sf-page-background,var(--color-page,#F7F9FC));min-height:100vh;display:flex;flex-direction:column;background:var(--sf-page-background,var(--color-page,#F7F9FC));color:var(--sf-font-color,var(--color-text,#101B2F));font-family:var(--font-body);line-height:1.45}
 .sf-storefront button,.sf-storefront input{font:inherit}
 .sf-storefront button{cursor:pointer}
 .sf-storefront button:disabled{cursor:not-allowed}
@@ -115,7 +115,7 @@
 .sf-no-results h3{font-size:17px;margin:10px 0}
 .sf-no-results p{color:var(--sf-muted,#526782);font-size:12px}
 .sf-no-results button,.sf-continue{border:0;background:var(--sf-primary-button,#101B2F);color:var(--sf-primary-button-font,#FFFFFF);padding:12px 20px;border-radius:100px;margin-top:10px;font-weight:800;font-size:12px}
-.sf-footer{border-top:1px solid var(--sf-border);background:var(--sf-footer-background,#101B2F);color:var(--sf-footer-font,#FFFFFF)}
+.sf-main{flex:1 0 auto}.sf-footer{margin-top:auto;border-top:1px solid var(--sf-border);background:var(--sf-footer-background,#101B2F);color:var(--sf-footer-font,#FFFFFF)}
 .sf-footer-inner{max-width:1280px;margin:auto;padding:29px 32px;display:flex;align-items:center;justify-content:space-between;gap:25px}
 .sf-footer-inner strong{font-size:14px}
 .sf-footer-inner p{color:var(--sf-footer-font,#FFFFFF);font-size:11px;margin:5px 0}
