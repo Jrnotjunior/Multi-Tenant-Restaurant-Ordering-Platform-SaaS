@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import {
   createCategory, loadOwnerDataForTenant, publicMenuPhoto, saveItem, setBranchItem,
   setPublication, toggleCategory, updateCategory, uploadMenuPhoto,
-  type Category, type OwnerData, type Product,
+  type OwnerData, type Product,
 } from '../../features/management/menuService';
 
 type Props = { tenantId: string; restaurantName: string | null };
@@ -149,6 +149,10 @@ export function OwnerMenuPage({ tenantId, restaurantName }: Props) {
     }
     if (draft.status === 'published' && activeBranches.length === 0) {
       setError('There is no active branch available to display this item. Ask the System Administrator to activate the default branch.');
+      return;
+    }
+    if (photoFile && (!['image/jpeg','image/png','image/webp'].includes(photoFile.type) || photoFile.size <= 0 || photoFile.size > 3 * 1024 * 1024)) {
+      setError('Choose a JPEG, PNG or WebP image up to 3 MB.');
       return;
     }
     await perform(async () => {
