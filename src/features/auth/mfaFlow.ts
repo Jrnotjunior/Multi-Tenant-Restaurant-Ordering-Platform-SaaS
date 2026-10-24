@@ -47,8 +47,25 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
     throw new Error('Incomplete authenticator enrollment detected. Contact the platform administrator to reset MFA safely.');
   }
 
-  const { data, error } = await client.auth.mfa.enroll({ factorType: 'totp' });
-  if (error) throw error;
+  const { data, error } = await client.auth.mfa.enroll({
+    factorType: 'totp',
+    friendlyName: 'Web2Table Authenticator',
+  });
+  if (error) {
+    // Supabase can reject a duplicate factor name if an earlier enrollment
+    // succeeded but its response was interrupted. Re-read factors before
+    // surfacing the original error, and continue the existing enrollment.
+    const { data: latestFactors, error: latestFactorsError } = await client.auth.mfa.listFactors();
+    if (!latestFactorsError) {
+      const latestVerified = latestFactors.totp.find((factor) => factor.status === 'verified');
+      if (latestVerified) return { kind: 'challenge', factorId: latestVerified.id };
+      const latestPending = latestFactors.totp.find((factor) => factor.status !== 'verified');
+      if (latestPending) {
+        throw new Error('An authenticator setup is already pending for this account. Use the existing authenticator setup, or choose “Restart incomplete authenticator setup” to safely restart it.');
+      }
+    }
+    throw error;
+  }
   if (!data?.totp?.qr_code || !data.totp.uri) throw new Error('Authenticator enrollment information unavailable.');
   const result: MfaFlow = { kind: 'enroll', factorId: data.id, qrCode: data.totp.qr_code, uri: data.totp.uri };
   enrollments.set(client, result);
