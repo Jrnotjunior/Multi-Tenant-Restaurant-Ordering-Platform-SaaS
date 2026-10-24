@@ -191,9 +191,12 @@
 @media(max-width:520px){.sf-checkout-backdrop{padding:0;align-items:end}.sf-checkout-panel{width:100%;max-height:94dvh;border-radius:18px 18px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom))}}
 
 
-/* Tenant-selected brand typography and uploaded restaurant logo. */
-.sf-storefront{font-family:var(--sf-font-body,var(--font-body))}
-.sf-storefront h1,.sf-storefront h2,.sf-storefront h3,.sf-storefront h4,.sf-storefront h5,.sf-storefront h6,
-.sf-storefront .sf-logo-mark,.sf-storefront .sf-logo-name strong{font-family:var(--sf-font-heading,var(--font-heading))}
+/* Tenant typography presets use the platform's approved Inter/Manrope font pair. */
+.sf-storefront.sf-font-modern{font-family:var(--font-body)}
+.sf-storefront.sf-font-modern h1,.sf-storefront.sf-font-modern h2,.sf-storefront.sf-font-modern h3,.sf-storefront.sf-font-modern h4,.sf-storefront.sf-font-modern h5,.sf-storefront.sf-font-modern h6,.sf-storefront.sf-font-modern .sf-logo-mark,.sf-storefront.sf-font-modern .sf-logo-name strong{font-family:var(--font-heading)}
+.sf-storefront.sf-font-rounded{font-family:var(--font-body)}
+.sf-storefront.sf-font-rounded h1,.sf-storefront.sf-font-rounded h2,.sf-storefront.sf-font-rounded h3,.sf-storefront.sf-font-rounded h4,.sf-storefront.sf-font-rounded h5,.sf-storefront.sf-font-rounded h6,.sf-storefront.sf-font-rounded .sf-logo-mark,.sf-storefront.sf-font-rounded .sf-logo-name strong{font-family:var(--font-body)}
+.sf-storefront.sf-font-classic{font-family:var(--font-heading)}
+.sf-storefront.sf-font-classic h1,.sf-storefront.sf-font-classic h2,.sf-storefront.sf-font-classic h3,.sf-storefront.sf-font-classic h4,.sf-storefront.sf-font-classic h5,.sf-storefront.sf-font-classic h6,.sf-storefront.sf-font-classic .sf-logo-mark,.sf-storefront.sf-font-classic .sf-logo-name strong{font-family:var(--font-heading)}
 .sf-logo-image{display:block;flex:0 0 auto;width:46px;height:46px;object-fit:contain;border-radius:10px}
 @media(max-width:680px){.sf-logo-image{width:39px;height:39px}}
