@@ -1,73 +1,26 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '../../lib/supabase';
-
-type Tab = 'profile'|'hours'|'delivery'|'cash'|'rider'|'payments';
-type StoreRecord = { tenant_id:string; display_name:string|null; status:string|null; accepting_orders:boolean|null; tagline:string|null };
-const tabs:{key:Tab;label:string}[]=[
- {key:'profile',label:'Profile'},{key:'hours',label:'Store status & hours'},{key:'delivery',label:'Delivery pricing'},
- {key:'cash',label:'Cash Payment Options'},{key:'rider',label:'Rider assignment'},{key:'payments',label:'Online payments'}
-];
+type Tab='profile'|'hours'|'delivery'|'cash'|'rider'|'payments';
+type Obj=Record<string, any>;
+type Row={tenant_id:string;display_name:string|null;tagline:string|null;status:string|null;accepting_orders:boolean|null;opening_hours:Obj;delivery_pricing:Obj;cash_payment_options:Obj;rider_assignment:Obj;online_payments:Obj};
 type Props={tenantId:string;restaurantName:string|null};
+const tabs:{key:Tab;label:string}[]=[{key:'profile',label:'Profile'},{key:'hours',label:'Store status & hours'},{key:'delivery',label:'Delivery pricing'},{key:'cash',label:'Cash Payment Options'},{key:'rider',label:'Rider assignment'},{key:'payments',label:'Online payments'}];
+const obj=(v:any):Obj=>v&&typeof v==='object'&&!Array.isArray(v)?v:{};
 export function OwnerStoreSettingsPage({tenantId,restaurantName}:Props){
- const [tab,setTab]=useState<Tab>('profile');
- const [store,setStore]=useState<StoreRecord|null>(null);
- const [displayName,setDisplayName]=useState(restaurantName??'');
- const [tagline,setTagline]=useState('');
- const [status,setStatus]=useState('active');
- const [acceptingOrders,setAcceptingOrders]=useState(true);
- const [loading,setLoading]=useState(true);
- const [saving,setSaving]=useState(false);
- const [message,setMessage]=useState('');
- useEffect(()=>{
-  let active=true;
-  async function load(){
-   try{
-    if(!supabase)throw new Error('Store settings service is not configured.');
-    const {data,error}=await supabase.from('tenant_storefronts')
-      .select('tenant_id,display_name,status,accepting_orders,tagline')
-      .eq('tenant_id',tenantId).maybeSingle();
-    if(error)throw error;
-    if(!data)throw new Error('No storefront settings exist for this restaurant yet.');
-    if(!active)return;
-    const row=data as StoreRecord;setStore(row);setDisplayName(row.display_name??restaurantName??'');
-    setTagline(row.tagline??'');setStatus(row.status??'active');setAcceptingOrders(row.accepting_orders??true);
-   }catch(e){if(active)setMessage(e instanceof Error?e.message:'Unable to load store settings.');}
-   finally{if(active)setLoading(false);}
-  }
-  void load();return()=>{active=false};
- },[tenantId,restaurantName]);
- async function save(e:FormEvent){
-  e.preventDefault();if(!supabase)return;setSaving(true);setMessage('');
-  try{
-   const {error}=await supabase.from('tenant_storefronts').update({
-    display_name:displayName.trim(),tagline:tagline.trim(),status,accepting_orders:acceptingOrders,updated_at:new Date().toISOString()
-   }).eq('tenant_id',tenantId);
-   if(error)throw error;
-   setStore({...store!,display_name:displayName.trim(),tagline:tagline.trim(),status,accepting_orders:acceptingOrders});
-   setMessage('Store settings saved.');
-  }catch(e){setMessage(e instanceof Error?e.message:'Unable to save store settings.');}
-  finally{setSaving(false);}
- }
+ const [tab,setTab]=useState<Tab>('profile'),[row,setRow]=useState<Row|null>(null),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[message,setMessage]=useState('');
+ const [name,setName]=useState(restaurantName??''),[tagline,setTagline]=useState(''),[status,setStatus]=useState('active'),[accepting,setAccepting]=useState(true);
+ const [hours,setHours]=useState<Obj>({timezone:'Asia/Manila',schedule:{},exceptions:[]}),[delivery,setDelivery]=useState<Obj>({enabled:false,base_fee:0,currency:'PHP',zones:[]}),[cash,setCash]=useState<Obj>({cash_on_delivery_enabled:true,notes:''}),[rider,setRider]=useState<Obj>({mode:'manual',auto_assign:false,instructions:''}),[payments,setPayments]=useState<Obj>({enabled:false,methods:[],provider_configured:false});
+ useEffect(()=>{let live=true;(async()=>{try{if(!supabase)throw Error('Store settings service is not configured.');const {data,error}=await supabase.from('tenant_storefronts').select('tenant_id,display_name,tagline,status,accepting_orders,opening_hours,delivery_pricing,cash_payment_options,rider_assignment,online_payments').eq('tenant_id',tenantId).maybeSingle();if(error)throw error;if(!data)throw Error('No storefront settings exist for this restaurant yet.');if(!live)return;const r=data as unknown as Row;setRow(r);setName(r.display_name??restaurantName??'');setTagline(r.tagline??'');setStatus(r.status??'active');setAccepting(r.accepting_orders??true);setHours(obj(r.opening_hours));setDelivery(obj(r.delivery_pricing));setCash(obj(r.cash_payment_options));setRider(obj(r.rider_assignment));setPayments(obj(r.online_payments));}catch(e){if(live)setMessage(e instanceof Error?e.message:'Unable to load settings.')}finally{if(live)setLoading(false)}})();return()=>{live=false}},[tenantId,restaurantName]);
+ async function save(e:FormEvent){e.preventDefault();if(!supabase||!row)return;setSaving(true);setMessage('');try{let changes:Obj={updated_at:new Date().toISOString()};if(tab==='profile')changes={...changes,display_name:name.trim(),tagline:tagline.trim()};if(tab==='hours')changes={...changes,status,accepting_orders:accepting,opening_hours:hours};if(tab==='delivery')changes={...changes,delivery_pricing:delivery};if(tab==='cash')changes={...changes,cash_payment_options:cash};if(tab==='rider')changes={...changes,rider_assignment:rider};if(tab==='payments')changes={...changes,online_payments:payments};const {error}=await supabase.from('tenant_storefronts').update(changes).eq('tenant_id',tenantId);if(error)throw error;setRow({...row,...changes});setMessage('Settings saved successfully.')}catch(e){setMessage(e instanceof Error?e.message:'Unable to save settings.')}finally{setSaving(false)}}
+ const jsonEditor=(label:string,value:unknown,onChange:(v:Obj)=>void)=> <label className="owner-branding-input">{label}<textarea rows={7} value={JSON.stringify(value,null,2)} onChange={e=>{try{const v=JSON.parse(e.target.value);if(v&&typeof v==='object'&&!Array.isArray(v)){onChange(v);setMessage('')}else setMessage('Enter a JSON object.')}catch{setMessage('Enter valid JSON object syntax before saving.')}}}/></label>;
  if(loading)return <main className="owner-content"><section className="owner-orders-empty"><h1>Store Settings</h1><p>Loading store settings…</p></section></main>;
- if(!store)return <main className="owner-content"><section className="owner-orders-empty"><h1>Store Settings</h1><p role="alert">{message||'Store settings could not be loaded.'}</p></section></main>;
- return <main className="owner-content owner-store-settings">
-  <nav className="owner-branding-tabs" aria-label="Store settings sections">{tabs.map(item=><button type="button" key={item.key} className={tab===item.key?'active':''} onClick={()=>{setTab(item.key);setMessage('')}}>{item.label}</button>)}</nav>
-  <form onSubmit={save}>
-   {tab==='profile'&&<section className="owner-branding-panel"><h2>Restaurant profile</h2><p>Manage the basic information shown for your restaurant.</p>
-    <label className="owner-branding-input">Restaurant name<input required maxLength={160} value={displayName} onChange={e=>setDisplayName(e.target.value)}/></label>
-    <label className="owner-branding-input">Tagline<input maxLength={180} value={tagline} onChange={e=>setTagline(e.target.value)}/></label>
-   </section>}
-   {tab==='hours'&&<section className="owner-branding-panel"><h2>Store status &amp; hours</h2><p>Control whether your storefront accepts new orders. Opening-hour scheduling requires a persisted hours configuration.</p>
-    <label className="owner-branding-input">Store status<select value={status} onChange={e=>setStatus(e.target.value)}><option value="active">Active</option><option value="paused">Paused</option><option value="inactive">Inactive</option></select></label>
-    <label className="owner-settings-toggle"><input type="checkbox" checked={acceptingOrders} onChange={e=>setAcceptingOrders(e.target.checked)}/> Accepting new orders</label>
-    <p className="owner-settings-note">Opening hours are not yet stored in the current database schema; no schedule is simulated here.</p>
-   </section>}
-   {tab==='delivery'&&<section className="owner-branding-panel"><h2>Delivery pricing</h2><p>Delivery fees and delivery zones need a tenant-scoped delivery configuration before they can be edited safely.</p><p className="owner-settings-note">Delivery pricing is not connected yet. No changes will be simulated or saved as if they were real.</p></section>}
-   {tab==='cash'&&<section className="owner-branding-panel"><h2>Cash Payment Options</h2><p>Configure whether cash on delivery is offered and any cash collection rules.</p><p className="owner-settings-note">Cash payment options are not connected to a persisted tenant setting yet.</p></section>}
-   {tab==='rider'&&<section className="owner-branding-panel"><h2>Rider assignment</h2><p>Manage how orders are assigned to delivery riders.</p><p className="owner-settings-note">Rider assignment settings are not connected to a persisted tenant setting yet.</p></section>}
-   {tab==='payments'&&<section className="owner-branding-panel"><h2>Online payments</h2><p>Configure supported online payment methods for this restaurant.</p><p className="owner-settings-note">Online payment configuration is not connected to a persisted tenant setting yet.</p></section>}
-   {(tab==='profile'||tab==='hours')&&<div className="owner-branding-actions"><button type="submit" disabled={saving}>{saving?'Saving…':'Save settings'}</button></div>}
-   {message&&<p className="owner-branding-message" role="status">{message}</p>}
-  </form>
- </main>;
+ if(!row)return <main className="owner-content"><section className="owner-orders-empty"><h1>Store Settings</h1><p role="alert">{message||'Store settings could not be loaded.'}</p></section></main>;
+ return <main className="owner-content owner-store-settings"><nav className="owner-branding-tabs" aria-label="Store settings sections">{tabs.map(t=><button type="button" key={t.key} className={tab===t.key?'active':''} onClick={()=>{setTab(t.key);setMessage('')}}>{t.label}</button>)}</nav><form onSubmit={save}>
+ {tab==='profile'&&<section className="owner-branding-panel"><h2>Restaurant profile</h2><label className="owner-branding-input">Restaurant name<input required maxLength={160} value={name} onChange={e=>setName(e.target.value)}/></label><label className="owner-branding-input">Tagline<input maxLength={180} value={tagline} onChange={e=>setTagline(e.target.value)}/></label></section>}
+ {tab==='hours'&&<section className="owner-branding-panel"><h2>Store status &amp; hours</h2><label className="owner-branding-input">Store status<select value={status} onChange={e=>setStatus(e.target.value)}><option value="active">Active</option><option value="paused">Paused</option><option value="inactive">Inactive</option></select></label><label className="owner-settings-toggle"><input type="checkbox" checked={accepting} onChange={e=>setAccepting(e.target.checked)}/> Accepting new orders</label>{jsonEditor('Opening hours configuration (JSON)',hours,setHours)}</section>}
+ {tab==='delivery'&&<section className="owner-branding-panel"><h2>Delivery pricing</h2><label className="owner-settings-toggle"><input type="checkbox" checked={!!delivery.enabled} onChange={e=>setDelivery({...delivery,enabled:e.target.checked})}/> Enable delivery pricing</label><label className="owner-branding-input">Base delivery fee (PHP)<input type="number" min="0" step="0.01" value={Number(delivery.base_fee??0)} onChange={e=>setDelivery({...delivery,base_fee:Number(e.target.value)})}/></label>{jsonEditor('Delivery zones configuration (JSON object)',delivery,setDelivery)}</section>}
+ {tab==='cash'&&<section className="owner-branding-panel"><h2>Cash Payment Options</h2><label className="owner-settings-toggle"><input type="checkbox" checked={cash.cash_on_delivery_enabled!==false} onChange={e=>setCash({...cash,cash_on_delivery_enabled:e.target.checked})}/> Accept cash on delivery</label><label className="owner-branding-input">Cash payment notes<textarea rows={4} value={String(cash.notes??'')} onChange={e=>setCash({...cash,notes:e.target.value})}/></label></section>}
+ {tab==='rider'&&<section className="owner-branding-panel"><h2>Rider assignment</h2><label className="owner-branding-input">Assignment mode<select value={String(rider.mode??'manual')} onChange={e=>setRider({...rider,mode:e.target.value})}><option value="manual">Manual assignment</option><option value="auto">Automatic assignment</option></select></label><label className="owner-settings-toggle"><input type="checkbox" checked={!!rider.auto_assign} onChange={e=>setRider({...rider,auto_assign:e.target.checked})}/> Enable automatic rider assignment</label><label className="owner-branding-input">Rider instructions<textarea rows={4} value={String(rider.instructions??'')} onChange={e=>setRider({...rider,instructions:e.target.value})}/></label></section>}
+ {tab==='payments'&&<section className="owner-branding-panel"><h2>Online payments</h2><label className="owner-settings-toggle"><input type="checkbox" checked={!!payments.enabled} onChange={e=>setPayments({...payments,enabled:e.target.checked})}/> Enable online payments</label>{jsonEditor('Payment methods and configuration (JSON object)',payments,setPayments)}<p className="owner-settings-note">Provider credentials are not stored here; this saves preferences only.</p></section>}
+ <div className="owner-branding-actions"><button type="submit" disabled={saving}>{saving?'Saving…':'Save settings'}</button></div>{message&&<p className="owner-branding-message" role="status">{message}</p>}</form></main>;
 }
