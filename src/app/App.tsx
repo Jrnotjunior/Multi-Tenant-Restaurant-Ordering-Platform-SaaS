@@ -48,7 +48,7 @@ export function App() {
         <h1>System administration has its own application.</h1>
         <p className="intro">Restaurant platform administration is managed separately from the customer storefront and Restaurant Owner workspace. Sign-in uses its own protected application and the new Web2Table authorization checks.</p>
         <section className="panel">
-          <p>Existing administrator accounts from the older identity project are not automatically authorized in Web2Table V10. A verified, approved administrator identity and MFA are required.</p>
+          <p>Existing administrator accounts from the older identity project are not automatically authorized in Web2Table. A verified, approved administrator identity and MFA are required.</p>
           <a className="status-pill" href="https://admin.web2table.io/">Open Web2Table System Admin ↗</a>
         </section>
       </main>
@@ -62,7 +62,7 @@ export function App() {
       <a className="brand" href={pathFor('home', baseUrl)} onClick={(event) => { event.preventDefault(); navigate('home'); }}>
         <span className="brandmark">W2T</span> Web2Table
       </a>
-      <span className="environment">SECURE WORKSPACE · V10</span>
+      <span className="environment">WEB2TABLE · SECURE WORKSPACE</span>
     </header>
     <div className="workspace">
       <nav className="sidebar" aria-label="Platform areas">

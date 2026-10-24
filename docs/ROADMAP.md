@@ -1,4 +1,4 @@
-# Web2Table V10 incremental roadmap
+# Web2Table incremental roadmap
 
 - **W2T-001 — Initial repository foundation:** React+TS UI shells, public client config, pure tenancy/role helpers, tests, documentation, initial CI. Not a functioning SaaS.
 - **W2T-002 — Schema and RLS foundation:** design tenants, memberships, branches and active domain ownership; implement minimal migration and cross-tenant access tests in designated development database.

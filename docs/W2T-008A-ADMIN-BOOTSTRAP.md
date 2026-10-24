@@ -1,7 +1,7 @@
 # W2T-008A — First administrator secure activation
 
 ## Scope
-The separate existing System Admin repository is connected to **Web2Table V10** via the new Supabase project while its legacy application and database remain independent. System Admin GitHub Pages loads the V10 interface; its legacy Hostinger build is unchanged.
+The separate existing System Admin repository is connected to **Web2Table** via the new Supabase project while its legacy application and database remain independent. System Admin GitHub Pages loads the Web2Table interface; its legacy Hostinger build is unchanged.
 
 ## Authorized invitation process
 
@@ -23,9 +23,9 @@ Only then does the trusted private function create an active `platform_admins` r
 ## Human activation step
 
 1. Open the **Web2Table** Supabase project `wvibrchebfwirbgkcnbr`.
-2. Configure Authentication > URL Configuration with `https://admin.web2table.io/` as the canonical approved System Admin redirect. You may keep the existing GitHub Pages preview redirect separately for testing. Verify that the custom domain serves the V10 app, not a legacy build, and that the Auth invitation email sender works.
+2. Configure Authentication > URL Configuration with `https://admin.web2table.io/` as the canonical approved System Admin redirect. You may keep the existing GitHub Pages preview redirect separately for testing. Verify that the custom domain serves the Web2Table admin app, not a legacy build, and that the Auth invitation email sender works.
 3. Go to Authentication > Users > Add user > Send invitation and enter the approved first-admin email.
-4. Click the received invitation link and open the verified V10 System Admin interface at `https://admin.web2table.io/`. Set up TOTP MFA there. The authenticated V10 app claims access once all security checks pass.
+4. Click the received invitation link and open the verified Web2Table System Admin interface at `https://admin.web2table.io/`. Set up TOTP MFA there. The authenticated System Admin app claims access once all security checks pass.
 5. Optionally set a strong 12+ character password for future sign-ins.
 6. Verify live account access with a real browser login before allowing any privileged restaurant provisioning.
 
@@ -38,4 +38,4 @@ A rollback-only SQL test with synthetic Auth users passed: outsider rejection, u
 No customer orders or real restaurants were created, no existing accounts were migrated, and no legacy database was modified.
 
 ## Custom-domain update
-The approved System Admin domain is `https://admin.web2table.io/`. Its live deployment could not be independently inspected in this environment. The existing Hostinger pipeline has a different application-mode setting from the GitHub Pages V10 preview; do not claim this domain can complete the bootstrap until its deployed build has been checked.
+The approved System Admin domain is `https://admin.web2table.io/`. Its live deployment could not be independently inspected in this environment. The existing Hostinger pipeline has a different application-mode setting from the GitHub Pages System Admin preview; do not claim this domain can complete the bootstrap until its deployed build has been checked.
