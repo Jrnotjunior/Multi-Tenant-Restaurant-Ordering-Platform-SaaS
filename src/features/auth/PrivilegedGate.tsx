@@ -15,6 +15,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const passwordRules = [
     { label: 'At least 8 characters', valid: newPassword.length >= 8 },
     { label: 'One uppercase letter (A–Z)', valid: /[A-Z]/.test(newPassword) },
@@ -146,17 +147,39 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
 
   if (status === 'authorized') return <>{children}<p className="auth-footer"><button type="button" onClick={() => void logout()}>Sign out</button></p></>;
 
-  return <section className="auth-panel" aria-live="polite">
-    <span className="auth-eyebrow">PRIVILEGED ACCESS · MFA REQUIRED</span>
-    <h2>{mode === 'admin' ? 'System administrator' : 'Restaurant team'} sign-in</h2>
-    <p>Accounts are provisioned by invitation only. Authentication never grants restaurant access without a verified database membership.</p>
-    {message && <p className="auth-message" role="alert">{message}</p>}
+  const isSetup = status === 'passwordsetup';
+  const isMfa = status === 'mfa';
+  const isComplete = status === 'authorized';
+  return <main className="privileged-onboarding" aria-live="polite">
+    <aside className="onboarding-story">
+      <a className="onboarding-brand" href="/" aria-label="Web2Table home"><span>W2T</span><strong>Web2Table</strong></a>
+      <div className="onboarding-story-copy">
+        <span className="onboarding-kicker">YOUR RESTAURANT. ONE WORKSPACE.</span>
+        <h1>Welcome to<br />Web2Table</h1>
+        <p>Everything you need to manage your restaurant — in one place.</p>
+        <div className="onboarding-benefits">
+          <div><span className="onboarding-benefit-icon">▣</span><span><strong>Manage your restaurant</strong><small>Menus, orders, and team access</small></span></div>
+          <div><span className="onboarding-benefit-icon">▥</span><span><strong>Grow your business</strong><small>Insights and real-time analytics</small></span></div>
+          <div><span className="onboarding-benefit-icon">♧</span><span><strong>Built for your team</strong><small>Simple, secure, and reliable</small></span></div>
+        </div>
+      </div>
+      <div className="onboarding-story-glow" aria-hidden="true" />
+    </aside>
+    <section className="auth-panel onboarding-card">
+      {(isSetup || isMfa || isComplete) && <div className="onboarding-steps" aria-label="Account setup progress">
+        <div className={isSetup ? 'active' : 'done'}><span>1</span><small>Create password</small></div><i />
+        <div className={isMfa ? 'active' : isComplete ? 'done' : ''}><span>2</span><small>Set up MFA</small></div><i />
+        <div className={isComplete ? 'active' : ''}><span>3</span><small>Get started</small></div>
+      </div>}
+      <span className="auth-eyebrow">{isSetup ? 'STEP 1 OF 3 · ACCOUNT SECURITY' : isMfa ? 'STEP 2 OF 3 · ACCOUNT SECURITY' : 'PRIVILEGED ACCESS · MFA REQUIRED'}</span>
+      <h2>{isSetup ? 'Create your password' : isMfa ? 'Secure your account' : mode === 'admin' ? 'System administrator sign-in' : 'Restaurant team sign-in'}</h2>
+      <p>{isSetup ? 'Set a secure password to activate your restaurant owner account.' : isMfa ? 'One quick security step, then you’re ready to get started.' : 'Accounts are provisioned by invitation only. Access is based on your verified role and database membership.'}</p>
+      {message && <p className="auth-message" role="alert">{message}</p>}
     {status === 'checking' && <p>Verifying your session and access permissions…</p>}
     {status === 'passwordsetup' && <form onSubmit={(e) => void savePassword(e)} className="auth-form">
-      <p>Welcome! Create a password for your restaurant owner account before setting up multi-factor authentication.</p>
-      <label>Create password<input type="password" autoComplete="new-password" minLength={8} maxLength={128} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required /></label>
-      <ul className="sf-password-checklist" aria-label="Password requirements">{passwordRules.map(rule => <li key={rule.label} className={rule.valid ? 'is-valid' : ''}><span className="sf-password-check-icon" aria-hidden="true">{rule.valid ? '✓' : '○'}</span>{rule.label}</li>)}</ul>
-      <button type="submit" disabled={busy}>{busy ? 'Saving password…' : 'Save password and continue'}</button>
+      <label>Password<div className="onboarding-password-wrap"><input type={showNewPassword ? 'text' : 'password'} autoComplete="new-password" minLength={8} maxLength={128} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required /><button className="onboarding-password-toggle" type="button" onClick={() => setShowNewPassword(v => !v)} aria-label={showNewPassword ? 'Hide password' : 'Show password'}>{showNewPassword ? 'Hide' : 'Show'}</button></div></label>
+      <div className="onboarding-password-rules"><strong>Your password must have:</strong><ul className="sf-password-checklist" aria-label="Password requirements">{passwordRules.map(rule => <li key={rule.label} className={rule.valid ? 'is-valid' : ''}><span className="sf-password-check-icon" aria-hidden="true">{rule.valid ? '✓' : '○'}</span>{rule.label}</li>)}<li className={newPassword.length <= 128 ? 'is-valid' : ''}><span className="sf-password-check-icon" aria-hidden="true">✓</span>Maximum 128 characters</li></ul></div>
+      <button type="submit" disabled={busy || !passwordMeetsStandard}>{busy ? 'Saving password…' : 'Continue to security setup　 →'}</button>
     </form>}
     {status === 'signedout' && <div className="auth-form">
       <p>Sign in through the Web2Table storefront. After authentication, your verified role and membership determine which workspace you can access.</p>
