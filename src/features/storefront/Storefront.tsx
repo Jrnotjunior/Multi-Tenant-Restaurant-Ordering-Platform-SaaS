@@ -1,0 +1,206 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { cartCount, cartLines, cartSubtotal, updateCart, type Cart } from './cart';
+import { categories, demoMenu, demoRestaurant, filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
+import { normalizeAppBase, restaurantMenuPath } from '../../app/routes';
+import './storefront.css';
+
+function SearchIcon() {
+  return <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" strokeWidth="1.9"/><path d="m16 16 4.5 4.5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"/></svg>;
+}
+
+function BagIcon() {
+  return <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.4 8.2h15.2l-1.1 12H5.5l-1.1-12Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M8.5 9V6.5a3.5 3.5 0 0 1 7 0V9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>;
+}
+
+function ArrowIcon() {
+  return <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+}
+
+function FoodArt({ item, small = false }: { item: MenuItem; small?: boolean }) {
+  return <div className={'sf-food-art' + (small ? ' sf-food-art-small' : '')} style={{ background: item.background }} aria-hidden="true">
+    <span className="sf-art-disc" />
+    <span className="sf-food-emoji">{item.emoji}</span>
+  </div>;
+}
+
+function QuantityControl({ itemId, quantity, change }: {
+  itemId: string; quantity: number; change: (id: string, delta: number) => void;
+}) {
+  return <div className="sf-qty" aria-label="Quantity control">
+    <button type="button" aria-label="Remove one" onClick={() => change(itemId, -1)}>−</button>
+    <span aria-label={'Quantity ' + quantity}>{quantity}</span>
+    <button type="button" aria-label="Add one" onClick={() => change(itemId, 1)} disabled={quantity >= 20}>+</button>
+  </div>;
+}
+
+function CartContents({ cart, change, close }: {
+  cart: Cart; change: (id: string, delta: number) => void; close?: () => void;
+}) {
+  const lines = cartLines(cart);
+  const count = cartCount(cart);
+  return <>
+    {count === 0 ? <div className="sf-cart-empty">
+      <div className="sf-cart-empty-icon"><BagIcon /></div>
+      <h3>Your basket is empty</h3>
+      <p>There is something delicious waiting on the menu.</p>
+      {close && <button type="button" className="sf-continue" onClick={close}>Browse menu</button>}
+    </div> : <>
+      <div className="sf-cart-items">
+        {lines.map(({ item, quantity }) => <div className="sf-cart-item" key={item.id}>
+          <FoodArt item={item} small />
+          <div className="sf-cart-item-content">
+            <strong>{item.name}</strong>
+            <span>{peso(item.priceCentavos)}</span>
+            <QuantityControl itemId={item.id} quantity={quantity} change={change}/>
+          </div>
+          <strong className="sf-cart-lineprice">{peso(item.priceCentavos * quantity)}</strong>
+        </div>)}
+      </div>
+      <div className="sf-price-breakdown">
+        <div><span>Subtotal</span><strong>{peso(cartSubtotal(cart))}</strong></div>
+        <div><span>Delivery fee</span><span>At checkout</span></div>
+      </div>
+      <button type="button" className="sf-checkout-disabled" disabled>Checkout coming soon <ArrowIcon /></button>
+      <p className="sf-cart-note">Interactive preview only. Your basket is not submitted or charged.</p>
+    </>}
+  </>;
+}
+
+function MenuCard({ item, quantity, add }: { item: MenuItem; quantity: number; add: (id: string, delta: number) => void }) {
+  return <article className="sf-menu-card">
+    <div className="sf-card-image">
+      <FoodArt item={item}/>
+      {item.popular && <span className="sf-popular">★ Popular</span>}
+    </div>
+    <div className="sf-card-details">
+      <span className="sf-card-category">{item.category}</span>
+      <h3>{item.name}</h3>
+      <p>{item.description}</p>
+      <div className="sf-card-bottom">
+        <strong>{peso(item.priceCentavos)}</strong>
+        {quantity > 0
+          ? <QuantityControl itemId={item.id} quantity={quantity} change={add}/>
+          : <button type="button" className="sf-add" onClick={() => add(item.id, 1)} aria-label={'Add ' + item.name + ' to basket'}>+</button>}
+      </div>
+    </div>
+  </article>;
+}
+
+export function Storefront({ baseUrl, requestedSlug }: {
+  baseUrl: string; requestedSlug: string | null;
+}) {
+  const [category, setCategory] = useState<Category>('All');
+  const [query, setQuery] = useState('');
+  const [cart, setCart] = useState<Cart>({});
+  const [cartOpen, setCartOpen] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const results = useMemo(() => filterMenu(demoMenu, category, query), [category, query]);
+  const count = cartCount(cart);
+  const subtotal = cartSubtotal(cart);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (cartOpen && !dialog.open) dialog.showModal();
+    if (!cartOpen && dialog.open) dialog.close();
+  }, [cartOpen]);
+
+  const change = (itemId: string, delta: number) => setCart((previous) => updateCart(previous, itemId, delta));
+  const menuUrl = restaurantMenuPath(demoRestaurant.slug, baseUrl);
+
+  if (requestedSlug !== null && requestedSlug !== demoRestaurant.slug) {
+    return <div className="sf-storefront">
+      <header className="sf-header"><a className="sf-logo" href={normalizeAppBase(baseUrl)}><span className="sf-logo-mark">W2T</span><span>Web2Table</span></a></header>
+      <main className="sf-unavailable"><span className="sf-empty-art">🍽️</span><h1>Restaurant menu unavailable</h1><p>We could not find a published menu for this restaurant. Please check the restaurant link.</p><a href={menuUrl} className="sf-back-link">View the sample menu <ArrowIcon /></a></main>
+    </div>;
+  }
+
+  return <div className="sf-storefront">
+    <a className="sf-skip-link" href="#sf-menu">Skip to menu</a>
+    <div className="sf-demo-banner"><span className="sf-demo-dot" />INTERACTIVE STOREFRONT PREVIEW <span className="sf-demo-banner-hide">· Sample menu and prices — no live orders</span></div>
+    <header className="sf-header">
+      <div className="sf-header-inner">
+        <a href={normalizeAppBase(baseUrl)} className="sf-logo" aria-label="Baryo Kitchen demo menu">
+          <span className="sf-logo-mark">BK</span>
+          <span className="sf-logo-name"><strong>{demoRestaurant.name}</strong><small>powered by <b>Web2Table</b></small></span>
+        </a>
+        <nav className="sf-header-actions" aria-label="Store navigation">
+          <a className="sf-menu-link" href="#sf-menu">Explore menu</a>
+          <span className="sf-header-divider" aria-hidden="true"/>
+          <button type="button" className="sf-bag-button" onClick={() => setCartOpen(true)} aria-label={'Open basket with ' + count + ' items'}>
+            <BagIcon/><span className="sf-bag-label">Basket</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main className="sf-main">
+      <section className="sf-hero" aria-labelledby="sf-hero-title">
+        <div className="sf-hero-copy">
+          <span className="sf-hero-eyebrow"><span aria-hidden="true">✦</span> MADE FRESH. MADE FOR YOU.</span>
+          <h1 id="sf-hero-title">Good food.<br/><em>Great cravings.</em></h1>
+          <p>All your comfort food favorites, ready to make your day a little better. Pick what you love and build your basket.</p>
+          <a href="#sf-menu" className="sf-hero-action">Explore the menu <ArrowIcon/></a>
+        </div>
+        <div className="sf-hero-decor" aria-hidden="true">
+          <div className="sf-orbit sf-orbit-one"/>
+          <div className="sf-orbit sf-orbit-two"/>
+          <span className="sf-hero-spark sf-spark-one">✦</span>
+          <span className="sf-hero-spark sf-spark-two">✳</span>
+          <div className="sf-hero-plate"><span>🍗</span></div>
+          <span className="sf-hero-sticker">Made with<br/>extra love <span>♥</span></span>
+        </div>
+      </section>
+
+      <section className="sf-info-strip" aria-label="Restaurant information">
+        <div><span className="sf-info-icon" aria-hidden="true">🛵</span><div><strong>Delivery only</strong><small>Made to enjoy at home</small></div></div>
+        <div><span className="sf-info-icon" aria-hidden="true">📍</span><div><strong>Sample branch</strong><small>Demo location · Philippines</small></div></div>
+        <div><span className="sf-info-icon" aria-hidden="true">✨</span><div><strong>Freshly made</strong><small>Explore our favorites</small></div></div>
+      </section>
+
+      <div className="sf-layout" id="sf-menu">
+        <div className="sf-catalog">
+          <div className="sf-section-heading">
+            <div><span className="sf-section-kicker">THE GOOD STUFF</span><h2>What are you craving?</h2><p>Find your next favorite from our sample menu.</p></div>
+            <span className="sf-menu-count">{results.length} {results.length === 1 ? 'item' : 'items'}</span>
+          </div>
+          <div className="sf-search-wrap">
+            <SearchIcon/>
+            <input aria-label="Search menu items" placeholder="Search dishes, drinks and more..." type="search" value={query} onChange={(event) => setQuery(event.target.value)}/>
+          </div>
+          <div className="sf-category-list" aria-label="Menu categories">
+            {categories.map((option) => <button type="button" key={option} onClick={() => setCategory(option)}
+              aria-pressed={category === option} className={'sf-category' + (category === option ? ' sf-category-active' : '')}>{option}</button>)}
+          </div>
+          {results.length ? <div className="sf-menu-grid">
+            {results.map((item) => <MenuCard item={item} quantity={cart[item.id] ?? 0} add={change} key={item.id}/>)}
+          </div> : <div className="sf-no-results"><span aria-hidden="true">🔎</span><h3>Nothing on the menu matched</h3><p>Try another search or choose a different category.</p><button type="button" onClick={() => {setQuery('');setCategory('All');}}>Clear filters</button></div>}
+        </div>
+
+        <aside className="sf-desktop-cart" aria-label="Your basket">
+          <div className="sf-desktop-cart-header"><div><BagIcon/><strong>Your basket</strong></div><span>{count} {count === 1 ? 'item' : 'items'}</span></div>
+          <CartContents cart={cart} change={change}/>
+        </aside>
+      </div>
+    </main>
+
+    <footer className="sf-footer">
+      <div className="sf-footer-inner">
+        <div><strong>{demoRestaurant.name}</strong><p>Sample storefront · No real restaurant, menu, or transaction data.</p></div>
+        <div className="sf-footer-links"><a href={menuUrl}>Restaurant menu link</a><a href={normalizeAppBase(baseUrl) + 'restaurant'}>Restaurant workspace</a><a href={normalizeAppBase(baseUrl) + 'admin'}>System admin</a></div>
+        <small>Powered by Web2Table</small>
+      </div>
+    </footer>
+
+    {count > 0 && <div className="sf-mobile-cart-bar">
+      <button type="button" onClick={() => setCartOpen(true)} aria-label={'View basket, ' + count + ' items, ' + peso(subtotal)}>
+        <span className="sf-mobile-cart-count">{count}</span><span>View basket</span><strong>{peso(subtotal)}</strong><ArrowIcon/>
+      </button>
+    </div>}
+    <dialog ref={dialogRef} className="sf-basket-dialog" onClose={() => setCartOpen(false)} aria-labelledby="sf-dialog-heading">
+      <div className="sf-dialog-top"><div><span className="sf-section-kicker">YOUR ORDER</span><h2 id="sf-dialog-heading">Your basket <span>({count})</span></h2></div><button type="button" className="sf-close" onClick={() => setCartOpen(false)} aria-label="Close basket">×</button></div>
+      <CartContents cart={cart} change={change} close={() => setCartOpen(false)}/>
+    </dialog>
+    <span className="sf-visually-hidden" aria-live="polite" aria-atomic="true">{count} items in basket, subtotal {peso(subtotal)}</span>
+  </div>;
+}
