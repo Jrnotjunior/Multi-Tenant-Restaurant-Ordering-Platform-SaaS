@@ -1,9 +1,9 @@
-import { demoMenu, type MenuItem } from './demoCatalog';
+import type { MenuItem } from './demoCatalog';
 
 export type Cart = Readonly<Record<string, number>>;
 export const MAX_ITEM_QUANTITY = 20;
 
-export function updateCart(cart: Cart, itemId: string, delta: number, menu: readonly MenuItem[] = demoMenu): Cart {
+export function updateCart(cart: Cart, itemId: string, delta: number, menu: readonly MenuItem[] = []): Cart {
   if (!menu.some((item) => item.id === itemId) || !Number.isInteger(delta)) return cart;
   const current = cart[itemId] ?? 0;
   const safeCurrent = Number.isInteger(current) && current >= 0 ? current : 0;
