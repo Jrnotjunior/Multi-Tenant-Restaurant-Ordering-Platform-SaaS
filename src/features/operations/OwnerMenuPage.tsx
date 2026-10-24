@@ -25,7 +25,6 @@ export function OwnerMenuPage({ tenantId, restaurantName }: Props) {
   const [savingForm, setSavingForm] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteProductTarget, setDeleteProductTarget] = useState<Product | null>(null);
-  const [showSwitchOn, setShowSwitchOn] = useState(false);
 
   async function fetchMenu(): Promise<OwnerData> {
     return loadOwnerDataForTenant(tenantId);
@@ -218,7 +217,6 @@ export function OwnerMenuPage({ tenantId, restaurantName }: Props) {
     setDeletingId(product.id);
     setError('');
     try {
-      const { deleteMenuItem } = await import('../management/menuService');
       await deleteMenuItem(tenantId, product.id);
       setData((current) => current ? { ...current, items: current.items.filter((item) => item.id !== product.id), assignments: current.assignments.filter((item) => item.item_id !== product.id) } : current);
     } catch (reason) {
@@ -243,7 +241,6 @@ export function OwnerMenuPage({ tenantId, restaurantName }: Props) {
             <div>
               <h2>Menu</h2>
               <p>Manage the products customers can order from your restaurant.</p>
-              {data && <small className="restaurant-menu-branch-note">Managing availability for {defaultBranch?.name ?? restaurantName ?? data.tenant.name}</small>}
             </div>
             <button className="button restaurant-menu-add-button restaurant-compact-action" type="button" onClick={openAdd} disabled={loading}>+ Add Product</button>
           </div>
