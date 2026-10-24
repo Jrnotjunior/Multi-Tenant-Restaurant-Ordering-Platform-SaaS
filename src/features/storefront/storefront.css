@@ -192,3 +192,11 @@
 .sf-checkout-form .sf-checkout-disabled{margin-top:0;background:#ad2935;color:#fff;cursor:pointer;min-height:48px;font-size:13px}
 .sf-checkout-form .sf-continue{width:100%;border:1px solid #e4d9d2;border-radius:10px;background:#fff;color:#514540;min-height:44px;font-size:12px;font-weight:800}
 @media(max-width:520px){.sf-checkout-backdrop{padding:0;align-items:end}.sf-checkout-panel{width:100%;max-height:94dvh;border-radius:18px 18px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom))}}
+
+
+/* Tenant-selected brand typography and uploaded restaurant logo. */
+.sf-storefront{font-family:var(--sf-font-body,var(--font-body))}
+.sf-storefront h1,.sf-storefront h2,.sf-storefront h3,.sf-storefront h4,.sf-storefront h5,.sf-storefront h6,
+.sf-storefront .sf-logo-mark,.sf-storefront .sf-logo-name strong{font-family:var(--sf-font-heading,var(--font-heading))}
+.sf-logo-image{display:block;flex:0 0 auto;width:46px;height:46px;object-fit:contain;border-radius:10px}
+@media(max-width:680px){.sf-logo-image{width:39px;height:39px}}
