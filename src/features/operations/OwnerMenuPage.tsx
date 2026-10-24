@@ -269,11 +269,11 @@ export function OwnerMenuPage({ tenantId }: Props) {
               <button className={selectedCategory === 'all' ? 'is-active' : ''} type="button" onClick={() => setSelectedCategory('all')}>All</button>
               {categories.map((category) => <button key={category.id} className={selectedCategory === category.id ? 'is-active' : ''} type="button" onClick={() => setSelectedCategory(category.id)}>{category.name}</button>)}
             </div>
-            <label className="restaurant-menu-toggle">
+            <div className="restaurant-menu-toggle">
               <button type="button" role="switch" aria-checked={showUnavailable} aria-label="Show unavailable products"
                 className={'w2t-switch' + (showUnavailable ? ' is-on' : '')} onClick={() => setShowUnavailable(value => !value)}><span/></button>
               <span>Show unavailable</span>
-            </label>
+            </div>
           </div>
 
           {loading ? <div className="restaurant-dashboard-empty">Loading products…</div>
