@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import { MapboxDeliveryLocationPicker, type MapboxDeliveryAddress } from './MapboxDeliveryLocationPicker';
+import { MapPickerErrorBoundary } from './MapPickerErrorBoundary';
 import { OwnerPayMongoOnboardingCard } from './OwnerPayMongoOnboardingCard';
 
 type Tab = 'profile' | 'hours' | 'delivery' | 'cash' | 'rider' | 'payments';
@@ -338,13 +339,15 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         <p className="w2t-settings-help">Example: ₱10 per 500 meters means 1.2 km = 3 distance increments. The base fee is added on top.</p>
         <section className="w2t-delivery-location" aria-labelledby="w2t-delivery-location-heading">
           <div className="w2t-delivery-location-header"><div><span className="w2t-delivery-location-kicker">Delivery setup</span><h2 id="w2t-delivery-location-heading">Store address</h2><p>Set the exact location delivery orders should route from. Distance and fees are calculated from this point.</p></div><span className="w2t-route-origin">Route origin</span></div>
-          <MapboxDeliveryLocationPicker variant="restaurant" disabled={saving} initialLatitude={latitude} initialLongitude={longitude}
-            onSelect={(selected: MapboxDeliveryAddress) => {
-              if (selected.latitude === null || selected.longitude === null) throw new Error('The map did not return an exact store location.');
-              setLatitude(selected.latitude); setLongitude(selected.longitude);
-              if (selected.formattedAddress.trim()) setStoreAddress(selected.formattedAddress.trim());
-              setMessage(''); setError('');
-            }} />
+          <MapPickerErrorBoundary>
+            <MapboxDeliveryLocationPicker variant="restaurant" disabled={saving} initialLatitude={latitude} initialLongitude={longitude}
+              onSelect={(selected: MapboxDeliveryAddress) => {
+                if (selected.latitude === null || selected.longitude === null) throw new Error('The map did not return an exact store location.');
+                setLatitude(selected.latitude); setLongitude(selected.longitude);
+                if (selected.formattedAddress.trim()) setStoreAddress(selected.formattedAddress.trim());
+                setMessage(''); setError('');
+              }} />
+          </MapPickerErrorBoundary>
           <label className="w2t-setting-field w2t-delivery-address"><span>Delivery address</span><input type="text" maxLength={500} value={storeAddress} disabled={saving} placeholder="Select on the map or enter the store address" onChange={event => { setStoreAddress(event.target.value); setMessage(''); setError(''); }} /></label>
           {latitude !== null && longitude !== null && <p className="w2t-location-coordinates"><span />Saved location: {latitude.toFixed(6)}, {longitude.toFixed(6)}</p>}
         </section>
