@@ -1,307 +1,357 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import {
-  createCategory, loadOwnerDataForTenant, publicMenuPhoto, saveItem, setBranchItem,
-  setPublication, toggleCategory, updateCategory, uploadMenuPhoto,
-  type OwnerData, type Product,
-} from '../../features/management/menuService';
+  deleteMenuItem, getOrCreateMenuCategory, loadOwnerDataForTenant, publicMenuPhoto,
+  saveItem, setBranchItem, uploadMenuPhoto, type OwnerData, type Product,
+} from '../management/menuService';
 
 type Props = { tenantId: string; restaurantName: string | null };
-type ItemStatus = Product['status'];
-type ItemDraft = { name: string; description: string; categoryId: string; price: string; popular: boolean; status: ItemStatus };
-const blankItem = (): ItemDraft => ({ name: '', description: '', categoryId: '', price: '', popular: false, status: 'draft' });
-const formatPrice = (centavos: number) => (centavos / 100).toLocaleString('en-PH', { style: 'currency', currency: 'PHP' });
-const errorMessage = (error: unknown) => error instanceof Error ? error.message : 'The menu change could not be saved.';
+type ProductForm = { name: string; description: string; price: string; categoryName: string };
+const emptyForm: ProductForm = { name: '', description: '', price: '', categoryName: '' };
+const formatError = (error: unknown) => error instanceof Error ? error.message : 'Unable to save the menu change.';
 
 export function OwnerMenuPage({ tenantId, restaurantName }: Props) {
   const [data, setData] = useState<OwnerData | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [showUnavailable, setShowUnavailable] = useState(true);
+  const [searchProduct, setSearchProduct] = useState('');
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
+  const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
-  const [categoryName, setCategoryName] = useState('');
-  const [renamingCategoryId, setRenamingCategoryId] = useState<string | null>(null);
-  const [renameValue, setRenameValue] = useState('');
-  const [draft, setDraft] = useState<ItemDraft>(blankItem);
-  const [editingItemId, setEditingItemId] = useState<string | null>(null);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [showArchived, setShowArchived] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isAddingProduct, setIsAddingProduct] = useState(false);
+  const [form, setForm] = useState<ProductForm>(emptyForm);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [savingForm, setSavingForm] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteProductTarget, setDeleteProductTarget] = useState<Product | null>(null);
+  const [showSwitchOn, setShowSwitchOn] = useState(false);
 
-  async function refreshData() {
-    const next = await loadOwnerDataForTenant(tenantId);
-    setData(next);
-    setDraft(current => current.categoryId && next.categories.some(category => category.id === current.categoryId)
-      ? current : { ...current, categoryId: next.categories[0]?.id ?? '' });
+  async function fetchMenu(): Promise<OwnerData> {
+    return loadOwnerDataForTenant(tenantId);
   }
 
   useEffect(() => {
-    let mounted = true;
+    let active = true;
     setLoading(true);
     setError('');
-    loadOwnerDataForTenant(tenantId).then(next => {
-      if (!mounted) return;
-      setData(next);
-      setDraft(current => ({ ...current, categoryId: current.categoryId || next.categories[0]?.id || '' }));
-    }).catch(reason => {
-      if (mounted) setError(errorMessage(reason));
+    fetchMenu().then((next) => {
+      if (active) setData(next);
+    }).catch((reason: unknown) => {
+      if (active) setError(formatError(reason));
     }).finally(() => {
-      if (mounted) setLoading(false);
+      if (active) setLoading(false);
     });
-    return () => { mounted = false; };
+    return () => { active = false; };
   }, [tenantId]);
 
-  const activeBranches = useMemo(() => (data?.branches ?? []).filter(branch => branch.is_active), [data]);
-  const defaultBranch = data?.branches.find(branch => branch.id === data.brand.default_branch_id);
-  const publishedItems = data?.items.filter(item => item.status === 'published').length ?? 0;
-  const draftItems = data?.items.filter(item => item.status === 'draft').length ?? 0;
-  const archivedItems = data?.items.filter(item => item.status === 'archived').length ?? 0;
-  const displayedItems = (data?.items ?? []).filter(item => showArchived ? item.status === 'archived' : item.status !== 'archived');
-
-  function feedback(nextMessage = '', nextError = '') {
-    setMessage(nextMessage);
-    setError(nextError);
-  }
-
-  async function perform(action: () => Promise<void>, success: string) {
-    setBusy(true);
-    feedback();
-    try {
-      await action();
-      await refreshData();
-      setMessage(success);
-    } catch (reason) {
-      setError(errorMessage(reason));
-    } finally {
-      setBusy(false);
+  useEffect(() => {
+    if (imagePreview.startsWith('blob:')) {
+      return () => URL.revokeObjectURL(imagePreview);
     }
-  }
+    return undefined;
+  }, [imagePreview]);
 
-  async function addCategory(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const name = categoryName.trim();
-    if (name.length < 2 || name.length > 100) {
-      setError('Category names must be between 2 and 100 characters.');
-      return;
-    }
-    await perform(async () => {
-      await createCategory(tenantId, name);
-      setCategoryName('');
-    }, 'Category created. Publish it when it is ready to appear on the storefront.');
-  }
+  const categories = data?.categories ?? [];
+  const products = (data?.items ?? []).filter((item) => item.status !== 'archived');
+  const activeBranches = (data?.branches ?? []).filter((branch) => branch.is_active);
+  const defaultBranch = data?.branches.find((branch) => branch.id === data?.brand.default_branch_id);
+  const branchAssignment = (product: Product) => data?.assignments.find(
+    (assignment) => assignment.branch_id === defaultBranch?.id && assignment.item_id === product.id,
+  );
+  const isAvailable = (product: Product) => {
+    const category = categories.find((item) => item.id === product.category_id);
+    return product.status === 'published' && category?.is_published === true && branchAssignment(product)?.is_available === true;
+  };
 
-  async function saveCategoryName(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!renamingCategoryId) return;
-    const id = renamingCategoryId;
-    await perform(async () => {
-      await updateCategory(tenantId, id, renameValue);
-      setRenamingCategoryId(null);
-      setRenameValue('');
-    }, 'Category name updated.');
-  }
-
-  function startEdit(item: Product) {
-    setEditingItemId(item.id);
-    setDraft({
-      name: item.name,
-      description: item.description,
-      categoryId: item.category_id,
-      price: (item.price_centavos / 100).toFixed(2),
-      popular: item.is_popular,
-      status: item.status,
+  const filteredProducts = useMemo(() => {
+    const query = searchProduct.trim().toLowerCase();
+    return products.filter((product) => {
+      const categoryMatch = selectedCategory === 'all' || product.category_id === selectedCategory;
+      const availabilityMatch = showUnavailable || isAvailable(product);
+      const category = categories.find((item) => item.id === product.category_id);
+      const searchMatch = !query
+        || product.name.toLowerCase().includes(query)
+        || product.description.toLowerCase().includes(query)
+        || Boolean(category?.name.toLowerCase().includes(query));
+      return categoryMatch && availabilityMatch && searchMatch;
     });
-    setPhotoFile(null);
-    feedback();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [products, categories, selectedCategory, showUnavailable, searchProduct, data]);
+
+  async function refreshMenu() {
+    const next = await fetchMenu();
+    setData(next);
   }
 
-  function cancelEdit() {
-    setEditingItemId(null);
-    setDraft({ ...blankItem(), categoryId: data?.categories[0]?.id ?? '' });
-    setPhotoFile(null);
+  function openAdd() {
+    setEditingProduct(null);
+    setIsAddingProduct(true);
+    setForm(emptyForm);
+    setImageFile(null);
+    setImagePreview('');
+    setError('');
   }
 
-  async function saveMenuItem(event: FormEvent<HTMLFormElement>) {
+  function openEdit(product: Product) {
+    setIsAddingProduct(false);
+    setEditingProduct(product);
+    const category = categories.find((item) => item.id === product.category_id);
+    setForm({ name: product.name, description: product.description, price: (product.price_centavos / 100).toFixed(2), categoryName: category?.name ?? '' });
+    setImageFile(null);
+    setImagePreview(publicMenuPhoto(product.image_path) ?? '');
+    setError('');
+  }
+
+  function closeProductModal() {
+    if (savingForm) return;
+    setEditingProduct(null);
+    setIsAddingProduct(false);
+    setForm(emptyForm);
+    setImageFile(null);
+    setImagePreview('');
+  }
+
+  function handleImageChange(file: File | undefined) {
+    if (!file) return;
+    setError('');
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setError('Use a JPG, PNG, or WEBP image.');
+      return;
+    }
+    if (file.size <= 0 || file.size > 5 * 1024 * 1024) {
+      setError('Product images must be 5 MB or smaller.');
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  }
+
+  async function saveProduct(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!data) return;
-    const name = draft.name.trim();
-    const description = draft.description.trim();
-    const amount = Number(draft.price);
-    if (name.length < 2 || name.length > 160) {
-      setError('Item name must be between 2 and 160 characters.');
+    const name = form.name.trim();
+    const description = form.description.trim();
+    const categoryName = form.categoryName.trim();
+    const price = Number(form.price);
+
+    if (!name) { setError('Product name is required.'); return; }
+    if (name.length > 160) { setError('Product names must be 160 characters or fewer.'); return; }
+    if (description.length > 600) { setError('Product descriptions must be 600 characters or fewer.'); return; }
+    if (!Number.isFinite(price) || price < 0 || price > 1000000) { setError('Enter a valid price between ₱0 and ₱1,000,000.'); return; }
+    if (!categoryName || categoryName.length > 100) { setError('Category is required (up to 100 characters).'); return; }
+    if (imageFile && (!['image/jpeg', 'image/png', 'image/webp'].includes(imageFile.type) || imageFile.size <= 0 || imageFile.size > 5 * 1024 * 1024)) {
+      setError('Choose a JPG, PNG, or WEBP image up to 5 MB.');
       return;
     }
-    if (!data.categories.some(category => category.id === draft.categoryId)) {
-      setError('Create or choose a menu category first.');
-      return;
-    }
-    if (description.length > 600) {
-      setError('The description must be 600 characters or fewer.');
-      return;
-    }
-    if (!Number.isFinite(amount) || amount < 0 || amount > 1000000) {
-      setError('Enter a valid price between ₱0 and ₱1,000,000.');
-      return;
-    }
-    const selectedCategory = data.categories.find(category => category.id === draft.categoryId)!;
-    if (draft.status === 'published' && !selectedCategory.is_published) {
-      setError('Publish this item’s category first, then publish the item.');
-      return;
-    }
-    if (draft.status === 'published' && activeBranches.length === 0) {
-      setError('There is no active branch available to display this item. Ask the System Administrator to activate the default branch.');
-      return;
-    }
-    if (photoFile && (!['image/jpeg','image/png','image/webp'].includes(photoFile.type) || photoFile.size <= 0 || photoFile.size > 3 * 1024 * 1024)) {
-      setError('Choose a JPEG, PNG or WebP image up to 3 MB.');
-      return;
-    }
-    await perform(async () => {
-      const previous = editingItemId ? data.items.find(item => item.id === editingItemId) : undefined;
-      const itemId = await saveItem(tenantId, editingItemId, {
-        name,
-        description,
-        category_id: draft.categoryId,
-        price_centavos: Math.round(amount * 100),
-        is_popular: draft.popular,
-        status: draft.status,
+
+    setSavingForm(true);
+    setError('');
+    try {
+      const categoryId = await getOrCreateMenuCategory(tenantId, categoryName);
+      const itemId = await saveItem(tenantId, editingProduct?.id ?? null, {
+        name, description, category_id: categoryId, price_centavos: Math.round(price * 100),
+        is_popular: editingProduct?.is_popular ?? false, status: 'published',
       });
-      if (photoFile) await uploadMenuPhoto(tenantId, itemId, photoFile);
-      for (const branch of activeBranches) {
-        const existingAssignment = data.assignments.find(row => row.branch_id === branch.id && row.item_id === itemId);
-        const newlyPublished = draft.status === 'published' && previous?.status !== 'published';
-        const available = draft.status === 'published'
-          ? (newlyPublished ? true : (existingAssignment?.is_available ?? true))
-          : false;
-        await setBranchItem(tenantId, branch.id, itemId, available, existingAssignment?.price_override_centavos ?? null);
+      if (imageFile) await uploadMenuPhoto(tenantId, itemId, imageFile);
+
+      const branchesToAssign = activeBranches;
+      for (const branch of branchesToAssign) {
+        const existing = data.assignments.find((assignment) => assignment.branch_id === branch.id && assignment.item_id === itemId);
+        const available = existing ? existing.is_available : true;
+        await setBranchItem(tenantId, branch.id, itemId, available);
       }
-      setEditingItemId(null);
-      setDraft({ ...blankItem(), categoryId: data.categories[0]?.id ?? '' });
-      setPhotoFile(null);
-    }, editingItemId ? 'Menu item updated.' : 'Menu item created.');
+      await refreshMenu();
+      setEditingProduct(null);
+      setIsAddingProduct(false);
+      setForm(emptyForm);
+      setImageFile(null);
+      setImagePreview('');
+    } catch (reason) {
+      setError(formatError(reason));
+    } finally {
+      setSavingForm(false);
+    }
   }
 
-  async function changeItemStatus(item: Product, status: ItemStatus) {
-    if (!data) return;
-    const category = data.categories.find(value => value.id === item.category_id);
-    if (status === 'published' && !category?.is_published) {
-      setError('Publish this item’s category first, then publish the item.');
+  async function toggleAvailability(product: Product) {
+    if (!data || !defaultBranch || !defaultBranch.is_active) {
+      setError('The default restaurant branch is not active. Ask the System Administrator to check branch settings.');
       return;
     }
-    if (status === 'published' && activeBranches.length === 0) {
-      setError('There is no active branch available to publish this item.');
+    const makeAvailable = !isAvailable(product);
+    if (makeAvailable && activeBranches.length === 0) {
+      setError('There is no active branch available for this product.');
       return;
     }
-    await perform(async () => {
-      await saveItem(tenantId, item.id, {
-        name: item.name, description: item.description, category_id: item.category_id,
-        price_centavos: item.price_centavos, is_popular: item.is_popular, status,
+    setSavingId(product.id);
+    setError('');
+    try {
+      const category = categories.find((item) => item.id === product.category_id);
+      if (makeAvailable && category) await getOrCreateMenuCategory(tenantId, category.name);
+      await saveItem(tenantId, product.id, {
+        name: product.name, description: product.description, category_id: product.category_id,
+        price_centavos: product.price_centavos, is_popular: product.is_popular, status: 'published',
       });
       for (const branch of activeBranches) {
-        const assignment = data.assignments.find(row => row.branch_id === branch.id && row.item_id === item.id);
-        await setBranchItem(tenantId, branch.id, item.id, status === 'published' ? true : false, assignment?.price_override_centavos ?? null);
+        const existing = data.assignments.find((assignment) => assignment.branch_id === branch.id && assignment.item_id === product.id);
+        await setBranchItem(tenantId, branch.id, product.id, makeAvailable, existing?.price_override_centavos ?? null);
       }
-    }, status === 'published' ? 'Item published to active branches.' : status === 'archived' ? 'Item archived.' : 'Item moved to drafts.');
-  }
-
-  async function changeBranchAvailability(item: Product, branchId: string, available: boolean) {
-    if (available && item.status !== 'published') {
-      setError('Publish this menu item before making it available at a branch.');
-      return;
+      await refreshMenu();
+    } catch (reason) {
+      setError(formatError(reason));
+    } finally {
+      setSavingId(null);
     }
-    const category = data?.categories.find(value => value.id === item.category_id);
-    if (available && !category?.is_published) {
-      setError('Publish this item’s category before making the item available.');
-      return;
+  }
+
+  function openDeleteConfirmation(product: Product) {
+    if (deletingId) return;
+    setDeleteProductTarget(product);
+    setError('');
+  }
+
+  function closeDeleteConfirmation() {
+    if (!deletingId) setDeleteProductTarget(null);
+  }
+
+  async function removeProduct(product: Product) {
+    setDeletingId(product.id);
+    setError('');
+    try {
+      const { deleteMenuItem } = await import('../management/menuService');
+      await deleteMenuItem(tenantId, product.id);
+      setData((current) => current ? { ...current, items: current.items.filter((item) => item.id !== product.id), assignments: current.assignments.filter((item) => item.item_id !== product.id) } : current);
+    } catch (reason) {
+      setError(formatError(reason));
+    } finally {
+      setDeletingId(null);
+      setDeleteProductTarget(null);
     }
-    const current = data?.assignments.find(row => row.branch_id === branchId && row.item_id === item.id);
-    await perform(async () => {
-      await setBranchItem(tenantId, branchId, item.id, available, current?.price_override_centavos ?? null);
-    }, available ? 'Item made available at this branch.' : 'Item hidden at this branch.');
   }
 
-  async function toggleStorefront() {
-    if (!data) return;
-    const publish = data.brand.status !== 'published';
-    await perform(async () => { await setPublication(tenantId, publish); },
-      publish ? 'Storefront published. Add and publish categories and items to populate the menu.' : 'Storefront unpublished.');
+  if (loading) {
+    return <main className="owner-content"><section className="owner-orders-empty"><h1>Menu</h1><p>Loading products…</p></section></main>;
   }
 
-  const itemStatusLabel = (status: ItemStatus) => status === 'published' ? 'Published' : status === 'archived' ? 'Archived' : 'Draft';
+  return (
+    <main className="owner-content">
+      <section className="restaurant-page restaurant-menu-page">
+        {error && <div className="restaurant-dashboard-error" role="alert">{error}</div>}
 
-  if (loading) return <main className="owner-content"><section className="owner-orders-empty"><h1>Menu</h1><p>Loading your restaurant menu…</p></section></main>;
-  if (!data) return <main className="owner-content"><section className="owner-orders-empty"><h1>Menu</h1><p role="alert">{error || 'Menu service could not be loaded.'}</p><button type="button" onClick={() => { setLoading(true); void refreshData().catch(reason => setError(errorMessage(reason))).finally(() => setLoading(false)); }}>Retry</button></section></main>;
-
-  return <main className="owner-content owner-menu-page">
-    <header className="owner-menu-header">
-      <div><p className="owner-menu-eyebrow">RESTAURANT SETUP</p><h1>{restaurantName ?? data.tenant.name} menu</h1><p>Add categories and menu items here. Items are only visible to customers after their category, item and branch availability are published.</p></div>
-      <div className="owner-menu-publish">
-        <span className={'owner-menu-status ' + (data.brand.status === 'published' ? 'is-published' : '')}>{data.brand.status === 'published' ? 'Storefront published' : data.brand.status === 'disabled' ? 'Storefront disabled' : 'Storefront draft'}</span>
-        <button type="button" disabled={busy || data.brand.status === 'disabled'} onClick={() => void toggleStorefront()}>{busy ? 'Saving…' : data.brand.status === 'published' ? 'Unpublish storefront' : 'Publish storefront'}</button>
-      </div>
-    </header>
-
-    {error && <div className="owner-menu-feedback is-error" role="alert"><strong>Couldn’t complete that action</strong><p>{error}</p></div>}
-    {message && <div className="owner-menu-feedback is-success" role="status">{message}</div>}
-
-    <section className="owner-menu-summary" aria-label="Menu summary">
-      <article><span>Categories</span><strong>{data.categories.length}</strong><small>{data.categories.filter(category => category.is_published).length} published</small></article>
-      <article><span>Menu items</span><strong>{data.items.filter(item => item.status !== 'archived').length}</strong><small>{publishedItems} published · {draftItems} drafts</small></article>
-      <article><span>Active branches</span><strong>{activeBranches.length}</strong><small>{defaultBranch?.name ?? 'Default branch not found'}</small></article>
-    </section>
-
-    <div className="owner-menu-columns">
-      <section className="owner-menu-panel">
-        <div className="owner-menu-panel-heading"><div><h2>Menu categories</h2><p>Categories must be published before their dishes can appear publicly.</p></div></div>
-        <form className="owner-menu-inline-form" onSubmit={event => void addCategory(event)}>
-          <label><span>New category</span><input value={categoryName} maxLength={100} placeholder="e.g. Rice meals" onChange={event => setCategoryName(event.target.value)} disabled={busy}/></label>
-          <button type="submit" disabled={busy || categoryName.trim().length < 2}>Add category</button>
-        </form>
-        {!data.categories.length ? <div className="owner-menu-empty"><strong>No categories yet</strong><p>Create your first category, such as Meals, Snacks, or Drinks.</p></div> :
-        <div className="owner-menu-category-list">
-          {data.categories.map(category => <article className="owner-menu-category" key={category.id}>
-            <div className="owner-menu-category-main">
-              {renamingCategoryId === category.id ? <form onSubmit={event => void saveCategoryName(event)} className="owner-menu-rename-form"><input aria-label="Category name" value={renameValue} maxLength={100} onChange={event => setRenameValue(event.target.value)} disabled={busy}/><button type="submit" disabled={busy || renameValue.trim().length < 2}>Save</button><button type="button" disabled={busy} onClick={() => setRenamingCategoryId(null)}>Cancel</button></form> :
-              <><strong>{category.name}</strong><small>{data.items.filter(item => item.category_id === category.id && item.status !== 'archived').length} items</small></>}
+        <div className="restaurant-menu-management-card">
+          <div className="restaurant-menu-section-header">
+            <div>
+              <h2>Menu</h2>
+              <p>Manage the products customers can order from your restaurant.</p>
+              {data && <small className="restaurant-menu-branch-note">Managing availability for {defaultBranch?.name ?? restaurantName ?? data.tenant.name}</small>}
             </div>
-            <div className="owner-menu-category-actions">
-              <span className={'owner-menu-status ' + (category.is_published ? 'is-published' : '')}>{category.is_published ? 'Published' : 'Draft'}</span>
-              <button type="button" disabled={busy} onClick={() => void perform(() => toggleCategory(tenantId, category.id, !category.is_published), category.is_published ? 'Category hidden from the storefront.' : 'Category published.')}>{category.is_published ? 'Unpublish' : 'Publish'}</button>
-              {renamingCategoryId !== category.id && <button type="button" className="is-secondary" disabled={busy} onClick={() => {setRenamingCategoryId(category.id);setRenameValue(category.name);}}>Rename</button>}
+            <button className="button restaurant-menu-add-button restaurant-compact-action" type="button" onClick={openAdd} disabled={loading}>+ Add Product</button>
+          </div>
+
+          <div className="restaurant-menu-search">
+            <label className="restaurant-menu-search-label" htmlFor="restaurant-product-search">Search products</label>
+            <div className="restaurant-menu-search-input-wrap">
+              <input id="restaurant-product-search" type="search" value={searchProduct}
+                onChange={(event) => setSearchProduct(event.target.value)} placeholder="Search by product name, description, or category"/>
+              {searchProduct && <button type="button" className="restaurant-menu-search-clear" onClick={() => setSearchProduct('')} aria-label="Clear product search">×</button>}
             </div>
-          </article>)}
+          </div>
+
+          <div className="restaurant-menu-toolbar">
+            <div className="restaurant-menu-categories" aria-label="Product categories">
+              <button className={selectedCategory === 'all' ? 'is-active' : ''} type="button" onClick={() => setSelectedCategory('all')}>All</button>
+              {categories.map((category) => <button key={category.id} className={selectedCategory === category.id ? 'is-active' : ''} type="button" onClick={() => setSelectedCategory(category.id)}>{category.name}</button>)}
+            </div>
+            <label className="restaurant-menu-toggle">
+              <button type="button" role="switch" aria-checked={showUnavailable} aria-label="Show unavailable products"
+                className={'w2t-switch' + (showUnavailable ? ' is-on' : '')} onClick={() => setShowUnavailable(value => !value)}><span/></button>
+              <span>Show unavailable</span>
+            </label>
+          </div>
+
+          {loading ? <div className="restaurant-dashboard-empty">Loading products…</div>
+            : !products.length ? <div className="restaurant-dashboard-empty"><strong>No products yet.</strong><p>Add your first product to start building the restaurant menu.</p></div>
+            : !filteredProducts.length ? <div className="restaurant-dashboard-empty">No products match this filter.</div>
+            : <div className="restaurant-menu-grid">
+              {filteredProducts.map((product) => {
+                const available = isAvailable(product);
+                return <article className={'product-card restaurant-management-product-card' + (available ? '' : ' product-card-sold-out')} key={product.id}>
+                  <div className="product-card-main">
+                    <div className="product-card-media">
+                      {publicMenuPhoto(product.image_path)
+                        ? <img className="product-card-image" src={publicMenuPhoto(product.image_path) ?? ''} alt="" loading="lazy"/>
+                        : <div className="product-card-image product-card-image-placeholder" aria-hidden="true"><span>{product.name.charAt(0).toUpperCase()}</span></div>}
+                    </div>
+                    <div className="product-card-content">
+                      <h3>{product.name}</h3>
+                      <span className="product-card-price">₱{(product.price_centavos / 100).toFixed(2)}</span>
+                      <p>{product.description || 'No description.'}</p>
+                    </div>
+                  </div>
+                  <div className="restaurant-management-product-status">{available ? 'Available' : 'Unavailable'}</div>
+                  <div className="restaurant-management-product-actions">
+                    <button className="button restaurant-management-product-icon" type="button" disabled={savingId === product.id || deletingId === product.id}
+                      onClick={() => void toggleAvailability(product)} aria-label={available ? 'Mark ' + product.name + ' unavailable' : 'Make ' + product.name + ' available'}>
+                      {savingId === product.id ? '…' : available ? '−' : '+'}
+                    </button>
+                    <button className="button restaurant-management-product-icon" type="button" disabled={savingId === product.id || deletingId === product.id}
+                      onClick={() => openEdit(product)} aria-label={'Edit ' + product.name}>✎</button>
+                    <button className="button restaurant-management-product-icon is-danger" type="button" disabled={deletingId === product.id}
+                      onClick={() => openDeleteConfirmation(product)} aria-label={'Delete ' + product.name}>
+                      {deletingId === product.id ? '…' : '×'}
+                    </button>
+                  </div>
+                </article>;
+              })}
+            </div>}
+        </div>
+
+        {deleteProductTarget && <div className="restaurant-delete-modal-backdrop"
+          onMouseDown={(event) => { if (event.target === event.currentTarget && !deletingId) closeDeleteConfirmation(); }}>
+          <div className="restaurant-delete-modal" role="dialog" aria-modal="true" aria-labelledby="delete-product-modal-title">
+            <div className="restaurant-delete-modal-icon" aria-hidden="true">!</div>
+            <h2 id="delete-product-modal-title">Delete product?</h2>
+            <p>Are you sure you want to delete <strong>{deleteProductTarget.name}</strong>?</p>
+            <span className="restaurant-delete-modal-note">This will remove the product from this restaurant’s menu and all branch assignments.</span>
+            <div className="restaurant-delete-modal-actions">
+              <button className="button button-secondary" type="button" disabled={Boolean(deletingId)} onClick={closeDeleteConfirmation}>Cancel</button>
+              <button className="button restaurant-delete-confirm-button" type="button" disabled={Boolean(deletingId)} onClick={() => void removeProduct(deleteProductTarget)}>
+                {deletingId === deleteProductTarget.id ? 'Deleting…' : 'Delete Product'}
+              </button>
+            </div>
+          </div>
+        </div>}
+
+        {(editingProduct || isAddingProduct) && <div className="restaurant-product-modal-backdrop"
+          onMouseDown={(event) => { if (event.target === event.currentTarget && !savingForm) closeProductModal(); }}>
+          <div className="restaurant-product-modal restaurant-edit-dialog" role="dialog" aria-modal="true" aria-labelledby="product-modal-title">
+            <button className="restaurant-product-modal-close" type="button" disabled={savingForm} onClick={closeProductModal} aria-label="Close product form">×</button>
+            <h2 id="product-modal-title">{isAddingProduct ? 'Add Product' : 'Edit Product'}</h2>
+            <form className="restaurant-product-form" onSubmit={(event) => void saveProduct(event)}>
+              <div className="restaurant-product-image-picker">
+                {imagePreview ? <img src={imagePreview} alt="Product preview" className="restaurant-product-image-preview"/>
+                  : <div className="restaurant-product-image-placeholder">No product image</div>}
+                <label className="button button-secondary" htmlFor="product-image-input">{imagePreview ? 'Change Image' : 'Add Image'}</label>
+                <input id="product-image-input" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => handleImageChange(event.target.files?.[0])} disabled={savingForm}/>
+                <small>JPG, PNG, or WEBP · maximum 5 MB</small>
+              </div>
+              <label>Product name<input value={form.name} maxLength={160} onChange={(event) => setForm(current => ({ ...current, name: event.target.value }))} required autoFocus disabled={savingForm}/></label>
+              <label>Description<textarea value={form.description} maxLength={600} onChange={(event) => setForm(current => ({ ...current, description: event.target.value }))} disabled={savingForm}/></label>
+              <label>Price<input type="number" min="0" max="1000000" step="0.01" value={form.price} onChange={(event) => setForm(current => ({ ...current, price: event.target.value }))} required disabled={savingForm}/></label>
+              <label>Category
+                <input list="restaurant-product-categories" value={form.categoryName} maxLength={100} placeholder="Enter or choose a category"
+                  onChange={(event) => setForm(current => ({ ...current, categoryName: event.target.value }))} required disabled={savingForm}/>
+                <datalist id="restaurant-product-categories">{categories.map((category) => <option key={category.id} value={category.name}/>)}</datalist>
+                <span className="restaurant-product-category-hint">Choose an existing category or enter a new one. New categories are added automatically.</span>
+              </label>
+              <div className="restaurant-product-form-actions">
+                <button className="button button-secondary" type="button" disabled={savingForm} onClick={closeProductModal}>Cancel</button>
+                <button className="button button-primary" type="submit" disabled={savingForm}>{savingForm ? 'Saving…' : isAddingProduct ? 'Add Product' : 'Save Changes'}</button>
+              </div>
+            </form>
+          </div>
         </div>}
       </section>
-
-      <section className="owner-menu-panel owner-menu-item-editor">
-        <div className="owner-menu-panel-heading"><div><h2>{editingItemId ? 'Edit menu item' : 'Add a menu item'}</h2><p>Save drafts first, then publish once the item and category are ready.</p></div></div>
-        {!data.categories.length ? <div className="owner-menu-empty"><strong>Create a category first</strong><p>A menu item must belong to a category before it can be saved.</p></div> :
-        <form className="owner-menu-item-form" onSubmit={event => void saveMenuItem(event)}>
-          <label><span>Item name</span><input required minLength={2} maxLength={160} value={draft.name} placeholder="e.g. Chicken rice bowl" onChange={event => setDraft(current => ({...current,name:event.target.value}))} disabled={busy}/></label>
-          <label><span>Category</span><select value={draft.categoryId} onChange={event => setDraft(current => ({...current,categoryId:event.target.value}))} disabled={busy} required>{data.categories.map(category => <option key={category.id} value={category.id}>{category.name}{category.is_published ? '' : ' (draft)'}</option>)}</select></label>
-          <label><span>Description</span><textarea rows={3} maxLength={600} value={draft.description} placeholder="Describe the dish, portion, or ingredients" onChange={event => setDraft(current => ({...current,description:event.target.value}))} disabled={busy}/></label>
-          <label><span>Price (₱)</span><input required type="number" inputMode="decimal" min="0" max="1000000" step="0.01" value={draft.price} placeholder="0.00" onChange={event => setDraft(current => ({...current,price:event.target.value}))} disabled={busy}/></label>
-          <label><span>Menu photo (optional)</span><input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => setPhotoFile(event.target.files?.[0] ?? null)} disabled={busy}/><small>JPEG, PNG or WebP, up to 3 MB.</small></label>
-          {editingItemId && data.items.find(item => item.id === editingItemId)?.image_path && !photoFile && <p className="owner-menu-photo-current">A photo is already attached. Choose a new image to replace it.</p>}
-          <label className="owner-menu-popular"><input type="checkbox" checked={draft.popular} onChange={event => setDraft(current => ({...current,popular:event.target.checked}))} disabled={busy}/><span>Mark as popular</span></label>
-          <label><span>Visibility</span><select value={draft.status} onChange={event => setDraft(current => ({...current,status:event.target.value as ItemStatus}))} disabled={busy}><option value="draft">Draft — hidden from customers</option><option value="published">Published — visible at active branches</option><option value="archived">Archived — removed from menu</option></select></label>
-          <div className="owner-menu-form-actions"><button type="submit" disabled={busy || !draft.categoryId}>{busy ? 'Saving…' : editingItemId ? 'Save changes' : 'Add menu item'}</button>{editingItemId && <button type="button" className="is-secondary" disabled={busy} onClick={cancelEdit}>Cancel edit</button>}</div>
-        </form>}
-      </section>
-    </div>
-
-    <section className="owner-menu-panel owner-menu-items-panel">
-      <div className="owner-menu-panel-heading"><div><h2>{showArchived ? 'Archived items' : 'Menu items'}</h2><p>Manage item details and control whether each active branch can serve the item.</p></div><button type="button" className="is-secondary" onClick={() => setShowArchived(value => !value)}>{showArchived ? 'Show active items' : 'Show archived (' + archivedItems + ')'}</button></div>
-      {displayedItems.length === 0 ? <div className="owner-menu-empty"><strong>{showArchived ? 'No archived items' : 'No menu items yet'}</strong><p>{showArchived ? 'Archived items will appear here.' : 'Add your menu items above. No sample dishes are inserted automatically.'}</p></div> :
-      <div className="owner-menu-item-list">{displayedItems.map(item => {
-        const category = data.categories.find(value => value.id === item.category_id);
-        return <article className="owner-menu-item" key={item.id}>
-          {item.image_path ? <img className="owner-menu-item-photo" src={publicMenuPhoto(item.image_path) ?? ''} alt={item.name} /> : <div className="owner-menu-item-photo is-empty" aria-hidden="true">🍽️</div>}
-          <div className="owner-menu-item-details"><div className="owner-menu-item-title"><h3>{item.name}</h3><strong>{formatPrice(item.price_centavos)}</strong></div><p>{item.description || 'No description added.'}</p><div className="owner-menu-item-meta"><span>{category?.name ?? 'Missing category'}</span><span className={'owner-menu-status ' + (item.status === 'published' ? 'is-published' : '')}>{itemStatusLabel(item.status)}</span>{item.is_popular && <span className="owner-menu-popular-tag">Popular</span>}</div>
-          {activeBranches.length > 0 && item.status !== 'archived' && <div className="owner-menu-branch-availability"><strong>Branch availability</strong>{activeBranches.map(branch => {const assignment=data.assignments.find(value => value.branch_id === branch.id && value.item_id === item.id); return <label key={branch.id}><input type="checkbox" checked={assignment?.is_available === true} disabled={busy || item.status !== 'published' || !category?.is_published} onChange={event => void changeBranchAvailability(item,branch.id,event.target.checked)}/><span>{branch.name}</span></label>;})}</div>}
-          </div>
-          <div className="owner-menu-item-actions"><button type="button" className="is-secondary" disabled={busy} onClick={() => startEdit(item)}>Edit</button>{item.status !== 'published' ? <button type="button" disabled={busy || item.status === 'archived'} onClick={() => void changeItemStatus(item,'published')}>Publish item</button> : <button type="button" className="is-secondary" disabled={busy} onClick={() => void changeItemStatus(item,'draft')}>Move to drafts</button>}{item.status !== 'archived' && <button type="button" className="is-danger" disabled={busy} onClick={() => void changeItemStatus(item,'archived')}>Archive</button>}</div>
-        </article>;
-      })}</div>}
-    </section>
-  </main>;
+    </main>
+  );
 }
