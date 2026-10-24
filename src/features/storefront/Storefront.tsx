@@ -266,10 +266,9 @@ export function Storefront({ baseUrl, requestedSlug }: {
           <span className="sf-logo-name"><strong>{restaurant.name}</strong><small>powered by <b>Web2Table</b></small></span>
         </a>
         <nav className="sf-header-actions" aria-label="Store navigation">
-          <a className="sf-menu-link" href="#sf-menu">Explore menu</a>
           <span className="sf-header-divider" aria-hidden="true"/>
           <button type="button" className="sf-bag-button" onClick={() => setCartOpen(true)} aria-label={'Open basket with ' + count + ' items'}>
-            <BagIcon/><span className="sf-bag-label">Basket</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
+            <BagIcon/><span className="sf-bag-label">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
           </button>
         </nav>
       </div>
