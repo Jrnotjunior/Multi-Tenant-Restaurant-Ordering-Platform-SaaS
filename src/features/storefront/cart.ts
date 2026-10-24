@@ -14,7 +14,7 @@ export function updateCart(cart: Cart, itemId: string, delta: number, menu: read
   return next;
 }
 
-export function cartLines(cart: Cart, menu: readonly MenuItem[] = demoMenu): Array<{ item: MenuItem; quantity: number }> {
+export function cartLines(cart: Cart, menu: readonly MenuItem[] = []): Array<{ item: MenuItem; quantity: number }> {
   return menu.flatMap((item) => {
     const quantity = cart[item.id] ?? 0;
     return quantity > 0 && Number.isInteger(quantity) && quantity <= MAX_ITEM_QUANTITY
@@ -22,10 +22,10 @@ export function cartLines(cart: Cart, menu: readonly MenuItem[] = demoMenu): Arr
   });
 }
 
-export function cartCount(cart: Cart, menu: readonly MenuItem[] = demoMenu): number {
+export function cartCount(cart: Cart, menu: readonly MenuItem[] = []): number {
   return cartLines(cart, menu).reduce((sum, line) => sum + line.quantity, 0);
 }
 
-export function cartSubtotal(cart: Cart, menu: readonly MenuItem[] = demoMenu): number {
+export function cartSubtotal(cart: Cart, menu: readonly MenuItem[] = []): number {
   return cartLines(cart, menu).reduce((sum, line) => sum + line.item.priceCentavos * line.quantity, 0);
 }
