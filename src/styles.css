@@ -91,3 +91,12 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
   box-sizing: border-box;
   margin-top: 12px;
 }
+
+
+/* Keep the primary MFA action the same compact width as Sign out. */
+.onboarding-card .onboarding-mfa-form .onboarding-mfa-verify {
+  display: inline-block;
+  width: auto;
+  min-width: 0;
+  align-self: flex-start;
+}
