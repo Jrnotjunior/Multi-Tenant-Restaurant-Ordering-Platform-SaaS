@@ -149,7 +149,6 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
 
   const isSetup = status === 'passwordsetup';
   const isMfa = status === 'mfa';
-  const isComplete = status === 'authorized';
   return <main className="privileged-onboarding" aria-live="polite">
     <aside className="onboarding-story">
       <a className="onboarding-brand" href="/" aria-label="Web2Table home"><span>W2T</span><strong>Web2Table</strong></a>
@@ -166,10 +165,10 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
       <div className="onboarding-story-glow" aria-hidden="true" />
     </aside>
     <section className="auth-panel onboarding-card">
-      {(isSetup || isMfa || isComplete) && <div className="onboarding-steps" aria-label="Account setup progress">
+      {(isSetup || isMfa) && <div className="onboarding-steps" aria-label="Account setup progress">
         <div className={isSetup ? 'active' : 'done'}><span>1</span><small>Create password</small></div><i />
-        <div className={isMfa ? 'active' : isComplete ? 'done' : ''}><span>2</span><small>Set up MFA</small></div><i />
-        <div className={isComplete ? 'active' : ''}><span>3</span><small>Get started</small></div>
+        <div className={isMfa ? 'active' : ''}><span>2</span><small>Set up MFA</small></div><i />
+        <div className={''}><span>3</span><small>Get started</small></div>
       </div>}
       <span className="auth-eyebrow">{isSetup ? 'STEP 1 OF 3 · ACCOUNT SECURITY' : isMfa ? 'STEP 2 OF 3 · ACCOUNT SECURITY' : 'PRIVILEGED ACCESS · MFA REQUIRED'}</span>
       <h2>{isSetup ? 'Create your password' : isMfa ? 'Secure your account' : mode === 'admin' ? 'System administrator sign-in' : 'Restaurant team sign-in'}</h2>
