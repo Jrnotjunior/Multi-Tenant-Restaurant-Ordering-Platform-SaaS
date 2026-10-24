@@ -167,3 +167,23 @@ export async function loadPublishedMenu(slug:string,branchSlug:string|null=null)
   if (error) throw new Error('Published menu service unavailable');
   return parsePublishedMenu(data);
 }
+
+
+/**
+ * Resolve the root domain to a published tenant from the database.
+ * No restaurant slug or menu content is hardcoded into the storefront.
+ */
+export async function loadDefaultPublishedMenu(branchSlug:string|null=null):Promise<{slug:string;catalog:StorefrontCatalog}|null> {
+  if (!supabase) throw new Error('Menu service is not configured');
+  const {data,error}=await supabase.rpc('get_public_storefront_directory');
+  if(error) throw new Error('Published storefront directory service unavailable');
+  if(!Array.isArray(data)) throw new Error('Invalid published storefront list');
+  const candidates=data.filter((entry:unknown):entry is Record<string,unknown> =>
+    record(entry) && validText(entry.slug,64) && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(entry.slug)
+  );
+  for(const entry of candidates) {
+    const catalog=await loadPublishedMenu(entry.slug as string,branchSlug);
+    if(catalog) return {slug:entry.slug as string,catalog};
+  }
+  return null;
+}
