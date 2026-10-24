@@ -184,7 +184,7 @@ BEGIN
   SELECT b.id INTO v_branch_id
   FROM public.tenants t
   JOIN public.tenant_storefronts s ON s.tenant_id=t.id
-  JOIN public.branches b ON b.tenant_id=t.id AND b.id=s.default_branch_id OR b.tenant_id=t.id
+  JOIN public.branches b ON b.tenant_id=t.id
   WHERE t.id=v_tenant_id AND t.status='active' AND s.status='published'
     AND b.slug=v_branch_slug AND b.is_active
   FOR SHARE OF t,s,b;
@@ -231,12 +231,171 @@ BEGIN
 
   FOR v_line IN SELECT value FROM jsonb_array_elements(p_items) AS entries(value) LOOP
     v_line_number := v_line_number + 1;
-    IF jsonb_typeof(v_line) <> 'object' OR jsonb_object_length(v_line) <> 3
+    IF jsonb_typeof(v_line) IS DISTINCT FROM 'object' OR jsonb_object_length(v_line) <> 3
        OR NOT (v_line ?& ARRAY['item_id','quantity','option_ids'])
-       OR jsonb_typeof(v_line->'item_id') <> 'string'
-       OR jsonb_typeof(v_line->'quantity') <> 'number'
-       OR (v_line->>'quantity') !~ '^[0-9]+$'
-       OR jsonb_typeof(v_line->'option_ids') <> 'array' THEN
+       OR jsonb_typeof(v_line->'item_id') IS DISTINCT FROM 'string'
+       OR jsonb_typeof(v_line->'quantity') IS DISTINCT FROM 'number'
+       OR coalesce(v_line->>'quantity','') !~ '^[0-9]+
+      RAISE EXCEPTION 'One of the basket lines is invalid. Refresh the menu and try again.' USING ERRCODE='22023';
+    END IF;
+    BEGIN
+      v_item_id := (v_line->>'item_id')::uuid;
+    EXCEPTION WHEN invalid_text_representation THEN
+      RAISE EXCEPTION 'One of the basket items is invalid. Refresh the menu and try again.' USING ERRCODE='22023';
+    END;
+    v_quantity := (v_line->>'quantity')::integer;
+    IF v_quantity NOT BETWEEN 1 AND 20 THEN
+      RAISE EXCEPTION 'Each item quantity must be between 1 and 20.' USING ERRCODE='22023';
+    END IF;
+    v_total_units := v_total_units + v_quantity;
+    IF v_total_units > 100 THEN
+      RAISE EXCEPTION 'Your basket has too many items. Please reduce the quantity.' USING ERRCODE='22023';
+    END IF;
+    IF jsonb_array_length(v_line->'option_ids') > 40 THEN
+      RAISE EXCEPTION 'Too many customizations on one item.' USING ERRCODE='22023';
+    END IF;
+
+    v_option_ids := ARRAY[]::uuid[];
+    FOR v_option IN SELECT value FROM jsonb_array_elements(v_line->'option_ids') AS opts(value) LOOP
+      IF jsonb_typeof(v_option) IS DISTINCT FROM 'string' THEN
+        RAISE EXCEPTION 'One of the selected customizations is invalid.' USING ERRCODE='22023';
+      END IF;
+      BEGIN
+        v_option_id := (v_option #>> '{}')::uuid;
+      EXCEPTION WHEN invalid_text_representation THEN
+        RAISE EXCEPTION 'One of the selected customizations is invalid.' USING ERRCODE='22023';
+      END;
+      IF v_option_id = ANY(v_option_ids) THEN
+        RAISE EXCEPTION 'A customization was selected more than once.' USING ERRCODE='22023';
+      END IF;
+      v_option_ids := array_append(v_option_ids,v_option_id);
+    END LOOP;
+    SELECT coalesce(array_agg(id ORDER BY id),ARRAY[]::uuid[])
+      INTO v_sorted_option_ids FROM unnest(v_option_ids) AS ids(id);
+    v_option_ids := v_sorted_option_ids;
+    v_line_key := v_item_id::text || ':' || array_to_string(v_option_ids,',');
+    IF v_line_key = ANY(v_seen_line_keys) THEN
+      RAISE EXCEPTION 'Duplicate basket lines were found. Refresh your basket and try again.' USING ERRCODE='22023';
+    END IF;
+    v_seen_line_keys := array_append(v_seen_line_keys,v_line_key);
+
+    SELECT i.name,COALESCE(bm.price_override_centavos,i.price_centavos)
+      INTO v_item_name,v_base_price
+    FROM public.menu_items i
+    JOIN public.menu_categories c ON c.tenant_id=i.tenant_id AND c.id=i.category_id
+    JOIN public.branch_menu_items bm ON bm.tenant_id=i.tenant_id AND bm.item_id=i.id
+      AND bm.branch_id=v_branch_id AND bm.is_available
+    WHERE i.tenant_id=v_tenant_id AND i.id=v_item_id
+      AND i.status='published' AND c.is_published
+    FOR SHARE OF i,c,bm;
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'One or more items are no longer available at this branch. Refresh the menu.' USING ERRCODE='P0002';
+    END IF;
+
+    -- Lock every modifier group/option for this item until the order snapshot is
+    -- written, so a concurrent price or publication update cannot race the order.
+    PERFORM 1 FROM public.menu_modifier_groups g
+      WHERE g.tenant_id=v_tenant_id AND g.item_id=v_item_id FOR SHARE;
+    PERFORM 1 FROM public.menu_modifier_options o
+      WHERE o.tenant_id=v_tenant_id AND o.item_id=v_item_id FOR SHARE;
+
+    SELECT count(*) INTO v_valid_option_count
+    FROM unnest(v_option_ids) AS selected(option_id)
+    JOIN public.menu_modifier_options o ON o.id=selected.option_id
+      AND o.tenant_id=v_tenant_id AND o.item_id=v_item_id AND o.is_active
+    JOIN public.menu_modifier_groups g ON g.id=o.group_id
+      AND g.tenant_id=o.tenant_id AND g.item_id=o.item_id AND g.is_active;
+    IF v_valid_option_count <> cardinality(v_option_ids) THEN
+      RAISE EXCEPTION 'One or more customizations are unavailable. Refresh the menu.' USING ERRCODE='22023';
+    END IF;
+
+    FOR v_group IN
+      SELECT g.id,g.min_select,g.max_select
+      FROM public.menu_modifier_groups g
+      WHERE g.tenant_id=v_tenant_id AND g.item_id=v_item_id AND g.is_active
+      ORDER BY g.id
+    LOOP
+      SELECT count(*) INTO v_selected_count
+      FROM unnest(v_option_ids) AS selected(option_id)
+      JOIN public.menu_modifier_options o ON o.id=selected.option_id
+        AND o.tenant_id=v_tenant_id AND o.item_id=v_item_id
+        AND o.group_id=v_group.id AND o.is_active;
+      IF v_selected_count < v_group.min_select OR v_selected_count > v_group.max_select THEN
+        RAISE EXCEPTION 'Choose valid options for every required menu customization.' USING ERRCODE='22023';
+      END IF;
+    END LOOP;
+
+    SELECT COALESCE(jsonb_agg(jsonb_build_object(
+        'id',o.id,'name',o.name,'group_id',g.id,'group_name',g.name,
+        'price_centavos',o.price_centavos
+      ) ORDER BY g.sort_order,g.name,o.sort_order,o.name,o.id),'[]'::jsonb),
+      COALESCE(sum(o.price_centavos),0)
+      INTO v_options_snapshot,v_option_total
+    FROM unnest(v_option_ids) AS selected(option_id)
+    JOIN public.menu_modifier_options o ON o.id=selected.option_id
+      AND o.tenant_id=v_tenant_id AND o.item_id=v_item_id AND o.is_active
+    JOIN public.menu_modifier_groups g ON g.id=o.group_id
+      AND g.tenant_id=o.tenant_id AND g.item_id=o.item_id AND g.is_active;
+
+    v_unit_price := v_base_price::bigint + v_option_total;
+    v_line_total := v_unit_price * v_quantity;
+    v_subtotal := v_subtotal + v_line_total;
+    IF v_subtotal > 1000000000 THEN
+      RAISE EXCEPTION 'The basket total exceeds the supported limit.' USING ERRCODE='22023';
+    END IF;
+
+    INSERT INTO public.customer_order_items(
+      tenant_id,order_id,line_number,menu_item_id,item_name_snapshot,
+      unit_price_centavos,quantity,line_total_centavos,options_snapshot
+    ) VALUES (
+      v_tenant_id,v_order_id,v_line_number,v_item_id,v_item_name,
+      v_unit_price,v_quantity,v_line_total,v_options_snapshot
+    );
+  END LOOP;
+
+  IF v_subtotal <= 0 THEN
+    RAISE EXCEPTION 'The basket total is invalid.' USING ERRCODE='22023';
+  END IF;
+  UPDATE public.customer_orders SET subtotal_centavos=v_subtotal,updated_at=now()
+  WHERE id=v_order_id AND tenant_id=v_tenant_id;
+
+  RETURN jsonb_build_object(
+    'success',true,'repeated',false,'order_id',v_order_id,
+    'order_number',v_order_number,'status','pending_confirmation',
+    'subtotal_centavos',v_subtotal,'payment_status','not_started',
+    'delivery_fee_confirmed',false
+  );
+END;
+$fn$;
+
+CREATE FUNCTION public.create_customer_order(
+  p_restaurant_slug text,
+  p_branch_slug text,
+  p_customer_name text,
+  p_customer_phone text,
+  p_delivery_address text,
+  p_delivery_notes text,
+  p_idempotency_key uuid,
+  p_items jsonb
+) RETURNS jsonb
+LANGUAGE sql VOLATILE SECURITY INVOKER SET search_path = ''
+AS $fn$
+  SELECT private.create_customer_order(
+    p_restaurant_slug,p_branch_slug,p_customer_name,p_customer_phone,
+    p_delivery_address,p_delivery_notes,p_idempotency_key,p_items
+  );
+$fn$;
+
+REVOKE ALL ON FUNCTION private.create_customer_order(text,text,text,text,text,text,uuid,jsonb),
+  public.create_customer_order(text,text,text,text,text,text,uuid,jsonb)
+  FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION private.create_customer_order(text,text,text,text,text,text,uuid,jsonb)
+  TO anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.create_customer_order(text,text,text,text,text,text,uuid,jsonb)
+  TO anon,authenticated;
+COMMIT;
+
+       OR jsonb_typeof(v_line->'option_ids') IS DISTINCT FROM 'array' THEN
       RAISE EXCEPTION 'One of the basket lines is invalid. Refresh the menu and try again.' USING ERRCODE='22023';
     END IF;
     BEGIN
