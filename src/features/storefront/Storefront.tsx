@@ -3,7 +3,7 @@ import { cartCount, cartLines, cartSubtotal, updateCart, type Cart } from './car
 import {addCustom,changeCustom,customCount,customLines,customSubtotal,type CustomCart,type Selection} from './customCart';
 import {CustomizeDialog} from './CustomizeDialog';
 import { filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
-import { branchSlugFromSearch, loadPublishedMenu, type StorefrontCatalog } from './publishedMenu';
+import { branchSlugFromSearch, loadDefaultPublishedMenu, loadPublishedMenu, type StorefrontCatalog } from './publishedMenu';
 import { normalizeAppBase, restaurantMenuPath } from '../../app/routes';
 import './storefront.css';
 
@@ -158,11 +158,11 @@ function MenuCard({ item, quantity, add, customize }: { item: MenuItem; quantity
 export function Storefront({ baseUrl, requestedSlug }: {
   baseUrl: string; requestedSlug: string | null;
 }) {
-  const isSample = requestedSlug === null;
+  const [resolvedSlug, setResolvedSlug] = useState<string | null>(requestedSlug);
   const [selectedBranch, setSelectedBranch] = useState<string|null>(() => branchSlugFromSearch(window.location.search));
   const [remoteCatalog, setRemoteCatalog] = useState<StorefrontCatalog | null>(null);
   const [loadStatus, setLoadStatus] = useState<'loading'|'ready'|'unavailable'>(
-    isSample ? 'unavailable' : 'loading'
+    'loading'
   );
   const [category, setCategory] = useState<Category>('All');
   const [query, setQuery] = useState('');
@@ -193,16 +193,20 @@ export function Storefront({ baseUrl, requestedSlug }: {
 
   useEffect(() => {
     let active = true;
-    if (!requestedSlug) { setRemoteCatalog(null); setLoadStatus('unavailable'); return; }
     setLoadStatus('loading');
     setRemoteCatalog(null);
-    void loadPublishedMenu(requestedSlug,selectedBranch).then((result) => {
+    setResolvedSlug(requestedSlug);
+    const load = requestedSlug
+      ? loadPublishedMenu(requestedSlug, selectedBranch).then((catalog) => catalog ? { slug: requestedSlug, catalog } : null)
+      : loadDefaultPublishedMenu(selectedBranch);
+    void load.then((result) => {
       if (!active) return;
-      setRemoteCatalog(result);
+      setResolvedSlug(result?.slug ?? requestedSlug);
+      setRemoteCatalog(result?.catalog ?? null);
       setLoadStatus(result ? 'ready' : 'unavailable');
-    }).catch(() => { if(active) setLoadStatus('unavailable'); });
+    }).catch(() => { if (active) setLoadStatus('unavailable'); });
     return () => { active = false; };
-  }, [requestedSlug, isSample, selectedBranch]);
+  }, [requestedSlug, selectedBranch]);
 
   const catalog = remoteCatalog;
   const menu = catalog?.menu ?? [];
@@ -258,7 +262,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
                 <span>Sign in or review our policies.</span>
               </div>
               <a role="menuitem" href={baseUrl + 'legal'} onClick={() => setAccountMenuOpen(false)}>Legal &amp; Policies</a>
-              <a role="menuitem" href={baseUrl + 'account/sign-in' + (requestedSlug && !isSample ? '?restaurant=' + encodeURIComponent(requestedSlug) : '')} onClick={() => { if (requestedSlug && !isSample) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', requestedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign in</a>
+              <a role="menuitem" href={baseUrl + 'account/sign-in' + (resolvedSlug ? '?restaurant=' + encodeURIComponent(resolvedSlug) : '')} onClick={() => { if (resolvedSlug) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', resolvedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign in</a>
               <a role="menuitem" href={baseUrl + 'account/sign-up' + (requestedSlug && !isSample ? '?restaurant=' + encodeURIComponent(requestedSlug) : '')} onClick={() => { if (requestedSlug && !isSample) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', requestedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign up</a>
             </div>}
           </div>
@@ -269,7 +273,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
         <h1>{loadStatus === 'loading' ? 'Loading restaurant menu…' : 'Restaurant menu unavailable'}</h1>
         <p>{loadStatus === 'loading'
           ? 'Checking for a published restaurant menu.'
-          : (requestedSlug ? 'This restaurant has no published menu available. Check the restaurant link or try again later.' : 'No restaurant has been published yet. Once System Admin creates a tenant and its owner publishes a menu, the storefront will appear here.')}</p>
+          : (resolvedSlug ? 'This restaurant has no published menu available. Check the restaurant link or try again later.' : 'No published restaurant menu is available right now.')}</p>
       </main>
     </div>;
   }
