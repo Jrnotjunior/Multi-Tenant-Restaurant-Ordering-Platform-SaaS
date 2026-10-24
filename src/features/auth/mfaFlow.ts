@@ -33,47 +33,43 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
 
   const { data: factors, error: factorsError } = await client.auth.mfa.listFactors();
   if (factorsError) throw factorsError;
+
+  // If the user already completed MFA, never enroll again: challenge the
+  // existing verified factor. After successful verification the gate will
+  // re-check AAL2 and continue to the authorized restaurant dashboard.
   const verified = factors.totp.find((factor) => factor.status === 'verified');
   if (verified) {
     enrollments.delete(client);
     return { kind: 'challenge', factorId: verified.id };
   }
+
   const cached = enrollments.get(client);
   if (cached && factors.totp.some((factor) => factor.id === cached.factorId)) return cached;
 
-  // An unverified factor may have been created on another device. Don't
-  // silently delete it: failed enrollment requires a controlled recovery path.
+  // Reuse a pending factor when possible instead of creating a duplicate.
+  // The QR secret is not available from listFactors, so we cannot safely
+  // reconstruct its QR. Tell the user explicitly that this is not a fresh
+  // enrollment and offer the recovery action below.
   if (factors.totp.length > 0) {
-    throw new Error('Incomplete authenticator enrollment detected. Contact the platform administrator to reset MFA safely.');
+    throw new Error('An incomplete authenticator setup exists for this account. Your authenticator has not been confirmed as verified. Use “Restart incomplete authenticator setup” to replace only unverified factors, then scan the new QR code once.');
   }
 
-  let { data, error } = await client.auth.mfa.enroll({
+  const { data, error } = await client.auth.mfa.enroll({
     factorType: 'totp',
-    friendlyName: 'Web2Table Authenticator',
+    friendlyName: `Web2Table Authenticator ${Date.now()}`,
   });
   if (error) {
-    // Re-check first: the initial request may have succeeded server-side even
-    // if its response was interrupted, or another tab may have enrolled MFA.
+    // Enrollment can succeed server-side even if its response is interrupted.
+    // Re-read factors before showing an error or creating another factor.
     const { data: latestFactors, error: latestFactorsError } = await client.auth.mfa.listFactors();
     if (!latestFactorsError) {
       const latestVerified = latestFactors.totp.find((factor) => factor.status === 'verified');
       if (latestVerified) return { kind: 'challenge', factorId: latestVerified.id };
-      const latestPending = latestFactors.totp.find((factor) => factor.status !== 'verified');
-      if (latestPending) {
-        throw new Error('An authenticator setup is already pending for this account. Sign out and reopen your invitation link to resume setup, or ask the platform administrator to reset the incomplete setup.');
+      if (latestFactors.totp.length > 0) {
+        throw new Error('An authenticator setup is already pending for this account. Restart the incomplete setup only if you have not verified an authenticator yet.');
       }
     }
-
-    // Supabase requires factor friendly names to be unique for a user. If a
-    // stale factor name still conflicts but isn't returned by listFactors,
-    // retry once with a unique label rather than looping on the same 422.
-    if (/friendly name|already exists|duplicate/i.test(error.message)) {
-      const uniqueName = `Web2Table Authenticator ${Date.now()}`;
-      const retry = await client.auth.mfa.enroll({ factorType: 'totp', friendlyName: uniqueName });
-      data = retry.data;
-      error = retry.error;
-    }
-    if (error) throw error;
+    throw error;
   }
   if (!data?.totp?.qr_code || !data.totp.uri) throw new Error('Authenticator enrollment information unavailable.');
   const result: MfaFlow = { kind: 'enroll', factorId: data.id, qrCode: data.totp.qr_code, uri: data.totp.uri };
