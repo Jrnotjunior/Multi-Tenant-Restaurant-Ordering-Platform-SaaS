@@ -263,77 +263,113 @@
 .w2t-paymongo-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:16px}
 @media(max-width:700px){.w2t-paymongo-grid,.w2t-paymongo-address{grid-template-columns:1fr}.w2t-paymongo-actions{flex-direction:column;align-items:stretch}.w2t-paymongo-actions .w2t-paymongo-action{width:100%;margin-right:0}.w2t-paymongo-section{margin-top:15px;padding-top:14px}}
 
-/* Owner Menu editor */
-.owner-menu-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:22px}
-.owner-menu-header h1{margin:0 0 8px;color:var(--color-text,#101B2F);font-size:25px;letter-spacing:-.025em}
-.owner-menu-header p:not(.owner-menu-eyebrow){max-width:720px;margin:0;color:var(--color-muted,#526782);font-size:13px;line-height:1.6}
-.owner-menu-eyebrow{margin:0 0 7px;color:var(--color-muted,#526782);font-size:10px;font-weight:800;letter-spacing:.12em}
-.owner-menu-publish{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
-.owner-menu-status{display:inline-flex;align-items:center;max-width:100%;padding:4px 8px;border:1px solid var(--color-border,#DCE3ED);border-radius:999px;background:var(--color-page,#F7F9FC);color:var(--color-muted,#526782);font-size:10px;font-weight:750;white-space:nowrap;text-transform:capitalize}
-.owner-menu-status.is-published{border-color:#BBF7D0;background:#F0FDF4;color:#166534}
-.owner-menu-publish button,.owner-menu-inline-form button,.owner-menu-category-actions button,.owner-menu-rename-form button,.owner-menu-form-actions button,.owner-menu-item-actions button{min-height:35px;border:1px solid var(--color-sidebar,#101B2F);border-radius:8px;padding:8px 12px;background:var(--color-sidebar,#101B2F);color:#FFFFFF;font-size:11px;font-weight:750;cursor:pointer}
-.owner-menu-publish button:disabled,.owner-menu-inline-form button:disabled,.owner-menu-category-actions button:disabled,.owner-menu-rename-form button:disabled,.owner-menu-form-actions button:disabled,.owner-menu-item-actions button:disabled{opacity:.55;cursor:not-allowed}
-.owner-menu-category-actions button.is-secondary,.owner-menu-rename-form button,.owner-menu-form-actions button.is-secondary,.owner-menu-item-actions button.is-secondary,.owner-menu-item-actions button.is-danger,.owner-menu-items-panel>.owner-menu-panel-heading>button.is-secondary{border-color:var(--color-border,#DCE3ED);background:var(--color-surface,#FFFFFF);color:var(--color-active,#263754)}
-.owner-menu-item-actions button.is-danger{border-color:#FECACA;color:#991B1B}
-.owner-menu-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
-.owner-menu-summary article{display:grid;gap:6px;padding:16px;border:1px solid var(--color-border,#DCE3ED);border-radius:12px;background:var(--color-surface,#FFFFFF)}
-.owner-menu-summary article>span{color:var(--color-muted,#526782);font-size:11px;font-weight:700}
-.owner-menu-summary article>strong{color:var(--color-text,#101B2F);font-size:25px;line-height:1.1}
-.owner-menu-summary article>small{color:var(--color-muted,#526782);font-size:11px}
-.owner-menu-columns{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);align-items:start;gap:16px}
-.owner-menu-panel{min-width:0;padding:20px;border:1px solid var(--color-border,#DCE3ED);border-radius:13px;background:var(--color-surface,#FFFFFF);color:var(--color-text,#101B2F)}
-.owner-menu-panel-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
-.owner-menu-panel-heading h2{margin:0 0 6px;font-size:16px;letter-spacing:-.01em}
-.owner-menu-panel-heading p{margin:0;color:var(--color-muted,#526782);font-size:11px;line-height:1.55}
-.owner-menu-inline-form{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px;margin:0 0 14px}
-.owner-menu-inline-form label,.owner-menu-item-form>label:not(.owner-menu-popular){display:grid;gap:6px;min-width:0;color:var(--color-text,#101B2F);font-size:11px;font-weight:750}
-.owner-menu-inline-form input,.owner-menu-item-form input:not([type=checkbox]):not([type=file]),.owner-menu-item-form select,.owner-menu-item-form textarea,.owner-menu-rename-form input{box-sizing:border-box;width:100%;min-width:0;min-height:39px;border:1px solid var(--color-border,#DCE3ED);border-radius:8px;background:var(--color-surface,#FFFFFF);padding:9px 10px;color:var(--color-text,#101B2F);font:inherit;font-size:12px;font-weight:500}
-.owner-menu-item-form textarea{resize:vertical;min-height:76px}
-.owner-menu-item-form input[type=file]{box-sizing:border-box;width:100%;max-width:100%;font-size:11px;font-weight:400}
-.owner-menu-item-form small{display:block;color:var(--color-muted,#526782);font-size:10px;font-weight:400}
-.owner-menu-item-form input:focus-visible,.owner-menu-item-form select:focus-visible,.owner-menu-item-form textarea:focus-visible,.owner-menu-inline-form input:focus-visible,.owner-menu-rename-form input:focus-visible{outline:2px solid var(--color-active,#263754);outline-offset:2px}
-.owner-menu-category-list{display:grid;gap:9px}
-.owner-menu-category{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding:12px;border:1px solid var(--color-border,#DCE3ED);border-radius:10px;background:var(--color-page,#F7F9FC)}
-.owner-menu-category-main{display:grid;gap:4px;min-width:0}
-.owner-menu-category-main>strong{overflow-wrap:anywhere;font-size:12px}
-.owner-menu-category-main small{color:var(--color-muted,#526782);font-size:10px}
-.owner-menu-category-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
-.owner-menu-category-actions button{min-height:30px;padding:6px 8px;font-size:10px}
-.owner-menu-rename-form{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-.owner-menu-rename-form input{flex:1;min-width:120px}
-.owner-menu-rename-form button{min-height:31px;padding:6px 8px;font-size:10px}
-.owner-menu-item-form{display:grid;gap:13px}
-.owner-menu-popular{display:flex;align-items:center;gap:8px;color:var(--color-text,#101B2F);font-size:11px;font-weight:650}
-.owner-menu-popular input{accent-color:var(--color-sidebar,#101B2F)}
-.owner-menu-form-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:3px}
-.owner-menu-photo-current{margin:0;color:var(--color-muted,#526782);font-size:10px}
-.owner-menu-empty{padding:17px 14px;border:1px dashed var(--color-border,#DCE3ED);border-radius:10px;background:var(--color-page,#F7F9FC)}
-.owner-menu-empty strong{display:block;color:var(--color-text,#101B2F);font-size:12px}
-.owner-menu-empty p{margin:6px 0 0;color:var(--color-muted,#526782);font-size:11px;line-height:1.55}
-.owner-menu-items-panel{margin-top:16px}
-.owner-menu-items-panel>.owner-menu-panel-heading{align-items:center}
-.owner-menu-items-panel>.owner-menu-panel-heading>button.is-secondary{flex-shrink:0;min-height:33px;border:1px solid var(--color-border,#DCE3ED);border-radius:8px;padding:7px 10px;font-size:10px;font-weight:750;cursor:pointer}
-.owner-menu-item-list{display:grid;gap:10px}
-.owner-menu-item{display:grid;grid-template-columns:88px minmax(0,1fr) auto;align-items:start;gap:15px;padding:14px;border:1px solid var(--color-border,#DCE3ED);border-radius:11px;background:var(--color-surface,#FFFFFF)}
-.owner-menu-item-photo{width:88px;height:88px;object-fit:cover;border-radius:9px;border:1px solid var(--color-border,#DCE3ED)}
-.owner-menu-item-photo.is-empty{display:grid;place-items:center;background:var(--color-page,#F7F9FC);font-size:25px}
-.owner-menu-item-details{min-width:0}
-.owner-menu-item-title{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-.owner-menu-item-title h3{margin:0;color:var(--color-text,#101B2F);font-size:13px;overflow-wrap:anywhere}
-.owner-menu-item-title>strong{flex-shrink:0;color:var(--color-text,#101B2F);font-size:12px;font-variant-numeric:tabular-nums}
-.owner-menu-item-details>p{margin:7px 0;color:var(--color-muted,#526782);font-size:11px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
-.owner-menu-item-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.owner-menu-item-meta>span:first-child{color:var(--color-active,#263754);font-size:10px;font-weight:750}
-.owner-menu-popular-tag{display:inline-flex;padding:3px 7px;border-radius:999px;background:#FEF3C7;color:#92400E;font-size:10px;font-weight:750}
-.owner-menu-branch-availability{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--color-border,#DCE3ED)}
-.owner-menu-branch-availability>strong{color:var(--color-muted,#526782);font-size:10px}
-.owner-menu-branch-availability label{display:flex;align-items:center;gap:5px;color:var(--color-text,#101B2F);font-size:10px}
-.owner-menu-branch-availability input{accent-color:var(--color-sidebar,#101B2F)}
-.owner-menu-item-actions{display:grid;gap:6px;min-width:100px}
-.owner-menu-item-actions button{min-height:31px;padding:6px 8px;font-size:10px}
-.owner-menu-feedback{margin:0 0 14px;padding:12px 14px;border:1px solid var(--color-border,#DCE3ED);border-radius:9px;font-size:12px;line-height:1.55}
-.owner-menu-feedback p{margin:4px 0 0;overflow-wrap:anywhere}
-.owner-menu-feedback.is-error{border-color:#FCA5A5;background:#FEF2F2;color:#991B1B}
-.owner-menu-feedback.is-success{border-color:#BBF7D0;background:#F0FDF4;color:#166534}
-@media(max-width:980px){.owner-menu-columns{grid-template-columns:1fr}.owner-menu-header{flex-direction:column}.owner-menu-publish{justify-content:flex-start}}
-@media(max-width:720px){.owner-menu-summary{grid-template-columns:1fr 1fr}.owner-menu-summary article:last-child{grid-column:1/-1}.owner-menu-panel{padding:14px}.owner-menu-category{grid-template-columns:1fr}.owner-menu-category-actions{justify-content:flex-start}.owner-menu-item{grid-template-columns:68px minmax(0,1fr)}.owner-menu-item-photo{width:68px;height:68px}.owner-menu-item-actions{grid-column:1/-1;display:flex;flex-wrap:wrap}.owner-menu-item-actions button{flex:1}.owner-menu-items-panel>.owner-menu-panel-heading{align-items:flex-start;flex-direction:column}.owner-menu-inline-form{grid-template-columns:1fr}}
+
+/* Restaurant menu management, matching RestaurantMenuPage from the reference platform.
+   This replaces the first-pass custom editor styles; POS and tax classification are omitted. */
+.restaurant-page{width:100%;min-width:0;color:var(--color-text,#101B2F);font-family:var(--font-body,Inter,sans-serif)}
+.restaurant-menu-page{--color-primary:var(--color-sidebar,#101B2F);--color-primary-hover:var(--color-active,#263754);--color-primary-text:#FFFFFF;--color-background:var(--color-page,#F7F9FC);--radius-lg:12px;--radius-md:8px}
+.restaurant-menu-management-card{border:1px solid var(--color-border,#DCE3ED);border-radius:14px;padding:20px;margin-top:0;background:var(--color-surface,#FFFFFF)}
+.restaurant-menu-section-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.restaurant-menu-section-header>div{min-width:0}
+.restaurant-menu-section-header h2{margin:0 0 4px;color:var(--color-text,#101B2F);font-family:var(--font-heading,Manrope,sans-serif);font-size:21px}
+.restaurant-menu-section-header p{margin:0;color:var(--color-muted,#526782);font-size:13px;line-height:1.5}
+.restaurant-menu-add-button{min-height:42px;white-space:nowrap;flex-shrink:0}
+.restaurant-menu-search{display:flex;align-items:center;gap:10px;margin:18px 0 14px}
+.restaurant-menu-search-input-wrap{position:relative;flex:1;max-width:360px}
+.restaurant-menu-search input{width:100%;box-sizing:border-box;border:1px solid var(--color-border,#DCE3ED);border-radius:10px;padding:11px 40px 11px 12px;font:inherit;font-size:13px;color:var(--color-text,#101B2F);background:var(--color-surface,#FFFFFF)}
+.restaurant-menu-search input:focus{outline:none;border-color:var(--color-active,#263754);box-shadow:0 0 0 3px #26375418}
+.restaurant-menu-search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:28px;height:28px;border:0;border-radius:999px;background:var(--color-page,#F7F9FC);color:var(--color-muted,#526782);font-size:18px;line-height:1;cursor:pointer}
+.restaurant-menu-search-label{font-size:12px;font-weight:700;color:var(--color-muted,#526782);white-space:nowrap}
+.restaurant-menu-toolbar{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:0 0 20px;padding:0 0 14px;border-bottom:1px solid var(--color-border,#DCE3ED)}
+.restaurant-menu-categories{display:flex;gap:.5rem;overflow-x:auto;padding:.25rem 0;scrollbar-width:none}
+.restaurant-menu-categories::-webkit-scrollbar{display:none}
+.restaurant-menu-categories button{min-height:40px;padding:0 .9rem;border:1px solid var(--color-border,#DCE3ED);border-radius:999px;background:var(--color-surface,#FFFFFF);color:var(--color-muted,#526782);font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer}
+.restaurant-menu-categories button.is-active{border-color:var(--color-sidebar,#101B2F);background:var(--color-sidebar,#101B2F);color:#FFFFFF}
+.restaurant-menu-toggle{display:inline-flex;align-items:center;gap:.55rem;flex:0 0 auto;color:var(--color-muted,#526782);font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer}
+.w2t-switch{position:relative;display:inline-flex;align-items:center;flex:0 0 36px;width:36px;height:20px;min-width:36px;min-height:20px;padding:0;border:0;border-radius:999px;background:#CBD5E1;cursor:pointer;transition:background-color .15s ease}
+.w2t-switch span{display:block;width:14px;height:14px;margin-left:3px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 2px #101B2F30;transition:transform .15s ease}
+.w2t-switch.is-on{background:var(--color-sidebar,#101B2F)}
+.w2t-switch.is-on span{transform:translateX(16px)}
+.w2t-switch:focus-visible{outline:2px solid var(--color-active,#263754);outline-offset:3px}
+.restaurant-menu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.product-card{overflow:hidden;border:1px solid var(--color-border,#DCE3ED);border-radius:12px;background:var(--color-surface,#FFFFFF)}
+.product-card-main{display:flex;align-items:center;gap:.65rem;padding:.7rem}
+.product-card-media{flex:0 0 160px;min-width:0}
+.product-card-image,.product-card-image-placeholder{width:160px;height:160px;margin:0;object-fit:contain;border-radius:10px;background:var(--color-page,#F7F9FC)}
+.product-card-image-placeholder{display:grid;place-items:center;color:var(--color-muted,#526782);font-family:var(--font-heading,Manrope,sans-serif);font-size:2.5rem;font-weight:800}
+.product-card-content{min-width:0;flex:1;align-self:flex-start;padding:8px 0 0}
+.product-card-content h3{margin:0 0 7px;color:var(--color-text,#101B2F);font-family:var(--font-heading,Manrope,sans-serif);font-size:14px;line-height:1.3;overflow-wrap:anywhere}
+.product-card-price{display:block;flex:0 0 auto;color:var(--color-text,#101B2F);font-size:13px;font-weight:800}
+.product-card-content>p{margin:.35rem 0 0;color:var(--color-muted,#526782);font-size:11px;line-height:1.45;overflow-wrap:anywhere}
+.product-card-sold-out{opacity:.78}
+.restaurant-management-product-card{position:relative;height:166px;min-height:166px;box-sizing:border-box}
+.restaurant-management-product-card .product-card-main{height:100%;min-height:0;box-sizing:border-box;padding:3px 120px 3px 3px;align-items:flex-start}
+.restaurant-management-product-card .product-card-media{flex:0 0 160px}
+.restaurant-management-product-card .product-card-image,.restaurant-management-product-card .product-card-image-placeholder{width:160px;height:160px;margin:0}
+.restaurant-management-product-card .product-card-content{align-self:flex-start;padding-top:8px}
+.restaurant-management-product-status{position:absolute;left:8px;bottom:8px;font-size:11px;font-weight:750;line-height:1;color:#18794e}
+.product-card-sold-out .restaurant-management-product-status{color:var(--color-muted,#526782)}
+.restaurant-management-product-icon{position:static;display:flex;align-items:center;justify-content:center;width:34px;height:34px;min-height:34px;margin:0;padding:0;border-radius:50%;font-size:21px;line-height:1}
+.restaurant-management-product-actions{position:absolute;right:8px;bottom:8px;display:flex;gap:5px}
+.restaurant-management-product-actions .restaurant-management-product-icon{position:static}
+.restaurant-management-product-icon.is-danger{background:var(--color-surface,#FFFFFF);color:#B91C1C;border-color:#FECACA}
+.restaurant-menu-page .button,.restaurant-menu-page button.button{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--color-sidebar,#101B2F);border-radius:8px;background:var(--color-sidebar,#101B2F);color:#FFFFFF;padding:9px 12px;font:inherit;font-size:12px;font-weight:750;cursor:pointer}
+.restaurant-menu-page .button:disabled,.restaurant-menu-page button.button:disabled{opacity:.55;cursor:not-allowed}
+.restaurant-menu-page .button-secondary{border-color:var(--color-border,#DCE3ED);background:var(--color-surface,#FFFFFF);color:var(--color-active,#263754)}
+.restaurant-menu-page .restaurant-compact-action{min-height:42px}
+.restaurant-dashboard-error{margin:0 0 14px;padding:12px 14px;border:1px solid #FCA5A5;border-radius:9px;background:#FEF2F2;color:#991B1B;font-size:12px;line-height:1.55;overflow-wrap:anywhere}
+.restaurant-dashboard-empty{padding:28px 18px;border:1px dashed var(--color-border,#DCE3ED);border-radius:10px;background:var(--color-page,#F7F9FC);color:var(--color-muted,#526782);text-align:center;font-size:13px;line-height:1.6}
+.restaurant-dashboard-empty strong{display:block;color:var(--color-text,#101B2F);font-size:14px;margin-bottom:4px}
+.restaurant-dashboard-empty p{margin:0}
+.restaurant-product-modal-backdrop{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;background:#101B2F8C;backdrop-filter:blur(3px)}
+.restaurant-product-modal{position:relative;width:min(520px,100%);max-height:90vh;overflow:auto;background:var(--color-surface,#FFFFFF);border:1px solid var(--color-border,#DCE3ED);border-radius:18px;box-shadow:0 24px 70px #101B2F2E;padding:24px;color:var(--color-text,#101B2F)}
+.restaurant-product-modal h2{margin:0 42px 18px 0;font-size:22px}
+.restaurant-product-modal-close{position:absolute;right:14px;top:14px;width:38px;height:38px;border:0;border-radius:999px;background:var(--color-page,#F7F9FC);color:var(--color-text,#101B2F);font-size:22px;cursor:pointer}
+.restaurant-product-form{display:grid;gap:14px}
+.restaurant-product-form label{display:grid;gap:6px;color:var(--color-text,#101B2F);font-size:12px;font-weight:700}
+.restaurant-product-form input,.restaurant-product-form textarea,.restaurant-product-form select{width:100%;box-sizing:border-box;border:1px solid var(--color-border,#DCE3ED);border-radius:10px;padding:11px 12px;font:inherit;font-size:13px;color:var(--color-text,#101B2F);background:var(--color-surface,#FFFFFF)}
+.restaurant-product-form input[type=number]{-moz-appearance:textfield}
+.restaurant-product-form input[type=number]::-webkit-inner-spin-button,.restaurant-product-form input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.restaurant-product-form input[list]{padding-right:12px}
+.restaurant-product-form input[list]::-webkit-calendar-picker-indicator{display:none!important;opacity:0;width:0;margin:0}
+.restaurant-product-form textarea{min-height:90px;resize:vertical}
+.restaurant-product-image-picker{display:grid;gap:10px}
+.restaurant-product-image-preview{display:block;width:100%;aspect-ratio:1/1;height:auto;object-fit:cover;border-radius:12px;border:1px solid var(--color-border,#DCE3ED);background:var(--color-page,#F7F9FC)}
+.restaurant-product-image-placeholder{display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:1/1;height:auto;border:1px dashed var(--color-border,#DCE3ED);border-radius:12px;background:var(--color-page,#F7F9FC);color:var(--color-muted,#526782)}
+.restaurant-product-image-picker input[type=file]{display:none}
+.restaurant-product-image-picker .button{justify-self:center}
+.restaurant-product-image-picker small{color:var(--color-muted,#526782);font-size:11px;text-align:center}
+.restaurant-product-form-actions{display:flex;justify-content:center;gap:10px;margin-top:4px}
+.restaurant-product-form-actions .button{min-width:130px}
+.restaurant-product-category-hint{font-size:11px;font-weight:400;color:var(--color-muted,#526782);line-height:1.5}
+.restaurant-delete-modal-backdrop{position:fixed;inset:0;z-index:1100;display:flex;align-items:center;justify-content:center;padding:20px;background:#101B2F94;backdrop-filter:blur(3px)}
+.restaurant-delete-modal{width:min(430px,100%);box-sizing:border-box;background:var(--color-surface,#FFFFFF);border:1px solid var(--color-border,#DCE3ED);border-radius:18px;padding:28px;box-shadow:0 24px 70px #101B2F30;text-align:center;color:var(--color-text,#101B2F)}
+.restaurant-delete-modal-icon{width:46px;height:46px;margin:0 auto 14px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C;font-size:24px;font-weight:800}
+.restaurant-delete-modal h2{margin:0 0 10px;font-size:22px}
+.restaurant-delete-modal p{margin:0;color:var(--color-text,#101B2F);font-size:13px;line-height:1.55}
+.restaurant-delete-modal-note{display:block;margin-top:8px;color:var(--color-muted,#526782);font-size:11px;line-height:1.5}
+.restaurant-delete-modal-actions{display:flex;justify-content:center;gap:10px;margin-top:24px}
+.restaurant-delete-modal-actions .button{min-width:130px;min-height:42px}
+.restaurant-delete-confirm-button{border:1px solid #FECACA!important;background:#FEF2F2!important;color:#B91C1C!important}
+.restaurant-delete-confirm-button:hover:not(:disabled){background:#FEE2E2!important}
+@media(max-width:760px){.restaurant-menu-toolbar{align-items:flex-start;flex-direction:column}.restaurant-menu-grid{grid-template-columns:1fr}}
+@media(max-width:600px){
+  .restaurant-menu-section-header{flex-direction:column}
+  .restaurant-menu-add-button{width:100%}
+  .restaurant-menu-search{align-items:stretch;flex-direction:column}
+  .restaurant-menu-search-label{white-space:normal}
+  .restaurant-menu-search-input-wrap{max-width:none}
+  .restaurant-product-modal-backdrop{padding:10px;align-items:flex-end}
+  .restaurant-product-modal{max-height:92vh;border-radius:18px 18px 12px 12px;padding:20px}
+  .restaurant-product-form-actions .button{flex:1}
+}
+@media(max-width:480px){
+  .restaurant-menu-management-card{padding:14px}
+  .restaurant-menu-toolbar{gap:12px}
+  .restaurant-menu-grid{grid-template-columns:minmax(0,1fr)}
+  .restaurant-management-product-card{height:146px;min-height:146px}
+  .restaurant-management-product-card .product-card-main{padding:3px 92px 3px 3px}
+  .restaurant-management-product-card .product-card-media{flex-basis:140px}
+  .restaurant-management-product-card .product-card-image,.restaurant-management-product-card .product-card-image-placeholder{width:140px;height:140px}
+  .restaurant-management-product-icon{width:32px;height:32px;min-height:32px}
+}
