@@ -28,8 +28,8 @@ jobs:
         run: npm test
       - name: Build project-site preview
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_URL: https://wvibrchebfwirbgkcnbr.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_MILZBeZJeOw-bOeMo3Nukg_BKGWt_Qr
         run: npm run build -- --base=/Multi-Tenant-Restaurant-Ordering-Platform-SaaS-/
       - name: GitHub Pages SPA fallback
         run: |

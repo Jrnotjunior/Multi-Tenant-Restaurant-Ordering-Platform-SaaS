@@ -23,7 +23,7 @@ Deno.serve(async (request) => {
   try {
     redirect = new URL(redirectBase);
     if (redirect.protocol !== "https:" || redirect.username || redirect.password ||
-        redirect.search || redirect.hash || redirect.pathname !== "/restaurant") throw new Error();
+        redirect.search || redirect.hash || !redirect.pathname.replace(/\/+$/, "").endsWith("/restaurant")) throw new Error();
   } catch { return response({ error: "Invalid server redirect configuration" }, 503); }
 
   const bearer = request.headers.get("authorization")?.match(/^Bearer (.+)$/i)?.[1];
