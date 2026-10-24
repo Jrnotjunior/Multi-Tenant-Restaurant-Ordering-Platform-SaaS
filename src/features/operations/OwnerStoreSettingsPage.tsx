@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import { MapboxDeliveryLocationPicker, type MapboxDeliveryAddress } from './MapboxDeliveryLocationPicker';
+import { OwnerPayMongoOnboardingCard } from './OwnerPayMongoOnboardingCard';
 
 type Tab = 'profile' | 'hours' | 'delivery' | 'cash' | 'rider' | 'payments';
 type Obj = Record<string, unknown>;
@@ -360,15 +361,14 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         <div className="w2t-setting-switch-row"><span>Auto-assign delivery orders</span><Toggle label="Automatic rider assignment" checked={rider.auto_assign === true} disabled /></div>
         <p className="w2t-settings-help">Rider assignment is controlled by the System Administrator. Contact the System Administrator to request a workflow change.</p>
       </section>}
-      {activeTab === 'payments' && <section className="w2t-settings-card">
+      {activeTab === 'payments' && <><section className="w2t-settings-card">
         <div className="w2t-setting-switch-row w2t-setting-switch-row-top"><span><strong>Online Payments</strong><small>{payments.enabled ? 'Customers can pay online using the enabled methods below.' : 'Online payment is turned off for this restaurant.'} This setting is controlled by the System Administrator.</small></span><Toggle label="Online payments enabled" checked={payments.enabled} disabled /></div>
         <h2 className="w2t-settings-subheading">Accepted Payment Methods</h2>
         <p className="w2t-settings-help">Choose which payment methods this restaurant accepts. A method must also be supported by its connected payment account.</p>
         <div className={`w2t-payment-methods${payments.enabled ? '' : ' is-disabled'}`}>
           {PAYMENT_METHODS.map(item => <div className="w2t-setting-switch-row" key={item.key}><span>{item.label}</span><Toggle label={item.label} checked={payments.methods[item.key]} disabled={saving || !payments.enabled} onChange={value => updateMethods(item.key, value)} /></div>)}
         </div>
-        <div className="w2t-payment-provider-status"><span className={payments.provider_configured ? 'is-connected' : ''} />{payments.provider_configured ? 'Payment provider configured' : 'Payment provider not connected'}<small>Provider onboarding and activation are managed by the System Administrator.</small></div>
-      </section>}
+      </section><OwnerPayMongoOnboardingCard tenantId={tenantId} /></>}
       {canSave && <div className="w2t-settings-actions"><button type="submit" disabled={saving}>{saveLabel}</button></div>}
     </form>
     {confirmOpen && <div className="w2t-settings-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="w2t-confirm-title"><div className="w2t-settings-confirm-modal">
