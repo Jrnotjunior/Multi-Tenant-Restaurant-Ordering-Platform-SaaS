@@ -285,7 +285,6 @@ export function Storefront({ baseUrl, requestedSlug }: {
           <span className="sf-hero-spark sf-spark-one">✦</span>
           <span className="sf-hero-spark sf-spark-two">✳</span>
           <div className="sf-hero-plate"><span>🍗</span></div>
-          <span className="sf-hero-sticker">Made with<br/>extra love <span>♥</span></span>
         </div>
       </section>
 
