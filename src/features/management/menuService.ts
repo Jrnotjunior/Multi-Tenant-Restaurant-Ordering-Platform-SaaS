@@ -5,6 +5,7 @@ export type Branch = {id:string;tenant_id:string;slug:string;name:string;is_acti
 export type Brand = {
   tenant_id:string;default_branch_id:string;display_name:string;tagline:string;
   hero_heading:string;hero_emphasis:string;primary_color:string;
+  logo_path:string|null;font_family:'modern'|'rounded'|'classic';
   status:'draft'|'published'|'disabled';
 };
 export type Category = {id:string;tenant_id:string;name:string;is_published:boolean;sort_order:number};
@@ -51,7 +52,7 @@ export async function loadOwnerData(tenant:Tenant):Promise<OwnerData> {
   const db=requireClient();
   const [branches,brand,categories,items,assignments,groups,options]=await Promise.all([
     db.from('branches').select('id,tenant_id,slug,name,is_active').eq('tenant_id',tenant.id),
-    db.from('tenant_storefronts').select('tenant_id,default_branch_id,display_name,tagline,hero_heading,hero_emphasis,primary_color,status')
+    db.from('tenant_storefronts').select('tenant_id,default_branch_id,display_name,tagline,hero_heading,hero_emphasis,primary_color,logo_path,font_family,status')
       .eq('tenant_id',tenant.id).single(),
     db.from('menu_categories').select('id,tenant_id,name,is_published,sort_order').eq('tenant_id',tenant.id)
       .order('sort_order').order('name'),
@@ -73,7 +74,7 @@ export async function loadOwnerData(tenant:Tenant):Promise<OwnerData> {
   };
 }
 
-export async function saveBrand(tenantId:string,values:Pick<Brand,'display_name'|'tagline'|'hero_heading'|'hero_emphasis'|'primary_color'>) {
+export async function saveBrand(tenantId:string,values:Pick<Brand,'display_name'|'tagline'|'hero_heading'|'hero_emphasis'|'primary_color'|'font_family'>) {
   const db=requireClient();
   const {data,error}=await db.from('tenant_storefronts').update({...values,updated_at:new Date().toISOString()})
     .eq('tenant_id',tenantId).select('tenant_id').single();
@@ -88,6 +89,34 @@ export async function setPublication(tenantId:string,publish:boolean) {
   check(error);
   if(!data) throw new Error('Publication update was not applied.');
 }
+
+export async function uploadStorefrontLogo(tenantId:string,file:File):Promise<void> {
+  const db=requireClient();
+  const mimeExtension:Record<string,string>={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
+  if(!/^[0-9a-f-]{36}$/.test(tenantId)||!mimeExtension[file.type]||file.size<=0||file.size>2*1024*1024) {
+    throw new Error('Choose a JPEG, PNG or WebP logo up to 2 MB.');
+  }
+  const path=tenantId+'/'+crypto.randomUUID()+'.'+mimeExtension[file.type];
+  const {error:uploadError}=await db.storage.from('storefront-logos').upload(path,file,{
+    contentType:file.type,upsert:false,cacheControl:'3600',
+  });
+  check(uploadError);
+  const {data,error}=await db.from('tenant_storefronts')
+    .update({logo_path:path,updated_at:new Date().toISOString()})
+    .eq('tenant_id',tenantId).select('tenant_id').single();
+  check(error);
+  if(!data)throw new Error('Logo uploaded but could not be attached to this storefront.');
+}
+
+export async function clearStorefrontLogo(tenantId:string):Promise<void> {
+  const db=requireClient();
+  const {data,error}=await db.from('tenant_storefronts')
+    .update({logo_path:null,updated_at:new Date().toISOString()})
+    .eq('tenant_id',tenantId).select('tenant_id').single();
+  check(error);
+  if(!data)throw new Error('Storefront logo could not be cleared.');
+}
+
 export async function createCategory(tenantId:string,name:string) {
   const db=requireClient();
   const {data,error}=await db.from('menu_categories')
