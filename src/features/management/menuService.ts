@@ -10,15 +10,24 @@ export type Brand = {
 export type Category = {id:string;tenant_id:string;name:string;is_published:boolean;sort_order:number};
 export type Product = {
   id:string;tenant_id:string;category_id:string;name:string;description:string;
+  image_path:string|null;
   price_centavos:number;status:'draft'|'published'|'archived';is_popular:boolean;sort_order:number;
 };
 export type BranchProduct = {
   tenant_id:string;branch_id:string;item_id:string;is_available:boolean;
   price_override_centavos:number|null;
 };
+export type ModifierGroupRow = {
+  id:string;tenant_id:string;item_id:string;name:string;
+  min_select:number;max_select:number;is_active:boolean;sort_order:number;
+};
+export type ModifierOptionRow = {
+  id:string;tenant_id:string;item_id:string;group_id:string;
+  name:string;price_centavos:number;is_active:boolean;sort_order:number;
+};
 export type OwnerData = {
   tenant:Tenant;branches:Branch[];brand:Brand;categories:Category[];items:Product[];
-  assignments:BranchProduct[];
+  assignments:BranchProduct[];groups:ModifierGroupRow[];options:ModifierOptionRow[];
 };
 function requireClient() {
   if (!supabase) throw new Error('Supabase client is not configured.');
@@ -40,22 +49,27 @@ export async function ownerTenantChoices():Promise<Tenant[]> {
 }
 export async function loadOwnerData(tenant:Tenant):Promise<OwnerData> {
   const db=requireClient();
-  const [branches,brand,categories,items,assignments]=await Promise.all([
+  const [branches,brand,categories,items,assignments,groups,options]=await Promise.all([
     db.from('branches').select('id,tenant_id,slug,name,is_active').eq('tenant_id',tenant.id),
     db.from('tenant_storefronts').select('tenant_id,default_branch_id,display_name,tagline,hero_heading,hero_emphasis,primary_color,status')
       .eq('tenant_id',tenant.id).single(),
     db.from('menu_categories').select('id,tenant_id,name,is_published,sort_order').eq('tenant_id',tenant.id)
       .order('sort_order').order('name'),
-    db.from('menu_items').select('id,tenant_id,category_id,name,description,price_centavos,status,is_popular,sort_order')
+    db.from('menu_items').select('id,tenant_id,category_id,name,description,image_path,price_centavos,status,is_popular,sort_order')
       .eq('tenant_id',tenant.id).order('sort_order').order('name'),
     db.from('branch_menu_items').select('tenant_id,branch_id,item_id,is_available,price_override_centavos')
       .eq('tenant_id',tenant.id),
+    db.from('menu_modifier_groups').select('id,tenant_id,item_id,name,min_select,max_select,is_active,sort_order')
+      .eq('tenant_id',tenant.id).order('sort_order').order('name'),
+    db.from('menu_modifier_options').select('id,tenant_id,item_id,group_id,name,price_centavos,is_active,sort_order')
+      .eq('tenant_id',tenant.id).order('sort_order').order('name'),
   ]);
-  for(const res of [branches,brand,categories,items,assignments]) check(res.error);
+  for(const res of [branches,brand,categories,items,assignments,groups,options]) check(res.error);
   if(!brand.data) throw new Error('Storefront configuration is missing.');
   return {
     tenant,branches:branches.data??[],brand:brand.data as Brand,
     categories:categories.data??[],items:items.data??[],assignments:assignments.data??[],
+    groups:groups.data??[],options:options.data??[],
   };
 }
 
@@ -168,4 +182,63 @@ export async function updateOwnerBranch(
   });
   check(error);
   if(data!==true)throw new Error('Branch change was not applied.');
+}
+
+
+export async function createModifierGroup(tenantId:string,itemId:string,name:string,min:number,max:number) {
+ const db=requireClient();
+ const {data,error}=await db.from('menu_modifier_groups').insert({
+   tenant_id:tenantId,item_id:itemId,name:name.trim(),
+   min_select:min,max_select:max,is_active:false,
+ }).select('id').single();
+ check(error);
+ if(!data)throw Error('Modifier group was not created.');
+}
+export async function changeModifierGroup(tenantId:string,id:string,active:boolean) {
+ const db=requireClient();
+ const {data,error}=await db.from('menu_modifier_groups')
+   .update({is_active:active}).eq('tenant_id',tenantId).eq('id',id).select('id').single();
+ check(error);
+ if(!data)throw Error('Modifier group was not updated.');
+}
+export async function createModifierOption(tenantId:string,itemId:string,groupId:string,name:string,price:number) {
+ const db=requireClient();
+ const {data,error}=await db.from('menu_modifier_options').insert({
+  tenant_id:tenantId,item_id:itemId,group_id:groupId,name:name.trim(),
+  price_centavos:price,is_active:false,
+ }).select('id').single();
+ check(error);
+ if(!data)throw Error('Modifier option was not created.');
+}
+export async function changeModifierOption(tenantId:string,id:string,active:boolean) {
+ const db=requireClient();
+ const {data,error}=await db.from('menu_modifier_options')
+  .update({is_active:active}).eq('tenant_id',tenantId).eq('id',id).select('id').single();
+ check(error);
+ if(!data)throw Error('Modifier option was not updated.');
+}
+
+/** Public images are individually named; no overwrite/delete permission is granted. */
+export async function uploadMenuPhoto(tenantId:string,itemId:string,file:File) {
+ const db=requireClient();
+ const mimeExtension:{[key:string]:string}={
+  'image/jpeg':'jpg','image/png':'png','image/webp':'webp',
+ };
+ if(!mimeExtension[file.type]||file.size<=0||file.size>3*1024*1024) {
+  throw new Error('Select a JPEG, PNG or WebP image up to 3 MB.');
+ }
+ const path=tenantId+'/'+itemId+'/'+crypto.randomUUID()+'.'+mimeExtension[file.type];
+ const {error:uploadError}=await db.storage.from('menu-images').upload(path,file,{
+  contentType:file.type,upsert:false,cacheControl:'3600',
+ });
+ check(uploadError);
+ const {data,error}=await db.from('menu_items').update({image_path:path})
+  .eq('tenant_id',tenantId).eq('id',itemId).select('id').single();
+ check(error);
+ if(!data)throw Error('Image uploaded but could not be attached. Contact support to clean up the unused file.');
+}
+export function publicMenuPhoto(path:string|null):string|null {
+ if(!path||!supabase)return null;
+ if(!/^[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.(?:jpg|jpeg|png|webp)$/.test(path))return null;
+ return supabase.storage.from('menu-images').getPublicUrl(path).data.publicUrl;
 }
