@@ -16,6 +16,7 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
   const [success, setSuccess] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const [tenantLogo, setTenantLogo] = useState<string | null>(null);
+  const [resolvedRestaurantSlug, setResolvedRestaurantSlug] = useState<string | null>(restaurantSlug);
   const [tenantName, setTenantName] = useState<string | null>(null);
   const isSignUp = mode === 'sign-up';
   const passwordRules = [
@@ -27,14 +28,19 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
   ];
   const passwordMeetsStandard = passwordRules.every(rule => rule.valid);
   const base = normalizeAppBase(baseUrl);
-  const backToMenu = restaurantSlug ? restaurantMenuPath(restaurantSlug, baseUrl) : base;
+  const backToMenu = resolvedRestaurantSlug ? restaurantMenuPath(resolvedRestaurantSlug, baseUrl) : base;
 
   useEffect(() => {
     let active = true;
+    let slug = restaurantSlug;
+    if (!slug) {
+      try { slug = window.sessionStorage.getItem('web2table:customer-auth-restaurant'); } catch { /* Storage may be unavailable. */ }
+    }
+    setResolvedRestaurantSlug(slug && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ? slug : null);
     setTenantLogo(null);
     setTenantName(null);
-    if (!restaurantSlug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(restaurantSlug)) return () => { active = false; };
-    void loadPublishedMenu(restaurantSlug).then(catalog => {
+    if (!slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return () => { active = false; };
+    void loadPublishedMenu(slug).then(catalog => {
       if (active && catalog && !catalog.sample) {
         setTenantLogo(catalog.restaurant.logoUrl);
         setTenantName(catalog.restaurant.name);
@@ -149,7 +155,7 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
         <button type="submit" disabled={busy}>{busy ? 'Please wait…' : resetMode ? 'Send reset link' : isSignUp ? 'Create account' : 'Sign in'}</button>
       </form>
       <p className="sf-auth-switch">
-        {resetMode ? <button className="sf-auth-text-button" type="button" onClick={() => { setResetMode(false); setMessage(''); setSuccess(false); }}>Back to sign in</button> : <>{isSignUp ? 'Already have an account? ' : "Don't have an account? "}<a href={base + (isSignUp ? 'account/sign-in' : 'account/sign-up') + (restaurantSlug ? '?restaurant=' + encodeURIComponent(restaurantSlug) : '')}>{isSignUp ? 'Sign in' : 'Sign up'}</a></>}
+        {resetMode ? <button className="sf-auth-text-button" type="button" onClick={() => { setResetMode(false); setMessage(''); setSuccess(false); }}>Back to sign in</button> : <>{isSignUp ? 'Already have an account? ' : "Don't have an account? "}<a href={base + (isSignUp ? 'account/sign-in' : 'account/sign-up') + (resolvedRestaurantSlug ? '?restaurant=' + encodeURIComponent(resolvedRestaurantSlug) : '')}>{isSignUp ? 'Sign in' : 'Sign up'}</a></>}
       </p>
       <p className="sf-auth-legal">By continuing, you agree to the restaurant's applicable terms and privacy policy.</p>
     </section>
