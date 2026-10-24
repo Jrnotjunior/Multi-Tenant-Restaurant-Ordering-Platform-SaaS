@@ -108,6 +108,13 @@ export async function uploadStorefrontLogo(tenantId:string,file:File):Promise<vo
   if(!data)throw new Error('Logo uploaded but could not be attached to this storefront.');
 }
 
+
+export function publicStorefrontLogo(path:string|null):string|null {
+  if(!path||!supabase)return null;
+  if(!/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(?:jpg|jpeg|png|webp)$/.test(path))return null;
+  return supabase.storage.from('storefront-logos').getPublicUrl(path).data.publicUrl;
+}
+
 export async function clearStorefrontLogo(tenantId:string):Promise<void> {
   const db=requireClient();
   const {data,error}=await db.from('tenant_storefronts')
