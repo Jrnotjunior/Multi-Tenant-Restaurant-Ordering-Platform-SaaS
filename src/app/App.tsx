@@ -38,7 +38,7 @@ export function App() {
   // The homepage of a restaurant ordering site is its menu, not an app dashboard.
   // For the public preview, both / and /order display a clearly labeled sample restaurant.
   if (view === 'home' || view === 'order') {
-    return <Storefront baseUrl={baseUrl} requestedSlug={storefrontSlugFromPath(pathname, baseUrl)} />;
+    return <Storefront key={storefrontSlugFromPath(pathname, baseUrl) ?? 'sample'} baseUrl={baseUrl} requestedSlug={storefrontSlugFromPath(pathname, baseUrl)} />;
   }
 
   const details = protectedViews[view];

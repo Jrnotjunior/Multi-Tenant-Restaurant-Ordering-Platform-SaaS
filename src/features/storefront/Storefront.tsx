@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { cartCount, cartLines, cartSubtotal, updateCart, type Cart } from './cart';
-import { categories, demoMenu, demoRestaurant, filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
+import { demoRestaurant, filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
+import { loadPublishedMenu, sampleCatalog, type StorefrontCatalog } from './publishedMenu';
 import { normalizeAppBase, restaurantMenuPath } from '../../app/routes';
 import './storefront.css';
 
@@ -33,11 +34,11 @@ function QuantityControl({ itemId, quantity, change }: {
   </div>;
 }
 
-function CartContents({ cart, change, close }: {
-  cart: Cart; change: (id: string, delta: number) => void; close?: () => void;
+function CartContents({ cart, menu, change, close }: {
+  cart: Cart; menu: readonly MenuItem[]; change: (id: string, delta: number) => void; close?: () => void;
 }) {
-  const lines = cartLines(cart);
-  const count = cartCount(cart);
+  const lines = cartLines(cart, menu);
+  const count = cartCount(cart, menu);
   return <>
     {count === 0 ? <div className="sf-cart-empty">
       <div className="sf-cart-empty-icon"><BagIcon /></div>
@@ -57,7 +58,7 @@ function CartContents({ cart, change, close }: {
         </div>)}
       </div>
       <div className="sf-price-breakdown">
-        <div><span>Subtotal</span><strong>{peso(cartSubtotal(cart))}</strong></div>
+        <div><span>Subtotal</span><strong>{peso(cartSubtotal(cart, menu))}</strong></div>
         <div><span>Delivery fee</span><span>At checkout</span></div>
       </div>
       <button type="button" className="sf-checkout-disabled" disabled>Checkout coming soon <ArrowIcon /></button>
@@ -89,14 +90,37 @@ function MenuCard({ item, quantity, add }: { item: MenuItem; quantity: number; a
 export function Storefront({ baseUrl, requestedSlug }: {
   baseUrl: string; requestedSlug: string | null;
 }) {
+  const isSample = requestedSlug === null || requestedSlug === demoRestaurant.slug;
+  const [remoteCatalog, setRemoteCatalog] = useState<StorefrontCatalog | null>(null);
+  const [loadStatus, setLoadStatus] = useState<'loading'|'ready'|'unavailable'>(
+    isSample ? 'ready' : 'loading'
+  );
   const [category, setCategory] = useState<Category>('All');
   const [query, setQuery] = useState('');
   const [cart, setCart] = useState<Cart>({});
   const [cartOpen, setCartOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const results = useMemo(() => filterMenu(demoMenu, category, query), [category, query]);
-  const count = cartCount(cart);
-  const subtotal = cartSubtotal(cart);
+
+  useEffect(() => {
+    let active = true;
+    if (isSample) { setLoadStatus('ready'); return; }
+    setLoadStatus('loading');
+    setRemoteCatalog(null);
+    void loadPublishedMenu(requestedSlug ?? '').then((result) => {
+      if (!active) return;
+      setRemoteCatalog(result);
+      setLoadStatus(result ? 'ready' : 'unavailable');
+    }).catch(() => { if(active) setLoadStatus('unavailable'); });
+    return () => { active = false; };
+  }, [requestedSlug, isSample]);
+
+  const catalog = isSample ? sampleCatalog : remoteCatalog;
+  const menu = catalog?.menu ?? [];
+  const categories = catalog?.categories ?? ['All'];
+  const restaurant = catalog?.restaurant ?? sampleCatalog.restaurant;
+  const results = useMemo(() => filterMenu(menu, category, query), [menu, category, query]);
+  const count = cartCount(cart, menu);
+  const subtotal = cartSubtotal(cart, menu);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -105,24 +129,34 @@ export function Storefront({ baseUrl, requestedSlug }: {
     if (!cartOpen && dialog.open) dialog.close();
   }, [cartOpen]);
 
-  const change = (itemId: string, delta: number) => setCart((previous) => updateCart(previous, itemId, delta));
-  const menuUrl = restaurantMenuPath(demoRestaurant.slug, baseUrl);
+  const change = (itemId: string, delta: number) =>
+    setCart((previous) => updateCart(previous, itemId, delta, menu));
+  const menuUrl = restaurantMenuPath(restaurant.slug, baseUrl);
 
-  if (requestedSlug !== null && requestedSlug !== demoRestaurant.slug) {
+  if (!catalog || loadStatus !== 'ready') {
     return <div className="sf-storefront">
-      <header className="sf-header"><a className="sf-logo" href={normalizeAppBase(baseUrl)}><span className="sf-logo-mark">W2T</span><span>Web2Table</span></a></header>
-      <main className="sf-unavailable"><span className="sf-empty-art">🍽️</span><h1>Restaurant menu unavailable</h1><p>We could not find a published menu for this restaurant. Please check the restaurant link.</p><a href={menuUrl} className="sf-back-link">View the sample menu <ArrowIcon /></a></main>
+      <header className="sf-header"><a className="sf-logo" href={normalizeAppBase(baseUrl)}>
+        <span className="sf-logo-mark">W2T</span><span>Web2Table</span></a></header>
+      <main className="sf-unavailable" role="status">
+        <span className="sf-empty-art">🍽️</span>
+        <h1>{loadStatus === 'loading' ? 'Loading restaurant menu…' : 'Restaurant menu unavailable'}</h1>
+        <p>{loadStatus === 'loading'
+          ? 'Checking for a published restaurant menu.'
+          : 'This restaurant has no public menu available. Check the restaurant link or try again later.'}</p>
+        <a href={normalizeAppBase(baseUrl)} className="sf-back-link">
+          View sample menu <ArrowIcon /></a>
+      </main>
     </div>;
   }
 
-  return <div className="sf-storefront">
+  return <div className="sf-storefront" style={{ '--sf-red':restaurant.primaryColor } as CSSProperties}>
     <a className="sf-skip-link" href="#sf-menu">Skip to menu</a>
-    <div className="sf-demo-banner"><span className="sf-demo-dot" />INTERACTIVE STOREFRONT PREVIEW <span className="sf-demo-banner-hide">· Sample menu and prices — no live orders</span></div>
+    <div className="sf-demo-banner"><span className="sf-demo-dot" />{catalog.sample ? 'SAMPLE RESTAURANT MENU' : 'PUBLISHED RESTAURANT MENU'} <span className="sf-demo-banner-hide">· Checkout not yet available</span></div>
     <header className="sf-header">
       <div className="sf-header-inner">
-        <a href={normalizeAppBase(baseUrl)} className="sf-logo" aria-label="Baryo Kitchen demo menu">
-          <span className="sf-logo-mark">BK</span>
-          <span className="sf-logo-name"><strong>{demoRestaurant.name}</strong><small>powered by <b>Web2Table</b></small></span>
+        <a href={normalizeAppBase(baseUrl)} className="sf-logo" aria-label={restaurant.name + " menu"}>
+          <span className="sf-logo-mark">{restaurant.initials}</span>
+          <span className="sf-logo-name"><strong>{restaurant.name}</strong><small>powered by <b>Web2Table</b></small></span>
         </a>
         <nav className="sf-header-actions" aria-label="Store navigation">
           <a className="sf-menu-link" href="#sf-menu">Explore menu</a>
@@ -138,8 +172,8 @@ export function Storefront({ baseUrl, requestedSlug }: {
       <section className="sf-hero" aria-labelledby="sf-hero-title">
         <div className="sf-hero-copy">
           <span className="sf-hero-eyebrow"><span aria-hidden="true">✦</span> MADE FRESH. MADE FOR YOU.</span>
-          <h1 id="sf-hero-title">Good food.<br/><em>Great cravings.</em></h1>
-          <p>All your comfort food favorites, ready to make your day a little better. Pick what you love and build your basket.</p>
+          <h1 id="sf-hero-title">{restaurant.heroHeading}<br/><em>{restaurant.heroEmphasis}</em></h1>
+          <p>{restaurant.tagline}</p>
           <a href="#sf-menu" className="sf-hero-action">Explore the menu <ArrowIcon/></a>
         </div>
         <div className="sf-hero-decor" aria-hidden="true">
@@ -154,14 +188,14 @@ export function Storefront({ baseUrl, requestedSlug }: {
 
       <section className="sf-info-strip" aria-label="Restaurant information">
         <div><span className="sf-info-icon" aria-hidden="true">🛵</span><div><strong>Delivery only</strong><small>Made to enjoy at home</small></div></div>
-        <div><span className="sf-info-icon" aria-hidden="true">📍</span><div><strong>Sample branch</strong><small>Demo location · Philippines</small></div></div>
+        <div><span className="sf-info-icon" aria-hidden="true">📍</span><div><strong>{restaurant.branchName}</strong><small>Philippines · Delivery only</small></div></div>
         <div><span className="sf-info-icon" aria-hidden="true">✨</span><div><strong>Freshly made</strong><small>Explore our favorites</small></div></div>
       </section>
 
       <div className="sf-layout" id="sf-menu">
         <div className="sf-catalog">
           <div className="sf-section-heading">
-            <div><span className="sf-section-kicker">THE GOOD STUFF</span><h2>What are you craving?</h2><p>Find your next favorite from our sample menu.</p></div>
+            <div><span className="sf-section-kicker">THE GOOD STUFF</span><h2>What are you craving?</h2><p>{catalog.sample ? 'Find your next favorite from our sample menu.' : 'Browse the published restaurant menu.'}</p></div>
             <span className="sf-menu-count">{results.length} {results.length === 1 ? 'item' : 'items'}</span>
           </div>
           <div className="sf-search-wrap">
@@ -179,14 +213,14 @@ export function Storefront({ baseUrl, requestedSlug }: {
 
         <aside className="sf-desktop-cart" aria-label="Your basket">
           <div className="sf-desktop-cart-header"><div><BagIcon/><strong>Your basket</strong></div><span>{count} {count === 1 ? 'item' : 'items'}</span></div>
-          <CartContents cart={cart} change={change}/>
+          <CartContents cart={cart} menu={menu} change={change}/>
         </aside>
       </div>
     </main>
 
     <footer className="sf-footer">
       <div className="sf-footer-inner">
-        <div><strong>{demoRestaurant.name}</strong><p>Sample storefront · No real restaurant, menu, or transaction data.</p></div>
+        <div><strong>{restaurant.name}</strong><p>{catalog.sample ? 'Sample storefront · No real restaurant or transaction data.' : 'Published restaurant menu · Checkout not yet available.'}</p></div>
         <div className="sf-footer-links"><a href={menuUrl}>Restaurant menu link</a><a href={normalizeAppBase(baseUrl) + 'restaurant'}>Restaurant workspace</a><a href={normalizeAppBase(baseUrl) + 'admin'}>System admin</a></div>
         <small>Powered by Web2Table</small>
       </div>
@@ -199,7 +233,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
     </div>}
     <dialog ref={dialogRef} className="sf-basket-dialog" onClose={() => setCartOpen(false)} aria-labelledby="sf-dialog-heading">
       <div className="sf-dialog-top"><div><span className="sf-section-kicker">YOUR ORDER</span><h2 id="sf-dialog-heading">Your basket <span>({count})</span></h2></div><button type="button" className="sf-close" onClick={() => setCartOpen(false)} aria-label="Close basket">×</button></div>
-      <CartContents cart={cart} change={change} close={() => setCartOpen(false)}/>
+      <CartContents cart={cart} menu={menu} change={change} close={() => setCartOpen(false)}/>
     </dialog>
     <span className="sf-visually-hidden" aria-live="polite" aria-atomic="true">{count} items in basket, subtotal {peso(subtotal)}</span>
   </div>;

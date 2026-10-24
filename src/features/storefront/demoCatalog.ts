@@ -1,9 +1,9 @@
 // Illustrative restaurant data for the UI preview only.
 // Future tenant websites must load a verified, published menu from a trusted backend.
-export type Category = 'All' | 'Rice Meals' | 'Burgers' | 'Sides' | 'Drinks' | 'Desserts';
+export type Category = string;
 export type MenuItem = Readonly<{
   id: string;
-  category: Exclude<Category, 'All'>;
+  category: string;
   name: string;
   description: string;
   priceCentavos: number;
