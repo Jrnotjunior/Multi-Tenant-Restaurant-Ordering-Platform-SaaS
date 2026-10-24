@@ -13,7 +13,7 @@ const details = {
   deliveryNotes: 'Near the blue gate',
 };
 
-function build(_legacySample: boolean, cart: Cart = {}, customized: CustomCart = {}, input = details) {
+function build(cart: Cart = {}, customized: CustomCart = {}, input = details) {
   return buildCheckoutReadiness({
     slug: 'restaurant-alpha',
     branchSlug: 'main',
@@ -25,36 +25,36 @@ function build(_legacySample: boolean, cart: Cart = {}, customized: CustomCart =
 }
 
 describe('checkout readiness boundary', () => {
-  it('never enables submission for sample storefront data', () => {
+  it('validates basket details but never claims an order was submitted', () => {
     const cart = updateCart({}, item.id, 1, menu);
-    const result = build(true, cart);
-    expect(result.ready).toBe(false);
-    expect(result.reason).toContain('sample menu');
+    const result = build(cart);
+    expect(result.ready).toBe(true);
+    expect(result.reason).toContain('No order has been placed');
   });
 
   it('requires a valid non-empty basket and whole-centavo positive totals', () => {
-    expect(build(false).ready).toBe(false);
+    expect(build().ready).toBe(false);
     const cart = updateCart({}, item.id, 2, menu);
-    const result = build(false, cart);
+    const result = build(cart);
     expect(result.subtotalCentavos).toBe(item.priceCentavos * 2);
     expect(result.ready).toBe(true);
     expect(result.reason).toContain('not available yet');
   });
 
   it('includes valid customized variants and option prices in the estimate', () => {
-    const selected = { 'sample-size': ['sample-large'], 'sample-extras': ['sample-egg'] };
+    const selected = { size: ['large'], extras: ['egg'] };
     const customCart = addCustom({}, item, selected);
-    const result = build(false, {}, customCart);
+    const result = build({}, customCart);
     expect(result.subtotalCentavos).toBe(item.priceCentavos + 4900 + 2500);
     expect(result.ready).toBe(true);
   });
 
   it('rejects malformed restaurant/branch slugs and incomplete delivery details', () => {
     const cart = updateCart({}, item.id, 1, menu);
-    expect(build(false, cart, {}, {...details, customerName: 'A'}).ready).toBe(false);
+    expect(build(cart, {}, {...details, customerName: 'A'}).ready).toBe(false);
     expect(build(false, cart, {}, {...details, phone: 'call me'}).ready).toBe(false);
     expect(build(false, cart, {}, {...details, deliveryAddress: 'short'}).ready).toBe(false);
     expect(build(false, cart, {}, {...details, deliveryNotes: 'x'.repeat(301)}).ready).toBe(false);
-    expect(build(false, cart, {}, details).reason).toContain('not available yet');
+    expect(build(cart, {}, details).reason).toContain('not available yet');
   });
 });
