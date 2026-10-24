@@ -82,3 +82,12 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 
 /* Center authenticator QR code in the MFA setup card */
 .onboarding-card .auth-qr{display:block;margin:18px auto 22px}
+
+
+/* Keep sign out aligned with the primary MFA action width. */
+.onboarding-card .onboarding-signout {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 12px;
+}
