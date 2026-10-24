@@ -45,7 +45,7 @@ export function customLines(cart:CustomCart,menu:readonly MenuItem[]) {
     const allOptions=groups.flatMap(g=>g.options);
     const opts=line.optionIds.map(id=>allOptions.find(o=>o.id===id));
     if(opts.some(o=>!o))return [];
-    const reconstructed:Selection={};
+    const reconstructed:Record<string,string[]>={};
     for(const group of groups) reconstructed[group.id]=line.optionIds.filter(id=>group.options.some(o=>o.id===id));
     if(!validateSelection(groups,reconstructed))return [];
     const options=opts.filter((o):o is NonNullable<typeof o>=>!!o);
