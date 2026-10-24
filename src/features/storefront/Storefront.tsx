@@ -394,10 +394,6 @@ export function Storefront({ baseUrl, requestedSlug }: {
           : <div className="sf-no-results"><span aria-hidden="true">🔎</span><h3>Nothing on the menu matched</h3><p>Try another search or choose a different category.</p><button type="button" onClick={() => {setQuery('');setCategory('All');}}>Clear filters</button></div>}
         </div>
 
-        <aside className="sf-desktop-cart" aria-label="Your basket">
-          <div className="sf-desktop-cart-header"><div><BagIcon/><strong>Your basket</strong></div><span>{count} {count === 1 ? 'item' : 'items'}</span></div>
-          <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} onCheckout={() => { setCheckoutMessage(''); setCheckoutOpen(true); setCartOpen(false); }}/>
-        </aside>
       </div>
     </main>
 
