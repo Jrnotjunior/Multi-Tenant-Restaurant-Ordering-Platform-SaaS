@@ -144,3 +144,13 @@
 .sf-storefront .sf-mobile-cart-bar button,.sf-storefront .sf-back-link,
 .sf-storefront .sf-continue{background:var(--sf-red)}
 .sf-storefront .sf-hero{background:linear-gradient(125deg,#38262b,var(--sf-red))}
+
+
+/* Mobile-first, accessible branch chooser. */
+.sf-branch-selector{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:17px 22px;border:1px solid #e9ddd7;border-radius:15px;margin:-31px 0 45px;background:#fff;box-shadow:0 5px 20px #39271d08}
+.sf-branch-selector h2{margin:5px 0;color:#30252a;letter-spacing:-.03em;font-size:19px;line-height:1.2}
+.sf-branch-selector p{margin:5px 0 0;color:#837774;font-size:11px;line-height:1.5}
+.sf-branch-selector label{display:flex;flex-direction:column;gap:6px;color:#5d514e;font-size:11px;font-weight:750;min-width:195px}
+.sf-branch-selector select{height:46px;border-radius:10px;background:#faf8f4;color:#30282a;border:1px solid #dcd2cc;padding:0 12px;min-width:0;font-size:14px;font-weight:700}
+.sf-branch-selector select:focus-visible{outline:3px solid #c53e50;outline-offset:2px}
+@media(max-width:680px){.sf-branch-selector{flex-direction:column;align-items:stretch;margin:-17px 0 30px;padding:16px;gap:14px}.sf-branch-selector h2{font-size:17px}.sf-branch-selector label{width:100%}.sf-branch-selector select{width:100%;height:49px}}

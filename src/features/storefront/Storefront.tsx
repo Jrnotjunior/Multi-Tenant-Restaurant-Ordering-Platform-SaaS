@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { cartCount, cartLines, cartSubtotal, updateCart, type Cart } from './cart';
 import { demoRestaurant, filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
-import { loadPublishedMenu, sampleCatalog, type StorefrontCatalog } from './publishedMenu';
+import { branchSlugFromSearch, getSampleCatalog, loadPublishedMenu, sampleCatalog, type StorefrontCatalog } from './publishedMenu';
 import { normalizeAppBase, restaurantMenuPath } from '../../app/routes';
 import './storefront.css';
 
@@ -91,6 +91,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
   baseUrl: string; requestedSlug: string | null;
 }) {
   const isSample = requestedSlug === null || requestedSlug === demoRestaurant.slug;
+  const [selectedBranch, setSelectedBranch] = useState<string|null>(() => branchSlugFromSearch(window.location.search));
   const [remoteCatalog, setRemoteCatalog] = useState<StorefrontCatalog | null>(null);
   const [loadStatus, setLoadStatus] = useState<'loading'|'ready'|'unavailable'>(
     isSample ? 'ready' : 'loading'
@@ -102,19 +103,30 @@ export function Storefront({ baseUrl, requestedSlug }: {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
+    function syncBranchFromHistory() {
+      setSelectedBranch(branchSlugFromSearch(window.location.search));
+      setCart({});
+      setCategory('All');
+      setCartOpen(false);
+    }
+    window.addEventListener('popstate',syncBranchFromHistory);
+    return () => window.removeEventListener('popstate',syncBranchFromHistory);
+  }, []);
+
+  useEffect(() => {
     let active = true;
     if (isSample) { setLoadStatus('ready'); return; }
     setLoadStatus('loading');
     setRemoteCatalog(null);
-    void loadPublishedMenu(requestedSlug ?? '').then((result) => {
+    void loadPublishedMenu(requestedSlug ?? '',selectedBranch).then((result) => {
       if (!active) return;
       setRemoteCatalog(result);
       setLoadStatus(result ? 'ready' : 'unavailable');
     }).catch(() => { if(active) setLoadStatus('unavailable'); });
     return () => { active = false; };
-  }, [requestedSlug, isSample]);
+  }, [requestedSlug, isSample, selectedBranch]);
 
-  const catalog = isSample ? sampleCatalog : remoteCatalog;
+  const catalog = isSample ? getSampleCatalog(selectedBranch) : remoteCatalog;
   const menu = catalog?.menu ?? [];
   const categories = catalog?.categories ?? ['All'];
   const restaurant = catalog?.restaurant ?? sampleCatalog.restaurant;
@@ -132,6 +144,21 @@ export function Storefront({ baseUrl, requestedSlug }: {
   const change = (itemId: string, delta: number) =>
     setCart((previous) => updateCart(previous, itemId, delta, menu));
   const menuUrl = restaurantMenuPath(restaurant.slug, baseUrl);
+
+  function switchBranch(slug:string) {
+    if(slug === restaurant.branchSlug) return;
+    // The backend is authoritative about active branches. A query parameter
+    // merely chooses a branch and never authorizes a tenant or a payment.
+    if(!catalog?.branches.some(b => b.slug === slug)) return;
+    const url=new URL(window.location.href);
+    url.searchParams.set('branch',slug);
+    window.history.pushState({},'',url.pathname+url.search+url.hash);
+    setSelectedBranch(slug);
+    setCart({});
+    setCartOpen(false);
+    setCategory('All');
+    setQuery('');
+  }
 
   if (!catalog || loadStatus !== 'ready') {
     return <div className="sf-storefront">
@@ -191,6 +218,20 @@ export function Storefront({ baseUrl, requestedSlug }: {
         <div><span className="sf-info-icon" aria-hidden="true">📍</span><div><strong>{restaurant.branchName}</strong><small>Philippines · Delivery only</small></div></div>
         <div><span className="sf-info-icon" aria-hidden="true">✨</span><div><strong>Freshly made</strong><small>Explore our favorites</small></div></div>
       </section>
+
+      {catalog.branches.length > 1 && <section className="sf-branch-selector" aria-label="Choose restaurant branch">
+        <div>
+          <span className="sf-section-kicker">SELECT YOUR BRANCH</span>
+          <h2>Ordering from {restaurant.branchName}</h2>
+          <p>Menus, availability and prices may vary by branch. Switching branches clears your basket.</p>
+        </div>
+        <label>Restaurant branch
+          <select aria-label="Restaurant branch" value={restaurant.branchSlug}
+            onChange={(event)=>switchBranch(event.target.value)}>
+            {catalog.branches.map(branch=><option key={branch.slug} value={branch.slug}>{branch.name}</option>)}
+          </select>
+        </label>
+      </section>}
 
       <div className="sf-layout" id="sf-menu">
         <div className="sf-catalog">
