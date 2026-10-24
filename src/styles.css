@@ -86,7 +86,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 /* Sign-in and existing-account MFA use a single-column layout; the welcome hero is onboarding-only. */
 .privileged-auth-only{grid-template-columns:minmax(0,1fr)}
 
-.workspace-loading{min-height:100vh;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#F7F9FC;color:#101B2F;font-family:var(--font-body,"Inter",sans-serif)}
+.workspace-loading{min-height:100vh;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#F7F9FC;color:#101B2F;font-family:var(--font-body)}
 .workspace-loading-brand{display:flex;align-items:center;gap:10px;font-weight:750;font-size:18px;letter-spacing:-.3px}
 .workspace-loading-mark{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:#101B2F;color:#fff;font-size:12px;letter-spacing:.2px}
 .workspace-loading-indicator{width:156px;height:3px;overflow:hidden;border-radius:999px;background:#DCE3ED}
