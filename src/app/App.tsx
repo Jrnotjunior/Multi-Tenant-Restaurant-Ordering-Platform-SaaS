@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { pathFor, storefrontSlugFromPath, viewForPath, type View } from './routes';
 import { PrivilegedGate } from '../features/auth/PrivilegedGate';
 import { Storefront } from '../features/storefront/Storefront';
-import { StorefrontDirectory } from '../features/storefront/StorefrontDirectory';
 import { AccountAuthPage } from '../features/storefront/AccountAuthPage';
 import { RestaurantWorkspace } from '../features/operations/RestaurantWorkspace';
 
@@ -38,11 +37,10 @@ export function App() {
   if (authMode) return <AccountAuthPage mode={authMode} baseUrl={baseUrl} restaurantSlug={new URLSearchParams(window.location.search).get('restaurant')} />;
 
   // The homepage of a restaurant ordering site is its menu, not an app dashboard.
-  // For the public preview, both / and /order display a clearly labeled sample restaurant.
+  // The root storefront opens the published restaurant menu directly; do not show a separate restaurant directory.
   if (view === 'home' || view === 'order') {
     const requestedSlug = storefrontSlugFromPath(pathname, baseUrl);
-    if (requestedSlug === null) return <StorefrontDirectory baseUrl={baseUrl} />;
-    return <Storefront key={requestedSlug} baseUrl={baseUrl} requestedSlug={requestedSlug} />;
+    return <Storefront key={requestedSlug ?? 'default'} baseUrl={baseUrl} requestedSlug={requestedSlug ?? undefined} />;
   }
 
   // The System Admin lives in its established, separate repository.
