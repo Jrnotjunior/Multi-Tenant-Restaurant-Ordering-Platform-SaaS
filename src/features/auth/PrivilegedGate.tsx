@@ -7,7 +7,8 @@ type Mode = 'admin' | 'restaurant';
 type State = 'checking' | 'signedout' | 'passwordsetup' | 'mfa' | 'authorized' | 'denied' | 'error';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// Cache successful access checks for this browser session to prevent loading flashes on navigation.\nconst authorizedSessionByMode = new Map<string, string>();
+// Cache successful access checks for this browser session to prevent loading flashes on navigation.
+const authorizedSessionByMode = new Map<string, string>();
 
 export function PrivilegedGate({ mode, children }: { mode: Mode; children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
