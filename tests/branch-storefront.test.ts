@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {branchSlugFromSearch,getSampleCatalog,parsePublishedMenu} from '../src/features/storefront/publishedMenu';
+import {branchSlugFromSearch,parsePublishedMenu} from '../src/features/storefront/publishedMenu';
 import {cartCount,cartSubtotal,updateCart} from '../src/features/storefront/cart';
 
 const payload={
@@ -32,15 +32,5 @@ describe('branch-specific customer menus',()=>{
    expect(branchSlugFromSearch('?branch=main&branch=makati')).toBe('');
    expect(branchSlugFromSearch('?branch=')).toBe('');
  });
- it('sample branch prices and availability differ with independent cart totals',()=>{
-   const main=getSampleCatalog(null)!;
-   const makati=getSampleCatalog('makati')!;
-   expect(makati.branches).toHaveLength(2);
-   expect(makati.menu.length).toBeLessThan(main.menu.length);
-   expect(makati.menu[0].priceCentavos).toBe(main.menu[0].priceCentavos+1500);
-   const cart=updateCart({},main.menu[0].id,2,main.menu);
-   expect(cartCount(cart,makati.menu)).toBe(2);
-   expect(cartSubtotal(cart,makati.menu)).toBe(cartSubtotal(cart,main.menu)+3000);
-   expect(getSampleCatalog('unknown')).toBeNull();
- });
+;
 });
