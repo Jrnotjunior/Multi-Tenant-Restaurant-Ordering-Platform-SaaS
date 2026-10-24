@@ -132,6 +132,39 @@ export async function clearStorefrontLogo(tenantId:string):Promise<void> {
   if(!data)throw new Error('Storefront logo could not be cleared.');
 }
 
+/** Match the reference editor: categories are created from the product form and published automatically. */
+export async function getOrCreateMenuCategory(tenantId:string,name:string):Promise<string> {
+  const db=requireClient();
+  const cleanName=name.trim();
+  if(cleanName.length<2||cleanName.length>100) throw new Error('Category name must be between 2 and 100 characters.');
+  const {data:rows,error:lookupError}=await db.from('menu_categories')
+    .select('id,name,is_published').eq('tenant_id',tenantId);
+  check(lookupError);
+  const existing=(rows??[]).find(row=>String(row.name).trim().toLocaleLowerCase()===cleanName.toLocaleLowerCase());
+  if(existing) {
+    if(!existing.is_published) {
+      const {data,error}=await db.from('menu_categories').update({is_published:true})
+        .eq('tenant_id',tenantId).eq('id',existing.id).select('id').single();
+      check(error);
+      if(!data) throw new Error('Category could not be published.');
+    }
+    return existing.id as string;
+  }
+  const {data,error}=await db.from('menu_categories')
+    .insert({tenant_id:tenantId,name:cleanName,is_published:true})
+    .select('id').single();
+  check(error);
+  if(!data) throw new Error('Category was not saved.');
+  return data.id as string;
+}
+
+export async function deleteMenuItem(tenantId:string,itemId:string):Promise<void> {
+  const db=requireClient();
+  const {data,error}=await db.rpc('delete_owner_menu_item',{p_tenant_id:tenantId,p_item_id:itemId});
+  check(error);
+  if(data!==true) throw new Error('Menu item was not deleted.');
+}
+
 export async function createCategory(tenantId:string,name:string) {
   const db=requireClient();
   const {data,error}=await db.from('menu_categories')
@@ -278,8 +311,8 @@ export async function uploadMenuPhoto(tenantId:string,itemId:string,file:File) {
  const mimeExtension:{[key:string]:string}={
   'image/jpeg':'jpg','image/png':'png','image/webp':'webp',
  };
- if(!mimeExtension[file.type]||file.size<=0||file.size>3*1024*1024) {
-  throw new Error('Select a JPEG, PNG or WebP image up to 3 MB.');
+ if(!mimeExtension[file.type]||file.size<=0||file.size>5*1024*1024) {
+  throw new Error('Select a JPEG, PNG or WebP image up to 5 MB.');
  }
  const path=tenantId+'/'+itemId+'/'+crypto.randomUUID()+'.'+mimeExtension[file.type];
  const {error:uploadError}=await db.storage.from('menu-images').upload(path,file,{
