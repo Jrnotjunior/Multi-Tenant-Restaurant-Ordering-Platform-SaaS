@@ -34,7 +34,7 @@ export function App() {
     window.scrollTo(0, 0);
   }
 
-  if (authMode) return <AccountAuthPage mode={authMode} baseUrl={baseUrl} />;
+  if (authMode) return <AccountAuthPage mode={authMode} baseUrl={baseUrl} restaurantSlug={new URLSearchParams(window.location.search).get('restaurant')} />;
 
   // The homepage of a restaurant ordering site is its menu, not an app dashboard.
   // For the public preview, both / and /order display a clearly labeled sample restaurant.
