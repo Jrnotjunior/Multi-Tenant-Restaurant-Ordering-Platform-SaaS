@@ -161,3 +161,6 @@
 .w2t-toggle-small{width:36px;height:21px}
 .w2t-toggle-small>span{width:15px;height:15px}
 .w2t-toggle-small.is-on>span{transform:translateX(15px)}
+
+.owner-workspace-loading{box-sizing:border-box;max-width:none;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;background:#F7F9FC;color:#101B2F}
+.owner-workspace-loading p{margin:0;font-size:.95rem;line-height:1.5;color:#263754}
