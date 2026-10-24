@@ -51,6 +51,43 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
   }, [ownerPage]);
 
   useEffect(() => {
+    if (!supabase || !membership || membership.role !== 'restaurant_owner') return;
+    let active = true;
+    let managedLink: HTMLLinkElement | null = null;
+    const applyFavicon = (url: string | null) => {
+      if (!url) return;
+      let link = document.querySelector<HTMLLinkElement>('link[data-owner-storefront-favicon="true"]');
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        link.dataset.ownerStorefrontFavicon = 'true';
+        document.head.appendChild(link);
+      }
+      link.href = url;
+      managedLink = link;
+    };
+    const loadFavicon = async () => {
+      const { data, error } = await supabase.from('tenant_storefronts')
+        .select('favicon_path').eq('tenant_id', membership.tenant_id).maybeSingle();
+      if (error) throw error;
+      if (!active || !data?.favicon_path) return;
+      applyFavicon(supabase.storage.from('storefront-logos').getPublicUrl(data.favicon_path).data.publicUrl);
+    };
+    const handleFaviconUpdate = (event: Event) => {
+      const detail = (event as CustomEvent<{ tenantId?: string; url?: string }>).detail;
+      if (detail?.tenantId === membership.tenant_id && detail.url) applyFavicon(detail.url);
+    };
+    window.addEventListener('web2table:owner-favicon-updated', handleFaviconUpdate);
+    void loadFavicon().catch(() => {
+      // A missing favicon should not prevent the owner workspace from rendering.
+    });
+    return () => {
+      active = false;
+      window.removeEventListener('web2table:owner-favicon-updated', handleFaviconUpdate);
+    };
+  }, [membership]);
+
+  useEffect(() => {
     let active = true;
     async function loadWorkspace() {
       if (!supabase) {
