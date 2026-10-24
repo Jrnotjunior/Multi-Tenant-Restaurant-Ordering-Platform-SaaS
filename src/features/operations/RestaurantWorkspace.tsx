@@ -67,7 +67,7 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
     return () => { active = false; };
   }, []);
 
-  if (loading) return <main className="op-shell"><p>Loading your role and restaurant access…</p></main>;
+  if (loading) return <main className="op-shell owner-workspace-loading" role="status" aria-live="polite"><p>Loading your workspace…</p></main>;
   if (error) return <main className="op-shell"><p className="op-eyebrow">WORKSPACE UNAVAILABLE</p><h1>We couldn't load your workspace</h1><p className="op-intro" role="alert">{error}</p></main>;
   if (!membership) return <main className="op-shell">
     <p className="op-eyebrow">RESTAURANT WORKSPACE</p><h1>No restaurant assigned yet</h1>
