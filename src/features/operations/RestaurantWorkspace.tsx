@@ -35,25 +35,30 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
         const { data: authData, error: authError } = await supabase.auth.getUser();
         if (authError) throw authError;
         if (!authData.user) throw new Error('Sign in again to access your restaurant workspace.');
-        if (active && cachedWorkspace?.userId !== authData.user.id) setLoading(true);
-        if (active && authData.user.email) setAccountEmail(authData.user.email);
+        const userId = authData.user.id;
+        if (active && cachedWorkspace?.userId !== userId) setLoading(true);
         const { data, error: membershipError } = await supabase
           .from('tenant_memberships').select('tenant_id,role')
-          .eq('user_id', authData.user.id).eq('status', 'active');
+          .eq('user_id', userId).eq('status', 'active');
         if (membershipError) throw membershipError;
         const memberships = (data ?? []) as Membership[];
         const selected = memberships.find(item => item.role === 'restaurant_owner') ?? memberships[0] ?? null;
-        if (!active) return;
-        setMembership(selected);
+        let nextRestaurantName: string | null = null;
         if (selected) {
           const { data: tenant, error: tenantError } = await supabase.from('tenants')
             .select('name').eq('id', selected.tenant_id).maybeSingle();
           if (tenantError) throw tenantError;
-          if (active) setRestaurantName(tenant?.name ?? null);
+          nextRestaurantName = tenant?.name ?? null;
         }
+        if (!active) return;
+        const nextEmail = authData.user.email ?? 'Store Owner';
+        cachedWorkspace = { userId, membership: selected, restaurantName: nextRestaurantName, accountEmail: nextEmail };
+        setMembership(selected);
+        setRestaurantName(nextRestaurantName);
+        setAccountEmail(nextEmail);
+        setError('');
       } catch (reason) {
         if (active) setError(reason instanceof Error ? reason.message : 'Unable to load your restaurant workspace.');
-        if (active) cachedWorkspace = { userId: authData.user.id, membership: selected, restaurantName: selected ? (await supabase.from('tenants').select('name').eq('id', selected.tenant_id).maybeSingle()).data?.name ?? null : null, accountEmail: authData.user.email ?? 'Store Owner' };
       } finally {
         if (active) setLoading(false);
       }
