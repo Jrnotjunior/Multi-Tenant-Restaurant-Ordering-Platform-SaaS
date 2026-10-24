@@ -165,12 +165,27 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
     } catch (err) { setMessage(err instanceof Error ? err.message : 'Authenticator verification failed.'); }
     finally { setBusy(false); }
   }
+  function storefrontSignInUrl() {
+    const base = import.meta.env.BASE_URL.endsWith('/')
+      ? import.meta.env.BASE_URL
+      : import.meta.env.BASE_URL + '/';
+    return new URL('account/sign-in', window.location.origin + base).toString();
+  }
+
   async function logout() {
     if (!client) return;
     clearPendingMfa(client);
     const { error } = await client.auth.signOut();
-    if (error) setMessage(error.message);
-    else { setUser(null); setStatus('signedout'); setMessage(''); }
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+    setUser(null);
+    setStatus('signedout');
+    setMessage('');
+    // Return directly to the storefront's existing sign-in route.
+    // Do not leave users on the internal privileged-access screen.
+    window.location.replace(storefrontSignInUrl());
   }
 
   if (status === 'authorized') return <>{children}{mode === 'admin' && <p className="auth-footer"><button type="button" onClick={() => void logout()}>Sign out</button></p>}</>;
@@ -218,7 +233,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
     </form>}
     {status === 'signedout' && <div className="auth-form">
       <p>Sign in through the Web2Table storefront. After authentication, your verified role and membership determine which workspace you can access.</p>
-      <a className="auth-primary-link" href={new URL('account/sign-in', window.location.origin + (import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/')).toString()}>Continue to storefront sign-in</a>
+      <a className="auth-primary-link" href={storefrontSignInUrl()}>Continue to storefront sign-in</a>
     </div>}
     {status === 'mfa' && flow && flow.kind !== 'ready' && <div>
       {flow.kind === 'enroll' && <div><p>Set up an authenticator app, then enter a six-digit code.</p>
