@@ -15,14 +15,40 @@ type Membership = { tenant_id: string; role: WorkspaceRole };
 type CachedWorkspace = { userId: string; membership: Membership | null; restaurantName: string | null; accountEmail: string };
 let cachedWorkspace: CachedWorkspace | null = null;
 
+const ownerPages = new Set<OwnerPage>([
+  'dashboard', 'orders', 'menu', 'inventory', 'recipes', 'employees',
+  'sales', 'reports', 'loyalty', 'settings', 'branding',
+]);
+
+function ownerPageFromHash(): OwnerPage {
+  const route = window.location.hash.replace(/^#\/?/, '');
+  const match = route.match(/^restaurant\/([^/?#]+)/);
+  const candidate = match?.[1] as OwnerPage | undefined;
+  return candidate && ownerPages.has(candidate) ? candidate : 'orders';
+}
+
 export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
   const [membership, setMembership] = useState<Membership | null>(cachedWorkspace?.membership ?? null);
   const [restaurantName, setRestaurantName] = useState<string | null>(cachedWorkspace?.restaurantName ?? null);
   const [accountEmail, setAccountEmail] = useState(cachedWorkspace?.accountEmail ?? 'Store Owner');
-  const [ownerPage, setOwnerPage] = useState<OwnerPage>('orders');
+  const [ownerPage, setOwnerPage] = useState<OwnerPage>(() => ownerPageFromHash());
+  const [visitedOwnerPages, setVisitedOwnerPages] = useState<Set<OwnerPage>>(() => new Set<OwnerPage>([ownerPageFromHash()]));
   const [orderFilter, setOrderFilter] = useState<'active' | 'all'>('active');
   const [loading, setLoading] = useState(!cachedWorkspace);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const syncOwnerPage = () => {
+      const nextPage = ownerPageFromHash();
+      setOwnerPage(nextPage);
+      setVisitedOwnerPages(current => current.has(nextPage) ? current : new Set(current).add(nextPage));
+    };
+    if (!/^#\/?restaurant\//.test(window.location.hash)) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search + '#restaurant/' + ownerPage);
+    }
+    window.addEventListener('hashchange', syncOwnerPage);
+    return () => window.removeEventListener('hashchange', syncOwnerPage);
+  }, [ownerPage]);
 
   useEffect(() => {
     let active = true;
@@ -80,7 +106,6 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
   }
 
   const signOut = () => { void supabase?.auth.signOut(); };
-  const [visitedOwnerPages, setVisitedOwnerPages] = useState<Set<OwnerPage>>(() => new Set<OwnerPage>(['orders']));
   const navigateOwnerPage = (nextPage: OwnerPage) => {
     setVisitedOwnerPages(current => {
       if (current.has(nextPage)) return current;
@@ -88,7 +113,10 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
       next.add(nextPage);
       return next;
     });
-    setOwnerPage(nextPage);
+    if (ownerPage !== nextPage) {
+      window.history.pushState(null, '', window.location.pathname + window.location.search + '#restaurant/' + nextPage);
+      setOwnerPage(nextPage);
+    }
   };
 
   const renderOwnerPage = (page: OwnerPage) => {
