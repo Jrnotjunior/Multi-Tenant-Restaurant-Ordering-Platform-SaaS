@@ -13,6 +13,10 @@ Production-oriented, multi-tenant SaaS foundation for restaurant self-ordering i
 - Invitation-only privileged accounts with MFA and strict tenant/branch isolation
 - No official tax invoice issuance or statutory accounting functionality
 
+## Typography
+
+Web2Table's only approved brand fonts are **Inter** (interface and body text) and **Manrope** (headings and prominent wordmarks). See [Typography standard](docs/TYPOGRAPHY.md).
+
 ## Local development
 
 Requires Node.js 22+ and npm.
