@@ -6,12 +6,12 @@ GitHub Pages embeds the Web2Table project's public Supabase project URL and an a
 
 Never place the Supabase service-role key, secret key, database password, SMTP password or PayMongo keys in Vite variables. All tenant-owned data must still be guarded by RLS and server validation. A configured public client does not mean onboarding is enabled.
 
-Preview: https://jrnotjunior.github.io/Multi-Tenant-Restaurant-Ordering-Platform-SaaS-/
+Preview: https://jrnotjunior.github.io/Multi-Tenant-Restaurant-Ordering-Platform-SaaS/
 
 ## Supabase Auth configuration for invitations
 
 In the Web2Table project's Authentication > URL Configuration, add the exact approved redirect URL:
-https://jrnotjunior.github.io/Multi-Tenant-Restaurant-Ordering-Platform-SaaS-/restaurant
+https://jrnotjunior.github.io/Multi-Tenant-Restaurant-Ordering-Platform-SaaS/restaurant
 
 When deployed, the server-side APP_INVITE_REDIRECT_URL must match this full URL. Do not add unrestricted wildcard redirects.
 

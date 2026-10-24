@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { pathFor, viewForPath } from '../src/app/routes';
-const base = '/Multi-Tenant-Restaurant-Ordering-Platform-SaaS-/';
+const base = '/Multi-Tenant-Restaurant-Ordering-Platform-SaaS/';
 
 describe('GitHub Pages project-site paths', () => {
   it('uses the repository path for all sections', () => {

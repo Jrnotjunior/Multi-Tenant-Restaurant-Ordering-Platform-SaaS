@@ -3,7 +3,7 @@ import { categories, demoMenu, filterMenu, peso } from '../src/features/storefro
 import { cartCount, cartLines, cartSubtotal, updateCart, MAX_ITEM_QUANTITY } from '../src/features/storefront/cart';
 import { restaurantMenuPath, storefrontSlugFromPath, viewForPath } from '../src/app/routes';
 
-const base = '/Multi-Tenant-Restaurant-Ordering-Platform-SaaS-/';
+const base = '/Multi-Tenant-Restaurant-Ordering-Platform-SaaS/';
 
 describe('mobile-first customer storefront data', () => {
   it('displays a menu by default, with all real demo items', () => {
