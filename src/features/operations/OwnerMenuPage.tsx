@@ -7,14 +7,14 @@ import {
 type Props = { tenantId: string; restaurantName: string | null };
 type ProductForm = { name: string; description: string; price: string; categoryName: string };
 const emptyForm: ProductForm = { name: '', description: '', price: '', categoryName: '' };
-const formatError = (error: unknown) => error instanceof Error ? error.message : 'Unable to save the menu change.';
+const formatError = (error: unknown) => error instanceof Error ? error.message : 'Unable to save the menu change.';\n\n// Reuse the last loaded menu when owners switch workspace sections. Refresh quietly\n// in the background so menu editing doesn't restart with a loading screen each time.\nconst ownerMenuCache = new Map<string, OwnerData>();
 
 export function OwnerMenuPage({ tenantId }: Props) {
-  const [data, setData] = useState<OwnerData | null>(null);
+  const [data, setData] = useState<OwnerData | null>(() => ownerMenuCache.get(tenantId) ?? null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showUnavailable, setShowUnavailable] = useState(true);
   const [searchProduct, setSearchProduct] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !ownerMenuCache.has(tenantId));
   const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -33,7 +33,7 @@ export function OwnerMenuPage({ tenantId }: Props) {
     async function loadMenu() {
       try {
         const next = await loadOwnerDataForTenant(tenantId);
-        if (active) setData(next);
+        ownerMenuCache.set(tenantId, next);\n        if (active) setData(next);
       } catch (reason) {
         if (active) setError(formatError(reason));
       } finally {
@@ -230,7 +230,7 @@ export function OwnerMenuPage({ tenantId }: Props) {
     setError('');
     try {
       await deleteMenuItem(tenantId, product.id);
-      setData((current) => current ? { ...current, items: current.items.filter((item) => item.id !== product.id), assignments: current.assignments.filter((item) => item.item_id !== product.id) } : current);
+      setData((current) => {\n        if (!current) return current;\n        const next = { ...current, items: current.items.filter((item) => item.id !== product.id), assignments: current.assignments.filter((item) => item.item_id !== product.id) };\n        ownerMenuCache.set(tenantId, next);\n        return next;\n      });
     } catch (reason) {
       setError(formatError(reason));
     } finally {
@@ -248,7 +248,7 @@ export function OwnerMenuPage({ tenantId }: Props) {
       <button type="button" onClick={() => {
         setLoading(true);
         setError('');
-        void loadOwnerDataForTenant(tenantId).then((next) => { setData(next); })
+        void loadOwnerDataForTenant(tenantId).then((next) => { ownerMenuCache.set(tenantId, next); setData(next); })
           .catch((reason: unknown) => setError(formatError(reason)))
           .finally(() => setLoading(false));
       }}>Retry</button>
