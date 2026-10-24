@@ -4,7 +4,6 @@ import { OwnerAppShell } from './OwnerAppShell';
 import { OwnerOrdersPage } from './OwnerOrdersPage';
 import { OwnerSectionPage } from './OwnerSectionPage';
 import { ownerNavGroups, type OwnerPage } from './ownerWorkspaceConfig';
-import { OwnerDashboard } from '../management/OwnerDashboard';
 import { supabase } from '../../lib/supabase';
 import './operations.css';
 
@@ -72,8 +71,6 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
   let pageContent;
   if (ownerPage === 'orders') {
     pageContent = <OwnerOrdersPage filter={orderFilter} onFilterChange={setOrderFilter} />;
-  } else if (ownerPage === 'menu' || ownerPage === 'branding' || ownerPage === 'settings') {
-    pageContent = <OwnerDashboard baseUrl={baseUrl} />;
   } else {
     pageContent = <OwnerSectionPage page={ownerPage} restaurantName={restaurantName} onNavigate={setOwnerPage} />;
   }
