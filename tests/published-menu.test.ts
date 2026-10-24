@@ -7,7 +7,12 @@ const published = {
   slug:'restaurant-alpha',name:'Restaurant Alpha',
   tagline:'Fresh food from Restaurant Alpha.',
   heroHeading:'Hungry?',heroEmphasis:'Order your favorites.',
-  primaryColor:'#336699',branchName:'Makati',
+  primaryColor:'#101B2F',branchName:'Makati',
+  websiteColors:{
+    pageBackground:'#F7F9FC',headerColor:'#FFFFFF',footerBackground:'#101B2F',footerFont:'#FFFFFF',
+    heroColor:'#F7F9FC',productCard:'#FFFFFF',fontColor:'#101B2F',headerIcon:'#101B2F',
+    primaryButton:'#101B2F',primaryButtonFont:'#FFFFFF',secondaryButton:'#263754',secondaryButtonFont:'#FFFFFF',
+  },
   categories:[{id:'cat-01',name:'Mains'},{id:'cat-02',name:'Drinks'}],
   items:[
     {id:'item-01',categoryId:'cat-01',name:'Chicken Rice',description:'With garlic rice',priceCentavos:21900,popular:true},
@@ -36,7 +41,8 @@ describe('tenant-specific published menu adapter', () => {
   it('parses restaurant branding and the branch-specific menu', () => {
     const menu=parsePublishedMenu(published);
     expect(menu?.restaurant.name).toBe('Restaurant Alpha');
-    expect(menu?.restaurant.primaryColor).toBe('#336699');
+    expect(menu?.restaurant.websiteColors.heroColor).toBe('#F7F9FC');
+    expect(menu?.restaurant.primaryColor).toBe('#101B2F');
     expect(menu?.restaurant.branchName).toBe('Makati');
     expect(menu?.categories).toEqual(['All','Mains','Drinks']);
     expect(menu?.menu[0].priceCentavos).toBe(21900);
