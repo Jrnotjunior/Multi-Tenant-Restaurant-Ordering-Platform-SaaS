@@ -167,8 +167,9 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
   // Existing accounts with a verified authenticator must verify that factor;
   // they are not in the new-account onboarding flow.
   const isExistingAccountMfa = isMfa && flow?.kind === 'challenge';
-  return <main className={isExistingAccountMfa ? 'privileged-onboarding existing-account-mfa' : 'privileged-onboarding'} aria-live="polite">
-    {!isExistingAccountMfa && <aside className="onboarding-story">
+  const isOnboarding = isSetup || (isMfa && flow?.kind === 'enroll');
+  return <main className={isExistingAccountMfa ? 'privileged-onboarding existing-account-mfa' : isOnboarding ? 'privileged-onboarding' : 'privileged-onboarding privileged-auth-only'} aria-live="polite">
+    {isOnboarding && <aside className="onboarding-story">
       <a className="onboarding-brand" href="/" aria-label="Web2Table home"><span>W2T</span><strong>Web2Table</strong></a>
       <div className="onboarding-story-copy">
         <span className="onboarding-kicker">YOUR RESTAURANT. ONE WORKSPACE.</span>
