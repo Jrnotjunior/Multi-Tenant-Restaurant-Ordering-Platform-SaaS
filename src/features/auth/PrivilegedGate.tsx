@@ -74,8 +74,11 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
       if (event === 'TOKEN_REFRESHED') return;
 
       if (event === 'INITIAL_SESSION') {
-        // Use the first resolved session event as a second signal that auth
-        // hydration completed. Keep getUser's verified identity authoritative.
+        // Supabase emits this only after resolving persisted browser storage.
+        // Capture the restored user here as well as through getUser(), avoiding
+        // a transient "signed out" state when a saved session already exists.
+        setUser(session?.user ?? null);
+        setStatus(session?.user ? 'checking' : 'signedout');
         setAuthReady(true);
         return;
       }
