@@ -237,3 +237,8 @@
 .sf-auth-form .sf-auth-password-toggle{position:absolute;right:5px;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:36px;min-height:36px;height:36px;margin:0;padding:7px;border:0;border-radius:7px;background:transparent;color:#716965;cursor:pointer}
 .sf-auth-form .sf-auth-password-toggle:hover:not(:disabled){background:rgba(173,41,53,.07);color:#ad2935}
 .sf-auth-form .sf-auth-password-toggle svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+.sf-auth-form .sf-auth-password-toggle{width:24px;min-height:24px;height:24px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:#716965}
+.sf-auth-form .sf-auth-password-toggle:hover:not(:disabled),.sf-auth-form .sf-auth-password-toggle:focus-visible{background:transparent;box-shadow:none;color:#ad2935}
+.sf-auth-form .sf-auth-password-toggle:focus-visible{outline:2px solid #ad2935;outline-offset:2px}
+.sf-auth-form .sf-auth-password-toggle svg{display:block}
