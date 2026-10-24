@@ -81,7 +81,10 @@ export function OwnerBrandingPage({tenantId,restaurantName}:Props) {
       const {error}=await supabase.from('tenant_storefronts').update({[column]:path,updated_at:new Date().toISOString()}).eq('tenant_id',tenantId);
       if(error)throw error;
       const url=supabase.storage.from('storefront-logos').getPublicUrl(path).data.publicUrl;
-      if(kind==='logo')setLogo(url);else setFavicon(url);
+      if(kind==='logo')setLogo(url);else {
+        setFavicon(url);
+        window.dispatchEvent(new CustomEvent('web2table:owner-favicon-updated',{detail:{tenantId,url}}));
+      }
       setMessage(kind==='logo'?'Restaurant logo uploaded.':'Browser tab icon uploaded.');
     }catch(e){setMessage(e instanceof Error?e.message:'Image upload failed.');}
     finally{setSaving(false);}
