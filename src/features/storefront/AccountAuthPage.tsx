@@ -99,13 +99,25 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
         setSuccess(true);
         setMessage('Account created. Check your email for a confirmation link before signing in.');
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password,
         });
         if (error) throw error;
-        // The storefront is the single sign-in gateway. Route only verified
-        // privileged identities to the workspace; everyone else stays on the storefront.
+
+        // The storefront is the single sign-in gateway. A newly invited owner
+        // may not have an active membership until the protected setup flow
+        // accepts the invitation, so route that identity to the workspace gate
+        // instead of leaving them on the public storefront.
+        const isInvitedOwner = signInData.user?.user_metadata?.invitation_type === 'tenant_owner'
+          || typeof signInData.user?.user_metadata?.tenant_invitation_id === 'string';
+        if (isInvitedOwner) {
+          window.location.assign(new URL('restaurant', window.location.origin + base).toString());
+          return;
+        }
+
+        // Existing staff/owners must pass the server-side eligibility check.
+        // Customers and other non-privileged accounts stay on the storefront.
         const { data: canEnterWorkspace, error: accessError } = await supabase.rpc('privileged_route_eligible', {
           p_workspace: 'restaurant',
         });
