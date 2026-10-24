@@ -7,7 +7,8 @@ const payload={
  heroHeading:'Fresh',heroEmphasis:'Always',
  branchSlug:'makati',branchName:'Makati',
  branches:[{slug:'main',name:'Main'},{slug:'makati',name:'Makati'}],
- primaryColor:'#ac2935',
+ primaryColor:'#101B2F',
+ websiteColors:{pageBackground:'#F7F9FC',headerColor:'#FFFFFF',footerBackground:'#101B2F',footerFont:'#FFFFFF',heroColor:'#263754',productCard:'#FFFFFF',fontColor:'#101B2F',headerIcon:'#101B2F',primaryButton:'#101B2F',primaryButtonFont:'#FFFFFF',secondaryButton:'#263754',secondaryButtonFont:'#FFFFFF'},
  categories:[{id:'cat',name:'Rice'}],
  items:[{id:'item-a',categoryId:'cat',name:'Chicken',description:'',priceCentavos:23900,popular:false}],
 };
