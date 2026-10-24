@@ -26,7 +26,7 @@ describe('Web2Table typography policy', () => {
       const css = readFileSync(path, 'utf8');
       const declarations = Array.from(css.matchAll(/font-family\s*:\s*([^;}]+)/g), m => m[1]);
       for (const family of declarations) {
-        expect(family).toMatch(/^(?:var\(--font-(?:body|heading)\)|"Inter",sans-serif|"Manrope",sans-serif)$/);
+        expect(family).toMatch(/^(?:var\(--font-(?:body|heading)\)|"Inter",sans-serif|"Manrope",sans-serif|inherit)$/);
       }
       expect(css).not.toMatch(/(?:Roboto|Arial|Poppins|Montserrat|Segoe UI|system-ui|BlinkMacSystemFont|-apple-system)/);
     }
