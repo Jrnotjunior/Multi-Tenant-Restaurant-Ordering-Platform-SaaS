@@ -9,11 +9,6 @@ type WebsiteColors = {
   heroColor:string; productCard:string; fontColor:string; headerIcon:string;
   primaryButton:string; primaryButtonFont:string; secondaryButton:string; secondaryButtonFont:string;
 };
-const defaults: WebsiteColors = {
-  pageBackground:'#F7F9FC',headerColor:'#FFFFFF',footerBackground:'#101B2F',footerFont:'#FFFFFF',
-  heroColor:'#F7F9FC',productCard:'#FFFFFF',fontColor:'#101B2F',headerIcon:'#101B2F',
-  primaryButton:'#101B2F',primaryButtonFont:'#FFFFFF',secondaryButton:'#263754',secondaryButtonFont:'#FFFFFF',
-};
 const colorLabels: {key:keyof WebsiteColors;label:string}[] = [
   {key:'pageBackground',label:'Page background'},{key:'headerColor',label:'Header color'},
   {key:'footerBackground',label:'Footer background color'},{key:'footerFont',label:'Footer font color'},
@@ -27,7 +22,8 @@ export function OwnerBrandingPage({tenantId,restaurantName}:Props) {
   const [tab,setTab]=useState<Tab>('identity');
   const [brand,setBrand]=useState<Brand|null>(null);
   const [social,setSocial]=useState<SocialLinks>({facebook:'',instagram:'',tiktok:''});
-  const [colors,setColors]=useState<WebsiteColors>(defaults);
+  const [defaults,setDefaults]=useState<WebsiteColors|null>(null);
+  const [colors,setColors]=useState<WebsiteColors|null>(null);
   const [favicon,setFavicon]=useState<string|null>(null);
   const [logo,setLogo]=useState<string|null>(null);
   const [displayName,setDisplayName]=useState(restaurantName??'');
@@ -42,15 +38,26 @@ export function OwnerBrandingPage({tenantId,restaurantName}:Props) {
     async function load(){
       try {
         if(!supabase) throw new Error('Store settings are not configured.');
+        const {data:themeData,error:themeError}=await supabase.from('platform_theme_defaults')
+          .select('website_colors').eq('id',1).single();
+        if(themeError) throw themeError;
+        const theme = themeData?.website_colors;
+        if (!theme || typeof theme !== 'object' || Array.isArray(theme)) throw new Error('Platform theme defaults are not available.');
+        const themeColors = theme as WebsiteColors;
+        const themeKeys: Array<keyof WebsiteColors> = ['pageBackground','headerColor','footerBackground','footerFont','heroColor','productCard','fontColor','headerIcon','primaryButton','primaryButtonFont','secondaryButton','secondaryButtonFont'];
+        if (!themeKeys.every(key => typeof themeColors[key] === 'string' && /^#[0-9a-fA-F]{6}$/.test(themeColors[key]))) {
+          throw new Error('Platform theme defaults are invalid.');
+        }
         const {data,error}=await supabase.from('tenant_storefronts')
           .select('tenant_id,default_branch_id,display_name,tagline,hero_heading,hero_emphasis,primary_color,logo_path,favicon_path,font_family,status,social_links,website_colors')
           .eq('tenant_id',tenantId).single();
         if(error) throw error;
         if(!active)return;
         const row=data as Brand & {favicon_path:string|null;social_links:SocialLinks;website_colors:Partial<WebsiteColors>};
+        setDefaults(themeColors);
         setBrand(row);setDisplayName(row.display_name??restaurantName??'');
         setSocial({...{facebook:'',instagram:'',tiktok:''},...(row.social_links??{})});
-        setColors({...defaults,...(row.website_colors??{})});
+        setColors({...themeColors,...(row.website_colors??{})});
         setLogo(publicStorefrontLogo(row.logo_path));
         setFavicon(row.favicon_path ? supabase.storage.from('storefront-logos').getPublicUrl(row.favicon_path).data.publicUrl : null);
       } catch(e){if(active)setMessage(e instanceof Error?e.message:'Could not load branding settings.');}
@@ -81,7 +88,7 @@ export function OwnerBrandingPage({tenantId,restaurantName}:Props) {
   }
 
   async function save(event:FormEvent){
-    event.preventDefault();if(!supabase)return;
+    event.preventDefault();if(!supabase||!colors)return;
     setSaving(true);setMessage('');
     try{
       const {error}=await supabase.from('tenant_storefronts').update({
@@ -94,7 +101,7 @@ export function OwnerBrandingPage({tenantId,restaurantName}:Props) {
     finally{setSaving(false);}
   }
   if(loading)return <main className="owner-content"><section className="owner-orders-empty"><h1>Website &amp; Branding</h1><p>Loading your restaurant branding…</p></section></main>;
-  if(!brand)return <main className="owner-content"><section className="owner-orders-empty"><h1>Website &amp; Branding</h1><p role="alert">{message||'Branding settings could not be loaded.'}</p></section></main>;
+  if(!brand||!defaults||!colors)return <main className="owner-content"><section className="owner-orders-empty"><h1>Website &amp; Branding</h1><p role="alert">{message||'Branding settings could not be loaded.'}</p></section></main>;
 
   return <main className="owner-content owner-branding-page">
     <nav className="owner-branding-tabs" aria-label="Website and branding sections">
@@ -120,7 +127,7 @@ export function OwnerBrandingPage({tenantId,restaurantName}:Props) {
       {tab==='colors'&&<section className="owner-branding-panel">
         <div className="owner-branding-toolbar"><button type="button" onClick={()=>window.open('/?preview=branding','_blank','noopener,noreferrer')}>See Live Preview</button></div>
         <div className="owner-branding-colors">{colorLabels.map(({key,label})=><label key={key}>{label}<span className="owner-branding-color-control"><input aria-label={label} type="color" value={colors[key]} onChange={e=>setColors({...colors,[key]:e.target.value})}/><input aria-label={label+' hex value'} value={colors[key]} maxLength={7} pattern="^#[0-9a-fA-F]{6}$" onChange={e=>setColors({...colors,[key]:e.target.value})}/></span></label>)}</div>
-        <div className="owner-branding-actions"><button type="button" onClick={()=>setColors(defaults)}>Back to Default</button><button type="submit" disabled={saving}>{saving?'Saving…':'Save'}</button></div>
+        <div className="owner-branding-actions"><button type="button" onClick={()=>{if(defaults)setColors({...defaults});}}>Back to Default</button><button type="submit" disabled={saving}>{saving?'Saving…':'Save'}</button></div>
       </section>}
       {tab!=='colors'&&<div className="owner-branding-actions"><button type="submit" disabled={saving}>{saving?'Saving…':'Save'}</button></div>}
       {message&&<p className="owner-branding-message" role="status">{message}</p>}
