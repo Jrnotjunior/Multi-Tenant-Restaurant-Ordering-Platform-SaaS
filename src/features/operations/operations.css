@@ -151,11 +151,11 @@
 @media(max-width:700px){.w2t-settings-card{padding:15px 12px}.w2t-settings-grid{grid-template-columns:1fr}.w2t-hours-head{display:none}.w2t-hours-row{grid-template-columns:1fr 1fr;padding:10px 4px}.w2t-hours-row strong{grid-column:1/-1}.w2t-hours-row input[type=checkbox]{justify-self:start}.w2t-settings-actions button{width:100%}}
 
 
-/* Shared pill toggle control — use switches, not browser checkboxes. */
-.w2t-toggle{position:relative;display:inline-flex;align-items:center;flex:0 0 auto;width:42px;height:24px;padding:0;border:0;border-radius:999px;background:#cbd5e1;cursor:pointer;transition:background .16s ease}
-.w2t-toggle>span{display:block;width:18px;height:18px;margin-left:3px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0002;transition:transform .16s ease}
+/* One compact, consistent toggle size throughout the owner workspace. */
+.w2t-toggle{position:relative;display:inline-flex;align-items:center;flex:0 0 auto;width:36px;height:21px;padding:0;border:0;border-radius:999px;background:#cbd5e1;cursor:pointer;transition:background .16s ease}
+.w2t-toggle>span{display:block;width:15px;height:15px;margin-left:3px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0002;transition:transform .16s ease}
 .w2t-toggle.is-on{background:#172944}
-.w2t-toggle.is-on>span{transform:translateX(18px)}
+.w2t-toggle.is-on>span{transform:translateX(15px)}
 .w2t-toggle:focus-visible{outline:2px solid #5379bd;outline-offset:3px}
 .w2t-toggle:disabled{opacity:.55;cursor:not-allowed}
 .w2t-toggle-small{width:36px;height:21px}
