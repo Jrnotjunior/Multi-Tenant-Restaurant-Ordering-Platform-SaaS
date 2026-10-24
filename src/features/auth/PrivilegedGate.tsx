@@ -127,6 +127,13 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
     return () => { active = false; };
   }, [client, user, mode, revision]);
 
+  useEffect(() => {
+    if (status !== 'signedout') return;
+    // The restaurant route is not a sign-in page. Keep the storefront as the
+    // single account gateway and redirect unauthenticated visitors there.
+    window.location.replace(storefrontSignInUrl());
+  }, [status]);
+
   async function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!client || busy) return;
@@ -231,10 +238,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
       <div className="onboarding-password-rules"><strong>Your password must have:</strong><ul className="sf-password-checklist" aria-label="Password requirements">{passwordRules.map(rule => <li key={rule.label} className={rule.valid ? 'is-valid' : ''}><span className="sf-password-check-icon" aria-hidden="true">{rule.valid ? '✓' : '○'}</span>{rule.label}</li>)}<li className={newPassword.length <= 128 ? 'is-valid' : ''}><span className="sf-password-check-icon" aria-hidden="true">✓</span>Maximum 128 characters</li></ul></div>
       <button type="submit" disabled={busy || !passwordMeetsStandard}>{busy ? 'Saving password…' : 'Continue to security setup　 →'}</button>
     </form>}
-    {status === 'signedout' && <div className="auth-form">
-      <p>Sign in through the Web2Table storefront. After authentication, your verified role and membership determine which workspace you can access.</p>
-      <a className="auth-primary-link" href={storefrontSignInUrl()}>Continue to storefront sign-in</a>
-    </div>}
+
     {status === 'mfa' && flow && flow.kind !== 'ready' && <div>
       {flow.kind === 'enroll' && <div><p>Set up an authenticator app, then enter a six-digit code.</p>
         <img className="auth-qr" src={flow.qrCode} alt="Authenticator enrollment QR code" />
