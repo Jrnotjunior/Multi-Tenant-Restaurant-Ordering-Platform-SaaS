@@ -364,7 +364,8 @@ export function Storefront({ baseUrl, requestedSlug }: {
           </div>
           {results.length ? <div className="sf-menu-grid">
             {results.map((item) => <MenuCard item={item} quantity={cart[item.id] ?? 0} add={change} customize={setCustomizing} key={item.id}/>)}
-          </div> : <div className="sf-no-results"><span aria-hidden="true">🔎</span><h3>Nothing on the menu matched</h3><p>Try another search or choose a different category.</p><button type="button" onClick={() => {setQuery('');setCategory('All');}}>Clear filters</button></div>}
+          </div> : menu.length === 0 ? <div className="sf-no-results sf-menu-coming-soon"><span aria-hidden="true">🍽️</span><h3>Menu coming soon</h3><p>{restaurant.name} is preparing its menu. Please check back soon.</p></div>
+          : <div className="sf-no-results"><span aria-hidden="true">🔎</span><h3>Nothing on the menu matched</h3><p>Try another search or choose a different category.</p><button type="button" onClick={() => {setQuery('');setCategory('All');}}>Clear filters</button></div>}
         </div>
 
         <aside className="sf-desktop-cart" aria-label="Your basket">
