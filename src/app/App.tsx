@@ -1,33 +1,75 @@
 import { useEffect, useState } from 'react';
-import { pathFor, viewForPath, type View } from './routes';
+import { pathFor, storefrontSlugFromPath, viewForPath, type View } from './routes';
 import { PrivilegedGate } from '../features/auth/PrivilegedGate';
+import { Storefront } from '../features/storefront/Storefront';
 import { supabase } from '../lib/supabase';
 
-const views: Record<View, { label: string; title: string; body: string }> = {
-  home: { label: 'Overview', title: 'Restaurant ordering, thoughtfully built.', body: 'Web2Table helps restaurants operate branded ordering websites with kitchen, dispatch and delivery workflows. This is the initial platform foundation.' },
-  order: { label: 'Customer Ordering', title: 'Customer ordering', body: 'Delivery-only ordering, guest checkout, registration and payment workflows will be built and verified in subsequent phases.' },
-  restaurant: { label: 'Restaurant Workspace', title: 'Restaurant management', body: 'Restaurant owners and invited staff will manage menus, orders, kitchen, riders, inventory, recipes and loyalty here.' },
-  admin: { label: 'System Administration', title: 'Platform administration', body: 'Tenant onboarding, subscription management, support operations and security controls require privileged authentication.' },
+const protectedViews = {
+  restaurant: {
+    label: 'Restaurant Workspace',
+    title: 'Restaurant management',
+    body: 'Owners and authorized staff will manage their restaurant, kitchen, riders, inventory, recipes and loyalty here.',
+  },
+  admin: {
+    label: 'System Administration',
+    title: 'Platform administration',
+    body: 'Tenant onboarding, subscription management and platform security require a verified system administrator.',
+  },
 };
-function currentView(): View {
-  return viewForPath(window.location.pathname, import.meta.env.BASE_URL);
-}
+
 export function App() {
-  const [view, setView] = useState<View>(currentView);
+  const baseUrl = import.meta.env.BASE_URL;
+  const [pathname, setPathname] = useState(window.location.pathname);
+  const view = viewForPath(pathname, baseUrl);
+
   useEffect(() => {
-    const syncHistory = () => setView(currentView());
+    const syncHistory = () => setPathname(window.location.pathname);
     window.addEventListener('popstate', syncHistory);
     return () => window.removeEventListener('popstate', syncHistory);
   }, []);
+
   function navigate(next: View) {
-    window.history.pushState({}, '', pathFor(next, import.meta.env.BASE_URL));
-    setView(next);
+    const path = pathFor(next, baseUrl);
+    window.history.pushState({}, '', path);
+    setPathname(path);
+    window.scrollTo(0, 0);
   }
-  const content = <main className="content"><p className="eyebrow">WEB2TABLE · PHILIPPINES</p><h1>{views[view].title}</h1><p className="intro">{views[view].body}</p><section className="panel" aria-label="Development status"><div className="status-line"><span className="status-dot" /> <strong>W2T-003: Secure identity foundation</strong></div><p>This preview shows the application foundation. Tenant isolation and privileged account guards are in place, but restaurant onboarding, orders, payments, and operational dashboards are not active.</p><span className="status-pill">{supabase ? 'Supabase connected · no privileged accounts provisioned' : 'Supabase not configured · offline preview'}</span></section><div className="feature-grid"><article><h2>Tenant isolation</h2><p>Tenant and branch boundaries, RLS and server-validated access will protect each restaurant.</p></article><article><h2>Secure ordering</h2><p>Server-validated menus, checkout and PayMongo webhook processing will drive real orders.</p></article><article><h2>Delivery operations</h2><p>Kitchen, dispatch, rider tracking and location services will share one order lifecycle.</p></article></div></main>;
+
+  // The homepage of a restaurant ordering site is its menu, not an app dashboard.
+  // For the public preview, both / and /order display a clearly labeled sample restaurant.
+  if (view === 'home' || view === 'order') {
+    return <Storefront baseUrl={baseUrl} requestedSlug={storefrontSlugFromPath(pathname, baseUrl)} />;
+  }
+
+  const details = protectedViews[view];
+  const workspaceContent = <main className="content">
+    <p className="eyebrow">WEB2TABLE · PHILIPPINES</p>
+    <h1>{details.title}</h1>
+    <p className="intro">{details.body}</p>
+    <section className="panel">
+      <div className="status-line"><span className="status-dot" /><strong>Protected workspace · under development</strong></div>
+      <p>Restaurant and platform administration are not public storefront features. Authentication, MFA, tenant membership and verified permissions are required, and live operations are not enabled yet.</p>
+      <span className="status-pill">{supabase ? 'Supabase connected · invitation-only access' : 'Supabase not configured'}</span>
+    </section>
+  </main>;
+
   return <div className="app">
-    <header className="topbar"><a className="brand" href={pathFor('home', import.meta.env.BASE_URL)} onClick={(e) => { e.preventDefault(); navigate('home'); }}><span className="brandmark">W2T</span> Web2Table</a><span className="environment">FOUNDATION · V10</span></header>
-    <div className="workspace"><nav className="sidebar" aria-label="Platform areas"><p className="nav-heading">PLATFORM</p>{(Object.keys(views) as View[]).map((item) => <a key={item} href={pathFor(item, import.meta.env.BASE_URL)} aria-current={view === item ? 'page' : undefined} onClick={(e) => { e.preventDefault(); navigate(item); }}>{views[item].label}</a>)}</nav>
-    {(view === 'admin' || view === 'restaurant') ? <PrivilegedGate mode={view}>{content}</PrivilegedGate> : content}</div>
-    <footer>Web2Table · Development foundation · Not a live ordering website</footer>
+    <header className="topbar">
+      <a className="brand" href={pathFor('home', baseUrl)} onClick={(event) => { event.preventDefault(); navigate('home'); }}>
+        <span className="brandmark">W2T</span> Web2Table
+      </a>
+      <span className="environment">SECURE WORKSPACE · V10</span>
+    </header>
+    <div className="workspace">
+      <nav className="sidebar" aria-label="Platform areas">
+        <p className="nav-heading">WORKSPACES</p>
+        <a href={pathFor('order', baseUrl)} onClick={(event) => { event.preventDefault(); navigate('order'); }}>← Customer menu</a>
+        {(['restaurant', 'admin'] as const).map((item) => <a key={item}
+          href={pathFor(item, baseUrl)} aria-current={view === item ? 'page' : undefined}
+          onClick={(event) => { event.preventDefault(); navigate(item); }}>{protectedViews[item].label}</a>)}
+      </nav>
+      <PrivilegedGate mode={view}>{workspaceContent}</PrivilegedGate>
+    </div>
+    <footer>Web2Table · Secure development workspace · No live orders</footer>
   </div>;
 }
