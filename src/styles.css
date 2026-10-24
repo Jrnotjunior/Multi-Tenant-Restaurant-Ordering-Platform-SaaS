@@ -95,8 +95,13 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 
 /* Keep the primary MFA action the same compact width as Sign out. */
 .onboarding-card .onboarding-mfa-form .onboarding-mfa-verify {
-  display: inline-block;
-  width: auto;
+  display: flex;
+  width: 100%;
   min-width: 0;
-  align-self: flex-start;
+  min-height: 42px;
+  height: 42px;
+  padding: 0 14px;
+  align-self: stretch;
+  box-sizing: border-box;
+  border-radius: 9px;
 }
