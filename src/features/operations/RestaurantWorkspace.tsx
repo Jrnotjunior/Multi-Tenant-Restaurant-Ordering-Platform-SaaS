@@ -23,9 +23,13 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
         return;
       }
       try {
+        const { data: authData, error: authError } = await supabase.auth.getUser();
+        if (authError) throw authError;
+        if (!authData.user) throw new Error('Sign in again to access your restaurant workspace.');
         const { data, error: membershipError } = await supabase
           .from('tenant_memberships')
           .select('tenant_id,role')
+          .eq('user_id', authData.user.id)
           .eq('status', 'active');
         if (membershipError) throw membershipError;
         const memberships = (data ?? []) as Membership[];
