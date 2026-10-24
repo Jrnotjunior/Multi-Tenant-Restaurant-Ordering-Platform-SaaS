@@ -172,6 +172,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
   const [customized,setCustomized]=useState<CustomCart>({});
   const [customizing,setCustomizing]=useState<MenuItem|null>(null);
   const [cartOpen, setCartOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutDetails,setCheckoutDetails]=useState<CheckoutDetails>({
     customerName:'',phone:'',deliveryAddress:'',deliveryNotes:'',
@@ -273,9 +274,17 @@ export function Storefront({ baseUrl, requestedSlug }: {
           <button type="button" className="sf-bag-button" onClick={() => setCartOpen(true)} aria-label={'Open basket with ' + count + ' items'}>
             <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
           </button>
-          <button type="button" className="sf-account-button" aria-label="Customer account" title="Customer account">
-            <AccountIcon/>
-          </button>
+          <div className="sf-account-wrap">
+            <button type="button" className="sf-account-button" aria-label="Customer account options" title="Customer account" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(open => !open)}>
+              <AccountIcon/>
+            </button>
+            {accountMenuOpen && <div className="sf-account-menu" role="menu" aria-label="Customer account">
+              <a role="menuitem" href={baseUrl + 'legal'} onClick={() => setAccountMenuOpen(false)}>Legal</a>
+              <a role="menuitem" href={baseUrl + 'account/sign-in'} onClick={() => setAccountMenuOpen(false)}>Sign in</a>
+              <a role="menuitem" href={baseUrl + 'account/sign-up'} onClick={() => setAccountMenuOpen(false)}>Sign up</a>
+              <button role="menuitem" type="button" onClick={() => { setAccountMenuOpen(false); window.location.assign(baseUrl + 'account/sign-in'); }}>Log out</button>
+            </div>}
+          </div>
         </nav>
       </div>
     </header>
