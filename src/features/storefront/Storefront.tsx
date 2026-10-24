@@ -247,21 +247,6 @@ export function Storefront({ baseUrl, requestedSlug }: {
         <a className="sf-logo" href={normalizeAppBase(baseUrl)}>
           <span className="sf-logo-mark">W2T</span><span>Web2Table</span>
         </a>
-        <nav className="sf-header-actions" aria-label="Account navigation">
-          <div className="sf-account-wrap">
-            <button type="button" className="sf-account-button" aria-label="Open account menu" title="Account" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(open => !open)}>
-              <AccountIcon/>
-            </button>
-            {accountMenuOpen && <div className="sf-account-menu" role="menu" aria-label="Choose account">
-              <div className="sf-account-menu-heading">
-                <strong>Sign in to Web2Table</strong>
-                <span>Choose the account you want to access.</span>
-              </div>
-              <a role="menuitem" href={normalizeAppBase(baseUrl) + 'restaurant'} onClick={() => setAccountMenuOpen(false)}>Restaurant owner / team</a>
-              <a role="menuitem" href={normalizeAppBase(baseUrl) + 'account/sign-in'} onClick={() => setAccountMenuOpen(false)}>Customer account</a>
-            </div>}
-          </div>
-        </nav>
       </div></header>
       <main className="sf-unavailable" role="status">
         <span className="sf-empty-art">🍽️</span>
