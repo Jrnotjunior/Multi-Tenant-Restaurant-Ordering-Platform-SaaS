@@ -49,7 +49,6 @@ type CheckoutDetails = Readonly<{
 }>;
 
 export function buildCheckoutReadiness(input: {
-  sample: boolean;
   slug: string;
   branchSlug: string;
   menu: readonly MenuItem[];
@@ -63,7 +62,6 @@ export function buildCheckoutReadiness(input: {
     custom.reduce((sum, line) => sum + line.quantity, 0);
   const subtotalCentavos = cartSubtotal(input.cart, input.menu) + customSubtotal(input.customized, input.menu);
 
-  if (input.sample) return { ready: false, reason: 'This is a sample menu. Orders cannot be placed from preview data.', subtotalCentavos };
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.slug) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.branchSlug)) {
     return { ready: false, reason: 'A valid published restaurant and branch are required.', subtotalCentavos };
   }
@@ -317,7 +315,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
       <div className="sf-layout" id="sf-menu">
         <div className="sf-catalog">
           <div className="sf-section-heading">
-            <div><span className="sf-section-kicker">THE GOOD STUFF</span><h2>What are you craving?</h2><p>{catalog.sample ? 'Find your next favorite from our sample menu.' : 'Browse the published restaurant menu.'}</p></div>
+            <div><span className="sf-section-kicker">THE GOOD STUFF</span><h2>What are you craving?</h2><p>Browse the published restaurant menu.</p></div>
             <span className="sf-menu-count">{results.length} {results.length === 1 ? 'item' : 'items'}</span>
           </div>
           <div className="sf-search-wrap">
@@ -342,7 +340,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
 
     <footer className="sf-footer">
       <div className="sf-footer-inner">
-        <div><strong>{restaurant.name}</strong><p>{catalog.sample ? 'Sample storefront · No real restaurant or transaction data.' : 'Published restaurant menu · Checkout not yet available.'}</p></div>
+        <div><strong>{restaurant.name}</strong><p>Published restaurant menu · Checkout not yet available.</p></div>
         <div className="sf-footer-links"><a href={menuUrl}>Restaurant menu link</a></div>
         <small>Powered by Web2Table</small>
       </div>
