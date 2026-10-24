@@ -15,6 +15,14 @@ export function AccountAuthPage({ mode, baseUrl }: { mode: AuthMode; baseUrl: st
   const [success, setSuccess] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const isSignUp = mode === 'sign-up';
+  const passwordRules = [
+    { label: 'At least 8 characters', valid: password.length >= 8 },
+    { label: 'One uppercase letter (A–Z)', valid: /[A-Z]/.test(password) },
+    { label: 'One lowercase letter (a–z)', valid: /[a-z]/.test(password) },
+    { label: 'One number (0–9)', valid: /[0-9]/.test(password) },
+    { label: 'One special character (!@#$…)', valid: /[^A-Za-z0-9]/.test(password) },
+  ];
+  const passwordMeetsStandard = passwordRules.every(rule => rule.valid);
   const base = normalizeAppBase(baseUrl);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -26,8 +34,12 @@ export function AccountAuthPage({ mode, baseUrl }: { mode: AuthMode; baseUrl: st
       setMessage('Account services are not configured yet. Please try again later.');
       return;
     }
-    if (!resetMode && password.length < 8) {
-      setMessage('Use a password with at least 8 characters.');
+    if (!resetMode && isSignUp && !passwordMeetsStandard) {
+      setMessage('Please meet all password requirements before creating your account.');
+      return;
+    }
+    if (!resetMode && !isSignUp && password.length < 8) {
+      setMessage('Enter your password.');
       return;
     }
     if (isSignUp && (!firstName.trim() || !lastName.trim())) {
@@ -105,6 +117,12 @@ export function AccountAuthPage({ mode, baseUrl }: { mode: AuthMode; baseUrl: st
               {showPassword ? <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 5.2A10.8 10.8 0 0112 5c5.2 0 8.8 4.5 10 7-.4.9-1.3 2.2-2.6 3.4M6.2 6.2C3.9 7.7 2.5 9.8 2 12c1.2 2.5 4.8 7 10 7 1 0 2-.2 2.9-.5" /></svg> : <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>}
             </button>}
           </span>
+          {isSignUp && password.length > 0 && <ul className="sf-password-checklist" aria-label="Password requirements">
+            {passwordRules.map(rule => <li key={rule.label} className={rule.valid ? 'is-valid' : ''}>
+              <span className="sf-password-check-icon" aria-hidden="true">{rule.valid ? '✓' : '○'}</span>
+              <span>{rule.label}</span>
+            </li>)}
+          </ul>}
         </label>}
         {!isSignUp && !resetMode && <button className="sf-auth-text-button" type="button" onClick={() => { setResetMode(true); setMessage(''); setSuccess(false); }}>Forgot password?</button>}
         {message && <p className={success ? 'sf-auth-message sf-auth-success' : 'sf-auth-message'} role="status">{message}</p>}
