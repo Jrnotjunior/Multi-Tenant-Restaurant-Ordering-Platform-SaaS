@@ -257,7 +257,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
                 <strong>Sign in to Web2Table</strong>
                 <span>Choose the account you want to access.</span>
               </div>
-              <a role="menuitem" href={baseUrl + 'restaurant'} onClick={() => setAccountMenuOpen(false)}>Restaurant owner / team</a>
+              <a role="menuitem" href={baseUrl + 'account/sign-in?next=restaurant'} onClick={() => setAccountMenuOpen(false)}>Restaurant owner / team</a>
               <a role="menuitem" href={baseUrl + 'account/sign-in'} onClick={() => setAccountMenuOpen(false)}>Customer account</a>
             </div>}
           </div>
