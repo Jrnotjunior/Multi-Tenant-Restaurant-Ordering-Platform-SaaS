@@ -65,3 +65,17 @@ export async function verifyMfa(client: SupabaseClient, factorId: string, code: 
   if (assuranceError || assurance.currentLevel !== 'aal2') throw new Error('MFA verification did not complete.');
   enrollments.delete(client);
 }
+
+/** Explicit user recovery action; never removes verified authenticator factors. */
+export async function restartIncompleteMfa(client: SupabaseClient): Promise<void> {
+  const { data, error } = await client.auth.mfa.listFactors();
+  if (error) throw error;
+  if (data.totp.some((factor) => factor.status === 'verified')) {
+    throw new Error('A verified authenticator exists. Sign in with it or request an administrator-assisted recovery.');
+  }
+  for (const factor of data.totp) {
+    const { error: unenrollError } = await client.auth.mfa.unenroll({ factorId: factor.id });
+    if (unenrollError) throw unenrollError;
+  }
+  clearPendingMfa(client);
+}

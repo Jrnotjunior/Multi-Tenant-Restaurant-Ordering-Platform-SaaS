@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase';
-import { clearPendingMfa, getMfaFlow, verifyMfa, type MfaFlow } from './mfaFlow';
+import { clearPendingMfa, getMfaFlow, restartIncompleteMfa, verifyMfa, type MfaFlow } from './mfaFlow';
 
 type Mode = 'admin' | 'restaurant';
 type State = 'checking' | 'signedout' | 'mfa' | 'authorized' | 'denied' | 'error';
@@ -145,7 +145,16 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
       </form>}
     </div>}
     {status === 'denied' && <p>Your account has no active authorization for this workspace. Contact your platform or restaurant administrator.</p>}
-    {status === 'error' && <button type="button" onClick={() => { setMessage(''); setRevision((previous) => previous + 1); }}>Retry secure access check</button>}
+    {status === 'error' && <div>
+      <button type="button" onClick={() => { setMessage(''); setRevision((previous) => previous + 1); }}>Retry secure access check</button>
+      {message.includes('Incomplete authenticator enrollment') && client && <button className="auth-secondary" type="button" disabled={busy} onClick={() => {
+        setBusy(true);
+        void restartIncompleteMfa(client)
+          .then(() => { setMessage(''); setRevision((previous) => previous + 1); })
+          .catch((err: unknown) => setMessage(err instanceof Error ? err.message : 'MFA reset failed.'))
+          .finally(() => setBusy(false));
+      }}>Restart incomplete authenticator setup</button>}
+    </div>}
     {user && <button className="auth-secondary" type="button" onClick={() => void logout()}>Sign out</button>}
   </section>;
 }
