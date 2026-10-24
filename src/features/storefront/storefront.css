@@ -228,4 +228,4 @@
 .sf-auth-success{background:#effaf2;color:#23613a}
 @media(max-width:480px){.sf-auth-card{padding:24px 20px;border-radius:16px}}
 
-.sf-auth-text-button{justify-self:end;padding:0;border:0;background:transparent;color:#ad2935;font:inherit;font-size:12px;font-weight:750;text-align:right;cursor:pointer}.sf-auth-text-button:hover{text-decoration:underline}.sf-auth-switch .sf-auth-text-button{font-size:13px}
+.sf-auth-text-button{justify-self:end;padding:0;border:0;background:transparent;color:#ad2935;font:inherit;font-size:12px;font-weight:750;text-align:right;text-decoration:underline;cursor:pointer}.sf-auth-text-button:hover{text-decoration:underline}.sf-auth-switch .sf-auth-text-button{font-size:13px}
