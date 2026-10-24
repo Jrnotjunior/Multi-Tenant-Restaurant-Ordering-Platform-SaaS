@@ -8,6 +8,7 @@ export function AccountAuthPage({ mode, baseUrl }: { mode: AuthMode; baseUrl: st
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(false);
@@ -91,7 +92,12 @@ export function AccountAuthPage({ mode, baseUrl }: { mode: AuthMode; baseUrl: st
         </label>
         {!resetMode && <label>
           Password
-          <input autoComplete={isSignUp ? 'new-password' : 'current-password'} type="password" name="password" value={password} onChange={event => setPassword(event.target.value)} required minLength={8} maxLength={128} placeholder={isSignUp ? 'At least 8 characters' : 'Your password'} />
+          <span className="sf-auth-password-field">
+            <input autoComplete={isSignUp ? 'new-password' : 'current-password'} type={showPassword ? 'text' : 'password'} name="password" value={password} onChange={event => { setPassword(event.target.value); if (!event.target.value) setShowPassword(false); }} required minLength={8} maxLength={128} placeholder={isSignUp ? 'At least 8 characters' : 'Your password'} />
+            {password.length > 0 && <button className="sf-auth-password-toggle" type="button" aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} onClick={() => setShowPassword(value => !value)}>
+              {showPassword ? <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 5.2A10.8 10.8 0 0112 5c5.2 0 8.8 4.5 10 7-.4.9-1.3 2.2-2.6 3.4M6.2 6.2C3.9 7.7 2.5 9.8 2 12c1.2 2.5 4.8 7 10 7 1 0 2-.2 2.9-.5" /></svg> : <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>}
+            </button>}
+          </span>
         </label>}
         {!isSignUp && !resetMode && <button className="sf-auth-text-button" type="button" onClick={() => { setResetMode(true); setMessage(''); setSuccess(false); }}>Forgot password?</button>}
         {message && <p className={success ? 'sf-auth-message sf-auth-success' : 'sf-auth-message'} role="status">{message}</p>}
