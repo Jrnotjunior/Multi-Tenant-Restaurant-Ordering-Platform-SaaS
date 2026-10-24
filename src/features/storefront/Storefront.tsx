@@ -279,13 +279,6 @@ export function Storefront({ baseUrl, requestedSlug }: {
         <div className="sf-hero-copy">
           <h1 id="sf-hero-title">{restaurant.heroHeading}<br/><em>{restaurant.heroEmphasis}</em></h1>
         </div>
-        <div className="sf-hero-decor" aria-hidden="true">
-          <div className="sf-orbit sf-orbit-one"/>
-          <div className="sf-orbit sf-orbit-two"/>
-          <span className="sf-hero-spark sf-spark-one">✦</span>
-          <span className="sf-hero-spark sf-spark-two">✳</span>
-          <div className="sf-hero-plate"><span>🍗</span></div>
-        </div>
       </section>
 
 
