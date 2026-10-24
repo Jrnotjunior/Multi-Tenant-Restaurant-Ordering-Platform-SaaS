@@ -10,9 +10,9 @@ type WebsiteColors = {
   primaryButton:string; primaryButtonFont:string; secondaryButton:string; secondaryButtonFont:string;
 };
 const defaults: WebsiteColors = {
-  pageBackground:'#F7F3F0',headerColor:'#000000',footerBackground:'#000000',footerFont:'#E5D3C0',
-  heroColor:'#E5D3C0',productCard:'#E5D3C0',fontColor:'#000000',headerIcon:'#E5D3C0',
-  primaryButton:'#000000',primaryButtonFont:'#DD4040',secondaryButton:'#000000',secondaryButtonFont:'#DD4040',
+  pageBackground:'#F7F9FC',headerColor:'#FFFFFF',footerBackground:'#101B2F',footerFont:'#FFFFFF',
+  heroColor:'#263754',productCard:'#FFFFFF',fontColor:'#101B2F',headerIcon:'#101B2F',
+  primaryButton:'#101B2F',primaryButtonFont:'#FFFFFF',secondaryButton:'#263754',secondaryButtonFont:'#FFFFFF',
 };
 const colorLabels: {key:keyof WebsiteColors;label:string}[] = [
   {key:'pageBackground',label:'Page background'},{key:'headerColor',label:'Header color'},
