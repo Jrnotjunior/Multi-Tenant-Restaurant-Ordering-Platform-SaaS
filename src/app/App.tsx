@@ -40,7 +40,7 @@ export function App() {
   // The root storefront opens the published restaurant menu directly; do not show a separate restaurant directory.
   if (view === 'home' || view === 'order') {
     const requestedSlug = storefrontSlugFromPath(pathname, baseUrl);
-    return <Storefront key={requestedSlug ?? 'default'} baseUrl={baseUrl} requestedSlug={requestedSlug ?? undefined} />;
+    return <Storefront key={requestedSlug ?? 'default'} baseUrl={baseUrl} requestedSlug={requestedSlug} />;
   }
 
   // The System Admin lives in its established, separate repository.
