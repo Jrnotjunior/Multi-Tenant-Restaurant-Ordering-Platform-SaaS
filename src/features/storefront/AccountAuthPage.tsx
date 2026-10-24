@@ -104,7 +104,13 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
           password,
         });
         if (error) throw error;
-        window.location.assign(base);
+        // The storefront is the single sign-in gateway. Route only verified
+        // privileged identities to the workspace; everyone else stays on the storefront.
+        const { data: canEnterWorkspace, error: accessError } = await supabase.rpc('privileged_route_eligible', {
+          p_workspace: 'restaurant',
+        });
+        if (accessError) throw accessError;
+        window.location.assign(canEnterWorkspace === true ? new URL('restaurant', window.location.origin + base).toString() : base);
         return;
       }
     } catch (error) {
