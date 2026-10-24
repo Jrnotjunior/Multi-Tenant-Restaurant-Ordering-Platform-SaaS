@@ -15,6 +15,10 @@ function BagIcon() {
   return <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.4 8.2h15.2l-1.1 12H5.5l-1.1-12Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M8.5 9V6.5a3.5 3.5 0 0 1 7 0V9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>;
 }
 
+function AccountIcon() {
+  return <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.8"/><path d="M5 20c.5-3.5 3.2-5.5 7-5.5s6.5 2 7 5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>;
+}
+
 function ArrowIcon() {
   return <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"/></svg>;
 }
@@ -268,6 +272,9 @@ export function Storefront({ baseUrl, requestedSlug }: {
           <span className="sf-header-divider" aria-hidden="true"/>
           <button type="button" className="sf-bag-button" onClick={() => setCartOpen(true)} aria-label={'Open basket with ' + count + ' items'}>
             <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
+          </button>
+          <button type="button" className="sf-account-button" aria-label="Customer account" title="Customer account">
+            <AccountIcon/>
           </button>
         </nav>
       </div>
