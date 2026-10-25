@@ -208,6 +208,18 @@
 .staff-workspace-tabs button:hover{background:var(--color-page,#F7F9FC);color:var(--color-text,#101B2F)}
 .staff-workspace-tabs button.is-selected{background:var(--color-text,#101B2F);color:#fff;box-shadow:0 1px 3px #101b2f24}
 .staff-kitchen-menu-panel{padding:20px;background:#fff;min-height:250px}
+.staff-kitchen-menu-toolbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+.staff-kitchen-menu-toolbar h3{margin:0 0 4px;font-size:1rem}
+.staff-kitchen-menu-toolbar p{margin:0;color:var(--color-muted,#526782);font-size:.85rem}
+.staff-kitchen-menu-toolbar label{display:flex;align-items:center;gap:8px;color:var(--color-muted,#526782);font-size:.8rem;font-weight:650}
+.staff-kitchen-menu-toolbar select{max-width:240px;min-width:150px;border:1px solid var(--color-border,#DCE3ED);border-radius:9px;padding:9px 12px;background:#fff;color:var(--color-text,#101B2F);font:inherit}
+.staff-kitchen-menu-card.is-unavailable{background:var(--color-page,#F7F9FC)}
+.staff-kitchen-menu-card.is-unavailable img{filter:grayscale(.65);opacity:.75}
+.staff-kitchen-availability{display:inline-flex;margin-top:4px;padding:4px 9px;border-radius:999px;font-size:.72rem;font-weight:750}
+.staff-kitchen-availability.is-available{background:#e9f8ef;color:#17663a}
+.staff-kitchen-availability.is-unavailable{background:#fff0ef;color:#a82d2d}
+.staff-kitchen-menu-details .staff-button{margin-top:8px;min-height:34px;padding:7px 12px;font-size:.78rem}
+
 .staff-kitchen-menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
 .staff-kitchen-menu-card{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid var(--color-border,#DCE3ED);border-radius:12px;background:#fff;min-width:0}
 .staff-kitchen-menu-card img,.staff-kitchen-menu-placeholder{width:76px;height:76px;flex:0 0 76px;object-fit:cover;border-radius:9px;background:var(--color-page,#F7F9FC)}
@@ -215,7 +227,7 @@
 .staff-kitchen-menu-card h3{margin:0 0 5px;font-size:.95rem}
 .staff-kitchen-menu-card p{margin:0 0 8px;color:var(--color-muted,#526782);font-size:.82rem}
 .staff-kitchen-menu-card strong{font-size:.85rem}
-@media(max-width:640px){.staff-kitchen-menu-panel{padding:12px}.staff-kitchen-menu-grid{grid-template-columns:1fr}}
+@media(max-width:640px){.staff-kitchen-menu-panel{padding:12px}.staff-kitchen-menu-grid{grid-template-columns:1fr}.staff-kitchen-menu-toolbar{flex-direction:column}.staff-kitchen-menu-toolbar label{width:100%;justify-content:space-between}.staff-kitchen-menu-toolbar select{flex:1;min-width:0}}
 
 /* Kitchen top navigation shares a row with the account control, matching Cashier. */
 .staff-workspace--kitchen{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:16px}
