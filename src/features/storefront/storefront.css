@@ -152,7 +152,7 @@
 .sf-popular{position:absolute;top:13px;left:13px;background:var(--sf-product-card);border-radius:100px;color:var(--sf-primary-button);font-size:var(--sf-font-size-10);font-weight:850;padding:6px 9px;z-index:2;box-shadow:0 3px 9px #52291d1c}
 .sf-card-details{padding:17px 18px 18px}
 .sf-card-category{font-size:var(--sf-font-size-10);letter-spacing:.055em;text-transform:uppercase;color:var(--sf-primary-button);font-weight:800}
-.sf-card-details h3{font-size:var(--sf-font-size-16);font-weight:850;letter-spacing:-.035em;color:var(--sf-font-color);margin:6px 0;line-height:1.26}
+.sf-card-details h3{font-size:var(--sf-font-size-17);font-weight:850;letter-spacing:-.035em;color:var(--sf-font-color);margin:6px 0;line-height:1.26}
 .sf-card-details p{margin:0;color:var(--sf-muted);line-height:1.55;font-size:var(--sf-font-size-product-description);min-height:37px}
 .sf-card-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:16px}
 .sf-card-bottom>strong{font-weight:850;font-size:var(--sf-font-size-product-price);letter-spacing:-.025em}
@@ -310,7 +310,7 @@
 .sf-auth-legal{margin:18px 0 0;color:var(--sf-muted);font-size:var(--sf-font-size-auth-link);line-height:1.55;text-align:center}
 .sf-auth-message{margin:0;padding:12px;border-radius:9px;background:#fff0ef;color:#8c1824;font-size:var(--sf-font-size-auth-input);line-height:1.5;overflow-wrap:anywhere}
 .sf-auth-success{background:#effaf2;color:#23613a}
-@media(max-width:480px){.sf-menu-card{grid-template-columns:112px minmax(0,1fr);min-height:128px}.sf-card-image{height:128px;min-height:128px}.sf-card-details{padding:10px 11px}.sf-card-details h3{font-size:var(--sf-font-size-14)}.sf-card-details p{font-size:var(--sf-font-size-11);line-height:1.4}.sf-auth-card{padding:34px 22px 26px;border-radius:18px}.sf-auth-intro{margin:18px auto 24px}}
+@media(max-width:480px){.sf-menu-card{grid-template-columns:112px minmax(0,1fr);min-height:128px}.sf-card-image{height:128px;min-height:128px}.sf-card-details{padding:10px 11px}.sf-card-details h3{font-size:var(--sf-font-size-17)}.sf-card-details p{font-size:var(--sf-font-size-11);line-height:1.4}.sf-auth-card{padding:34px 22px 26px;border-radius:18px}.sf-auth-intro{margin:18px auto 24px}}
 
 .sf-auth-text-button{justify-self:end;padding:0;border:0;background:transparent;color:var(--sf-primary-button);font:inherit;font-size:var(--sf-font-size-auth-link);font-weight:750;text-align:right;text-decoration:underline;cursor:pointer}.sf-auth-text-button:hover{text-decoration:underline}.sf-auth-switch .sf-auth-text-button{font-size:var(--sf-font-size-auth-switch)}
 
