@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import { normalizeAppBase, restaurantMenuPath } from '../../app/routes';
+import { loadPublishedMenu } from './publishedMenu';
 
 type AuthMode = 'sign-in' | 'sign-up';
 
@@ -15,6 +16,7 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
   const [success, setSuccess] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const [resolvedRestaurantSlug, setResolvedRestaurantSlug] = useState<string | null>(restaurantSlug);
+  const [configuredLogoUrl, setConfiguredLogoUrl] = useState<string | null>(null);
   const isSignUp = mode === 'sign-up';
   const passwordRules = [
     { label: 'At least 8 characters', valid: password.length >= 8 },
@@ -32,7 +34,17 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
     if (!slug) {
       try { slug = window.sessionStorage.getItem('web2table:customer-auth-restaurant'); } catch { /* Storage may be unavailable. */ }
     }
-    setResolvedRestaurantSlug(slug && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ? slug : null);
+    const validSlug = slug && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ? slug : null;
+    setResolvedRestaurantSlug(validSlug);
+    setConfiguredLogoUrl(null);
+    if (!validSlug) return;
+    let active = true;
+    void loadPublishedMenu(validSlug).then(catalog => {
+      if (active) setConfiguredLogoUrl(catalog?.restaurant.logoUrl ?? null);
+    }).catch(() => {
+      // The configured logo is optional; keep the sign-in layout usable if it cannot load.
+    });
+    return () => { active = false; };
   }, [restaurantSlug]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -118,6 +130,7 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
 
   return <main className="sf-auth-page">
     <section className="sf-auth-card" aria-labelledby="sf-auth-title">
+      {!isSignUp && !resetMode && configuredLogoUrl && <img className="sf-auth-configured-logo" src={configuredLogoUrl} alt="Restaurant logo" />}
       <h1 id="sf-auth-title">{resetMode ? 'Reset your password' : isSignUp ? 'Sign Up' : 'Sign In'}</h1>
       <p className="sf-auth-intro">{resetMode ? 'Enter your email and we’ll send you a link to reset your password.' : isSignUp ? 'Create an account to make ordering easier and keep your details in one place.' : 'Welcome back. Sign in to continue your ordering experience.'}</p>
       <form className="sf-auth-form" onSubmit={submit} noValidate>
