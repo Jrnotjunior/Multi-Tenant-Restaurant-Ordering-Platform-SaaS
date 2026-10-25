@@ -35,10 +35,14 @@ Deno.serve(async (req: Request) => {
     if(identityError||!identity.user||identity.user.id!==claims.sub) return respond(req,401,{error:"Your session could not be verified."});
     const body=await req.json().catch(()=>null);
     const email=typeof body?.email==="string"?body.email.trim().toLowerCase():"";
+    const firstName=typeof body?.first_name==="string"?body.first_name.trim():"";
+    const lastName=typeof body?.last_name==="string"?body.last_name.trim():"";
+    const fullName=[firstName,lastName].filter(Boolean).join(" ");
     const role=body?.role;
     const branchId=typeof body?.branch_id==="string"?body.branch_id:"";
     const tenantId=typeof body?.tenant_id==="string"?body.tenant_id:"";
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||email.length>254) return respond(req,400,{error:"Enter a valid staff email address."});
+    if(!firstName||firstName.length>60||!lastName||lastName.length>60) return respond(req,400,{error:"Enter both a first name and a last name (up to 60 characters each)."});
     if(!["cashier","kitchen","dispatcher","rider"].includes(role)) return respond(req,400,{error:"Choose cashier, kitchen, dispatcher, or rider."});
     const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if(!uuid.test(branchId)||!uuid.test(tenantId)) return respond(req,400,{error:"Choose a restaurant branch."});
@@ -53,7 +57,7 @@ Deno.serve(async (req: Request) => {
     invitationId=newInvite;
     const {data:sent,error:sendError}=await adminClient.auth.admin.inviteUserByEmail(email,{
       redirectTo:(()=>{const target=new URL(APP_URL);target.searchParams.set("type","invite");return target.toString();})(),
-      data:{full_name:typeof body.name==="string"?body.name.trim().slice(0,120):"",invitation_type:"restaurant_staff",tenant_id:tenantId,tenant_role:role,tenant_invitation_id:invitationId,branch_id:branchId},
+      data:{first_name:firstName,last_name:lastName,full_name:fullName,invitation_type:"restaurant_staff",tenant_id:tenantId,tenant_role:role,tenant_invitation_id:invitationId,branch_id:branchId},
     });
     if(sendError||!sent?.user?.id) {
       await adminClient.from("privileged_invitations").update({status:"failed"}).eq("id",invitationId);
