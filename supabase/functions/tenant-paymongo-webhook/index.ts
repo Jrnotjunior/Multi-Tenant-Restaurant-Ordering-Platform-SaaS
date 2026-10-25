@@ -82,6 +82,33 @@ Deno.serve(async(request)=>{
       }
     }
   }
+  if(eventType==="refund.updated"){
+    const refundResource=attrs.data??{};
+    const refundAttributes=refundResource.attributes??{};
+    const refundId=String(refundResource.id??"").trim();
+    const refundStatus=String(refundAttributes.status??"").toLowerCase();
+    const refundAmount=refundAttributes.amount;
+    if(refundId){
+      const {data:refundSession,error:refundLookupError}=await admin.from("customer_order_payment_sessions")
+        .select("id,tenant_id,amount_centavos,status").eq("tenant_id",tenantId).eq("refund_id",refundId).maybeSingle();
+      if(refundLookupError)throw refundLookupError;
+      if(refundSession?.status==="refund_pending"&&refundStatus==="succeeded"){
+        if(typeof refundAmount!=="number"||!Number.isSafeInteger(refundAmount)||refundAmount!==Number(refundSession.amount_centavos)){
+          await admin.from("tenant_paymongo_webhook_events").update({status:"failed",last_error:"Refund amount did not match the requested full refund."}).eq("event_id",eventId);
+          return json({error:"Refund amount mismatch."},400);
+        }
+        const {error:refundFinalizeError}=await admin.rpc("finalize_customer_order_refund",{
+          p_tenant_id:tenantId,p_payment_session_id:refundSession.id,p_refund_id:refundId,p_refunded_amount_centavos:refundAmount
+        });
+        if(refundFinalizeError)throw refundFinalizeError;
+      }else if(refundSession?.status==="refund_pending"&&["failed","canceled","cancelled"].includes(refundStatus)){
+        const {error:refundResetError}=await admin.from("customer_order_payment_sessions").update({
+          status:"paid",refund_reason:null,updated_at:new Date().toISOString()
+        }).eq("tenant_id",tenantId).eq("id",refundSession.id).eq("status","refund_pending");
+        if(refundResetError)throw refundResetError;
+      }
+    }
+  }
   const {error:updateError}=await admin.from("tenant_paymongo_webhook_events").update({
     status:"processed",processed_at:new Date().toISOString(),last_error:null
   }).eq("event_id",eventId);
