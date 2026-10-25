@@ -165,7 +165,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   }
 
   return <main className="staff-workspace">
-    {role !== 'cashier' && <header className="staff-header"><div><p className="staff-eyebrow">{copy.eyebrow}</p><h1>{copy.title}</h1><p className="staff-intro">{copy.intro}</p>{restaurantName && <p className="staff-restaurant-name">{restaurantName}</p>}</div>
+    {!['cashier', 'kitchen'].includes(role) && <header className="staff-header"><div><p className="staff-eyebrow">{copy.eyebrow}</p><h1>{copy.title}</h1><p className="staff-intro">{copy.intro}</p>{restaurantName && <p className="staff-restaurant-name">{restaurantName}</p>}</div>
       <div className="staff-header-actions"><span className="staff-live-indicator"><i aria-hidden="true" /> Live queue</span><button className="staff-button staff-button-secondary" type="button" onClick={() => void load()} disabled={loading}>Refresh</button></div>
     </header>}
     {role === 'cashier' && <nav className="staff-workspace-tabs" aria-label="Cashier workspace">
@@ -184,7 +184,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         <div className="staff-sales-table-wrap"><table className="staff-sales-table"><thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Payment</th><th>Total</th></tr></thead><tbody>{salesOrders.slice().sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map(order => <tr key={order.id}><td>#{order.order_number}</td><td>{new Intl.DateTimeFormat('en-PH',{dateStyle:'medium',timeStyle:'short'}).format(new Date(order.created_at))}</td><td>{order.customer_name}</td><td><span className="staff-payment-badge payment-paid">{label(order.payment_status)}</span></td><td>{money(order.total_centavos)}</td></tr>)}</tbody></table></div>}
       <p className="staff-footnote">Sales figures reflect the orders returned by the staff order service; they are not a substitute for a reconciled accounting report.</p>
     </section> : <>
-    {role !== 'cashier' && <section className="staff-metrics" aria-label="Order summary">
+    {!['cashier', 'kitchen'].includes(role) && <section className="staff-metrics" aria-label="Order summary">
       <article><span>New orders</span><strong>{stats.incoming}</strong><small>Awaiting cashier review</small></article>
       <article><span>Preparing</span><strong>{stats.preparing}</strong><small>Confirmed / in kitchen</small></article>
       <article><span>Ready for handoff</span><strong>{stats.ready}</strong><small>Awaiting rider or customer handoff</small></article>
@@ -199,7 +199,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         <div className="staff-queue-toolbar-end"><label className="staff-order-type-filter"><span>Order type</span><select value={orderTypeFilter} onChange={event => setOrderTypeFilter(event.target.value as typeof orderTypeFilter)} aria-label="Filter by order type"><option value="all">All types</option><option value="delivery">Delivery</option><option value="take_out">Take-out</option><option value="pickup">Pickup</option><option value="dine_in">Dine-in</option></select></label><span className="staff-result-count">{visibleOrders.length} {visibleOrders.length === 1 ? 'order' : 'orders'}</span></div>
       </div>
       {(error || notice) && <p className={'staff-notice ' + (error ? 'is-error' : 'is-success')} role={error ? 'alert' : 'status'}>{error || notice}</p>}
-      {loading ? <p className="staff-empty"><span className="staff-loading-dot" aria-hidden="true" /> Loading orders…</p> : visibleOrders.length === 0 ? <div className="staff-empty"><span className="staff-empty-icon" aria-hidden="true">{orders.length > 0 ? '⌕' : '✓'}</span><h3>{orders.length > 0 ? 'No matching orders' : 'You’re all caught up'}</h3><p>{orders.length > 0 ? 'Try a different search or order type filter.' : 'New orders will appear here automatically. You can keep working while the queue stays up to date.'}</p>{(search || orderTypeFilter !== 'all') && <button type="button" className="staff-button staff-button-secondary" onClick={() => { setSearch(''); setOrderTypeFilter('all'); }}>Clear filters</button>}</div> :
+      {loading ? <p className="staff-empty"><span className="staff-loading-dot" aria-hidden="true" /> Loading orders…</p> : visibleOrders.length === 0 ? <div className="staff-empty"><span className="staff-empty-icon" aria-hidden="true">{orders.length > 0 ? '⌕' : '✓'}</span><h3>{orders.length > 0 ? 'No matching orders' : 'You’re all caught up'}</h3><p>{orders.length > 0 ? 'Try a different search or order type filter.' : (role === 'kitchen' ? 'Accepted orders will appear here. Start preparing each ticket, then mark it ready for handoff.' : 'New orders will appear here automatically. You can keep working while the queue stays up to date.')}</p>{(search || orderTypeFilter !== 'all') && <button type="button" className="staff-button staff-button-secondary" onClick={() => { setSearch(''); setOrderTypeFilter('all'); }}>Clear filters</button>}</div> :
         <div className="staff-order-list">{visibleOrders.map(order => {
           const buttons = actions(order);
           const branchRiders = riders[order.branch_id] ?? [];
