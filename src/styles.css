@@ -109,7 +109,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
   box-sizing:border-box;
   width:100%;
   min-height:100vh;
-  grid-template-columns:minmax(0,1fr) minmax(360px,520px);
+  grid-template-columns:minmax(0,1.05fr) minmax(560px,0.95fr);
   align-items:stretch;
   justify-items:stretch;
   gap:0;
@@ -124,8 +124,8 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 }
 .privileged-onboarding .onboarding-card{
   box-sizing:border-box;
-  width:calc(100% - 48px);
-  max-width:520px;
+  width:calc(100% - 64px);
+  max-width:720px;
   align-self:center;
   justify-self:center;
   margin:24px;
