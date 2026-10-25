@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { normalizeAppBase } from '../../app/routes';
 import type { StaffWorkspaceRole } from './OperationalDashboard';
 import { StaffOperationalWorkspace } from './StaffOperationalWorkspace';
 import { OwnerAppShell } from './OwnerAppShell';
@@ -46,7 +47,7 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
       setVisitedOwnerPages(current => current.has(nextPage) ? current : new Set(current).add(nextPage));
     };
     if (!/^#\/?restaurant\//.test(window.location.hash)) {
-      window.history.replaceState(null, '', window.location.pathname + window.location.search + '#restaurant/' + ownerPage);
+      window.history.replaceState(null, '', normalizeAppBase(baseUrl) + window.location.search + '#restaurant/' + ownerPage);
     }
     window.addEventListener('hashchange', syncOwnerPage);
     window.addEventListener('popstate', syncOwnerPage);
