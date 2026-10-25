@@ -11,7 +11,6 @@ export function CartPage({ count, children }: CartPageProps) {
   return (
     <section className="sf-cart-page" aria-labelledby="sf-cart-page-title">
       <div className="sf-cart-page-heading">
-        <span className="sf-section-kicker">YOUR ORDER</span>
         <h1 id="sf-cart-page-title">Your cart <span>({count})</span></h1>
       </div>
       {children}
