@@ -51,7 +51,6 @@ export function LegalPoliciesPage({ route = '#legal' }: { route?: string }) {
   } as const;
   const detail = details[route as keyof typeof details];
   if (detail) return <main className="customer-legal-page customer-legal-detail" aria-labelledby="customer-legal-title">
-    <a className="customer-legal-back" href="#legal">← Back to Legal &amp; Policies</a>
     <p className="customer-legal-eyebrow">{detail.eyebrow}</p>
     <h1 id="customer-legal-title">{detail.title}</h1>
     <p className="customer-legal-intro-copy">{detail.intro}</p>
