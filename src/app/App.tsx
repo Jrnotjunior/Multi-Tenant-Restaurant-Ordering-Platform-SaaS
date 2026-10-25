@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { isStorefrontCartPath, pathFor, storefrontSlugFromPath, viewForPath, type View } from './routes';
+import { isStorefrontCartPath, pathFor, routePathFromLocation, storefrontSlugFromPath, viewForPath, type View } from './routes';
 import { PrivilegedGate } from '../features/auth/PrivilegedGate';
 import { Storefront } from '../features/storefront/Storefront';
 import { AccountAuthPage } from '../features/storefront/AccountAuthPage';
@@ -15,24 +15,28 @@ const protectedViews = {
 
 export function App() {
   const baseUrl = import.meta.env.BASE_URL;
-  const [pathname, setPathname] = useState(window.location.pathname);
+  const [locationKey, setLocationKey] = useState(window.location.pathname + window.location.hash);
+  const pathname = routePathFromLocation(window.location.pathname, window.location.hash, baseUrl);
   const view = viewForPath(pathname, baseUrl);
   const cleanPath = pathname.replace(/\/+$/, '');
   const cleanBase = baseUrl.replace(/\/+$/, '');
   const authMode = cleanPath === cleanBase + '/account/sign-up' ? 'sign-up' : cleanPath === cleanBase + '/account/sign-in' ? 'sign-in' : null;
 
   useEffect(() => {
-    const syncHistory = () => setPathname(window.location.pathname);
+    const syncHistory = () => setLocationKey(window.location.pathname + window.location.hash);
     window.addEventListener('popstate', syncHistory);
-    return () => window.removeEventListener('popstate', syncHistory);
+    window.addEventListener('hashchange', syncHistory);
+    return () => { window.removeEventListener('popstate', syncHistory); window.removeEventListener('hashchange', syncHistory); };
   }, []);
 
   function navigate(next: View) {
     const path = pathFor(next, baseUrl);
     window.history.pushState({}, '', path);
-    setPathname(path);
+    setLocationKey(window.location.pathname + window.location.hash);
     window.scrollTo(0, 0);
   }
+
+  void locationKey;
 
   if (authMode) return <AccountAuthPage mode={authMode} baseUrl={baseUrl} restaurantSlug={new URLSearchParams(window.location.search).get('restaurant')} />;
 
