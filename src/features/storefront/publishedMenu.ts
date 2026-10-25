@@ -144,6 +144,7 @@ export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
       category:namesById.get(item.categoryId)!,
       priceCentavos:item.priceCentavos as number,
       popular:item.popular,
+      isAvailable:typeof item.isAvailable==='boolean'?item.isAvailable:true,
       emoji:'🍽️',
       background:backgrounds[index % backgrounds.length],
       imageUrl:getImageUrl(item.imagePath),
