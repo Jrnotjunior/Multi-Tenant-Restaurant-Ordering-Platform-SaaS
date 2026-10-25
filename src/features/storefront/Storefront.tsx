@@ -126,6 +126,18 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
 }) {
   const lines = cartLines(cart, menu);
   const count = cartCount(cart, menu)+customCount(customized,menu);
+  const [revealedRemoveKey, setRevealedRemoveKey] = useState<string | null>(null);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const swipeHandlers = (key: string) => ({
+    onTouchStart: (event: React.TouchEvent<HTMLDivElement>) => setTouchStartX(event.touches[0]?.clientX ?? null),
+    onTouchEnd: (event: React.TouchEvent<HTMLDivElement>) => {
+      if (touchStartX === null) return;
+      const deltaX = event.changedTouches[0]?.clientX - touchStartX;
+      if (deltaX < -35) setRevealedRemoveKey(key);
+      else if (deltaX > 35) setRevealedRemoveKey(current => current === key ? null : current);
+      setTouchStartX(null);
+    },
+  });
   return <>
     {count === 0 ? <div className="sf-cart-empty">
       <div className="sf-cart-empty-icon"><BagIcon /></div>
@@ -134,7 +146,9 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
       {close && <button type="button" className="sf-continue" onClick={close}>Browse menu</button>}
     </div> : <>
       <div className="sf-cart-items">
-        {customLines(customized,menu).map(line=><div className="sf-cart-item" key={line.key}>
+        {customLines(customized,menu).map(line=><div className={'sf-cart-item-shell' + (revealedRemoveKey === 'custom:' + line.key ? ' is-remove-revealed' : '')} key={line.key} {...swipeHandlers('custom:' + line.key)}>
+          <button type="button" className="sf-cart-swipe-remove" aria-label={'Remove ' + line.item.name} onClick={()=>{changeCustomized(line.key,-line.quantity);setRevealedRemoveKey(null);}}>Remove</button>
+          <div className="sf-cart-item sf-cart-item-front">
           <div className="sf-cart-item-top">
             <strong>{line.item.name}</strong>
             <strong className="sf-cart-lineprice">{peso(line.totalCentavos)}</strong>
@@ -149,10 +163,13 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
               <button type="button" aria-label={'Add one customized '+line.item.name}
                 disabled={line.quantity>=20} onClick={()=>changeCustomized(line.key,1)}>+</button>
             </div>
-            <button type="button" className="sf-cart-remove" onClick={()=>changeCustomized(line.key,-line.quantity)}>Remove</button>
+            <button type="button" className="sf-cart-remove" onClick={()=>setRevealedRemoveKey(current => current === 'custom:' + line.key ? null : 'custom:' + line.key)} aria-expanded={revealedRemoveKey === 'custom:' + line.key}>Swipe to remove</button>
+          </div>
           </div>
         </div>)}
-        {lines.map(({ item, quantity }) => <div className="sf-cart-item" key={item.id}>
+        {lines.map(({ item, quantity }) => <div className={'sf-cart-item-shell' + (revealedRemoveKey === item.id ? ' is-remove-revealed' : '')} key={item.id} {...swipeHandlers(item.id)}>
+          <button type="button" className="sf-cart-swipe-remove" aria-label={'Remove ' + item.name} onClick={()=>{change(item.id,-quantity);setRevealedRemoveKey(null);}}>Remove</button>
+          <div className="sf-cart-item sf-cart-item-front">
           <div className="sf-cart-item-top">
             <strong>{item.name}</strong>
             <strong className="sf-cart-lineprice">{peso(item.priceCentavos * quantity)}</strong>
@@ -160,7 +177,8 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
           <span className="sf-cart-unit-price">{peso(item.priceCentavos)}</span>
           <div className="sf-cart-item-actions">
             <QuantityControl itemId={item.id} quantity={quantity} change={change}/>
-            <button type="button" className="sf-cart-remove" onClick={()=>change(item.id,-quantity)}>Remove</button>
+            <button type="button" className="sf-cart-remove" onClick={()=>setRevealedRemoveKey(current => current === item.id ? null : item.id)} aria-expanded={revealedRemoveKey === item.id}>Swipe to remove</button>
+          </div>
           </div>
         </div>)}
       </div>
