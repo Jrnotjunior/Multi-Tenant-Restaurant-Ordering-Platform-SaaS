@@ -216,3 +216,10 @@
 .staff-kitchen-menu-card p{margin:0 0 8px;color:var(--color-muted,#526782);font-size:.82rem}
 .staff-kitchen-menu-card strong{font-size:.85rem}
 @media(max-width:640px){.staff-kitchen-menu-panel{padding:12px}.staff-kitchen-menu-grid{grid-template-columns:1fr}}
+
+/* Kitchen top navigation shares a row with the account control, matching Cashier. */
+.staff-workspace--kitchen{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:16px}
+.staff-workspace--kitchen>.staff-account-row{grid-column:2;grid-row:1;margin:0 0 20px;align-self:start}
+.staff-workspace--kitchen>.staff-workspace-tabs{grid-column:1;grid-row:1;align-self:start;margin-bottom:20px}
+.staff-workspace--kitchen>section{grid-column:1/-1;min-width:0}
+@media(max-width:560px){.staff-workspace--kitchen{column-gap:8px}.staff-workspace--kitchen>.staff-workspace-tabs{gap:4px}.staff-workspace--kitchen>.staff-workspace-tabs button{padding:9px 16px}}
