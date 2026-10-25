@@ -292,6 +292,7 @@
 .sf-auth-card:before{content:"";position:absolute;z-index:-1;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--sf-primary-button),var(--sf-secondary-button))}
 .sf-auth-back{display:inline-block;margin-bottom:20px;color:var(--sf-muted);font-size:var(--sf-font-size-13);font-weight:650;text-decoration:none}
 .sf-auth-back:hover,.sf-auth-switch a:hover{color:var(--sf-primary-button);text-decoration:underline}
+.sf-auth-configured-logo{display:block;width:auto;height:auto;max-width:min(180px,70%);max-height:76px;object-fit:contain;margin:0 auto 18px}
 .sf-auth-card h1{margin:0;color:var(--sf-font-color);font-family:var(--font-heading);font-size:var(--sf-font-size-auth-title);line-height:1.15;letter-spacing:-.05em;text-align:center}
 .sf-auth-intro{margin:22px auto 26px;max-width:300px;color:var(--sf-muted);font-size:var(--sf-font-size-14);line-height:1.55;text-align:center}
 .sf-auth-form{display:grid;gap:15px}
