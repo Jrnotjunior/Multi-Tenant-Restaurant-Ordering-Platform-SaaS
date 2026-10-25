@@ -13,6 +13,7 @@ export type MenuItem = Readonly<{
   emoji: string;
   background: string;
   popular?: boolean;
+  isAvailable?: boolean;
   imageUrl?: string;
   modifierGroups?: readonly ModifierGroup[];
 }>;
