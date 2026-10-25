@@ -421,3 +421,12 @@
 .owner-order-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;border-top:1px solid #e8edf4;padding-top:12px}
 .owner-order-actions button.is-danger{background:#fff;color:#a72b2b;border-color:#edcaca}
 @media(max-width:760px){.owner-orders-toolbar{display:block}.owner-orders-toolbar-actions{justify-content:flex-start;margin-top:14px}.owner-orders-list{padding:13px}.owner-order-card{padding:12px}.owner-order-totals{grid-template-columns:1fr}}
+
+.owner-order-delivery-fee{display:grid;gap:7px;padding:12px;margin:2px 0 10px;border:1px solid #dce5f0;border-radius:9px;background:#f8fafc}
+.owner-order-delivery-fee>label{font-size:11px;font-weight:800;color:#263754}
+.owner-order-delivery-fee>div{display:flex;gap:8px}
+.owner-order-delivery-fee input{width:100%;min-width:0;max-width:190px;border:1px solid #cbd6e5;border-radius:7px;padding:9px 10px;background:#fff;color:#101b2f;font:inherit;font-size:12px}
+.owner-order-delivery-fee button{border:1px solid #101B2F;border-radius:7px;background:#101B2F;color:#fff;padding:8px 12px;font:inherit;font-size:11px;font-weight:750;cursor:pointer}
+.owner-order-delivery-fee button:disabled{opacity:.6;cursor:wait}
+.owner-order-delivery-fee small{font-size:10px;line-height:1.5;color:#657791}
+@media(max-width:420px){.owner-order-delivery-fee>div{align-items:stretch}.owner-order-delivery-fee input{flex:1}}
