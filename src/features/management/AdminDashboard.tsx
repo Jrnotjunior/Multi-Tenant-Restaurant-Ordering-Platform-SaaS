@@ -1,5 +1,5 @@
 import { useEffect,useState,type FormEvent } from 'react';
-import { adminTenants,provisionRestaurant,queueOwnerInvitation,type Tenant } from './menuService';
+import { adminTenants,provisionRestaurant,sendOwnerInvitation,type Tenant } from './menuService';
 import './management.css';
 
 export function AdminDashboard(){
@@ -44,16 +44,16 @@ export function AdminDashboard(){
   const submitOwnerInvite=(event:FormEvent)=>{
     event.preventDefault();
     if(!inviteTenant)return;
-    void run(()=>queueOwnerInvitation(inviteTenant,inviteEmail),()=>{
+    void run(()=>sendOwnerInvitation(inviteTenant,inviteEmail),()=>{
       setInviteEmail('');
-      return 'Owner invitation queued in the database. No email has been sent. Email delivery is not activated.';
+      return 'Restaurant owner invitation email sent successfully.';
     });
   };
   return <main className="mg-shell">
     <div className="mg-heading"><div><span className="mg-eyebrow">WEB2TABLE · SYSTEM ADMIN</span>
       <h1>Restaurant onboarding</h1>
-      <p>Create a restaurant's initial branch and prepare an owner invitation.</p></div></div>
-    <div className="mg-notice">Only verified platform administrators with MFA can provision restaurants. Account bootstrap and invitation email delivery are not active.</div>
+      <p>Create a restaurant's initial branch and send a role-specific owner invitation.</p></div></div>
+    <div className="mg-notice">Only verified platform administrators with MFA can provision restaurants and send owner invitations. Invite emails use role-specific content and secure account-setup links.</div>
     {message&&<p className="mg-success" role="status">{message}</p>}
     {error&&<p className="mg-error" role="alert">{error}</p>}
     <section className="mg-card">
@@ -77,7 +77,7 @@ export function AdminDashboard(){
     </section>
     <section className="mg-card">
       <h2>Restaurant owner invitation</h2>
-      <p className="mg-muted">Queue an invitation for the selected restaurant. Email sending requires the separate, reviewed invitation delivery service.</p>
+      <p className="mg-muted">Send the selected restaurant owner a secure invitation to complete account setup and restaurant onboarding.</p>
       <form className="mg-form" onSubmit={submitOwnerInvite}>
         <label className="mg-field">Restaurant<select required value={inviteTenant}
           onChange={e=>setInviteTenant(e.target.value)}>
@@ -85,7 +85,7 @@ export function AdminDashboard(){
         </select></label>
         <label className="mg-field">Owner email<input required type="email" maxLength={254} value={inviteEmail}
           onChange={e=>setInviteEmail(e.target.value)} placeholder="owner@restaurant.com"/></label>
-        <button disabled={busy||!inviteTenant} type="submit">Queue invitation (do not email)</button>
+        <button disabled={busy||!inviteTenant} type="submit">{busy?'Sending invitation…':'Send owner invitation'}</button>
       </form>
     </section>
     <section className="mg-card"><h2>Registered restaurants</h2>
