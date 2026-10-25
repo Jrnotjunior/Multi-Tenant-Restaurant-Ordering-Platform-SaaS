@@ -52,6 +52,14 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .onboarding-steps .active small{color:#fff}
 .onboarding-steps i{height:2px;background:#39393e;flex:1;margin-top:19px;min-width:15px}
 .onboarding-card .auth-form{gap:12px;margin-top:16px}
+.onboarding-card .onboarding-otp-fieldset{border:0;padding:0;margin:0;min-width:0}
+.onboarding-card .onboarding-otp-fieldset legend{padding:0;margin:0 0 9px;color:#101B2F;font-size:14px;font-weight:650}
+.onboarding-card .onboarding-otp-inputs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:clamp(6px,2vw,11px);width:100%}
+.onboarding-card .onboarding-otp-digit{box-sizing:border-box;width:100%;min-width:0;height:52px;padding:0;text-align:center;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;border:1px solid #DCE3ED;border-radius:10px;background:#FFFFFF;color:#101B2F;caret-color:#101B2F}
+.onboarding-card .onboarding-otp-digit:focus{outline:0;border-color:#263754;box-shadow:0 0 0 3px #26375422}
+.onboarding-card .onboarding-otp-hint{display:block;margin-top:8px;color:#526782;font-size:12px;line-height:1.5}
+@media(max-width:380px){.onboarding-card .onboarding-otp-inputs{gap:5px}.onboarding-card .onboarding-otp-digit{height:46px;border-radius:8px;font-size:20px}}
+
 .onboarding-card .auth-form label{font-size:14px;font-weight:650;gap:9px}
 .onboarding-password-wrap{position:relative;display:flex;align-items:center}
 .onboarding-card .onboarding-password-wrap input{padding:11px 54px 11px 14px;border-radius:9px;border-color:#DCE3ED;background:#FFFFFF;color:#101B2F;font-size:15px;min-height:44px}
