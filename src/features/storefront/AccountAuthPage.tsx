@@ -134,13 +134,15 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
 
   return <main className="sf-auth-page">
     <section className="sf-auth-card" aria-labelledby="sf-auth-title">
-      <a className="sf-auth-back" href={backToMenu}>← Back to menu</a>
+      <div className="sf-auth-brand">
+        <a className="sf-auth-brand-mark" href={backToMenu} aria-label="Web2Table home">W2T</a>
+        <strong>Web2Table</strong>
+      </div>
       {tenantLogo ? <a className="sf-auth-tenant-brand" href={backToMenu} aria-label={tenantName ? tenantName + ' home' : 'Restaurant home'}>
         <img src={tenantLogo} alt={tenantName ? tenantName + ' logo' : 'Restaurant logo'} />
       </a> : null}
-      <p className="sf-auth-eyebrow">YOUR ACCOUNT</p>
-      <h1 id="sf-auth-title">{resetMode ? 'Reset your password' : isSignUp ? 'Create your account' : 'Welcome back'}</h1>
-      <p className="sf-auth-intro">{resetMode ? 'Enter your email and we’ll send you a link to reset your password.' : isSignUp ? 'Sign up to make ordering easier and keep your details in one place.' : 'Sign in to continue to your restaurant ordering experience.'}</p>
+      <h1 id="sf-auth-title">{resetMode ? 'Reset your password' : isSignUp ? 'Sign Up' : 'Sign In'}</h1>
+      <p className="sf-auth-intro">{resetMode ? 'Enter your email and we’ll send you a link to reset your password.' : isSignUp ? 'Create an account to make ordering easier and keep your details in one place.' : 'Welcome back. Sign in to continue your ordering experience.'}</p>
       <form className="sf-auth-form" onSubmit={submit} noValidate>
         {isSignUp && <>
           <label>
@@ -176,7 +178,7 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
         <button type="submit" disabled={busy}>{busy ? 'Please wait…' : resetMode ? 'Send reset link' : isSignUp ? 'Create account' : 'Sign in'}</button>
       </form>
       <p className="sf-auth-switch">
-        {resetMode ? <button className="sf-auth-text-button" type="button" onClick={() => { setResetMode(false); setMessage(''); setSuccess(false); }}>Back to sign in</button> : <>{isSignUp ? 'Already have an account? ' : "Don't have an account? "}<a href={base + (isSignUp ? 'account/sign-in' : 'account/sign-up') + (resolvedRestaurantSlug ? '?restaurant=' + encodeURIComponent(resolvedRestaurantSlug) : '')}>{isSignUp ? 'Sign in' : 'Sign up'}</a></>}
+        {resetMode ? <button className="sf-auth-text-button" type="button" onClick={() => { setResetMode(false); setMessage(''); setSuccess(false); }}>Back to sign in</button> : <>{isSignUp ? 'Already have an account? ' : 'New customer? '}<a href={base + (isSignUp ? 'account/sign-in' : 'account/sign-up') + (resolvedRestaurantSlug ? '?restaurant=' + encodeURIComponent(resolvedRestaurantSlug) : '')}>{isSignUp ? 'Sign In' : 'Sign Up'}</a></>}
       </p>
       <p className="sf-auth-legal">By continuing, you agree to the restaurant's applicable terms and privacy policy.</p>
     </section>
