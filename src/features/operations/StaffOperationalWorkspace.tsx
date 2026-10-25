@@ -36,7 +36,31 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [accountEmail, setAccountEmail] = useState('');
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const copy = roleCopy[role];
+
+  useEffect(() => {
+    let active = true;
+    void supabase?.auth.getUser().then(({ data }) => {
+      if (active) setAccountEmail(data.user?.email ?? '');
+    });
+    return () => { active = false; };
+  }, []);
+
+  async function signOut() {
+    if (!supabase || signingOut) return;
+    setSigningOut(true);
+    setError('');
+    const { error: signOutError } = await supabase.auth.signOut();
+    if (signOutError) {
+      setError(signOutError.message || 'Unable to sign out. Please try again.');
+      setSigningOut(false);
+      return;
+    }
+    window.location.reload();
+  }
 
   const load = useCallback(async (quiet = false) => {
     if (!supabase) { setError('Restaurant services are not configured.'); setLoading(false); return; }
@@ -165,7 +189,21 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   }
 
   return <main className="staff-workspace">
-    {!['cashier', 'kitchen'].includes(role) && <header className="staff-header"><div><p className="staff-eyebrow">{copy.eyebrow}</p><h1>{copy.title}</h1><p className="staff-intro">{copy.intro}</p>{restaurantName && <p className="staff-restaurant-name">{restaurantName}</p>}</div>
+    <div className="staff-account-row">
+      <div className="staff-account-menu">
+        <button type="button" className="staff-account-trigger" aria-label="Account menu" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(open => !open)}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+        </button>
+        {accountMenuOpen && <div className="staff-account-dropdown" role="menu">
+          <span className="staff-account-email">{accountEmail || 'Signed-in account'}</span>
+          <button type="button" role="menuitem" onClick={() => void signOut()} disabled={signingOut}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg>
+            {signingOut ? 'Signing out…' : 'Log out'}
+          </button>
+        </div>}
+      </div>
+    </div>
+    {![''cashier', 'kitchen'].includes(role) && <header className="staff-header"><div><p className="staff-eyebrow">{copy.eyebrow}</p><h1>{copy.title}</h1><p className="staff-intro">{copy.intro}</p>{restaurantName && <p className="staff-restaurant-name">{restaurantName}</p>}</div>
       <div className="staff-header-actions"><span className="staff-live-indicator"><i aria-hidden="true" /> Live queue</span><button className="staff-button staff-button-secondary" type="button" onClick={() => void load()} disabled={loading}>Refresh</button></div>
     </header>}
     {role === 'cashier' && <nav className="staff-workspace-tabs" aria-label="Cashier workspace">
