@@ -172,7 +172,7 @@
 
 /* Restrict tenant-provided branding to a validated hex color custom property. */
 .sf-storefront .sf-logo-mark,.sf-storefront .sf-add,.sf-storefront .sf-bag-count,
-.sf-storefront .sf-mobile-cart-bar button,.sf-storefront .sf-back-link,
+.sf-storefront .sf-back-link,
 .sf-storefront .sf-continue{background:var(--sf-primary-button);color:var(--sf-primary-button-font)}
 .sf-storefront .sf-hero{background:var(--sf-hero-color)}
 
