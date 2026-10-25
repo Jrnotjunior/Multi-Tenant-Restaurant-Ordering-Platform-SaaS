@@ -7,6 +7,7 @@ type CheckoutPageProps = {
   restaurantName: string;
   itemCount: number;
   subtotalCentavos: number;
+  orderLines: readonly { name: string; quantity: number; totalCentavos: number }[];
   onBackToMenu: () => void;
 };
 
@@ -51,7 +52,7 @@ function DeliveryAddressSection({ orderType }: { orderType: OrderType }) {
 }
 
 /** Standalone checkout screen. It prepares details only; it does not place or charge an order. */
-export function CheckoutPage({ restaurantName, itemCount, subtotalCentavos, onBackToMenu }: CheckoutPageProps) {
+export function CheckoutPage({ restaurantName, itemCount, subtotalCentavos, orderLines, onBackToMenu }: CheckoutPageProps) {
   const [orderType, setOrderType] = useState<OrderType>('Delivery');
   const [message, setMessage] = useState('');
   const [reviewed, setReviewed] = useState(false);
@@ -77,14 +78,17 @@ export function CheckoutPage({ restaurantName, itemCount, subtotalCentavos, onBa
       <DeliveryAddressSection orderType={orderType} />
 
       <section className="sf-checkout-total" aria-label="Order summary">
-        <div><span>Restaurant</span><strong>{restaurantName}</strong></div>
-        <div><span>Items</span><strong>{itemCount}</strong></div>
-        <div className="sf-checkout-total-price"><span>Subtotal</span><strong>{peso(subtotalCentavos)}</strong></div>
-        <p>Delivery fees and payment details will be calculated during checkout.</p>
+        <div className="sf-checkout-summary-heading"><span>Order summary</span></div>
+        {orderLines.map((line, index) => <div className="sf-checkout-summary-line" key={line.name + '-' + index}>
+          <span>{line.quantity} × {line.name}</span><strong>{peso(line.totalCentavos)}</strong>
+        </div>)}
+        <div className="sf-checkout-summary-subtotal"><span>Subtotal</span><strong>{peso(subtotalCentavos)}</strong></div>
+        <div className="sf-checkout-summary-delivery"><span>Delivery fee</span><strong>{peso(0)}</strong></div>
+        <div className="sf-checkout-summary-grand-total"><span>Total</span><strong>{peso(subtotalCentavos)}</strong></div>
       </section>
 
       {message && <p className="sf-checkout-page-message" role="status">{message}</p>}
-      <button className="sf-checkout-submit" type="submit" disabled={itemCount === 0}>{reviewed ? 'Details reviewed' : 'Review checkout details'} <span aria-hidden="true">→</span></button>
+      <button className="sf-checkout-submit" type="submit" disabled={itemCount === 0}>{reviewed ? 'Details reviewed' : 'Choose Payment Options'}</button>
       <button className="sf-checkout-back-menu" type="button" onClick={onBackToMenu}>Add more items</button>
       <p className="sf-checkout-page-footnote">No order is submitted or charged on this page.</p>
     </form>
