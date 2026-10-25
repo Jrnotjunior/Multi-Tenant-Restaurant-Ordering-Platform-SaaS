@@ -328,10 +328,18 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     setCart((previous) => updateCart(previous, itemId, delta, menu));
   };
 
+  function navigateHashRoute(hash: string) {
+    const url = new URL(window.location.href);
+    url.pathname = normalizeAppBase(baseUrl);
+    url.hash = hash.replace(/^#/, '');
+    window.history.pushState({}, '', url.pathname + url.search + url.hash);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }
+
   function navigateCart(open: boolean) {
     if (!resolvedSlug) { setCartPage(open); setCheckoutPage(false); return; }
     const nextHash = open ? storefrontCartHash(resolvedSlug) : restaurantMenuHash(resolvedSlug);
-    window.location.hash = nextHash.slice(1);
+    navigateHashRoute(nextHash);
     setCartPage(open);
     setCheckoutPage(false);
     setAccountMenuOpen(false);
@@ -355,7 +363,10 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     if(!catalog?.branches.some(b => b.slug === slug)) return;
     const url=new URL(window.location.href);
     url.searchParams.set('branch',slug);
+    url.pathname = normalizeAppBase(baseUrl);
+    url.hash = restaurantMenuHash(slug).slice(1);
     window.history.pushState({},'',url.pathname+url.search+url.hash);
+    window.dispatchEvent(new PopStateEvent('popstate'));
     setSelectedBranch(slug);
     setCart({});
     setCustomized({});
