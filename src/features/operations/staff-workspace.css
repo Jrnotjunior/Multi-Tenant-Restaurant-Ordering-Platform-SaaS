@@ -226,14 +226,29 @@
 .staff-kitchen-availability.is-unavailable{background:#fff0ef;color:#a82d2d}
 .staff-kitchen-menu-details .staff-button{margin-top:8px;min-height:34px;padding:7px 12px;font-size:.78rem}
 
-.staff-kitchen-menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
-.staff-kitchen-menu-card{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid var(--color-border,#DCE3ED);border-radius:12px;background:#fff;min-width:0}
-.staff-kitchen-menu-card img,.staff-kitchen-menu-placeholder{width:76px;height:76px;flex:0 0 76px;object-fit:cover;border-radius:9px;background:var(--color-page,#F7F9FC)}
+.staff-kitchen-menu-controls{display:flex;align-items:center;gap:18px;margin:0 0 22px;padding-bottom:14px;border-bottom:1px solid var(--color-border,#DCE3ED);min-width:0}
+.staff-kitchen-menu-search{flex:0 1 360px;width:min(100%,360px);margin:0}
+.staff-kitchen-category-tabs{display:flex;align-items:center;gap:22px;min-width:0;overflow-x:auto;white-space:nowrap;scrollbar-width:thin}
+.staff-kitchen-category-tabs button{flex:0 0 auto;border:0;border-radius:0;padding:10px 2px;background:transparent;color:var(--color-muted,#526782);font:inherit;font-size:.875rem;font-weight:600;cursor:pointer}
+.staff-kitchen-category-tabs button.is-selected{color:var(--color-text,#101B2F);box-shadow:inset 0 -2px var(--color-primary,#101B2F)}
+.staff-kitchen-menu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.staff-kitchen-menu-card{display:flex;gap:10px;align-items:stretch;padding:3px;border:1px solid var(--color-border,#DCE3ED);border-radius:16px;background:#fff;min-width:0;overflow:hidden;position:relative}
+.staff-kitchen-menu-card img,.staff-kitchen-menu-placeholder{width:clamp(100px,14vw,160px);height:160px;flex:0 0 clamp(100px,14vw,160px);object-fit:cover;border-radius:0;background:#f8f5ed}
 .staff-kitchen-menu-placeholder{display:grid;place-items:center;color:var(--color-muted,#526782);font-size:11px;text-align:center}
-.staff-kitchen-menu-card h3{margin:0 0 5px;font-size:.95rem}
-.staff-kitchen-menu-card p{margin:0 0 8px;color:var(--color-muted,#526782);font-size:.82rem}
-.staff-kitchen-menu-card strong{font-size:.85rem}
-@media(max-width:640px){.staff-kitchen-menu-panel{padding:12px}.staff-kitchen-menu-grid{grid-template-columns:1fr}.staff-kitchen-menu-toolbar{flex-direction:column}.staff-kitchen-menu-toolbar label{width:100%;justify-content:space-between}.staff-kitchen-menu-toolbar select{flex:1;min-width:0}}
+.staff-kitchen-menu-details{display:flex;align-items:flex-start;flex-direction:column;min-width:0;padding:7px 38px 7px 0}
+.staff-kitchen-menu-card h3{margin:0 0 4px;font-size:1rem;line-height:1.3}
+.staff-kitchen-menu-card p{margin:0 0 6px;color:var(--color-text,#101B2F);font-size:.875rem;line-height:1.35}
+.staff-kitchen-menu-card strong{font-size:.9rem}
+.staff-kitchen-menu-card .staff-kitchen-menu-category{display:none}
+.staff-kitchen-menu-status{font-size:.72rem;color:var(--color-muted,#526782);margin-top:4px}
+.staff-kitchen-menu-details .staff-kitchen-availability{margin-top:auto;padding:3px 0 0;background:transparent;font-size:.75rem}
+.staff-kitchen-menu-details .staff-button{position:absolute;right:8px;bottom:8px;width:34px;height:34px;min-height:34px;padding:0;border-radius:9px;font-size:0}
+.staff-kitchen-menu-details .staff-button::after{content:"−";font-size:1rem;line-height:1}
+.staff-kitchen-menu-details .staff-button.staff-button-primary::after{content:"+"}
+.staff-kitchen-menu-card.is-unavailable{background:#f7f9fc}
+.staff-kitchen-menu-card.is-unavailable img{filter:grayscale(.65);opacity:.75}
+@media(max-width:760px){.staff-kitchen-menu-controls{align-items:stretch;flex-direction:column;gap:10px}.staff-kitchen-menu-search{flex:1;width:100%;max-width:none}.staff-kitchen-category-tabs{gap:18px}.staff-kitchen-menu-grid{grid-template-columns:1fr}.staff-kitchen-menu-card img,.staff-kitchen-menu-placeholder{width:clamp(100px,32vw,140px);height:140px;flex-basis:clamp(100px,32vw,140px)}}
+@media(max-width:640px){.staff-kitchen-menu-panel{padding:12px}.staff-kitchen-menu-toolbar{flex-direction:column}.staff-kitchen-menu-toolbar label{width:100%;justify-content:space-between}.staff-kitchen-menu-toolbar select{flex:1;min-width:0}}
 
 /* Kitchen top navigation shares a row with the account control, matching Cashier. */
 .staff-workspace--kitchen{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:16px}
