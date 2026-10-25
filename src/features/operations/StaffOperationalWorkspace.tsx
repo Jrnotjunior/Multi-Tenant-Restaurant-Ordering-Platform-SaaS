@@ -8,7 +8,7 @@ type Order = {
   id: string; order_number: number; branch_id: string; branch_name: string;
   order_type: 'delivery' | 'take_out' | 'pickup' | 'dine_in'; customer_name: string; customer_phone: string;
   delivery_address: string | null; delivery_notes: string; subtotal_centavos: number; delivery_fee_centavos: number | null;
-  total_centavos: number | null; order_status: string; payment_status: string; created_at: string;
+  total_centavos: number | null; order_status: string; payment_status: string; payment_channel?: 'online' | 'other'; created_at: string;
   assigned_rider_user_id: string | null; assignment_status: string | null; items: Item[];
 };
 type Rider = { user_id: string; email: string; display_name: string };
@@ -31,7 +31,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [filter, setFilter] = useState<'active' | 'all'>('active');
   const [cashierTab, setCashierTab] = useState<'orders' | 'sales'>('orders');
   const [search, setSearch] = useState('');
-  const [orderTypeFilter, setOrderTypeFilter] = useState<'all' | Order['order_type']>('all');
+  const [paymentTab, setPaymentTab] = useState<'online_paid' | 'paid'>('online_paid');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
@@ -98,10 +98,11 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const visibleOrders = useMemo(() => {
     const term = search.trim().toLowerCase();
     return orders.filter(order => {
-      const matchesType = orderTypeFilter === 'all' || order.order_type === orderTypeFilter;
+      const isPaid = ['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase());
+      const matchesPaymentTab = paymentTab === 'online_paid' ? isPaid && order.payment_channel === 'online' : isPaid && order.payment_channel !== 'online';
       const searchable = [String(order.order_number), order.customer_name, order.customer_phone, order.branch_name, order.order_status, ...(order.items ?? []).map(item => item.item_name)];
       const matchesSearch = !term || searchable.some(value => value.toLowerCase().includes(term));
-      return matchesType && matchesSearch;
+      return matchesPaymentTab && matchesSearch;
     }).sort((a, b) => {
       // Put work that needs an immediate staff action at the top, then keep
       // each queue in oldest-first order so earlier orders are not overlooked.
@@ -122,7 +123,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       const rankDifference = priority(a) - priority(b);
       return rankDifference || new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
     });
-  }, [orders, search, orderTypeFilter, role]);
+  }, [orders, search, paymentTab, role]);
 
   const salesOrders = useMemo(() => orders.filter(order =>
     ['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase()) &&
@@ -242,10 +243,10 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       </div>
       <div className="staff-queue-toolbar">
         <label className="staff-order-search"><span className="staff-search-icon" aria-hidden="true">⌕</span><input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search order number, customer, phone…" aria-label="Search orders" /></label>
-        <div className="staff-queue-toolbar-end"><label className="staff-order-type-filter"><span>Order type</span><select value={orderTypeFilter} onChange={event => setOrderTypeFilter(event.target.value as typeof orderTypeFilter)} aria-label="Filter by order type"><option value="all">All types</option><option value="delivery">Delivery</option><option value="take_out">Take-out</option><option value="pickup">Pickup</option><option value="dine_in">Dine-in</option></select></label><span className="staff-result-count">{visibleOrders.length} {visibleOrders.length === 1 ? 'order' : 'orders'}</span></div>
+        <div className="staff-queue-toolbar-end staff-payment-tabs" role="tablist" aria-label="Payment category"><button type="button" role="tab" aria-selected={paymentTab === 'online_paid'} className={paymentTab === 'online_paid' ? 'is-selected' : ''} onClick={() => setPaymentTab('online_paid')}>Online Paid</button><button type="button" role="tab" aria-selected={paymentTab === 'paid'} className={paymentTab === 'paid' ? 'is-selected' : ''} onClick={() => setPaymentTab('paid')}>Paid</button><span className="staff-result-count">{visibleOrders.length} {visibleOrders.length === 1 ? 'order' : 'orders'}</span></div>
       </div>
       {(error || notice) && <p className={'staff-notice ' + (error ? 'is-error' : 'is-success')} role={error ? 'alert' : 'status'}>{error || notice}</p>}
-      {loading ? <p className="staff-empty"><span className="staff-loading-dot" aria-hidden="true" /> Loading orders…</p> : visibleOrders.length === 0 ? <div className="staff-empty"><span className="staff-empty-icon" aria-hidden="true">{orders.length > 0 ? '⌕' : '✓'}</span><h3>{orders.length > 0 ? 'No matching orders' : 'You’re all caught up'}</h3><p>{orders.length > 0 ? 'Try a different search or order type filter.' : (role === 'kitchen' ? 'Accepted orders will appear here. Start preparing each ticket, then mark it ready for handoff.' : 'New orders will appear here automatically. You can keep working while the queue stays up to date.')}</p>{(search || orderTypeFilter !== 'all') && <button type="button" className="staff-button staff-button-secondary" onClick={() => { setSearch(''); setOrderTypeFilter('all'); }}>Clear filters</button>}</div> :
+      {loading ? <p className="staff-empty"><span className="staff-loading-dot" aria-hidden="true" /> Loading orders…</p> : visibleOrders.length === 0 ? <div className="staff-empty"><span className="staff-empty-icon" aria-hidden="true">{orders.length > 0 ? '⌕' : '✓'}</span><h3>{orders.length > 0 ? 'No matching orders' : 'You’re all caught up'}</h3><p>{orders.length > 0 ? 'Try another payment tab or search term.' : (role === 'kitchen' ? 'Accepted orders will appear here. Start preparing each ticket, then mark it ready for handoff.' : 'New orders will appear here automatically. You can keep working while the queue stays up to date.')}</p></div> :
         <div className="staff-order-list">{visibleOrders.map(order => {
           const buttons = actions(order);
           const branchRiders = riders[order.branch_id] ?? [];
