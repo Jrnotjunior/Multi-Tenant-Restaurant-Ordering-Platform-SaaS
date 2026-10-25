@@ -239,6 +239,10 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       <button type="button" className={cashierTab === 'orders' ? 'is-active' : ''} aria-current={cashierTab === 'orders' ? 'page' : undefined} onClick={() => { setCashierTab('orders'); setFilter('active'); }}>Orders</button>
       <button type="button" className={cashierTab === 'sales' ? 'is-active' : ''} aria-current={cashierTab === 'sales' ? 'page' : undefined} onClick={() => { setCashierTab('sales'); setFilter('all'); }}>Sales</button>
     </nav>}
+    {role === 'kitchen' && <nav className="staff-workspace-tabs" aria-label="Kitchen workspace">
+      <button type="button" className={kitchenTab === 'orders' ? 'is-active' : ''} aria-current={kitchenTab === 'orders' ? 'page' : undefined} onClick={() => setKitchenTab('orders')}>Orders</button>
+      <button type="button" className={kitchenTab === 'menu' ? 'is-active' : ''} aria-current={kitchenTab === 'menu' ? 'page' : undefined} onClick={() => setKitchenTab('menu')}>Menu</button>
+    </nav>}
     {role === 'cashier' && cashierTab === 'sales' ? <section className="staff-sales-view">
       <div className="staff-sales-heading"><div><p className="staff-eyebrow">BUSINESS SUMMARY</p><h2>Sales</h2><p>Paid orders from the order history currently loaded.</p></div><button className="staff-button staff-button-secondary" type="button" onClick={() => void load()} disabled={loading}>Refresh sales</button></div>
       <div className="staff-sales-metrics">
@@ -259,7 +263,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     </section>}
     <section className="staff-queue">
       <div className="staff-queue-heading"><div><p className="staff-eyebrow">WORK QUEUE</p><h2>{copy.queue}</h2></div>
-        {role === 'kitchen' ? <div className="staff-workspace-tabs" role="tablist" aria-label="Kitchen workspace"><button type="button" role="tab" aria-selected={kitchenTab === 'orders'} className={kitchenTab === 'orders' ? 'is-selected' : ''} onClick={() => setKitchenTab('orders')}>Orders</button><button type="button" role="tab" aria-selected={kitchenTab === 'menu'} className={kitchenTab === 'menu' ? 'is-selected' : ''} onClick={() => setKitchenTab('menu')}>Menu</button></div> : <div className="staff-queue-controls"><button type="button" className={filter === 'active' ? 'is-selected' : ''} onClick={() => setFilter('active')}>Active</button><button type="button" className={filter === 'all' ? 'is-selected' : ''} onClick={() => setFilter('all')}>All orders</button></div>}
+        <div className="staff-queue-controls"><button type="button" className={filter === 'active' ? 'is-selected' : ''} onClick={() => setFilter('active')}>Active</button><button type="button" className={filter === 'all' ? 'is-selected' : ''} onClick={() => setFilter('all')}>All orders</button></div>
       </div>
       {role === 'kitchen' && kitchenTab === 'menu' ? <div className="staff-kitchen-menu-panel">
       {kitchenMenuLoading ? <p className="staff-empty">Loading menu…</p> : kitchenMenuError ? <p className="staff-notice is-error" role="alert">{kitchenMenuError}</p> : !kitchenMenu?.items.some(item => item.status === 'published') ? <div className="staff-empty"><h3>No published menu items</h3><p>Published menu items will appear here for kitchen staff.</p></div> : <div className="staff-kitchen-menu-grid">{(kitchenMenu?.items ?? []).filter(item => item.status === 'published').map(item => <article className="staff-kitchen-menu-card" key={item.id}>{publicMenuPhoto(item.image_path) ? <img src={publicMenuPhoto(item.image_path) ?? ''} alt="" loading="lazy" /> : <div className="staff-kitchen-menu-placeholder" aria-hidden="true">Menu item</div>}<div><h3>{item.name}</h3>{item.description && <p>{item.description}</p>}<strong>{money(item.price_centavos)}</strong></div></article>)}</div>}
