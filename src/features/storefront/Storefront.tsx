@@ -210,8 +210,8 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
-  const [cart, setCart] = useState<Cart>(() => readSessionValue<Cart>(cartStorageKey + ':items', {}));
-  const [customized,setCustomized]=useState<CustomCart>(() => readSessionValue<CustomCart>(cartStorageKey + ':custom', {}));
+  const [cart, setCart] = useState<Cart>(() => readPersistentValue<Cart>(cartStorageKey + ':items', {}));
+  const [customized,setCustomized]=useState<CustomCart>(() => readPersistentValue<CustomCart>(cartStorageKey + ':custom', {}));
   const [customizing,setCustomizing]=useState<MenuItem|null>(null);
   const [cartPage, setCartPage] = useState(() => initialCartPage || isStorefrontCartPath(window.location.pathname, baseUrl));
   const [checkoutPage, setCheckoutPage] = useState(() => isStorefrontCheckoutPath(window.location.pathname, baseUrl));
@@ -220,14 +220,13 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     customerName:'',phone:'',deliveryAddress:'',deliveryNotes:'',
   });
   const [checkoutMessage,setCheckoutMessage]=useState('');
-  const [cartBarVisible, setCartBarVisible] = useState(false);
 
   useEffect(() => {
-    writeSessionValue(cartStorageKey + ':items', cart);
+    writePersistentValue(cartStorageKey + ':items', cart);
   }, [cartStorageKey, cart]);
 
   useEffect(() => {
-    writeSessionValue(cartStorageKey + ':custom', customized);
+    writePersistentValue(cartStorageKey + ':custom', customized);
   }, [cartStorageKey, customized]);
 
   useEffect(() => {
@@ -292,16 +291,6 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   }, [menu, category, query, catalog?.categories]);
   const count = cartCount(cart, menu)+customCount(customized,menu);
   const subtotal = cartSubtotal(cart, menu)+customSubtotal(customized,menu);
-
-  useEffect(() => {
-    if (count <= 0) {
-      setCartBarVisible(false);
-      return;
-    }
-    setCartBarVisible(true);
-    const timeout = window.setTimeout(() => setCartBarVisible(false), 5000);
-    return () => window.clearTimeout(timeout);
-  }, [count]);
 
   const changeCustomized=(key:string,delta:number)=>setCustomized(previous=>changeCustom(previous,key,delta));
   const addCustomized=(item:MenuItem,selected:Selection)=>setCustomized(previous=>addCustom(previous,item,selected));
@@ -415,7 +404,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
         <nav className="sf-header-actions" aria-label="Store navigation">
           <span className="sf-header-divider" aria-hidden="true"/>
           <button type="button" className="sf-bag-button" onClick={() => navigateCart(true)} aria-label={'Open cart with ' + count + ' items'}>
-            <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
+            <BagIcon/><span className="sf-bag-label">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}{count > 0 && <strong className="sf-header-cart-total">{peso(subtotal)}</strong>}
           </button>
           <div className="sf-account-wrap">
             <button type="button" className="sf-account-button" aria-label="Customer account options" title="Customer account" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(open => !open)}>
