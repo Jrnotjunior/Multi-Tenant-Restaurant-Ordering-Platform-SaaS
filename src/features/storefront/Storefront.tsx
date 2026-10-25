@@ -513,11 +513,6 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       </div>
     </footer>)}
 
-    {count > 0 && cartBarVisible && !cartPage && !checkoutPage && <div className="sf-mobile-cart-bar">
-      <button type="button" onClick={() => navigateCart(true)} aria-label={'View cart, ' + count + ' items, ' + peso(subtotal)}>
-        <span className="sf-mobile-cart-count">{count}</span><span>View cart</span><strong>{peso(subtotal)}</strong><ArrowIcon/>
-      </button>
-    </div>}
     {checkoutOpen && <div className="sf-checkout-backdrop" role="presentation" onMouseDown={event => {if(event.target===event.currentTarget)setCheckoutOpen(false);}}>
       <section className="sf-checkout-panel" role="dialog" aria-modal="true" aria-labelledby="sf-checkout-heading">
         <div className="sf-dialog-top"><div><span className="sf-section-kicker">DELIVERY ONLY</span><h2 id="sf-checkout-heading">Delivery details</h2></div><button type="button" className="sf-close" onClick={() => setCheckoutOpen(false)} aria-label="Close checkout preparation">×</button></div>
