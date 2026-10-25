@@ -1,0 +1,162 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { supabase } from '../../lib/supabase';
+import type { StaffWorkspaceRole } from './OperationalDashboard';
+import './staff-workspace.css';
+
+type Item = { id: string; item_name: string; quantity: number; line_total_centavos: number; options?: { name?: string }[] };
+type Order = {
+  id: string; order_number: number; branch_id: string; branch_name: string;
+  order_type: 'delivery' | 'take_out' | 'pickup' | 'dine_in'; customer_name: string; customer_phone: string;
+  delivery_address: string | null; delivery_notes: string; subtotal_centavos: number; delivery_fee_centavos: number | null;
+  total_centavos: number | null; order_status: string; payment_status: string; created_at: string;
+  assigned_rider_user_id: string | null; assignment_status: string | null; items: Item[];
+};
+type Rider = { user_id: string; email: string; display_name: string };
+type Props = { tenantId: string; role: StaffWorkspaceRole; restaurantName: string | null };
+const money = (value: number | null) => value == null ? 'Total not finalized' : new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(value / 100);
+const label = (value: string) => value.replaceAll('_', ' ');
+const typeLabel = (value: Order['order_type']) => ({ delivery: 'Delivery', take_out: 'Take-out', pickup: 'Pickup', dine_in: 'Dine-in' })[value];
+const roleCopy: Record<StaffWorkspaceRole, { eyebrow: string; title: string; intro: string; queue: string }> = {
+  cashier: { eyebrow: 'FRONT OF HOUSE', title: 'Cashier workspace', intro: 'Review incoming orders, finalize delivery fees, and confirm order details.', queue: 'Order desk' },
+  kitchen: { eyebrow: 'KITCHEN OPERATIONS', title: 'Kitchen display', intro: 'Work through accepted tickets and mark meals ready for handoff.', queue: 'Kitchen tickets' },
+  dispatcher: { eyebrow: 'DELIVERY OPERATIONS', title: 'Dispatch workspace', intro: 'Assign ready orders to a branch rider and dispatch deliveries.', queue: 'Dispatch queue' },
+  rider: { eyebrow: 'RIDER WORKSPACE', title: 'My deliveries', intro: 'Accept deliveries assigned to you and mark each order delivered.', queue: 'My route' },
+};
+
+export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Props) {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [riders, setRiders] = useState<Record<string, Rider[]>>({});
+  const [selectedRiders, setSelectedRiders] = useState<Record<string, string>>({});
+  const [fees, setFees] = useState<Record<string, string>>({});
+  const [filter, setFilter] = useState<'active' | 'all'>('active');
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState('');
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const copy = roleCopy[role];
+
+  const load = useCallback(async (quiet = false) => {
+    if (!supabase) { setError('Restaurant services are not configured.'); setLoading(false); return; }
+    if (!quiet) setLoading(true);
+    setError('');
+    try {
+      const { data, error: queryError } = await supabase.rpc('list_staff_orders', { p_tenant_id: tenantId, p_filter: filter, p_limit: 100 });
+      if (queryError) throw queryError;
+      const next = ((data as { orders?: Order[] } | null)?.orders ?? []) as Order[];
+      setOrders(next);
+      if (role === 'dispatcher') {
+        const branches = [...new Set(next.filter(o => o.order_status === 'ready_for_dispatch').map(o => o.branch_id))];
+        const riderLists = await Promise.all(branches.map(async branchId => {
+          const { data: result, error: riderError } = await supabase!.rpc('list_branch_riders', { p_tenant_id: tenantId, p_branch_id: branchId });
+          if (riderError) throw riderError;
+          return [branchId, (result ?? []) as Rider[]] as const;
+        }));
+        setRiders(Object.fromEntries(riderLists));
+      }
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to load staff orders.'); }
+    finally { if (!quiet) setLoading(false); }
+  }, [tenantId, role, filter]);
+
+  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { const timer = window.setInterval(() => { void load(true); }, 15000); return () => window.clearInterval(timer); }, [load]);
+
+  const stats = useMemo(() => ({
+    incoming: orders.filter(o => o.order_status === 'pending_confirmation').length,
+    preparing: orders.filter(o => ['confirmed', 'preparing'].includes(o.order_status)).length,
+    ready: orders.filter(o => o.order_status === 'ready_for_dispatch').length,
+    delivery: orders.filter(o => o.order_status === 'out_for_delivery').length,
+  }), [orders]);
+
+  async function act(order: Order, action: string, description: string) {
+    if (!supabase) return;
+    if (['reject', 'cancel', 'deliver'].includes(action) && !window.confirm(
+      action === 'deliver' ? `Confirm order #${order.order_number} has been delivered?` : `${action === 'reject' ? 'Reject' : 'Cancel'} order #${order.order_number}?`,
+    )) return;
+    setBusy(order.id); setError(''); setNotice('');
+    try {
+      const { error: actionError } = await supabase.rpc('transition_staff_order', { p_tenant_id: tenantId, p_order_id: order.id, p_action: action });
+      if (actionError) throw actionError;
+      setNotice(`Order #${order.order_number}: ${description}.`);
+      await load(true);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to update this order.'); }
+    finally { setBusy(''); }
+  }
+
+  async function saveFee(order: Order) {
+    if (!supabase) return;
+    const raw = (fees[order.id] ?? '').trim();
+    if (!/^\d{1,8}(?:\.\d{1,2})?$/.test(raw)) { setError('Enter a valid delivery fee, such as 50 or 50.00.'); return; }
+    const centavos = Math.round(Number(raw) * 100);
+    if (!Number.isSafeInteger(centavos) || centavos < 0 || centavos > 1000000000) { setError('Delivery fee is outside the allowed range.'); return; }
+    setBusy(order.id); setError(''); setNotice('');
+    try {
+      const { error: feeError } = await supabase.rpc('set_customer_order_delivery_fee', { p_tenant_id: tenantId, p_order_id: order.id, p_delivery_fee_centavos: centavos });
+      if (feeError) throw feeError;
+      setNotice(`Delivery fee saved for order #${order.order_number}.`);
+      await load(true);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to save delivery fee.'); }
+    finally { setBusy(''); }
+  }
+
+  async function assign(order: Order) {
+    if (!supabase) return;
+    const riderId = selectedRiders[order.id];
+    if (!riderId) { setError('Choose a rider before assigning this order.'); return; }
+    setBusy(order.id); setError(''); setNotice('');
+    try {
+      const { error: assignError } = await supabase.rpc('assign_order_rider', { p_tenant_id: tenantId, p_order_id: order.id, p_rider_user_id: riderId });
+      if (assignError) throw assignError;
+      setNotice(`Rider assigned to order #${order.order_number}.`);
+      await load(true);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to assign rider.'); }
+    finally { setBusy(''); }
+  }
+
+  function actions(order: Order) {
+    if (role === 'cashier' && order.order_status === 'pending_confirmation') return [
+      { action: 'confirm', label: 'Confirm order', primary: true }, { action: 'reject', label: 'Reject', primary: false },
+    ];
+    if (role === 'cashier' && order.order_status === 'confirmed') return [{ action: 'cancel', label: 'Cancel order', primary: false }];
+    if (role === 'kitchen' && order.order_status === 'confirmed') return [{ action: 'start_preparing', label: 'Start preparing', primary: true }];
+    if (role === 'kitchen' && order.order_status === 'preparing') return [{ action: 'mark_ready', label: 'Mark ready', primary: true }];
+    if (role === 'dispatcher' && order.order_status === 'ready_for_dispatch' && order.assigned_rider_user_id) return [{ action: 'dispatch', label: 'Dispatch order', primary: true }];
+    if (role === 'rider' && order.assignment_status === 'assigned') return [{ action: 'accept_delivery', label: 'Accept delivery', primary: true }];
+    if (role === 'rider' && order.assignment_status === 'out_for_delivery' && order.order_status === 'out_for_delivery') return [{ action: 'deliver', label: 'Mark delivered', primary: true }];
+    return [];
+  }
+
+  return <main className="staff-workspace">
+    <header className="staff-header"><div><p className="staff-eyebrow">{copy.eyebrow}</p><h1>{copy.title}</h1><p className="staff-intro">{copy.intro}</p>{restaurantName && <p className="staff-restaurant-name">{restaurantName}</p>}</div>
+      <div className="staff-header-actions"><span className="staff-live-indicator"><i aria-hidden="true" /> Live queue</span><button className="staff-button staff-button-secondary" type="button" onClick={() => void load()} disabled={loading}>Refresh</button></div>
+    </header>
+    <section className="staff-metrics" aria-label="Order summary">
+      <article><span>New orders</span><strong>{stats.incoming}</strong><small>Awaiting cashier review</small></article>
+      <article><span>Preparing</span><strong>{stats.preparing}</strong><small>Confirmed / in kitchen</small></article>
+      <article><span>Ready for dispatch</span><strong>{stats.ready}</strong><small>Awaiting rider handoff</small></article>
+      <article><span>Out for delivery</span><strong>{stats.delivery}</strong><small>Currently on the road</small></article>
+    </section>
+    <section className="staff-queue">
+      <div className="staff-queue-heading"><div><p className="staff-eyebrow">WORK QUEUE</p><h2>{copy.queue}</h2></div>
+        <div className="staff-queue-controls"><button type="button" className={filter === 'active' ? 'is-selected' : ''} onClick={() => setFilter('active')}>Active</button><button type="button" className={filter === 'all' ? 'is-selected' : ''} onClick={() => setFilter('all')}>All orders</button></div>
+      </div>
+      {(error || notice) && <p className={'staff-notice ' + (error ? 'is-error' : 'is-success')} role={error ? 'alert' : 'status'}>{error || notice}</p>}
+      {loading ? <p className="staff-empty">Loading orders…</p> : orders.length === 0 ? <div className="staff-empty"><h3>No orders in this queue</h3><p>Orders will appear here as customers check out and your team moves them through fulfillment.</p></div> :
+        <div className="staff-order-list">{orders.map(order => {
+          const buttons = actions(order);
+          const branchRiders = riders[order.branch_id] ?? [];
+          const canAssign = role === 'dispatcher' && order.order_status === 'ready_for_dispatch';
+          const needsFee = role === 'cashier' && order.order_type === 'delivery' && order.order_status === 'pending_confirmation' && order.total_centavos == null;
+          return <article className="staff-order-card" key={order.id}>
+            <header className="staff-order-card-heading"><div><span className="staff-order-number">Order #{order.order_number}</span><span className="staff-order-meta">{new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(order.created_at))} · {order.branch_name}</span></div><span className={'staff-status status-' + order.order_status}>{label(order.order_status)}</span></header>
+            <div className="staff-order-details"><div className="staff-customer"><strong>{order.customer_name}</strong><span>{order.customer_phone}</span><span>{typeLabel(order.order_type)}</span>{order.order_type === 'delivery' && order.delivery_address && <p>{order.delivery_address}</p>}{order.delivery_notes && <p className="staff-order-notes">Note: {order.delivery_notes}</p>}</div>
+              <div className="staff-payment"><span>Payment</span><strong>{label(order.payment_status)}</strong><span>Total</span><strong>{money(order.total_centavos)}</strong></div></div>
+            <ul className="staff-order-items">{(order.items ?? []).map(item => <li key={item.id}><span>{item.quantity} × {item.item_name}{item.options?.length ? <small>{item.options.map(option => option.name).filter(Boolean).join(', ')}</small> : null}</span><strong>{money(item.line_total_centavos)}</strong></li>)}</ul>
+            {needsFee && <div className="staff-inline-control"><label htmlFor={'staff-fee-' + order.id}>Delivery fee (PHP)</label><input id={'staff-fee-' + order.id} type="number" min="0" max="10000000" step="0.01" inputMode="decimal" value={fees[order.id] ?? (order.delivery_fee_centavos == null ? '' : (order.delivery_fee_centavos / 100).toFixed(2))} onChange={event => setFees(current => ({ ...current, [order.id]: event.target.value }))} placeholder="e.g. 50.00" /><button className="staff-button staff-button-secondary" type="button" disabled={busy === order.id} onClick={() => void saveFee(order)}>Save fee</button></div>}
+            {canAssign && <div className="staff-inline-control"><label htmlFor={'staff-rider-' + order.id}>Assign branch rider</label><select id={'staff-rider-' + order.id} value={selectedRiders[order.id] ?? order.assigned_rider_user_id ?? ''} onChange={event => setSelectedRiders(current => ({ ...current, [order.id]: event.target.value }))}><option value="">Choose a rider</option>{branchRiders.map(rider => <option key={rider.user_id} value={rider.user_id}>{rider.display_name || rider.email}</option>)}</select><button className="staff-button staff-button-secondary" type="button" disabled={busy === order.id || branchRiders.length === 0} onClick={() => void assign(order)}>Assign rider</button>{branchRiders.length === 0 && <small>No active rider is assigned to this branch yet.</small>}</div>}
+            {(buttons.length > 0 || order.assigned_rider_user_id) && <footer className="staff-order-actions">{order.assigned_rider_user_id && <span className="staff-assignment-note">Rider {label(order.assignment_status ?? 'assigned')}</span>}{buttons.map(button => <button key={button.action} type="button" disabled={busy === order.id} className={'staff-button ' + (button.primary ? 'staff-button-primary' : 'staff-button-secondary')} onClick={() => void act(order, button.action, button.label.toLowerCase())}>{busy === order.id ? 'Saving…' : button.label}</button>)}</footer>}
+          </article>;
+        })}</div>}
+    </section>
+    <p className="staff-footnote">Queue refreshes automatically. Every order action is validated by Supabase against your authenticated role, tenant, branch, and assignment.</p>
+  </main>;
+}
