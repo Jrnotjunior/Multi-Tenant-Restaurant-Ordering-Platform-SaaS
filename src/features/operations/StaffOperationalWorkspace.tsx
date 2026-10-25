@@ -15,6 +15,18 @@ type Order = {
 type Rider = { user_id: string; email: string; display_name: string };
 type Props = { tenantId: string; role: StaffWorkspaceRole; restaurantName: string | null };
 const money = (value: number | null) => value == null ? 'Total not finalized' : new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(value / 100);
+const staffPageFromHash = (role: StaffWorkspaceRole) => {
+  const parts = window.location.hash.replace(/^#\/?restaurant\//, '').split('/');
+  if (parts[0] !== role) return role === 'cashier' ? 'orders' : role === 'kitchen' ? 'orders' : 'overview';
+  const page = parts[1];
+  if (role === 'cashier' && page === 'sales') return 'sales';
+  if (role === 'kitchen' && page === 'menu') return 'menu';
+  return role === 'cashier' || role === 'kitchen' ? 'orders' : page === 'history' ? 'history' : 'overview';
+};
+const staffRouteFor = (role: StaffWorkspaceRole, page: string) => {
+  const base = role === 'cashier' || role === 'kitchen' ? page : page === 'history' ? 'history' : '';
+  return '#restaurant/' + role + (base ? '/' + base : '');
+};
 const label = (value: string) => value.replaceAll('_', ' ');
 const typeLabel = (value: Order['order_type']) => ({ delivery: 'Delivery', take_out: 'Take-out', pickup: 'Pickup', dine_in: 'Dine-in' })[value];
 const roleCopy: Record<StaffWorkspaceRole, { eyebrow: string; title: string; intro: string; queue: string }> = {
@@ -30,8 +42,8 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [selectedRiders, setSelectedRiders] = useState<Record<string, string>>({});
   const [fees, setFees] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<'active' | 'all'>('active');
-  const [cashierTab, setCashierTab] = useState<'orders' | 'sales'>('orders');
-  const [kitchenTab, setKitchenTab] = useState<'orders' | 'menu'>('orders');
+  const [cashierTab, setCashierTab] = useState<'orders' | 'sales'>(() => staffPageFromHash(role) === 'sales' ? 'sales' : 'orders');
+  const [kitchenTab, setKitchenTab] = useState<'orders' | 'menu'>(() => staffPageFromHash(role) === 'menu' ? 'menu' : 'orders');
   const [kitchenMenu, setKitchenMenu] = useState<KitchenMenu | null>(null);
   const [kitchenMenuSearch, setKitchenMenuSearch] = useState('');
   const [kitchenMenuCategory, setKitchenMenuCategory] = useState('all');
@@ -49,6 +61,26 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const copy = roleCopy[role];
+
+  useEffect(() => {
+    const syncStaffPage = () => {
+      const page = staffPageFromHash(role);
+      if (role === 'cashier') setCashierTab(page === 'sales' ? 'sales' : 'orders');
+      if (role === 'kitchen') setKitchenTab(page === 'menu' ? 'menu' : 'orders');
+    };
+    const expectedPrefix = '#restaurant/' + role;
+    if (!window.location.hash.startsWith(expectedPrefix)) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search + staffRouteFor(role, role === 'cashier' ? cashierTab : role === 'kitchen' ? kitchenTab : ''));
+    } else {
+      syncStaffPage();
+    }
+    window.addEventListener('hashchange', syncStaffPage);
+    window.addEventListener('popstate', syncStaffPage);
+    return () => {
+      window.removeEventListener('hashchange', syncStaffPage);
+      window.removeEventListener('popstate', syncStaffPage);
+    };
+  }, [role]);
 
   useEffect(() => {
     if (role !== 'kitchen' || kitchenTab !== 'menu') return;
@@ -261,12 +293,12 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       <div className="staff-header-actions"><span className="staff-live-indicator"><i aria-hidden="true" /> Live queue</span><button className="staff-button staff-button-secondary" type="button" onClick={() => void load()} disabled={loading}>Refresh</button></div>
     </header>}
     {role === 'cashier' && <nav className="staff-workspace-tabs" aria-label="Cashier workspace">
-      <button type="button" className={cashierTab === 'orders' ? 'is-active' : ''} aria-current={cashierTab === 'orders' ? 'page' : undefined} onClick={() => { setCashierTab('orders'); setFilter('active'); }}>Orders</button>
-      <button type="button" className={cashierTab === 'sales' ? 'is-active' : ''} aria-current={cashierTab === 'sales' ? 'page' : undefined} onClick={() => { setCashierTab('sales'); setFilter('all'); }}>Sales</button>
+      <button type="button" className={cashierTab === 'orders' ? 'is-active' : ''} aria-current={cashierTab === 'orders' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'orders'); setCashierTab('orders'); setFilter('active'); }}>Orders</button>
+      <button type="button" className={cashierTab === 'sales' ? 'is-active' : ''} aria-current={cashierTab === 'sales' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'sales'); setCashierTab('sales'); setFilter('all'); }}>Sales</button>
     </nav>}
     {role === 'kitchen' && <nav className="staff-workspace-tabs" aria-label="Kitchen workspace">
-      <button type="button" className={kitchenTab === 'orders' ? 'is-active' : ''} aria-current={kitchenTab === 'orders' ? 'page' : undefined} onClick={() => setKitchenTab('orders')}>Orders</button>
-      <button type="button" className={kitchenTab === 'menu' ? 'is-active' : ''} aria-current={kitchenTab === 'menu' ? 'page' : undefined} onClick={() => setKitchenTab('menu')}>Menu</button>
+      <button type="button" className={kitchenTab === 'orders' ? 'is-active' : ''} aria-current={kitchenTab === 'orders' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'orders'); setKitchenTab('orders'); }}>Orders</button>
+      <button type="button" className={kitchenTab === 'menu' ? 'is-active' : ''} aria-current={kitchenTab === 'menu' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'menu'); setKitchenTab('menu'); }}>Menu</button>
     </nav>}
     {role === 'cashier' && cashierTab === 'sales' ? <section className="staff-sales-view">
       <div className="staff-sales-heading"><div><p className="staff-eyebrow">BUSINESS SUMMARY</p><h2>Sales</h2><p>Paid orders from the order history currently loaded.</p></div><button className="staff-button staff-button-secondary" type="button" onClick={() => void load()} disabled={loading}>Refresh sales</button></div>
