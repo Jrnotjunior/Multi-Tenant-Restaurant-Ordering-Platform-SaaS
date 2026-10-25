@@ -396,9 +396,6 @@ export function Storefront({ baseUrl, requestedSlug }: {
 
       <div className="sf-layout" id="sf-menu">
         <div className="sf-catalog">
-          <div className="sf-section-heading sf-section-heading-compact">
-            <span className="sf-menu-count">{results.length} {results.length === 1 ? 'item' : 'items'}</span>
-          </div>
           <div className="sf-search-wrap">
             <SearchIcon/>
             <input aria-label="Search menu items" placeholder="Search dishes, drinks and more..." type="search" value={query} onChange={(event) => setQuery(event.target.value)}/>
