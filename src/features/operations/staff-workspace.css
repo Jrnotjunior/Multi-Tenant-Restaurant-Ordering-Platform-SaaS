@@ -263,3 +263,11 @@
 .staff-kitchen-menu-status.is-published{background:#e9f8ef;color:#17663a}
 .staff-kitchen-menu-status.is-draft{background:#fff5df;color:#865c0a}
 .staff-kitchen-menu-status.is-archived{background:#eef0f4;color:#596273}
+
+
+/* Rider-only controls: quick customer contact and route navigation. */
+.staff-rider-quick-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.staff-rider-quick-actions .staff-button{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 12px;text-decoration:none}
+.staff-workspace--rider .staff-customer>p:not(.staff-order-notes){overflow-wrap:anywhere}
+.staff-workspace--rider .staff-order-card.is-actionable{border-left-color:var(--color-active,#263754)}
+@media(max-width:560px){.staff-rider-quick-actions{display:grid;grid-template-columns:1fr}.staff-rider-quick-actions .staff-button{width:100%;box-sizing:border-box}}
