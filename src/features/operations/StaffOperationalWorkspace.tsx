@@ -69,8 +69,27 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       const searchable = [String(order.order_number), order.customer_name, order.customer_phone, order.branch_name, order.order_status, ...(order.items ?? []).map(item => item.item_name)];
       const matchesSearch = !term || searchable.some(value => value.toLowerCase().includes(term));
       return matchesType && matchesSearch;
+    }).sort((a, b) => {
+      // Put work that needs an immediate staff action at the top, then keep
+      // each queue in oldest-first order so earlier orders are not overlooked.
+      const priority = (order: Order) => {
+        if (role === 'cashier') {
+          if (order.order_status === 'pending_confirmation') return order.order_type === 'delivery' && order.total_centavos == null ? 0 : 1;
+          if (order.order_status === 'ready_for_pickup') return 2;
+          if (order.order_status === 'confirmed') return 3;
+        }
+        if (role === 'kitchen') {
+          if (order.order_status === 'confirmed') return 0;
+          if (order.order_status === 'preparing') return 1;
+        }
+        if (role === 'dispatcher' && order.order_status === 'ready_for_dispatch') return order.assigned_rider_user_id ? 0 : 1;
+        if (role === 'rider' && ['assigned', 'out_for_delivery'].includes(order.assignment_status ?? '')) return 0;
+        return 4;
+      };
+      const rankDifference = priority(a) - priority(b);
+      return rankDifference || new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
     });
-  }, [orders, search, orderTypeFilter]);
+  }, [orders, search, orderTypeFilter, role]);
 
   const stats = useMemo(() => ({
     incoming: orders.filter(o => o.order_status === 'pending_confirmation').length,
@@ -163,7 +182,8 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           const branchRiders = riders[order.branch_id] ?? [];
           const canAssign = role === 'dispatcher' && order.order_status === 'ready_for_dispatch';
           const needsFee = role === 'cashier' && order.order_type === 'delivery' && order.order_status === 'pending_confirmation' && order.total_centavos == null;
-          return <article className="staff-order-card" key={order.id}>
+          const needsAttention = (role === 'cashier' && order.order_status === 'pending_confirmation') || (role === 'kitchen' && ['confirmed', 'preparing'].includes(order.order_status)) || (role === 'dispatcher' && order.order_status === 'ready_for_dispatch') || (role === 'rider' && ['assigned', 'out_for_delivery'].includes(order.assignment_status ?? ''));
+          return <article className={'staff-order-card' + (needsAttention ? ' is-actionable' : '')} key={order.id}>
             <header className="staff-order-card-heading"><div><span className="staff-order-number">Order #{order.order_number}</span><span className="staff-order-meta">{new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(order.created_at))} · {order.branch_name}</span></div><span className={'staff-status status-' + order.order_status}>{label(order.order_status)}</span></header>
             <div className="staff-order-details"><div className="staff-customer"><strong>{order.customer_name}</strong><span>{order.customer_phone}</span><span>{typeLabel(order.order_type)}</span>{order.order_type === 'delivery' && order.delivery_address && <p>{order.delivery_address}</p>}{order.delivery_notes && <p className="staff-order-notes">Note: {order.delivery_notes}</p>}</div>
               <div className="staff-payment"><span>Payment</span><strong>{label(order.payment_status)}</strong><span>Total</span><strong>{money(order.total_centavos)}</strong></div></div>
