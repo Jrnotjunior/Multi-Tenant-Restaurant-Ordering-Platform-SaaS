@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { cartCount, cartLines, cartSubtotal, updateCart, type Cart } from './cart';
 import {addCustom,changeCustom,customCount,customLines,customSubtotal,type CustomCart,type Selection} from './customCart';
 import {CustomizeDialog} from './CustomizeDialog';
