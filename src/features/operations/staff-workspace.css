@@ -70,3 +70,57 @@
 
 .staff-status.status-ready_for_pickup{background:#fff5dc;color:#855500;border-color:#ead7a5}
 .staff-status.status-completed{background:#edf9f1;color:#17683d;border-color:#c6ead1}
+
+
+/* Cashier/staff queue refinements: fast scanning, search, and clear empty states. */
+.staff-workspace{max-width:1560px;padding:clamp(22px,3.2vw,48px);color:var(--color-text,#101B2F)}
+.staff-header{align-items:center;margin-bottom:clamp(22px,2.5vw,34px)}
+.staff-header h1{font-size:clamp(2rem,3.4vw,3rem);line-height:1.08;letter-spacing:-.055em}
+.staff-intro{font-size:.96rem}
+.staff-restaurant-name{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:7px 11px;border:1px solid var(--color-border,#DCE3ED);border-radius:999px;background:var(--color-surface,#fff);font-size:.8rem}
+.staff-live-indicator{padding:8px 11px;border:1px solid var(--color-border,#DCE3ED);border-radius:999px;background:var(--color-surface,#fff);font-weight:650}
+.staff-metrics{gap:12px;margin-bottom:22px}
+.staff-metrics article{position:relative;gap:9px;overflow:hidden;padding:20px;border-radius:16px;box-shadow:0 3px 12px #101b2f05;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+.staff-metrics article::before{position:absolute;inset:0 auto 0 0;width:3px;background:var(--color-active,#263754);content:""}
+.staff-metrics article:nth-child(1)::before{background:#D97706}
+.staff-metrics article:nth-child(2)::before{background:#4776C5}
+.staff-metrics article:nth-child(3)::before{background:#15966A}
+.staff-metrics article:nth-child(4)::before{background:#7C5CC4}
+.staff-metrics article:hover{transform:translateY(-2px);box-shadow:0 8px 24px #101b2f0c;border-color:var(--color-active,#263754)}
+.staff-metrics article span{font-weight:650}
+.staff-metrics article strong{font-size:clamp(1.8rem,2.3vw,2.15rem);font-variant-numeric:tabular-nums}
+.staff-metrics article small{line-height:1.45}
+.staff-queue{border-radius:18px;box-shadow:0 8px 28px #101b2f07}
+.staff-queue-heading{padding:22px 24px}
+.staff-queue-heading h2{font-size:1.3rem;letter-spacing:-.025em}
+.staff-queue-controls button{min-height:36px;padding:8px 14px;font-weight:650;transition:background .15s ease,color .15s ease}
+.staff-queue-controls button:focus-visible,.staff-button:focus-visible,.staff-queue-toolbar input:focus-visible,.staff-queue-toolbar select:focus-visible{outline:3px solid color-mix(in srgb,var(--color-active,#263754) 28%,transparent);outline-offset:2px}
+.staff-queue-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 22px;border-bottom:1px solid var(--color-border,#DCE3ED);background:var(--color-page,#F7F9FC)}
+.staff-order-search{display:flex;align-items:center;gap:10px;flex:1;max-width:560px;min-width:180px;padding:0 12px;border:1px solid var(--color-border,#DCE3ED);border-radius:10px;background:var(--color-surface,#fff);color:var(--color-muted,#526782)}
+.staff-search-icon{font-size:22px;line-height:1;transform:rotate(-15deg)}
+.staff-order-search input{width:100%;min-width:0;min-height:40px;border:0;outline:0;background:transparent;color:var(--color-text,#101B2F);font:inherit;font-size:.85rem}
+.staff-order-search input::placeholder{color:var(--color-muted,#526782);opacity:.9}
+.staff-order-search:focus-within{border-color:var(--color-active,#263754);box-shadow:0 0 0 3px color-mix(in srgb,var(--color-active,#263754) 10%,transparent)}
+.staff-queue-toolbar-end{display:flex;align-items:center;justify-content:flex-end;gap:14px}
+.staff-order-type-filter{display:flex;align-items:center;gap:8px;color:var(--color-muted,#526782);font-size:.78rem;font-weight:650;white-space:nowrap}
+.staff-order-type-filter select{min-height:40px;max-width:190px;border:1px solid var(--color-border,#DCE3ED);border-radius:9px;padding:0 30px 0 10px;background:var(--color-surface,#fff);color:var(--color-text,#101B2F);font:inherit;font-size:.82rem}
+.staff-result-count{color:var(--color-muted,#526782);font-size:.78rem;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.staff-order-card{padding:22px 24px;transition:background .15s ease}
+.staff-order-card:hover{background:color-mix(in srgb,var(--color-page,#F7F9FC) 38%,var(--color-surface,#fff))}
+.staff-order-number{letter-spacing:-.02em}
+.staff-order-items li{padding:12px 0}
+.staff-button{min-height:40px;padding:10px 15px}
+.staff-button-primary{box-shadow:0 2px 4px #101b2f14}
+.staff-button-primary:hover:not(:disabled){filter:brightness(1.12)}
+.staff-button-secondary:hover:not(:disabled){border-color:var(--color-active,#263754);background:var(--color-page,#F7F9FC)}
+.staff-empty{padding:clamp(38px,5vw,64px) 22px}
+.staff-empty-icon{display:grid;place-items:center;width:48px;height:48px;margin:0 auto 16px;border:1px solid var(--color-border,#DCE3ED);border-radius:15px;background:var(--color-page,#F7F9FC);color:var(--color-active,#263754);font-size:1.5rem;font-weight:800}
+.staff-empty h3{font-size:1.08rem;letter-spacing:-.02em}
+.staff-empty p{font-size:.88rem}
+.staff-empty .staff-button{margin-top:18px}
+.staff-loading-dot{display:inline-block;width:9px;height:9px;margin-right:8px;border-radius:50%;background:var(--color-active,#263754);animation:staff-pulse 1s ease-in-out infinite alternate}
+@keyframes staff-pulse{from{opacity:.35;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+.staff-footnote{display:flex;align-items:center;gap:8px}
+@media(max-width:760px){.staff-workspace{padding:24px 16px}.staff-queue-toolbar{align-items:stretch;flex-direction:column;padding:14px 16px}.staff-order-search{max-width:none}.staff-queue-toolbar-end{justify-content:space-between}.staff-order-type-filter{flex:1;justify-content:space-between}.staff-order-type-filter select{flex:1;max-width:220px}}
+@media(max-width:560px){.staff-workspace{padding:18px 12px}.staff-header{gap:16px}.staff-header h1{font-size:clamp(1.8rem,8vw,2.35rem)}.staff-header-actions{align-items:flex-start}.staff-live-indicator{font-size:.74rem}.staff-queue-heading{padding:16px}.staff-queue-toolbar-end{gap:10px}.staff-order-type-filter{align-items:flex-start;flex-direction:column;gap:6px}.staff-order-type-filter select{width:100%;max-width:none}.staff-result-count{align-self:flex-end}.staff-order-card{padding:16px}.staff-order-actions .staff-button{min-width:0}.staff-empty{padding:36px 18px}}
+@media(prefers-reduced-motion:reduce){.staff-metrics article,.staff-loading-dot{transition:none;animation:none}}
