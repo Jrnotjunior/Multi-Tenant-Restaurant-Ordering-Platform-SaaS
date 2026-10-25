@@ -252,15 +252,15 @@ export async function provisionRestaurant(slug:string,name:string,branchSlug:str
   if(typeof data!=='string') throw new Error('Provisioning did not return a tenant ID.');
   return data;
 }
-export async function queueOwnerInvitation(tenantId:string,email:string):Promise<string> {
+export async function sendOwnerInvitation(tenantId:string,email:string):Promise<string> {
   const db=requireClient();
-  const {data,error}=await db.rpc('request_privileged_invitation',{
-    p_tenant_id:tenantId,p_email:email.trim().toLowerCase(),
-    p_role:'restaurant_owner',p_branch_id:null,
+  const {data,error}=await db.functions.invoke('send-privileged-invitation',{
+    body:{tenantId,email:email.trim().toLowerCase(),role:'restaurant_owner'},
   });
-  check(error);
-  if(typeof data!=='string') throw new Error('Invitation was not recorded.');
-  return data;
+  if(error) throw error;
+  if(data?.error) throw new Error(String(data.error));
+  if(typeof data?.invitationId!=='string'||data?.status!=='sent') throw new Error('The owner invitation email could not be confirmed as sent.');
+  return data.invitationId;
 }
 
 
