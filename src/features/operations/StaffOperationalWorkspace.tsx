@@ -196,7 +196,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     return [];
   }
 
-  return <main className="staff-workspace">
+  return <main className={`staff-workspace staff-workspace--${role}`}>
     <div className="staff-account-row">
       <div className="staff-account-menu">
         <button type="button" className="staff-account-trigger" aria-label="Account menu" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(open => !open)}>
