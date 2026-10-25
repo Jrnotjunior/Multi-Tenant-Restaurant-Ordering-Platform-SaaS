@@ -318,7 +318,16 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
             {Array.from({ length: 6 }, (_, index) => (
               <input key={index} ref={element => { otpInputRefs.current[index] = element; }} className="onboarding-otp-digit" type="text" inputMode="numeric" autoComplete={index === 0 ? 'one-time-code' : 'off'} pattern="[0-9]" maxLength={1} aria-label={`Digit ${index + 1} of 6`} value={code[index] ?? ''} required
                 onChange={event => {
-                  const digit = event.target.value.replace(/[^0-9]/g, '').slice(-1);
+                  // Mobile OSes and password managers may autofill the full TOTP
+                  // into the first one-character field. Preserve all six digits.
+                  const entered = event.target.value.replace(/[^0-9]/g, '');
+                  if (entered.length > 1) {
+                    const pasted = entered.slice(0, 6);
+                    setCode(pasted);
+                    otpInputRefs.current[Math.min(pasted.length, 5)]?.focus();
+                    return;
+                  }
+                  const digit = entered.slice(-1);
                   const nextCode = (code.slice(0, index) + digit + code.slice(index + 1)).slice(0, 6);
                   setCode(nextCode);
                   if (digit && index < 5) otpInputRefs.current[index + 1]?.focus();
