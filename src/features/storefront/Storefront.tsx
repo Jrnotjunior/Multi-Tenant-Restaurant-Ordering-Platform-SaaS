@@ -420,6 +420,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
     </main>
 
     <footer className="sf-footer">
+      <div className="sf-footer-inner">
       <section className="sf-footer-social-section" aria-label="Follow the restaurant">
         <h2 className="sf-footer-heading">Follow Us</h2>
         <nav className="sf-footer-socials" aria-label="Social media links">
@@ -431,6 +432,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
       <div className="sf-footer-bottom">
         <small>© {new Date().getFullYear()} All rights reserved.</small>
         <a className="sf-footer-powered-by" href="https://web2table.io" target="_blank" rel="noreferrer">Powered by <strong>Web2Table</strong></a>
+      </div>
       </div>
     </footer>
 
