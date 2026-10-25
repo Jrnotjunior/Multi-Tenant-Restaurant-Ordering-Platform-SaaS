@@ -341,7 +341,6 @@ export function Storefront({ baseUrl, requestedSlug }: {
     '--sf-red-dark': websiteColors.secondaryButton,
   } as CSSProperties;
   return <div className={'sf-storefront' + tenantFontClass} style={storefrontTheme}>
-    <a className="sf-skip-link" href="#sf-menu">Skip to menu</a>
     <header className="sf-header">
       <div className="sf-header-inner">
         <a href={menuUrl} className="sf-logo" aria-label={restaurant.name + " menu"}>
