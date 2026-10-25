@@ -444,3 +444,14 @@
 .sf-storefront:has(.sf-main-cart) .sf-main-cart{flex:1 1 0;height:100%;min-height:0;box-sizing:border-box;display:flex;flex-direction:column;padding:16px;margin:0 auto;width:100%;max-width:900px}
 .sf-storefront:has(.sf-main-cart) .sf-cart-page{flex:1 1 0;height:100%;min-height:0;width:100%;max-width:900px;box-sizing:border-box;align-content:start;background:var(--sf-product-card);border:1px solid var(--sf-border);border-radius:18px}
 @media(max-width:640px){.sf-storefront:has(.sf-main-cart) .sf-main-cart{padding:12px}.sf-storefront:has(.sf-main-cart) .sf-cart-page{height:100%;min-height:0}}
+
+
+/* Sold-out menu items remain visible so customers can see what is temporarily unavailable. */
+.sf-menu-card.is-sold-out{border-color:var(--sf-border);background:color-mix(in srgb,var(--sf-page-background) 72%,#e5e7eb);color:var(--sf-muted)}
+.sf-menu-card.is-sold-out .sf-card-image{filter:grayscale(1);opacity:.68}
+.sf-menu-card.is-sold-out .sf-card-details h3,.sf-menu-card.is-sold-out .sf-card-details p,.sf-menu-card.is-sold-out .sf-card-bottom strong{color:#737b89}
+.sf-sold-out-badge{position:absolute;z-index:3;left:8px;bottom:8px;padding:5px 9px;border-radius:7px;background:#5f6672;color:#fff;font-size:var(--sf-font-size-11);font-weight:800;letter-spacing:.01em}
+.sf-menu-card.is-sold-out .sf-card-image{position:relative}
+.sf-menu-card .sf-add-sold-out{background:#9ca3af;color:#fff;cursor:pointer}
+.sf-menu-card .sf-add-sold-out:hover{background:#6b7280}
+.sf-availability-error{position:relative;margin:0 0 12px;padding:12px 14px;border:1px solid #fecaca;border-radius:10px;background:#fff1f2;color:#b42318;font-size:var(--sf-font-size-13);font-weight:650;line-height:1.5}
