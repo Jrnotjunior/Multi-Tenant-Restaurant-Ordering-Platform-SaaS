@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { pathFor, storefrontSlugFromPath, viewForPath, type View } from './routes';
+import { isStorefrontCartPath, pathFor, storefrontSlugFromPath, viewForPath, type View } from './routes';
 import { PrivilegedGate } from '../features/auth/PrivilegedGate';
 import { Storefront } from '../features/storefront/Storefront';
 import { AccountAuthPage } from '../features/storefront/AccountAuthPage';
@@ -40,7 +40,7 @@ export function App() {
   // The root storefront opens the published restaurant menu directly; do not show a separate restaurant directory.
   if (view === 'home' || view === 'order') {
     const requestedSlug = storefrontSlugFromPath(pathname, baseUrl);
-    return <Storefront key={requestedSlug ?? 'default'} baseUrl={baseUrl} requestedSlug={requestedSlug} />;
+    return <Storefront key={requestedSlug ?? 'default'} baseUrl={baseUrl} requestedSlug={requestedSlug} initialCartPage={isStorefrontCartPath(pathname, baseUrl)} />;
   }
 
   // The System Admin lives in its established, separate repository.
