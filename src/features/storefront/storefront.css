@@ -446,12 +446,16 @@
 @media(max-width:640px){.sf-storefront:has(.sf-main-cart) .sf-main-cart{padding:12px}.sf-storefront:has(.sf-main-cart) .sf-cart-page{height:100%;min-height:0}}
 
 
-/* Sold-out menu items remain visible so customers can see what is temporarily unavailable. */
-.sf-menu-card.is-sold-out{border-color:var(--sf-border);background:color-mix(in srgb,var(--sf-page-background) 72%,#e5e7eb);color:var(--sf-muted)}
-.sf-menu-card.is-sold-out .sf-card-image{filter:grayscale(1);opacity:.68}
-.sf-menu-card.is-sold-out .sf-card-details h3,.sf-menu-card.is-sold-out .sf-card-details p,.sf-menu-card.is-sold-out .sf-card-bottom strong{color:#737b89}
-.sf-sold-out-badge{position:absolute;z-index:3;left:8px;bottom:8px;padding:5px 9px;border-radius:7px;background:#5f6672;color:#fff;font-size:var(--sf-font-size-11);font-weight:800;letter-spacing:.01em}
-.sf-menu-card.is-sold-out .sf-card-image{position:relative}
-.sf-menu-card .sf-add-sold-out{background:#9ca3af;color:#fff;cursor:pointer}
-.sf-menu-card .sf-add-sold-out:hover{background:#6b7280}
+/* Sold-out cards follow the muted warm storefront treatment while staying visible. */
+.sf-menu-card.is-sold-out{border-color:#e5ddd5;background:#e9e1d8;color:#686868;box-shadow:0 2px 8px rgba(70,52,38,.04)}
+.sf-menu-card.is-sold-out:hover{transform:none;box-shadow:0 2px 8px rgba(70,52,38,.04)}
+.sf-menu-card.is-sold-out .sf-card-image{filter:grayscale(1);opacity:.62;background:#f2ede8}
+.sf-menu-card.is-sold-out .sf-card-details h3,.sf-menu-card.is-sold-out .sf-card-details p,.sf-menu-card.is-sold-out .sf-card-details strong{color:#686868}
+.sf-menu-card.is-sold-out .sf-card-details h3{font-weight:700}
+.sf-menu-card.is-sold-out .sf-card-details p{line-height:1.45}
+.sf-sold-out-price{display:block;font-size:var(--sf-font-size-product-price);font-weight:800;line-height:1.3;margin:0 0 5px;color:#686868}
+.sf-sold-out-badge{display:inline-flex;align-items:center;justify-content:center;align-self:flex-end;min-height:29px;max-width:58px;padding:3px 5px;border:0;border-radius:8px;background:#d5d8dc;color:#777e87;font-size:var(--sf-font-size-10);font-weight:750;line-height:1.05;text-align:center;white-space:normal;cursor:pointer}
+.sf-menu-card.is-sold-out .sf-card-bottom{justify-content:flex-end}
+.sf-menu-card .sf-sold-out-badge:hover{background:#c8cdd3;color:#626a74}
+@media(max-width:480px){.sf-menu-card.is-sold-out{grid-template-columns:112px minmax(0,1fr)!important;min-height:124px!important}.sf-menu-card.is-sold-out .sf-card-image{height:124px!important;min-height:124px!important}.sf-menu-card.is-sold-out .sf-card-details{padding:9px!important}.sf-menu-card.is-sold-out .sf-card-details h3{font-size:var(--sf-font-size-13)}}
 .sf-availability-error{position:relative;margin:0 0 12px;padding:12px 14px;border:1px solid #fecaca;border-radius:10px;background:#fff1f2;color:#b42318;font-size:var(--sf-font-size-13);font-weight:650;line-height:1.5}
