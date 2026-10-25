@@ -446,17 +446,16 @@
 @media(max-width:640px){.sf-storefront:has(.sf-main-cart) .sf-main-cart{padding:12px}.sf-storefront:has(.sf-main-cart) .sf-cart-page{height:100%;min-height:0}}
 
 
-/* Sold-out cards follow the reference layout while preserving the restaurant's own theme. */
-.sf-menu-card.is-sold-out{position:relative;grid-template-columns:150px minmax(0,1fr);border-color:var(--sf-border);background:var(--sf-page-background);color:var(--sf-font-color);box-shadow:0 2px 8px rgba(16,27,47,.035)}
+/* Sold-out cards keep the restaurant's active theme; only the content is muted. */
+.sf-menu-card.is-sold-out{border-color:var(--sf-border);background:var(--sf-product-card);color:var(--sf-font-color);box-shadow:0 2px 8px rgba(16,27,47,.035)}
 .sf-menu-card.is-sold-out:hover{transform:none;box-shadow:0 2px 8px rgba(16,27,47,.035)}
-.sf-menu-card.is-sold-out .sf-card-image{filter:grayscale(1);opacity:.68;background:var(--sf-page-background)}
-.sf-menu-card.is-sold-out .sf-card-details{position:relative;min-width:0;padding:10px 58px 10px 12px}
+.sf-menu-card.is-sold-out .sf-card-image{filter:grayscale(1);opacity:.58;background:var(--sf-page-background)}
 .sf-menu-card.is-sold-out .sf-card-details h3,.sf-menu-card.is-sold-out .sf-card-details p,.sf-menu-card.is-sold-out .sf-card-details strong{color:var(--sf-muted)}
-.sf-menu-card.is-sold-out .sf-card-details h3{font-weight:700;margin:0 0 2px}
-.sf-menu-card.is-sold-out .sf-card-details p{line-height:1.4;min-height:0}
+.sf-menu-card.is-sold-out .sf-card-details h3{font-weight:700}
+.sf-menu-card.is-sold-out .sf-card-details p{line-height:1.45}
 .sf-sold-out-price{display:block;font-size:var(--sf-font-size-product-price);font-weight:800;line-height:1.3;margin:0 0 5px;color:var(--sf-muted)}
-.sf-sold-out-badge{position:absolute;right:8px;bottom:8px;display:inline-flex;align-items:center;justify-content:center;min-height:29px;max-width:58px;padding:3px 5px;border:1px solid var(--sf-border);border-radius:8px;background:var(--sf-page-background);color:var(--sf-muted);font-size:var(--sf-font-size-10);font-weight:750;line-height:1.05;text-align:center;white-space:normal;cursor:pointer}
-.sf-menu-card.is-sold-out .sf-card-bottom{justify-content:flex-start;margin-top:5px}
+.sf-sold-out-badge{display:inline-flex;align-items:center;justify-content:center;align-self:flex-end;min-height:29px;max-width:58px;padding:3px 5px;border:1px solid var(--sf-border);border-radius:8px;background:var(--sf-page-background);color:var(--sf-muted);font-size:var(--sf-font-size-10);font-weight:750;line-height:1.05;text-align:center;white-space:normal;cursor:pointer}
+.sf-menu-card.is-sold-out .sf-card-bottom{justify-content:flex-end}
 .sf-menu-card .sf-sold-out-badge:hover{background:var(--sf-soft);color:var(--sf-font-color)}
-@media(max-width:480px){.sf-storefront .sf-menu-grid .sf-menu-card.is-sold-out{grid-template-columns:112px minmax(0,1fr)!important;min-height:124px!important}.sf-storefront .sf-menu-grid .sf-menu-card.is-sold-out .sf-card-image{height:124px!important;min-height:124px!important}.sf-storefront .sf-menu-grid .sf-menu-card.is-sold-out .sf-card-details{padding:9px 54px 9px 10px!important}.sf-storefront .sf-menu-grid .sf-menu-card.is-sold-out .sf-card-details h3{font-size:var(--sf-font-size-13)}}
+@media(max-width:480px){.sf-menu-card.is-sold-out{grid-template-columns:112px minmax(0,1fr)!important;min-height:124px!important}.sf-menu-card.is-sold-out .sf-card-image{height:124px!important;min-height:124px!important}.sf-menu-card.is-sold-out .sf-card-details{padding:9px!important}.sf-menu-card.is-sold-out .sf-card-details h3{font-size:var(--sf-font-size-13)}}
 .sf-availability-error{position:relative;margin:0 0 12px;padding:12px 14px;border:1px solid #fecaca;border-radius:10px;background:#fff1f2;color:#b42318;font-size:var(--sf-font-size-13);font-weight:650;line-height:1.5}
