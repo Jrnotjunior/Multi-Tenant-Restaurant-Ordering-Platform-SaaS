@@ -44,9 +44,35 @@ Deno.serve(async(request)=>{
   const {data:claimed,error:claimError}=await admin.rpc("claim_tenant_paymongo_webhook_event",{p_event_id:eventId,p_tenant_id:tenantId,p_environment:environment,p_event_type:eventType});
   if(claimError)throw claimError;
   if(!claimed)return json({received:true,duplicate:true},200);
-  // This endpoint securely verifies and records merchant events for this tenant.
-  // Customer checkout/payment finalization is kept separate and must validate its own order and amount data.
-  const {error:updateError}=await admin.from("tenant_paymongo_webhook_events").update({status:"processed",processed_at:new Date().toISOString(),last_error:null}).eq("event_id",eventId);
+  // Finalize only from a verified PayMongo paid event, never from a browser redirect.
+  if(eventType==="checkout_session.payment.paid"){
+    const resource=attrs.data??{};
+    const resourceAttrs=resource.attributes??{};
+    const checkoutSessionId=String(resource.id??resourceAttrs.checkout_session_id??"").trim();
+    const amount=resourceAttrs.amount;
+    if(!checkoutSessionId||typeof amount!=="number"||!Number.isSafeInteger(amount)||amount<=0){
+      await admin.from("tenant_paymongo_webhook_events").update({
+        status:"failed",last_error:"Paid checkout event missing session ID or valid amount."
+      }).eq("event_id",eventId);
+      return json({error:"Paid checkout event is missing required payment details."},400);
+    }
+    const {error:finalizeError}=await admin.rpc("finalize_customer_order_payment",{
+      p_tenant_id:tenantId,
+      p_environment:environment,
+      p_checkout_session_id:checkoutSessionId,
+      p_amount_centavos:amount
+    });
+    if(finalizeError){
+      await admin.from("tenant_paymongo_webhook_events").update({
+        status:"failed",last_error:"Order payment finalization failed."
+      }).eq("event_id",eventId);
+      throw finalizeError;
+    }
+  }
+  // Other signed events are recorded but do not mark an order paid.
+  const {error:updateError}=await admin.from("tenant_paymongo_webhook_events").update({
+    status:"processed",processed_at:new Date().toISOString(),last_error:null
+  }).eq("event_id",eventId);
   if(updateError)throw updateError;
   return json({received:true,tenantId,eventType},200);
  }catch(error){console.error("tenant-paymongo-webhook",error);return json({error:"Unable to process PayMongo webhook."},500);}
