@@ -316,7 +316,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
 
   if (!catalog || loadStatus !== 'ready') {
     return <div className="sf-storefront">
-      <header className="sf-header"><div className="sf-header-inner">
+      {!cartPage && (<header className="sf-header"><div className="sf-header-inner">
         <a className="sf-logo" href={normalizeAppBase(baseUrl)}>
           <span className="sf-logo-mark">W2T</span><span>Web2Table</span>
         </a>
@@ -336,7 +336,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
             </div>}
           </div>
         </nav>
-      </div></header>
+      </div></header>)}
       <main className="sf-unavailable" role="status">
         <span className="sf-empty-art">🍽️</span>
         <h1>{loadStatus === 'loading' ? 'Loading restaurant menu…' : 'Restaurant menu unavailable'}</h1>
@@ -369,7 +369,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     '--sf-red-dark': websiteColors.secondaryButton,
   } as CSSProperties;
   return <div className={'sf-storefront' + tenantFontClass} style={storefrontTheme}>
-    <header className="sf-header">
+    {!cartPage && (<header className="sf-header">
       <div className="sf-header-inner">
         <a href={menuUrl} className="sf-logo" aria-label={restaurant.name + " menu"}>
           {restaurant.logoUrl
@@ -397,7 +397,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           </div>
         </nav>
       </div>
-    </header>
+    </header>)}
 
     <main className="sf-main">
       {cartPage ? <CartPage count={count} onBack={() => navigateCart(false)}>
@@ -452,7 +452,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       </>}
     </main>
 
-    <footer className="sf-footer">
+    {!cartPage && (<footer className="sf-footer">
       <div className="sf-footer-inner">
       <section className="sf-footer-social-section" aria-label="Follow the restaurant">
         <h2 className="sf-footer-heading">Follow Us</h2>
@@ -467,7 +467,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
         <a className="sf-footer-powered-by" href="https://web2table.io" target="_blank" rel="noreferrer">Powered by <strong>Web2Table</strong></a>
       </div>
       </div>
-    </footer>
+    </footer>)}
 
     {count > 0 && !cartPage && <div className="sf-mobile-cart-bar">
       <button type="button" onClick={() => navigateCart(true)} aria-label={'View cart, ' + count + ' items, ' + peso(subtotal)}>
