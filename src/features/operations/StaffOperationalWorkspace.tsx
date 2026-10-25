@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { normalizeAppBase } from '../../app/routes';
 import { supabase } from '../../lib/supabase';
 import { loadKitchenMenuForTenant, publicMenuPhoto, type KitchenMenu } from '../management/menuService';
 import type { StaffWorkspaceRole } from './OperationalDashboard';
@@ -70,7 +71,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     };
     const expectedPrefix = '#restaurant/' + role;
     if (!window.location.hash.startsWith(expectedPrefix)) {
-      window.history.replaceState(null, '', window.location.pathname + window.location.search + staffRouteFor(role, role === 'cashier' ? cashierTab : role === 'kitchen' ? kitchenTab : ''));
+      window.history.replaceState(null, '', normalizeAppBase(import.meta.env.BASE_URL) + window.location.search + staffRouteFor(role, role === 'cashier' ? cashierTab : role === 'kitchen' ? kitchenTab : ''));
     } else {
       syncStaffPage();
     }
