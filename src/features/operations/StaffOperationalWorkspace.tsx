@@ -192,6 +192,9 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     preparing: orders.filter(o => ['confirmed', 'preparing'].includes(o.order_status)).length,
     ready: orders.filter(o => o.order_status === 'ready_for_dispatch').length,
     delivery: orders.filter(o => o.order_status === 'out_for_delivery').length,
+    riderAssigned: orders.filter(o => ['assigned', 'accepted'].includes(o.assignment_status ?? '') && o.order_status !== 'out_for_delivery').length,
+    riderOnRoute: orders.filter(o => o.assignment_status === 'out_for_delivery' && o.order_status === 'out_for_delivery').length,
+    riderDelivered: orders.filter(o => o.assignment_status === 'delivered' || o.order_status === 'delivered').length,
   }), [orders]);
 
   async function act(order: Order, action: string, description: string) {
@@ -314,10 +317,17 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       <p className="staff-footnote">Sales figures reflect the orders returned by the staff order service; they are not a substitute for a reconciled accounting report.</p>
     </section> : <>
     {!['cashier', 'kitchen'].includes(role) && <section className="staff-metrics" aria-label="Order summary">
-      <article><span>New orders</span><strong>{stats.incoming}</strong><small>Awaiting cashier review</small></article>
-      <article><span>Preparing</span><strong>{stats.preparing}</strong><small>Confirmed / in kitchen</small></article>
-      <article><span>Ready for handoff</span><strong>{stats.ready}</strong><small>Awaiting rider or customer handoff</small></article>
-      <article><span>Out for delivery</span><strong>{stats.delivery}</strong><small>Currently on the road</small></article>
+      {role === 'rider' ? <>
+        <article><span>Assigned to me</span><strong>{stats.riderAssigned}</strong><small>Assigned or accepted, awaiting dispatch</small></article>
+        <article><span>On the road</span><strong>{stats.riderOnRoute}</strong><small>Deliveries currently in progress</small></article>
+        <article><span>Delivered</span><strong>{stats.riderDelivered}</strong><small>Completed in the loaded order list</small></article>
+        <article><span>Orders shown</span><strong>{orders.length}</strong><small>{filter === 'active' ? 'Active deliveries' : 'All assigned deliveries'}</small></article>
+      </> : <>
+        <article><span>New orders</span><strong>{stats.incoming}</strong><small>Awaiting cashier review</small></article>
+        <article><span>Preparing</span><strong>{stats.preparing}</strong><small>Confirmed / in kitchen</small></article>
+        <article><span>Ready for handoff</span><strong>{stats.ready}</strong><small>Awaiting rider or customer handoff</small></article>
+        <article><span>Out for delivery</span><strong>{stats.delivery}</strong><small>Currently on the road</small></article>
+      </>}
     </section>}
     <section className="staff-queue">
       <div className="staff-queue-heading"><div><p className="staff-eyebrow">WORK QUEUE</p><h2>{copy.queue}</h2></div>
@@ -345,7 +355,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           const needsAttention = (role === 'cashier' && order.order_status === 'pending_confirmation') || (role === 'kitchen' && ['confirmed', 'preparing'].includes(order.order_status)) || (role === 'dispatcher' && order.order_status === 'ready_for_dispatch') || (role === 'rider' && ['assigned', 'out_for_delivery'].includes(order.assignment_status ?? ''));
           return <article className={'staff-order-card' + (needsAttention ? ' is-actionable' : '')} key={order.id}>
             <header className="staff-order-card-heading"><div><span className="staff-order-number">Order #{order.order_number}</span><span className="staff-order-meta">{new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(order.created_at))} · {order.branch_name}</span></div><span className={'staff-status status-' + order.order_status}>{label(order.order_status)}</span></header>
-            <div className="staff-order-details"><div className="staff-customer"><strong>{order.customer_name}</strong><span>{order.customer_phone}</span><span>{typeLabel(order.order_type)}</span>{order.order_type === 'delivery' && order.delivery_address && <p>{order.delivery_address}</p>}{order.delivery_notes && <p className="staff-order-notes">Note: {order.delivery_notes}</p>}</div>
+            <div className="staff-order-details"><div className="staff-customer"><strong>{order.customer_name}</strong><span>{order.customer_phone}</span><span>{typeLabel(order.order_type)}</span>{order.order_type === 'delivery' && order.delivery_address && <p>{order.delivery_address}</p>}{order.delivery_notes && <p className="staff-order-notes">Note: {order.delivery_notes}</p>}{role === 'rider' && <div className="staff-rider-quick-actions">{order.customer_phone && <a className="staff-button staff-button-secondary" href={'tel:' + order.customer_phone}>Call customer</a>}{order.order_type === 'delivery' && order.delivery_address && <a className="staff-button staff-button-secondary" href={'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(order.delivery_address)} target="_blank" rel="noreferrer">Get directions ↗</a>}</div>}</div>
               <div className="staff-payment-panel">
                 <div className="staff-payment-status"><span>Payment status</span><strong className={'staff-payment-badge payment-' + order.payment_status.toLowerCase().replaceAll('_', '-')}>{label(order.payment_status)}</strong></div>
                 <div className="staff-payment-breakdown"><span>Subtotal</span><strong>{money(order.subtotal_centavos)}</strong>{order.order_type === 'delivery' && <><span>Delivery fee</span><strong>{order.delivery_fee_centavos == null ? 'Pending' : money(order.delivery_fee_centavos)}</strong></>}<span className="staff-total-label">Order total</span><strong className="staff-order-total">{money(order.total_centavos)}</strong></div>
