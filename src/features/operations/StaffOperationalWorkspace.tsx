@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { loadKitchenMenuForTenant, publicMenuPhoto, type Category, type Product } from '../management/menuService';
+import { loadKitchenMenuForTenant, publicMenuPhoto, type KitchenMenu } from '../management/menuService';
 import type { StaffWorkspaceRole } from './OperationalDashboard';
 import './staff-workspace.css';
 
@@ -32,7 +32,8 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [filter, setFilter] = useState<'active' | 'all'>('active');
   const [cashierTab, setCashierTab] = useState<'orders' | 'sales'>('orders');
   const [kitchenTab, setKitchenTab] = useState<'orders' | 'menu'>('orders');
-  const [kitchenMenu, setKitchenMenu] = useState<{categories:Category[];items:Product[]} | null>(null);
+  const [kitchenMenu, setKitchenMenu] = useState<KitchenMenu | null>(null);
+  const [kitchenAvailabilityBusy, setKitchenAvailabilityBusy] = useState('');
   const [kitchenMenuLoading, setKitchenMenuLoading] = useState(false);
   const [kitchenMenuError, setKitchenMenuError] = useState('');
   const [search, setSearch] = useState('');
@@ -48,7 +49,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const copy = roleCopy[role];
 
   useEffect(() => {
-    if (role !== 'kitchen' || kitchenTab !== 'menu' || kitchenMenu) return;
+    if (role !== 'kitchen' || kitchenTab !== 'menu') return;
     let active = true;
     setKitchenMenuLoading(true);
     setKitchenMenuError('');
@@ -60,7 +61,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       if (active) setKitchenMenuLoading(false);
     });
     return () => { active = false; };
-  }, [role, kitchenTab, kitchenMenu, tenantId]);
+  }, [role, kitchenTab, tenantId]);
 
   useEffect(() => {
     let active = true;
@@ -203,6 +204,41 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     finally { setBusy(''); }
   }
 
+  async function changeKitchenAvailability(itemId:string,isAvailable:boolean) {
+    if (!supabase || !kitchenMenu) return;
+    setKitchenAvailabilityBusy(itemId);
+    setKitchenMenuError('');
+    try {
+      const {error:rpcError}=await supabase.rpc('set_kitchen_menu_item_availability',{
+        p_tenant_id:tenantId,
+        p_branch_id:kitchenMenu.branch_id,
+        p_item_id:itemId,
+        p_is_available:isAvailable,
+      });
+      if(rpcError)throw rpcError;
+      setKitchenMenu(current=>current?{...current,items:current.items.map(item=>item.id===itemId?{...item,is_available:isAvailable}:item)}:current);
+      setNotice(isAvailable?'Item is available on the storefront again.':'Item marked unavailable on the storefront.');
+      window.setTimeout(()=>setNotice(''),3500);
+    } catch(reason) {
+      setKitchenMenuError(reason instanceof Error?reason.message:'Unable to update item availability.');
+    } finally {
+      setKitchenAvailabilityBusy('');
+    }
+  }
+
+  async function changeKitchenBranch(branchId:string) {
+    setKitchenMenuLoading(true);
+    setKitchenMenuError('');
+    try {
+      const data=await loadKitchenMenuForTenant(tenantId,branchId);
+      setKitchenMenu(data);
+    } catch(reason) {
+      setKitchenMenuError(reason instanceof Error?reason.message:'Unable to load this branch menu.');
+    } finally {
+      setKitchenMenuLoading(false);
+    }
+  }
+
   function actions(order: Order) {
     if (role === 'cashier' && order.order_status === 'pending_confirmation') return [
       { action: 'confirm', label: 'Confirm order', primary: true }, { action: 'reject', label: 'Reject', primary: false },
@@ -266,9 +302,11 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         {role !== 'cashier' && role !== 'kitchen' && <div className="staff-queue-controls"><button type="button" className={filter === 'active' ? 'is-selected' : ''} onClick={() => setFilter('active')}>Active</button><button type="button" className={filter === 'all' ? 'is-selected' : ''} onClick={() => setFilter('all')}>All orders</button></div>}
       </div>
       {role === 'kitchen' && kitchenTab === 'menu' ? <div className="staff-kitchen-menu-panel">
-      {kitchenMenuLoading ? <p className="staff-empty">Loading menu…</p> : kitchenMenuError ? <p className="staff-notice is-error" role="alert">{kitchenMenuError}</p> : !kitchenMenu?.items.length ? <div className="staff-empty"><h3>No menu items yet</h3><p>Menu items added for this restaurant will appear here.</p></div> : <div className="staff-kitchen-menu-grid">{(kitchenMenu?.items ?? []).map(item => {
+      <div className="staff-kitchen-menu-toolbar"><div><h3>Menu availability</h3><p>Mark items unavailable when stock runs out. Changes apply to this branch’s storefront.</p></div>{(kitchenMenu?.branches.length ?? 0)>1 && <label>Branch <select value={kitchenMenu?.branch_id ?? ''} onChange={event=>void changeKitchenBranch(event.target.value)} disabled={kitchenMenuLoading}><option value="" disabled>Select branch</option>{kitchenMenu?.branches.map(branch=><option key={branch.id} value={branch.id}>{branch.name}</option>)}</select></label>}</div>
+      {kitchenMenuLoading ? <p className="staff-empty">Loading menu…</p> : kitchenMenuError ? <p className="staff-notice is-error" role="alert">{kitchenMenuError}</p> : !kitchenMenu?.items.length ? <div className="staff-empty"><h3>No menu items yet</h3><p>The restaurant owner can add products from menu management.</p></div> : <div className="staff-kitchen-menu-grid">{(kitchenMenu?.items ?? []).map(item => {
         const category = kitchenMenu?.categories.find(entry => entry.id === item.category_id);
-        return <article className="staff-kitchen-menu-card" key={item.id}>{publicMenuPhoto(item.image_path) ? <img src={publicMenuPhoto(item.image_path) ?? ''} alt="" loading="lazy" /> : <div className="staff-kitchen-menu-placeholder" aria-hidden="true">Menu item</div>}<div className="staff-kitchen-menu-details">{category && <span className="staff-kitchen-menu-category">{category.name}</span>}<h3>{item.name}</h3>{item.description && <p>{item.description}</p>}<strong>{money(item.price_centavos)}</strong><span className={'staff-kitchen-menu-status is-' + item.status}>{item.status === 'published' ? 'Published' : item.status === 'draft' ? 'Draft' : 'Archived'}</span></div></article>;
+        const canToggle=item.status==='published';
+        return <article className={'staff-kitchen-menu-card'+(!item.is_available?' is-unavailable':'')} key={item.id}>{publicMenuPhoto(item.image_path) ? <img src={publicMenuPhoto(item.image_path) ?? ''} alt="" loading="lazy" /> : <div className="staff-kitchen-menu-placeholder" aria-hidden="true">Menu item</div>}<div className="staff-kitchen-menu-details">{category && <span className="staff-kitchen-menu-category">{category.name}</span>}<h3>{item.name}</h3>{item.description && <p>{item.description}</p>}<strong>{money(item.price_centavos)}</strong><span className={'staff-kitchen-menu-status is-' + item.status}>{item.status === 'published' ? 'Published' : item.status === 'draft' ? 'Draft' : 'Archived'}</span><span className={'staff-kitchen-availability '+(item.is_available?'is-available':'is-unavailable')}>{item.is_available?'Available to order':'Unavailable to order'}</span>{canToggle && <button type="button" className={'staff-button '+(item.is_available?'staff-button-secondary':'staff-button-primary')} disabled={kitchenAvailabilityBusy===item.id||kitchenMenuLoading} onClick={()=>void changeKitchenAvailability(item.id,!item.is_available)}>{kitchenAvailabilityBusy===item.id?'Updating…':item.is_available?'Mark unavailable':'Mark available'}</button>}</div></article>;
       })}</div>}
     </div> : <div className="staff-kitchen-order-content"><div className="staff-queue-toolbar">
         <label className="staff-order-search"><span className="staff-search-icon" aria-hidden="true">⌕</span><input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search order number, customer, phone…" aria-label="Search orders" /></label>
