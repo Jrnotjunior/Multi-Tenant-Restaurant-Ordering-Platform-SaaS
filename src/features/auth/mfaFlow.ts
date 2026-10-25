@@ -24,55 +24,78 @@ export function getMfaFlow(client: SupabaseClient): Promise<MfaFlow> {
 }
 
 async function resolve(client: SupabaseClient): Promise<MfaFlow> {
-  const { data: assurance, error: assuranceError } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
+  const [{ data: assurance, error: assuranceError }, { data: factors, error: factorsError }] =
+    await Promise.all([
+      client.auth.mfa.getAuthenticatorAssuranceLevel(),
+      client.auth.mfa.listFactors(),
+    ]);
+
   if (assuranceError) throw assuranceError;
+  if (factorsError) throw factorsError;
+
   if (assurance.currentLevel === 'aal2') {
     enrollments.delete(client);
     return { kind: 'ready' };
   }
 
-  const { data: factors, error: factorsError } = await client.auth.mfa.listFactors();
-  if (factorsError) throw factorsError;
-
-  // If the user already completed MFA, never enroll again: challenge the
-  // existing verified factor. After successful verification the gate will
-  // re-check AAL2 and continue to the authorized restaurant dashboard.
   const verified = factors.totp.find((factor) => factor.status === 'verified');
   if (verified) {
     enrollments.delete(client);
     return { kind: 'challenge', factorId: verified.id };
   }
 
+  const pendingFactors = factors.totp.filter((factor) => factor.status !== 'verified');
   const cached = enrollments.get(client);
-  if (cached && factors.totp.some((factor) => factor.id === cached.factorId)) return cached;
-
-  // Reuse a pending factor when possible instead of creating a duplicate.
-  // The QR secret is not available from listFactors, so we cannot safely
-  // reconstruct its QR. Tell the user explicitly that this is not a fresh
-  // enrollment and offer the recovery action below.
-  if (factors.totp.length > 0) {
-    throw new Error('An incomplete authenticator setup exists for this account. Your authenticator has not been confirmed as verified. Use “Restart incomplete authenticator setup” to replace only unverified factors, then scan the new QR code once.');
-  }
-
-  const { data, error } = await client.auth.mfa.enroll({
-    factorType: 'totp',
-    friendlyName: `Web2Table Authenticator ${Date.now()}`,
-  });
-  if (error) {
-    // Enrollment can succeed server-side even if its response is interrupted.
-    // Re-read factors before showing an error or creating another factor.
-    const { data: latestFactors, error: latestFactorsError } = await client.auth.mfa.listFactors();
-    if (!latestFactorsError) {
-      const latestVerified = latestFactors.totp.find((factor) => factor.status === 'verified');
-      if (latestVerified) return { kind: 'challenge', factorId: latestVerified.id };
-      if (latestFactors.totp.length > 0) {
-        throw new Error('An authenticator setup is already pending for this account. Restart the incomplete setup only if you have not verified an authenticator yet.');
-      }
+  if (cached && pendingFactors.some((factor) => factor.id === cached.factorId)) {
+    // Reuse the exact enrollment/QR already shown in this browser session.
+    // Clean up only duplicate pending factors, never verified factors.
+    for (const factor of pendingFactors) {
+      if (factor.id === cached.factorId) continue;
+      const { error } = await client.auth.mfa.unenroll({ factorId: factor.id });
+      if (error) throw error;
     }
-    throw error;
+    return cached;
   }
-  if (!data?.totp?.qr_code || !data.totp.uri) throw new Error('Authenticator enrollment information unavailable.');
-  const result: MfaFlow = { kind: 'enroll', factorId: data.id, qrCode: data.totp.qr_code, uri: data.totp.uri };
+
+  // A pending factor from an earlier page load has no recoverable QR secret.
+  // Remove only unverified factors before starting a fresh enrollment; a
+  // verified factor was handled above and is never removed by this recovery.
+  enrollments.delete(client);
+  for (const factor of pendingFactors) {
+    const { error } = await client.auth.mfa.unenroll({ factorId: factor.id });
+    if (error) throw error;
+  }
+
+  let enrollment: Awaited<ReturnType<typeof client.auth.mfa.enroll>>['data'] = null;
+  let enrollmentError: Awaited<ReturnType<typeof client.auth.mfa.enroll>>['error'] = null;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const suffix = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID().replace(/-/g, '').slice(0, 12)
+      : Math.random().toString(36).slice(2, 14);
+    const friendlyName = `Web2Table Authenticator ${new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14)} ${suffix}`;
+    const result = await client.auth.mfa.enroll({ factorType: 'totp', friendlyName });
+    enrollment = result.data;
+    enrollmentError = result.error;
+    if (!enrollmentError) break;
+    if (!/friendly name.*already exists|already exists.*friendly name/i.test(enrollmentError.message)) {
+      throw enrollmentError;
+    }
+  }
+
+  if (enrollmentError) {
+    throw new Error('Authenticator setup could not be started. Please try again; any verified authenticator has been preserved.');
+  }
+  if (!enrollment?.totp?.qr_code || !enrollment.totp.uri) {
+    throw new Error('Authenticator enrollment information unavailable.');
+  }
+
+  const result: MfaFlow = {
+    kind: 'enroll',
+    factorId: enrollment.id,
+    qrCode: enrollment.totp.qr_code,
+    uri: enrollment.totp.uri,
+  };
   enrollments.set(client, result);
   return result;
 }
