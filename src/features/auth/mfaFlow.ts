@@ -82,7 +82,13 @@ export async function verifyMfa(client: SupabaseClient, factorId: string, code: 
   const { data, error } = await client.auth.mfa.challenge({ factorId });
   if (error) throw error;
   const { error: verifyError } = await client.auth.mfa.verify({ factorId, challengeId: data.id, code });
-  if (verifyError) throw verifyError;
+  if (verifyError) {
+    const normalized = verifyError.message.toLowerCase();
+    if (normalized.includes('invalid') || normalized.includes('token') || normalized.includes('code')) {
+      throw new Error('That authenticator code was rejected. Make sure your phone date and time are set automatically, use the newest six-digit code, and keep using the same QR code unless you explicitly restart setup.');
+    }
+    throw verifyError;
+  }
   const { data: assurance, error: assuranceError } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
   if (assuranceError || assurance.currentLevel !== 'aal2') throw new Error('MFA verification did not complete.');
   enrollments.delete(client);
