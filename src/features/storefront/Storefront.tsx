@@ -390,13 +390,13 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const websiteColors = restaurant.websiteColors;
   const storefrontTheme = {
     '--sf-page-background': websiteColors.pageBackground,
-    '--sf-header-color': websiteColors.headerColor,
+    '--sf-header-color': websiteColors.footerBackground,
     '--sf-footer-background': websiteColors.footerBackground,
     '--sf-footer-font': websiteColors.footerFont,
     '--sf-hero-color': websiteColors.heroColor,
     '--sf-product-card': websiteColors.productCard,
     '--sf-font-color': websiteColors.fontColor,
-    '--sf-header-icon': websiteColors.headerIcon,
+    '--sf-header-icon': websiteColors.footerFont,
     '--sf-primary-button': websiteColors.primaryButton,
     '--sf-primary-button-font': websiteColors.primaryButtonFont,
     '--sf-secondary-button': websiteColors.secondaryButton,
