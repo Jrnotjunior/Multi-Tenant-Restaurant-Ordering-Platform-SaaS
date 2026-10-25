@@ -203,7 +203,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         </div>}
       </div>
     </div>
-    {![''cashier', 'kitchen'].includes(role) && <header className="staff-header"><div><p className="staff-eyebrow">{copy.eyebrow}</p><h1>{copy.title}</h1><p className="staff-intro">{copy.intro}</p>{restaurantName && <p className="staff-restaurant-name">{restaurantName}</p>}</div>
+    {!['cashier', 'kitchen'].includes(role) && <header className="staff-header"><div><p className="staff-eyebrow">{copy.eyebrow}</p><h1>{copy.title}</h1><p className="staff-intro">{copy.intro}</p>{restaurantName && <p className="staff-restaurant-name">{restaurantName}</p>}</div>
       <div className="staff-header-actions"><span className="staff-live-indicator"><i aria-hidden="true" /> Live queue</span><button className="staff-button staff-button-secondary" type="button" onClick={() => void load()} disabled={loading}>Refresh</button></div>
     </header>}
     {role === 'cashier' && <nav className="staff-workspace-tabs" aria-label="Cashier workspace">
