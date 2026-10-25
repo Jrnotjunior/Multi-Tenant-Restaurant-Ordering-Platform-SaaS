@@ -173,3 +173,73 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
   .onboarding-card .onboarding-otp-inputs{gap:5px}
   .onboarding-card .onboarding-otp-digit{height:46px;border-radius:8px}
 }
+
+
+/* Polished phone layout: use the entire viewport width and reduce the hero's vertical footprint. */
+@media(max-width:600px){
+  .app:has(.privileged-onboarding) .workspace,
+  .app:has(.privileged-onboarding) .content,
+  .app:has(.privileged-onboarding) .privileged-onboarding{
+    width:100%;
+    max-width:none;
+    min-width:0;
+    margin:0;
+  }
+  .app:has(.privileged-onboarding) .privileged-onboarding{
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    padding:0;
+  }
+  .app:has(.privileged-onboarding) .onboarding-story{
+    width:100%;
+    min-height:auto;
+    padding:22px 20px 24px;
+    flex:none;
+  }
+  .app:has(.privileged-onboarding) .onboarding-brand span{
+    width:34px;
+    height:34px;
+  }
+  .app:has(.privileged-onboarding) .onboarding-brand strong{font-size:var(--font-size-18)}
+  .app:has(.privileged-onboarding) .onboarding-story-copy{
+    width:100%;
+    max-width:440px;
+    margin:24px 0 0;
+  }
+  .app:has(.privileged-onboarding) .onboarding-story-copy h1{
+    font-size:clamp(28px,7vw,34px);
+    line-height:1.08;
+    margin:10px 0;
+  }
+  .app:has(.privileged-onboarding) .onboarding-story-copy>p{
+    max-width:36ch;
+    font-size:var(--font-size-14);
+    line-height:1.55;
+  }
+  .app:has(.privileged-onboarding) .onboarding-card{
+    width:calc(100% - 24px);
+    max-width:480px;
+    min-width:0;
+    margin:12px auto 24px;
+    padding:22px 18px;
+    border-radius:16px;
+  }
+  .app:has(.privileged-onboarding) .onboarding-steps{
+    gap:8px;
+    margin-bottom:24px;
+  }
+  .app:has(.privileged-onboarding) .onboarding-steps>div{min-width:0;flex:0 1 82px}
+  .app:has(.privileged-onboarding) .onboarding-steps i{min-width:10px}
+  .app:has(.privileged-onboarding) .onboarding-card .auth-qr{
+    width:min(220px,80%);
+    margin:16px auto;
+  }
+  .app:has(.privileged-onboarding) .onboarding-card>p{overflow-wrap:anywhere}
+}
+@media(max-width:360px){
+  .app:has(.privileged-onboarding) .onboarding-card{width:calc(100% - 16px);padding:18px 14px}
+  .app:has(.privileged-onboarding) .onboarding-steps{gap:5px}
+  .app:has(.privileged-onboarding) .onboarding-steps span{width:30px;height:30px}
+  .app:has(.privileged-onboarding) .onboarding-steps i{margin-top:14px}
+}
