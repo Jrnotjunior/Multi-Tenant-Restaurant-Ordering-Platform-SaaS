@@ -164,11 +164,6 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     return [];
   }
 
-  if (role === 'cashier' && cashierTab === 'sales' && filter !== 'all') {
-    // Sales needs the complete order history, not only the active queue.
-    // The effect below triggers the all-orders query when the tab changes.
-  }
-
   return <main className="staff-workspace">
     <header className="staff-header"><div><p className="staff-eyebrow">{copy.eyebrow}</p><h1>{copy.title}</h1><p className="staff-intro">{copy.intro}</p>{restaurantName && <p className="staff-restaurant-name">{restaurantName}</p>}</div>
       <div className="staff-header-actions"><span className="staff-live-indicator"><i aria-hidden="true" /> Live queue</span><button className="staff-button staff-button-secondary" type="button" onClick={() => void load()} disabled={loading}>Refresh</button></div>
