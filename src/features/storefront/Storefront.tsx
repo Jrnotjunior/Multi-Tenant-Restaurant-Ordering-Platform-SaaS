@@ -4,7 +4,7 @@ import {addCustom,changeCustom,customCount,customLines,customSubtotal,type Custo
 import {CustomizeDialog} from './CustomizeDialog';
 import { filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
 import { branchSlugFromSearch, loadDefaultPublishedMenu, loadPublishedMenu, type StorefrontCatalog } from './publishedMenu';
-import { isStorefrontCartPath, normalizeAppBase, restaurantMenuPath, storefrontCartPath } from '../../app/routes';
+import { isStorefrontCartPath, isStorefrontCheckoutPath, normalizeAppBase, restaurantMenuPath, storefrontCartPath, storefrontCheckoutPath } from '../../app/routes';
 import { CartPage } from './CartPage';
 import { CheckoutPage } from './CheckoutPage';
 import './storefront.css';
