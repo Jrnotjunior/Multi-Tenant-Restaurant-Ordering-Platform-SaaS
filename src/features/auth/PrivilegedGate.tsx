@@ -265,18 +265,21 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
   const isOnboarding = isSetup || (isMfa && flow?.kind === 'enroll');
   return <main className={isExistingAccountMfa ? 'privileged-onboarding existing-account-mfa' : isOnboarding ? 'privileged-onboarding' : 'privileged-onboarding privileged-auth-only'} aria-live="polite">
     {isOnboarding && <aside className="onboarding-story">
-      <a className="onboarding-brand" href="/" aria-label="Web2Table home"><span>W2T</span><strong>Web2Table</strong></a>
-      <div className="onboarding-story-copy">
-        <span className="onboarding-kicker">YOUR RESTAURANT. ONE WORKSPACE.</span>
-        <h1>Welcome to<br />Web2Table</h1>
-        <p>Everything you need to manage your restaurant — in one place.</p>
-        <div className="onboarding-benefits">
-          <div><span className="onboarding-benefit-icon">▣</span><span><strong>Manage your restaurant</strong><small>Menus, orders, and team access</small></span></div>
-          <div><span className="onboarding-benefit-icon">▥</span><span><strong>Grow your business</strong><small>Insights and real-time analytics</small></span></div>
-          <div><span className="onboarding-benefit-icon">♧</span><span><strong>Built for your team</strong><small>Simple, secure, and reliable</small></span></div>
-        </div>
-      </div>
-      <div className="onboarding-story-glow" aria-hidden="true" />
+      <a className="onboarding-brand onboarding-logo-only" href="/" aria-label="Web2Table home">
+        <svg viewBox="0 0 240 130" role="img" aria-label="W2T logo">
+          <g fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round">
+            <path d="M57 53a62 62 0 0 1 119 0" />
+            <path d="M45 62q72-72 144 0" />
+            <path d="M47 61h140" />
+            <path d="M78 30q-29 32 0 64" />
+            <path d="M155 30q29 32 0 64" />
+          </g>
+          <path d="M170 25c36 1 50 20 38 42-9 16-25 29-43 39 17-20 21-35 11-46-7-8-20-12-37-13z" fill="#ff001b"/>
+          <text x="28" y="103" fontFamily="Arial, Helvetica, sans-serif" fontSize="67" fontWeight="900" fontStyle="italic" fill="#fff">W</text>
+          <text x="86" y="103" fontFamily="Arial, Helvetica, sans-serif" fontSize="67" fontWeight="900" fontStyle="italic" fill="#ff001b">2</text>
+          <text x="130" y="103" fontFamily="Arial, Helvetica, sans-serif" fontSize="67" fontWeight="900" fontStyle="italic" fill="#fff">T</text>
+        </svg>
+      </a>
     </aside>}
     <section className="auth-panel onboarding-card">
       {(isSetup || (isMfa && !isExistingAccountMfa)) && <div className="onboarding-steps" aria-label="Account setup progress">
