@@ -226,19 +226,6 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     }
   }
 
-  async function changeKitchenBranch(branchId:string) {
-    setKitchenMenuLoading(true);
-    setKitchenMenuError('');
-    try {
-      const data=await loadKitchenMenuForTenant(tenantId,branchId);
-      setKitchenMenu(data);
-    } catch(reason) {
-      setKitchenMenuError(reason instanceof Error?reason.message:'Unable to load this branch menu.');
-    } finally {
-      setKitchenMenuLoading(false);
-    }
-  }
-
   function actions(order: Order) {
     if (role === 'cashier' && order.order_status === 'pending_confirmation') return [
       { action: 'confirm', label: 'Confirm order', primary: true }, { action: 'reject', label: 'Reject', primary: false },
@@ -302,7 +289,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         {role !== 'cashier' && role !== 'kitchen' && <div className="staff-queue-controls"><button type="button" className={filter === 'active' ? 'is-selected' : ''} onClick={() => setFilter('active')}>Active</button><button type="button" className={filter === 'all' ? 'is-selected' : ''} onClick={() => setFilter('all')}>All orders</button></div>}
       </div>
       {role === 'kitchen' && kitchenTab === 'menu' ? <div className="staff-kitchen-menu-panel">
-      <div className="staff-kitchen-menu-toolbar"><div><h3>Menu availability</h3><p>Mark items unavailable when stock runs out. Changes apply to this branch’s storefront.</p></div>{(kitchenMenu?.branches.length ?? 0)>1 && <label>Branch <select value={kitchenMenu?.branch_id ?? ''} onChange={event=>void changeKitchenBranch(event.target.value)} disabled={kitchenMenuLoading}><option value="" disabled>Select branch</option>{kitchenMenu?.branches.map(branch=><option key={branch.id} value={branch.id}>{branch.name}</option>)}</select></label>}</div>
+      <div className="staff-kitchen-menu-toolbar"><div><h3>Menu availability</h3><p>Mark items unavailable when stock runs out. Changes apply to this branch’s storefront.</p></div></div>
       {kitchenMenuLoading ? <p className="staff-empty">Loading menu…</p> : kitchenMenuError ? <p className="staff-notice is-error" role="alert">{kitchenMenuError}</p> : !kitchenMenu?.items.length ? <div className="staff-empty"><h3>No menu items yet</h3><p>The restaurant owner can add products from menu management.</p></div> : <div className="staff-kitchen-menu-grid">{(kitchenMenu?.items ?? []).map(item => {
         const category = kitchenMenu?.categories.find(entry => entry.id === item.category_id);
         const canToggle=item.status==='published';
