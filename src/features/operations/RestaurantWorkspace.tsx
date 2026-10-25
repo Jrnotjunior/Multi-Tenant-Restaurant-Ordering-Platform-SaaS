@@ -49,8 +49,12 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
       window.history.replaceState(null, '', window.location.pathname + window.location.search + '#restaurant/' + ownerPage);
     }
     window.addEventListener('hashchange', syncOwnerPage);
-    return () => window.removeEventListener('hashchange', syncOwnerPage);
-  }, [ownerPage]);
+    window.addEventListener('popstate', syncOwnerPage);
+    return () => {
+      window.removeEventListener('hashchange', syncOwnerPage);
+      window.removeEventListener('popstate', syncOwnerPage);
+    };
+  }, []);
 
   useEffect(() => {
     if (!supabase || !membership || membership.role !== 'restaurant_owner') return;
@@ -154,7 +158,7 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
       return next;
     });
     if (ownerPage !== nextPage) {
-      window.history.pushState(null, '', window.location.pathname + window.location.search + '#restaurant/' + nextPage);
+      window.location.hash = 'restaurant/' + nextPage;
       setOwnerPage(nextPage);
     }
   };
