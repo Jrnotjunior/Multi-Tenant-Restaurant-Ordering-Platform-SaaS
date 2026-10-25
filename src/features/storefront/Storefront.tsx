@@ -10,7 +10,7 @@ import './storefront.css';
 
 function readSessionValue<T>(key: string, fallback: T): T {
   try {
-    const stored = window.sessionStorage.getItem(key);
+    const stored = window.localStorage.getItem(key) ?? window.sessionStorage.getItem(key);
     return stored ? JSON.parse(stored) as T : fallback;
   } catch {
     return fallback;
@@ -19,9 +19,12 @@ function readSessionValue<T>(key: string, fallback: T): T {
 
 function writeSessionValue<T>(key: string, value: T): void {
   try {
-    window.sessionStorage.setItem(key, JSON.stringify(value));
+    const serialized = JSON.stringify(value);
+    window.localStorage.setItem(key, serialized);
+    // Keep the previous session copy compatible with already-open storefront tabs.
+    window.sessionStorage.setItem(key, serialized);
   } catch {
-    // The cart remains usable for the current page if session storage is unavailable.
+    // The cart remains usable for the current page if storage is unavailable.
   }
 }
 
