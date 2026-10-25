@@ -29,7 +29,7 @@ function FoodArt({ item, small = false }: { item: MenuItem; small?: boolean }) {
   return (
     <div
       className={'sf-food-art' + (small ? ' sf-food-art-small' : '') + (hasImage ? ' sf-food-art-has-photo' : ' sf-food-art-no-photo')}
-      style={{width:'100%',height:'100%',minHeight:0,...(hasImage ? {} : { background: '#f1f3f5' })}}
+      style={{width:small ? 66 : '100%',height:small ? 66 : '100%',minHeight:0,flexShrink:small ? 0 : undefined,...(hasImage ? {} : { background: '#f1f3f5' })}}
       aria-hidden="true"
     >
       {hasImage
