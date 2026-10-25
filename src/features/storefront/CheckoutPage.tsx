@@ -3,12 +3,14 @@ import { peso } from './demoCatalog';
 
 type OrderType = 'Delivery' | 'Take-out' | 'Pickup' | 'Dine-in';
 type PaymentMethod = 'cash' | 'online';
+export type CheckoutSubmission = { orderType: OrderType; customerName: string; phone: string; deliveryAddress: string; deliveryNotes: string; paymentMethod: PaymentMethod };
 
 type CheckoutPageProps = {
   itemCount: number;
   subtotalCentavos: number;
   orderLines: readonly { name: string; quantity: number; totalCentavos: number }[];
   onBackToMenu: () => void;
+  onPlaceOrder: (submission: CheckoutSubmission) => Promise<{ orderNumber: number }>;
 };
 
 function OrderTypeSection({ value, onChange }: {
@@ -33,7 +35,7 @@ function CustomerInformation({ orderType }: { orderType: OrderType }) {
     <div className="sf-checkout-fields">
       <label>First name<input name="firstName" autoComplete="given-name" required minLength={1} maxLength={80} /></label>
       <label>Last name<input name="lastName" autoComplete="family-name" required minLength={1} maxLength={80} /></label>
-      {orderType !== 'Dine-in' && <label>Mobile number<input name="mobile" autoComplete="tel" type="tel" required minLength={7} maxLength={24} placeholder="+63 9xx xxx xxxx" /></label>}
+      <label>Mobile number<input name="mobile" autoComplete="tel" type="tel" required minLength={7} maxLength={24} placeholder="09xx xxx xxxx" /></label>
     </div>
   </fieldset>;
 }
@@ -52,12 +54,13 @@ function DeliveryAddressSection({ orderType }: { orderType: OrderType }) {
 }
 
 /** Standalone checkout screen. It prepares details only; it does not place or charge an order. */
-export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackToMenu }: CheckoutPageProps) {
+export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackToMenu, onPlaceOrder }: CheckoutPageProps) {
   const [orderType, setOrderType] = useState<OrderType>('Delivery');
   const [message, setMessage] = useState('');
   const [reviewed, setReviewed] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | ''>('');
+  const [submitting, setSubmitting] = useState(false);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -85,8 +88,8 @@ export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackTo
           <span>{line.quantity} × {line.name}</span><strong>{peso(line.totalCentavos)}</strong>
         </div>)}
         <div className="sf-checkout-summary-subtotal"><span>Subtotal</span><strong>{peso(subtotalCentavos)}</strong></div>
-        <div className="sf-checkout-summary-delivery"><span>Delivery fee</span><strong>{peso(0)}</strong></div>
-        <div className="sf-checkout-summary-grand-total"><span>Total</span><strong>{peso(subtotalCentavos)}</strong></div>
+        {orderType === 'Delivery' && <div className="sf-checkout-summary-delivery"><span>Delivery fee</span><strong>Set by restaurant</strong></div>}
+        <div className="sf-checkout-summary-grand-total"><span>{orderType === 'Delivery' ? 'Subtotal (delivery fee pending)' : 'Total'}</span><strong>{peso(subtotalCentavos)}</strong></div>
       </section>
 
       {message && <p className="sf-checkout-page-message" role="status">{message}</p>}
@@ -115,7 +118,32 @@ export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackTo
         {message && <p className="sf-checkout-page-message" role="status">{message}</p>}
         <div className="sf-payment-modal-actions">
           <button type="button" className="sf-payment-cancel" onClick={() => setPaymentModalOpen(false)}>Cancel</button>
-          <button type="button" className="sf-payment-place-order" disabled={!paymentMethod} onClick={() => { setMessage(paymentMethod === 'online' ? 'Online payment is not connected yet. No order has been placed.' : 'Order submission is not connected yet. No order has been placed.'); setPaymentModalOpen(false); }}>Place Order</button>
+          <button type="button" className="sf-payment-place-order" disabled={!paymentMethod || submitting} onClick={async () => {
+            if (paymentMethod === 'online') { setMessage('Online payment is not connected yet. No order has been placed.'); setPaymentModalOpen(false); return; }
+            const form = document.querySelector<HTMLFormElement>('.sf-checkout-page-form');
+            if (!form) return;
+            const values = new FormData(form);
+            const firstName = String(values.get('firstName') ?? '').trim();
+            const lastName = String(values.get('lastName') ?? '').trim();
+            const street = String(values.get('street') ?? '').trim();
+            const barangay = String(values.get('barangay') ?? '').trim();
+            const city = String(values.get('city') ?? '').trim();
+            setSubmitting(true);
+            setMessage('');
+            try {
+              const result = await onPlaceOrder({
+                orderType, customerName: (firstName + ' ' + lastName).trim(),
+                phone: String(values.get('mobile') ?? '').trim(),
+                deliveryAddress: orderType === 'Delivery' ? [street, barangay, city].filter(Boolean).join(', ') : '',
+                deliveryNotes: String(values.get('notes') ?? '').trim(),
+                paymentMethod,
+              });
+              setMessage('Order #' + result.orderNumber + ' placed successfully. Pay at the restaurant counter.');
+              setPaymentModalOpen(false);
+            } catch (error) {
+              setMessage(error instanceof Error ? error.message : 'Unable to place your order. Please try again.');
+            } finally { setSubmitting(false); }
+          }}>{submitting ? 'Placing order…' : 'Place Order'}</button>
         </div>
       </section>
     </div>}
