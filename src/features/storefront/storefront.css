@@ -308,9 +308,9 @@
 /* Dedicated checkout page */
 .sf-checkout-page{width:min(900px,calc(100% - 32px));box-sizing:border-box;margin:0 auto;padding:clamp(24px,4vw,42px) 0 56px}
 .sf-checkout-page-intro{margin-bottom:24px}
-.sf-checkout-page-intro h1{max-width:620px;margin:8px 0 10px;font-size:clamp(28px,4vw,40px);line-height:1.12;letter-spacing:-.045em;font-weight:750}
-.sf-checkout-page-intro p{max-width:520px;margin:0;color:var(--sf-muted,#526782);font-size:14px;line-height:1.6}
-.sf-checkout-page-form{display:grid;gap:16px;max-width:620px}
+.sf-checkout-page-intro h1{max-width:none;margin:8px 0 10px;font-size:clamp(28px,4vw,40px);line-height:1.12;letter-spacing:-.045em;font-weight:750}
+.sf-checkout-page-intro p{max-width:none;margin:0;color:var(--sf-muted,#526782);font-size:14px;line-height:1.6}
+.sf-checkout-page-form{display:grid;gap:16px;width:100%;max-width:none}
 .sf-checkout-section{min-width:0;margin:0;padding:14px 12px 12px;border:1px solid var(--sf-border,#DCE3ED);border-radius:12px}
 .sf-checkout-section legend{padding:0 5px;font-size:13px;font-weight:750;color:var(--sf-font-color,#101B2F)}
 .sf-order-type-options{display:grid;gap:8px}
