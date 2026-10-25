@@ -16,6 +16,8 @@ jobs:
           node-version: '22'
       - name: Install dependencies (lockfile pending)
         run: npm install --no-audit --no-fund
+      - name: Dependency vulnerability audit
+        run: npm audit --audit-level=high
       - name: Typecheck
         run: npm run typecheck
       - name: Unit tests
