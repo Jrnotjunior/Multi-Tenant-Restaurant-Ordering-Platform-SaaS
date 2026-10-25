@@ -267,7 +267,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           </article>;
         })}</div>}
     </section>
-    <p className="staff-footnote">Queue refreshes automatically. Every order action is validated by Supabase against your authenticated role, tenant, branch, and assignment.</p>
+    
     </>}
   </main>;
 }
