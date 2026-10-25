@@ -157,7 +157,6 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
       <p className="sf-auth-switch">
         {resetMode ? <button className="sf-auth-text-button" type="button" onClick={() => { setResetMode(false); setMessage(''); setSuccess(false); }}>Back to sign in</button> : <>{isSignUp ? 'Already have an account? ' : 'New customer? '}<a href={base + (isSignUp ? 'account/sign-in' : 'account/sign-up') + (resolvedRestaurantSlug ? '?restaurant=' + encodeURIComponent(resolvedRestaurantSlug) : '')}>{isSignUp ? 'Sign In' : 'Sign Up'}</a></>}
       </p>
-      <p className="sf-auth-legal">By continuing, you agree to the restaurant's applicable terms and privacy policy.</p>
     </section>
   </main>;
 }
