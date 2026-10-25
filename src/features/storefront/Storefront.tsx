@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties, type TouchEvent } from 'react';
 import { cartCount, cartLines, cartSubtotal, updateCart, type Cart } from './cart';
 import {addCustom,changeCustom,customCount,customLines,customSubtotal,type CustomCart,type Selection} from './customCart';
 import {CustomizeDialog} from './CustomizeDialog';
@@ -129,8 +129,8 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
   const [revealedRemoveKey, setRevealedRemoveKey] = useState<string | null>(null);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const swipeHandlers = (key: string) => ({
-    onTouchStart: (event: React.TouchEvent<HTMLDivElement>) => setTouchStartX(event.touches[0]?.clientX ?? null),
-    onTouchEnd: (event: React.TouchEvent<HTMLDivElement>) => {
+    onTouchStart: (event: TouchEvent<HTMLDivElement>) => setTouchStartX(event.touches[0]?.clientX ?? null),
+    onTouchEnd: (event: TouchEvent<HTMLDivElement>) => {
       if (touchStartX === null) return;
       const deltaX = event.changedTouches[0]?.clientX - touchStartX;
       if (deltaX < -35) setRevealedRemoveKey(key);
@@ -163,7 +163,7 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
               <button type="button" aria-label={'Add one customized '+line.item.name}
                 disabled={line.quantity>=20} onClick={()=>changeCustomized(line.key,1)}>+</button>
             </div>
-            <button type="button" className="sf-cart-remove" onClick={()=>setRevealedRemoveKey(current => current === 'custom:' + line.key ? null : 'custom:' + line.key)} aria-expanded={revealedRemoveKey === 'custom:' + line.key}>Swipe to remove</button>
+            <button type="button" className="sf-cart-remove sf-visually-hidden" onClick={()=>setRevealedRemoveKey(current => current === 'custom:' + line.key ? null : 'custom:' + line.key)} aria-expanded={revealedRemoveKey === 'custom:' + line.key}>Show remove button</button>
           </div>
           </div>
         </div>)}
@@ -177,7 +177,7 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
           <span className="sf-cart-unit-price">{peso(item.priceCentavos)}</span>
           <div className="sf-cart-item-actions">
             <QuantityControl itemId={item.id} quantity={quantity} change={change}/>
-            <button type="button" className="sf-cart-remove" onClick={()=>setRevealedRemoveKey(current => current === item.id ? null : item.id)} aria-expanded={revealedRemoveKey === item.id}>Swipe to remove</button>
+            <button type="button" className="sf-cart-remove sf-visually-hidden" onClick={()=>setRevealedRemoveKey(current => current === item.id ? null : item.id)} aria-expanded={revealedRemoveKey === item.id}>Show remove button</button>
           </div>
           </div>
         </div>)}
