@@ -264,3 +264,35 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
     padding:26px 24px;
   }
 }
+
+
+/* Onboarding brand header: black field, centered W2T mark, red baseline. */
+.privileged-onboarding .onboarding-story{
+  min-height:0 !important;
+  height:304px;
+  padding:24px 28px 0 !important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#050505 !important;
+  border-bottom:4px solid #ff001b;
+  overflow:hidden;
+}
+.privileged-onboarding .onboarding-story:before,
+.privileged-onboarding .onboarding-story:after,
+.privileged-onboarding .onboarding-story-glow,
+.privileged-onboarding .onboarding-story-copy{display:none !important}
+.privileged-onboarding .onboarding-brand.onboarding-logo-only{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  align-self:center;
+  width:min(100%,260px);
+  margin:0;
+}
+.privileged-onboarding .onboarding-logo-only svg{display:block;width:100%;height:auto;max-height:150px}
+@media(max-width:900px){
+  .privileged-onboarding .onboarding-story{height:220px;min-height:0 !important;padding:18px 22px 0 !important}
+  .privileged-onboarding .onboarding-brand.onboarding-logo-only{width:min(100%,230px)}
+  .privileged-onboarding .onboarding-logo-only svg{max-height:130px}
+}
