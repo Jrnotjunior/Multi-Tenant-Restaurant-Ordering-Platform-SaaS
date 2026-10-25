@@ -26,13 +26,13 @@ function OrderTypeSection({ value, onChange }: {
   </fieldset>;
 }
 
-function CustomerInformation() {
+function CustomerInformation({ orderType }: { orderType: OrderType }) {
   return <fieldset className="sf-checkout-section">
     <legend>Customer information</legend>
     <div className="sf-checkout-fields">
       <label>First name<input name="firstName" autoComplete="given-name" required minLength={1} maxLength={80} /></label>
       <label>Last name<input name="lastName" autoComplete="family-name" required minLength={1} maxLength={80} /></label>
-      <label>Mobile number<input name="mobile" autoComplete="tel" type="tel" required minLength={7} maxLength={24} placeholder="+63 9xx xxx xxxx" /></label>
+      {orderType !== 'Dine-in' && <label>Mobile number<input name="mobile" autoComplete="tel" type="tel" required minLength={7} maxLength={24} placeholder="+63 9xx xxx xxxx" /></label>}
     </div>
   </fieldset>;
 }
@@ -73,7 +73,7 @@ export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackTo
 
     <form className="sf-checkout-page-form" onSubmit={handleSubmit}>
       <OrderTypeSection value={orderType} onChange={type => { setOrderType(type); setMessage(''); setReviewed(false); }} />
-      <CustomerInformation />
+      <CustomerInformation orderType={orderType} />
       <DeliveryAddressSection orderType={orderType} />
 
       <section className="sf-checkout-total" aria-label="Order summary">
