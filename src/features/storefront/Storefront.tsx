@@ -108,8 +108,8 @@ export function buildCheckoutReadiness(input: {
   if (input.details.customerName.trim().length < 2 || input.details.customerName.trim().length > 120) {
     return { ready: false, reason: 'Enter your name (2–120 characters).', subtotalCentavos };
   }
-  if (!/^[+0-9() .-]{7,24}$/.test(input.details.phone.trim())) {
-    return { ready: false, reason: 'Enter a valid contact number.', subtotalCentavos };
+  if (!/^09\d{9}$/.test(input.details.phone.trim())) {
+    return { ready: false, reason: 'Enter an 11-digit Philippine mobile number starting with 09.', subtotalCentavos };
   }
   if (input.details.deliveryAddress.trim().length < 8 || input.details.deliveryAddress.trim().length > 500) {
     return { ready: false, reason: 'Enter a complete delivery address (8–500 characters).', subtotalCentavos };
@@ -556,7 +556,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
             : validation.reason);
         }}>
           <label>Full name<input autoComplete="name" required minLength={2} maxLength={120} value={checkoutDetails.customerName} onChange={event=>setCheckoutDetails(previous=>({...previous,customerName:event.target.value}))} /></label>
-          <label>Contact number<input autoComplete="tel" type="tel" required minLength={7} maxLength={24} value={checkoutDetails.phone} onChange={event=>setCheckoutDetails(previous=>({...previous,phone:event.target.value}))} placeholder="+63 9xx xxx xxxx" /></label>
+          <label>Mobile number<input autoComplete="tel" type="tel" inputMode="numeric" required minLength={11} maxLength={11} pattern="09[0-9]{9}" title="Enter 11 digits starting with 09, e.g. 09171234567" value={checkoutDetails.phone} onChange={event=>setCheckoutDetails(previous=>({...previous,phone:event.target.value.replace(/\D/g, "").slice(0, 11)}))} placeholder="09XXXXXXXXX" /></label>
           <label>Delivery address<textarea autoComplete="street-address" required minLength={8} maxLength={500} rows={3} value={checkoutDetails.deliveryAddress} onChange={event=>setCheckoutDetails(previous=>({...previous,deliveryAddress:event.target.value}))} placeholder="House/building, street, barangay, city" /></label>
           <label>Delivery instructions (optional)<textarea maxLength={300} rows={2} value={checkoutDetails.deliveryNotes} onChange={event=>setCheckoutDetails(previous=>({...previous,deliveryNotes:event.target.value}))} placeholder="Landmark or delivery instructions" /></label>
           <div className="sf-checkout-summary"><span>cart subtotal (estimate)</span><strong>{peso(subtotal)}</strong></div>
