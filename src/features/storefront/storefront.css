@@ -103,7 +103,7 @@
 .sf-cart-empty h3{font-size:15px;letter-spacing:-.025em;margin:0 0 7px}
 .sf-cart-empty p{font-size:12px;line-height:1.7;color:var(--sf-muted,#526782);margin:0 auto;max-width:210px}
 .sf-cart-items{display:grid;max-height:380px;overflow:auto;gap:14px;padding:17px 0}
-.sf-cart-item{display:flex;gap:10px;align-items:flex-start;min-width:0}
+.sf-cart-item{display:grid;grid-template-columns:66px minmax(0,1fr) auto;gap:10px;align-items:start;min-width:0}
 .sf-food-art-small{height:66px;width:66px;flex-shrink:0;border-radius:9px}
 .sf-food-art-small .sf-art-disc{width:70%}
 .sf-food-art-small .sf-food-emoji{font-size:36px}
