@@ -22,7 +22,7 @@ begin
     from public.customer_orders o join public.branches b on b.tenant_id=o.tenant_id and b.id=o.branch_id
     left join public.delivery_assignments da on da.tenant_id=o.tenant_id and da.order_id=o.id
     where o.tenant_id=p_tenant_id
-      and (p_filter='all' or o.order_status in ('pending_confirmation','confirmed','preparing','ready_for_dispatch','out_for_delivery'))
+      and (p_filter='all' or o.order_status in ('pending_confirmation','confirmed','preparing','ready_for_dispatch','ready_for_pickup','out_for_delivery'))
       and (
         v_role='restaurant_owner'
         or (v_role='rider' and da.rider_user_id=v_user and (p_filter='all' or da.status in ('assigned','accepted','out_for_delivery')))
