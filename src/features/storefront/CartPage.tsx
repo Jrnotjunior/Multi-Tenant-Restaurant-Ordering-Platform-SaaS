@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 type CartPageProps = {
   count: number;
+  onBack?: () => void;
   children: ReactNode;
 };
 
