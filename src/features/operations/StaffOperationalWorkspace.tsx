@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { loadOwnerDataForTenant, publicMenuPhoto, type OwnerData } from '../management/menuService';
 import type { StaffWorkspaceRole } from './OperationalDashboard';
 import './staff-workspace.css';
 
@@ -30,6 +31,10 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [fees, setFees] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<'active' | 'all'>('active');
   const [cashierTab, setCashierTab] = useState<'orders' | 'sales'>('orders');
+  const [kitchenTab, setKitchenTab] = useState<'orders' | 'menu'>('orders');
+  const [kitchenMenu, setKitchenMenu] = useState<OwnerData | null>(null);
+  const [kitchenMenuLoading, setKitchenMenuLoading] = useState(false);
+  const [kitchenMenuError, setKitchenMenuError] = useState('');
   const [search, setSearch] = useState('');
   const [paymentTab, setPaymentTab] = useState<'online_paid' | 'paid'>('online_paid');
   const [loading, setLoading] = useState(true);
@@ -41,6 +46,21 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const copy = roleCopy[role];
+
+  useEffect(() => {
+    if (role !== 'kitchen' || kitchenTab !== 'menu' || kitchenMenu) return;
+    let active = true;
+    setKitchenMenuLoading(true);
+    setKitchenMenuError('');
+    void loadOwnerDataForTenant(tenantId).then(data => {
+      if (active) setKitchenMenu(data);
+    }).catch(reason => {
+      if (active) setKitchenMenuError(reason instanceof Error ? reason.message : 'Unable to load menu items.');
+    }).finally(() => {
+      if (active) setKitchenMenuLoading(false);
+    });
+    return () => { active = false; };
+  }, [role, kitchenTab, kitchenMenu, tenantId]);
 
   useEffect(() => {
     let active = true;
@@ -239,9 +259,11 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     </section>}
     <section className="staff-queue">
       <div className="staff-queue-heading"><div><p className="staff-eyebrow">WORK QUEUE</p><h2>{copy.queue}</h2></div>
-        <div className="staff-queue-controls"><button type="button" className={filter === 'active' ? 'is-selected' : ''} onClick={() => setFilter('active')}>Active</button><button type="button" className={filter === 'all' ? 'is-selected' : ''} onClick={() => setFilter('all')}>All orders</button></div>
+        {role === 'kitchen' ? <div className="staff-workspace-tabs" role="tablist" aria-label="Kitchen workspace"><button type="button" role="tab" aria-selected={kitchenTab === 'orders'} className={kitchenTab === 'orders' ? 'is-selected' : ''} onClick={() => setKitchenTab('orders')}>Orders</button><button type="button" role="tab" aria-selected={kitchenTab === 'menu'} className={kitchenTab === 'menu' ? 'is-selected' : ''} onClick={() => setKitchenTab('menu')}>Menu</button></div> : <div className="staff-queue-controls"><button type="button" className={filter === 'active' ? 'is-selected' : ''} onClick={() => setFilter('active')}>Active</button><button type="button" className={filter === 'all' ? 'is-selected' : ''} onClick={() => setFilter('all')}>All orders</button></div>}
       </div>
-      <div className="staff-queue-toolbar">
+      {role === 'kitchen' && kitchenTab === 'menu' ? <div className="staff-kitchen-menu-panel">
+      {kitchenMenuLoading ? <p className="staff-empty">Loading menu…</p> : kitchenMenuError ? <p className="staff-notice is-error" role="alert">{kitchenMenuError}</p> : !kitchenMenu?.items.some(item => item.status === 'published') ? <div className="staff-empty"><h3>No published menu items</h3><p>Published menu items will appear here for kitchen staff.</p></div> : <div className="staff-kitchen-menu-grid">{(kitchenMenu?.items ?? []).filter(item => item.status === 'published').map(item => <article className="staff-kitchen-menu-card" key={item.id}>{publicMenuPhoto(item.image_path) ? <img src={publicMenuPhoto(item.image_path) ?? ''} alt="" loading="lazy" /> : <div className="staff-kitchen-menu-placeholder" aria-hidden="true">Menu item</div>}<div><h3>{item.name}</h3>{item.description && <p>{item.description}</p>}<strong>{money(item.price_centavos)}</strong></div></article>)}</div>}
+    </div> : <div className="staff-kitchen-order-content"><div className="staff-queue-toolbar">
         <label className="staff-order-search"><span className="staff-search-icon" aria-hidden="true">⌕</span><input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search order number, customer, phone…" aria-label="Search orders" /></label>
         <div className="staff-queue-toolbar-end staff-payment-toolbar"><div className="staff-payment-tabs" role="tablist" aria-label="Payment category"><button type="button" role="tab" aria-selected={paymentTab === 'online_paid'} className={paymentTab === 'online_paid' ? 'is-selected' : ''} onClick={() => setPaymentTab('online_paid')}>Online Paid</button><button type="button" role="tab" aria-selected={paymentTab === 'paid'} className={paymentTab === 'paid' ? 'is-selected' : ''} onClick={() => setPaymentTab('paid')}>Paid</button></div><span className="staff-result-count">{visibleOrders.length} {visibleOrders.length === 1 ? 'order' : 'orders'}</span></div>
       </div>
@@ -266,6 +288,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
             {(buttons.length > 0 || order.assigned_rider_user_id) && <footer className="staff-order-actions">{order.assigned_rider_user_id && <span className="staff-assignment-note">Rider {label(order.assignment_status ?? 'assigned')}</span>}{buttons.map(button => <button key={button.action} type="button" disabled={busy === order.id} className={'staff-button ' + (button.primary ? 'staff-button-primary' : 'staff-button-secondary')} onClick={() => void act(order, button.action, button.label.toLowerCase())}>{busy === order.id ? 'Saving…' : button.label}</button>)}</footer>}
           </article>;
         })}</div>}
+    </div>}
     </section>
     
     </>}
