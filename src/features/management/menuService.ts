@@ -56,17 +56,19 @@ export async function loadOwnerDataForTenant(tenantId:string):Promise<OwnerData>
   return loadOwnerData(data as Tenant);
 }
 
-export async function loadKitchenMenuForTenant(tenantId:string):Promise<Pick<OwnerData,'categories'|'items'>> {
+export type KitchenBranch = {id:string;name:string;slug:string};
+export type KitchenProduct = Product & {is_available:boolean};
+export type KitchenMenu = {branch_id:string;branches:KitchenBranch[];categories:Category[];items:KitchenProduct[]};
+
+export async function loadKitchenMenuForTenant(tenantId:string,branchId?:string):Promise<KitchenMenu> {
   const db=requireClient();
-  const [categories,items]=await Promise.all([
-    db.from('menu_categories').select('id,tenant_id,name,is_published,sort_order').eq('tenant_id',tenantId)
-      .order('sort_order').order('name'),
-    db.from('menu_items').select('id,tenant_id,category_id,name,description,image_path,price_centavos,status,is_popular,sort_order')
-      .eq('tenant_id',tenantId).order('sort_order').order('name'),
-  ]);
-  check(categories.error);
-  check(items.error);
-  return {categories:categories.data??[],items:items.data??[]};
+  const {data,error}=await db.rpc('list_kitchen_menu',{p_tenant_id:tenantId,p_branch_id:branchId??null});
+  check(error);
+  if(!data||typeof data!=='object'||Array.isArray(data))throw new Error('Invalid kitchen menu response.');
+  const value=data as Record<string,unknown>;
+  if(typeof value.branch_id!=='string'||!Array.isArray(value.branches)||!Array.isArray(value.categories)||!Array.isArray(value.items))
+    throw new Error('Invalid kitchen menu response.');
+  return {branch_id:value.branch_id,branches:value.branches as KitchenBranch[],categories:value.categories as Category[],items:value.items as KitchenProduct[]};
 }
 
 export async function loadOwnerData(tenant:Tenant):Promise<OwnerData> {
