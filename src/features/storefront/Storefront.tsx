@@ -8,6 +8,23 @@ import { isStorefrontCartPath, normalizeAppBase, restaurantMenuPath, storefrontC
 import { CartPage } from './CartPage';
 import './storefront.css';
 
+function readSessionValue<T>(key: string, fallback: T): T {
+  try {
+    const stored = window.sessionStorage.getItem(key);
+    return stored ? JSON.parse(stored) as T : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeSessionValue<T>(key: string, value: T): void {
+  try {
+    window.sessionStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // The cart remains usable for the current page if session storage is unavailable.
+  }
+}
+
 function SearchIcon() {
   return <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" strokeWidth="1.9"/><path d="m16 16 4.5 4.5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"/></svg>;
 }
@@ -173,8 +190,9 @@ function MenuCard({ item, quantity, add, customize }: { item: MenuItem; quantity
 export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: {
   baseUrl: string; requestedSlug: string | null; initialCartPage?: boolean;
 }) {
-  const [resolvedSlug, setResolvedSlug] = useState<string | null>(requestedSlug);
   const [selectedBranch, setSelectedBranch] = useState<string|null>(() => branchSlugFromSearch(window.location.search));
+  const cartStorageKey = 'web2table:cart:' + (requestedSlug ?? 'default') + ':' + (selectedBranch ?? 'default');
+  const [resolvedSlug, setResolvedSlug] = useState<string | null>(requestedSlug);
   const [remoteCatalog, setRemoteCatalog] = useState<StorefrontCatalog | null>(null);
   const [loadStatus, setLoadStatus] = useState<'loading'|'ready'|'unavailable'>(
     'loading'
@@ -183,8 +201,8 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
-  const [cart, setCart] = useState<Cart>({});
-  const [customized,setCustomized]=useState<CustomCart>({});
+  const [cart, setCart] = useState<Cart>(() => readSessionValue<Cart>(cartStorageKey + ':items', {}));
+  const [customized,setCustomized]=useState<CustomCart>(() => readSessionValue<CustomCart>(cartStorageKey + ':custom', {}));
   const [customizing,setCustomizing]=useState<MenuItem|null>(null);
   const [cartPage, setCartPage] = useState(() => initialCartPage || isStorefrontCartPath(window.location.pathname, baseUrl));
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -192,6 +210,14 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     customerName:'',phone:'',deliveryAddress:'',deliveryNotes:'',
   });
   const [checkoutMessage,setCheckoutMessage]=useState('');
+
+  useEffect(() => {
+    writeSessionValue(cartStorageKey + ':items', cart);
+  }, [cartStorageKey, cart]);
+
+  useEffect(() => {
+    writeSessionValue(cartStorageKey + ':custom', customized);
+  }, [cartStorageKey, customized]);
 
   useEffect(() => {
     function syncBranchFromHistory() {
