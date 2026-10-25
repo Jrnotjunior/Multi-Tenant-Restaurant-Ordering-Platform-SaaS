@@ -8,7 +8,7 @@ const item: MenuItem = {id:'inasal',category:'Rice Meals',name:'Chicken Inasal',
 const menu = [item];
 const details = {
   customerName: 'Alex Santos',
-  phone: '+63 917 123 4567',
+  phone: '09171234567',
   deliveryAddress: '12 Sample Street, Barangay Central, Quezon City',
   deliveryNotes: 'Near the blue gate',
 };
@@ -52,9 +52,9 @@ describe('checkout readiness boundary', () => {
   it('rejects malformed restaurant/branch slugs and incomplete delivery details', () => {
     const cart = updateCart({}, item.id, 1, menu);
     expect(build(cart, {}, {...details, customerName: 'A'}).ready).toBe(false);
-    expect(build(false, cart, {}, {...details, phone: 'call me'}).ready).toBe(false);
-    expect(build(false, cart, {}, {...details, deliveryAddress: 'short'}).ready).toBe(false);
-    expect(build(false, cart, {}, {...details, deliveryNotes: 'x'.repeat(301)}).ready).toBe(false);
+    expect(build(cart, {}, {...details, phone: 'call me'}).ready).toBe(false);
+    expect(build(cart, {}, {...details, deliveryAddress: 'short'}).ready).toBe(false);
+    expect(build(cart, {}, {...details, deliveryNotes: 'x'.repeat(301)}).ready).toBe(false);
     expect(build(cart, {}, details).reason).toContain('not available yet');
   });
 });
