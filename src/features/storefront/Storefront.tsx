@@ -195,23 +195,26 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
 function MenuCard({ item, quantity, add, customize, notify }: { item: MenuItem; quantity: number; add: (id: string, delta: number) => void; customize:(item:MenuItem)=>void; notify:(message:string)=>void }) {
   const soldOut = item.isAvailable === false;
   const tryAdd = () => { if (soldOut) { notify(`${item.name} is sold out and can’t be added to your cart.`); return; } add(item.id, 1); };
-  return <article className={'sf-menu-card' + (soldOut ? ' is-sold-out' : '')} style={{display:'grid',gridTemplateColumns:'150px minmax(0,1fr)',minHeight:150,borderRadius:13}}>
-    <div className="sf-card-image" style={{height:150,minHeight:150,alignSelf:'stretch'}}>
+  return <article className={'sf-menu-card' + (soldOut ? ' is-sold-out' : '')} style={{display:'grid',gridTemplateColumns:'160px minmax(0,1fr)',minHeight:166,borderRadius:15}}>
+    <div className="sf-card-image" style={{height:166,minHeight:166,alignSelf:'stretch'}}>
       <FoodArt item={item}/>
-      {soldOut ? <span className="sf-sold-out-badge">Sold out</span> : item.popular && <span className="sf-popular">★ Popular</span>}
+      {!soldOut && item.popular && <span className="sf-popular">★ Popular</span>}
     </div>
-    <div className="sf-card-details" style={{display:'flex',flexDirection:'column',minWidth:0,padding:'12px 14px'}}>
+    <div className="sf-card-details" style={{display:'flex',flexDirection:'column',minWidth:0,padding:'10px 12px 9px'}}>
       <h3 style={{marginTop:0}}>{item.name}</h3>
+      <strong className="sf-sold-out-price">{peso(item.priceCentavos)}</strong>
       <p>{item.description}</p>
-      <div className="sf-card-bottom" style={{marginTop:'auto',paddingTop:8}}>
-        <strong>{peso(item.priceCentavos)}</strong>
+      <div className="sf-card-bottom" style={{marginTop:'auto',paddingTop:6}}>
         {soldOut
-          ? <button type="button" className="sf-add sf-add-sold-out" onClick={tryAdd} aria-label={'Add ' + item.name + ' to cart (sold out)'}>+</button>
-          : (item.modifierGroups?.length??0)>0
-          ? <button type="button" className="sf-customize-action" onClick={()=>customize(item)}>Customize</button>
-          : quantity > 0
-          ? <QuantityControl itemId={item.id} quantity={quantity} change={add}/>
-          : <button type="button" className="sf-add" onClick={tryAdd} aria-label={'Add ' + item.name + ' to cart'}>+</button>}
+          ? <button type="button" className="sf-sold-out-badge" onClick={tryAdd} aria-label={'Add ' + item.name + ' to cart (sold out)'}>Sold Out</button>
+          : <>
+              <span aria-hidden="true" />
+              {(item.modifierGroups?.length??0)>0
+                ? <button type="button" className="sf-customize-action" onClick={()=>customize(item)}>Customize</button>
+                : quantity > 0
+                ? <QuantityControl itemId={item.id} quantity={quantity} change={add}/>
+                : <button type="button" className="sf-add" onClick={tryAdd} aria-label={'Add ' + item.name + ' to cart'}>+</button>}
+            </>}
       </div>
     </div>
   </article>;
