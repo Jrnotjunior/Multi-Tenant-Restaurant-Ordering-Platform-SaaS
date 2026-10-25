@@ -41,6 +41,19 @@ describe('checkout readiness boundary', () => {
     expect(result.reason).toContain('not available yet');
   });
 
+  it('does not require a delivery address for take-out, pickup, or dine-in', () => {
+    const cart = updateCart({}, item.id, 1, menu);
+    for (const orderType of ['Take-out', 'Pickup', 'Dine-in'] as const) {
+      const result = build(cart, {}, { ...details, deliveryAddress: '', orderType });
+      expect(result.ready).toBe(true);
+    }
+  });
+
+  it('still requires an address for delivery', () => {
+    const cart = updateCart({}, item.id, 1, menu);
+    expect(build(cart, {}, { ...details, deliveryAddress: '', orderType: 'Delivery' }).ready).toBe(false);
+  });
+
   it('includes valid customized variants and option prices in the estimate', () => {
     const selected = { size: ['large'], extras: ['egg'] };
     const customCart = addCustom({}, item, selected);
