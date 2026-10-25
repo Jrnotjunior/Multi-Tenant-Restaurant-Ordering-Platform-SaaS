@@ -4,7 +4,8 @@ import {addCustom,changeCustom,customCount,customLines,customSubtotal,type Custo
 import {CustomizeDialog} from './CustomizeDialog';
 import { filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
 import { branchSlugFromSearch, loadDefaultPublishedMenu, loadPublishedMenu, type StorefrontCatalog } from './publishedMenu';
-import { normalizeAppBase, restaurantMenuPath } from '../../app/routes';
+import { isStorefrontCartPath, normalizeAppBase, restaurantMenuPath, storefrontCartPath } from '../../app/routes';
+import { CartPage } from './CartPage';
 import './storefront.css';
 
 function SearchIcon() {
@@ -169,8 +170,8 @@ function MenuCard({ item, quantity, add, customize }: { item: MenuItem; quantity
   </article>;
 }
 
-export function Storefront({ baseUrl, requestedSlug }: {
-  baseUrl: string; requestedSlug: string | null;
+export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: {
+  baseUrl: string; requestedSlug: string | null; initialCartPage?: boolean;
 }) {
   const [resolvedSlug, setResolvedSlug] = useState<string | null>(requestedSlug);
   const [selectedBranch, setSelectedBranch] = useState<string|null>(() => branchSlugFromSearch(window.location.search));
@@ -185,7 +186,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
   const [cart, setCart] = useState<Cart>({});
   const [customized,setCustomized]=useState<CustomCart>({});
   const [customizing,setCustomizing]=useState<MenuItem|null>(null);
-  const [cartPage, setCartPage] = useState(false);
+  const [cartPage, setCartPage] = useState(() => initialCartPage || isStorefrontCartPath(window.location.pathname, baseUrl));
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutDetails,setCheckoutDetails]=useState<CheckoutDetails>({
     customerName:'',phone:'',deliveryAddress:'',deliveryNotes:'',
@@ -195,15 +196,13 @@ export function Storefront({ baseUrl, requestedSlug }: {
   useEffect(() => {
     function syncBranchFromHistory() {
       setSelectedBranch(branchSlugFromSearch(window.location.search));
-      setCart({});
-      setCustomized({});
+      setCartPage(isStorefrontCartPath(window.location.pathname, baseUrl));
       setCustomizing(null);
       setCategory('All');
-      setCartPage(false);
     }
     window.addEventListener('popstate',syncBranchFromHistory);
     return () => window.removeEventListener('popstate',syncBranchFromHistory);
-  }, []);
+  }, [baseUrl]);
 
   useEffect(() => {
     let active = true;
@@ -260,6 +259,17 @@ export function Storefront({ baseUrl, requestedSlug }: {
   const addCustomized=(item:MenuItem,selected:Selection)=>setCustomized(previous=>addCustom(previous,item,selected));
   const change = (itemId: string, delta: number) =>
     setCart((previous) => updateCart(previous, itemId, delta, menu));
+
+  function navigateCart(open: boolean) {
+    if (!resolvedSlug) { setCartPage(open); return; }
+    const nextPath = open ? storefrontCartPath(resolvedSlug, baseUrl) : restaurantMenuPath(resolvedSlug, baseUrl);
+    const url = new URL(window.location.href);
+    url.pathname = nextPath;
+    window.history.pushState({}, '', url.pathname + url.search + url.hash);
+    setCartPage(open);
+    setAccountMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
 
   function switchBranch(slug:string) {
     if(!restaurant || !catalog || slug === restaurant.branchSlug) return;
@@ -342,7 +352,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
         </a>
         <nav className="sf-header-actions" aria-label="Store navigation">
           <span className="sf-header-divider" aria-hidden="true"/>
-          <button type="button" className="sf-bag-button" onClick={() => setCartPage(true)} aria-label={'Open cart with ' + count + ' items'}>
+          <button type="button" className="sf-bag-button" onClick={() => navigateCart(true)} aria-label={'Open cart with ' + count + ' items'}>
             <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
           </button>
           <div className="sf-account-wrap">
@@ -364,14 +374,9 @@ export function Storefront({ baseUrl, requestedSlug }: {
     </header>
 
     <main className="sf-main">
-      {cartPage ? <section className="sf-cart-page">
-        <div className="sf-cart-page-heading">
-          <button type="button" className="sf-continue sf-cart-back" onClick={() => setCartPage(false)}>← Back to menu</button>
-          <span className="sf-section-kicker">YOUR ORDER</span>
-          <h1>Your cart <span>({count})</span></h1>
-        </div>
-        <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} close={() => setCartPage(false)} onCheckout={() => { setCheckoutMessage(''); setCheckoutOpen(true); setCartPage(false); }}/>
-      </section> : <>
+      {cartPage ? <CartPage count={count} onBack={() => navigateCart(false)}>
+        <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} close={() => navigateCart(false)} onCheckout={() => { setCheckoutMessage(''); setCheckoutOpen(true); }}/>
+      </CartPage> : <>
       <section className="sf-hero" aria-label="Restaurant introduction">
         <h1>{restaurant.name}</h1>
         {restaurant.tagline?.trim() && <p>{restaurant.tagline}</p>}
@@ -439,7 +444,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
     </footer>
 
     {count > 0 && !cartPage && <div className="sf-mobile-cart-bar">
-      <button type="button" onClick={() => setCartPage(true)} aria-label={'View cart, ' + count + ' items, ' + peso(subtotal)}>
+      <button type="button" onClick={() => navigateCart(true)} aria-label={'View cart, ' + count + ' items, ' + peso(subtotal)}>
         <span className="sf-mobile-cart-count">{count}</span><span>View cart</span><strong>{peso(subtotal)}</strong><ArrowIcon/>
       </button>
     </div>}
