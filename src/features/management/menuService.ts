@@ -56,6 +56,19 @@ export async function loadOwnerDataForTenant(tenantId:string):Promise<OwnerData>
   return loadOwnerData(data as Tenant);
 }
 
+export async function loadKitchenMenuForTenant(tenantId:string):Promise<Pick<OwnerData,'categories'|'items'>> {
+  const db=requireClient();
+  const [categories,items]=await Promise.all([
+    db.from('menu_categories').select('id,tenant_id,name,is_published,sort_order').eq('tenant_id',tenantId)
+      .order('sort_order').order('name'),
+    db.from('menu_items').select('id,tenant_id,category_id,name,description,image_path,price_centavos,status,is_popular,sort_order')
+      .eq('tenant_id',tenantId).order('sort_order').order('name'),
+  ]);
+  check(categories.error);
+  check(items.error);
+  return {categories:categories.data??[],items:items.data??[]};
+}
+
 export async function loadOwnerData(tenant:Tenant):Promise<OwnerData> {
   const db=requireClient();
   const [branches,brand,categories,items,assignments,groups,options]=await Promise.all([
