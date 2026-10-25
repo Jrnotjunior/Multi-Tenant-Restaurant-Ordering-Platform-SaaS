@@ -6,7 +6,7 @@ Production-oriented, multi-tenant SaaS foundation for restaurant self-ordering i
 
 ## Approved scope
 
-- Delivery-only ordering (guest and registered customers)
+- Delivery, take-out, pickup, and dine-in order types (checkout/payment rollout remains in progress)
 - Independent restaurant tenants, multiple branches, branded ordering websites and verified custom domains
 - Restaurant operations: ordering, kitchen, dispatch, riders, real-time tracking
 - PayMongo payments, inventory, recipes, loyalty, business reports and three subscription packages
@@ -59,7 +59,7 @@ The storefront is an interactive **preview** using fictional restaurant details,
 - `supabase/` — reserved for reviewed migrations
 - `docs/` — architecture, security rules and development roadmap
 
-See [Architecture](docs/ARCHITECTURE.md), [Security](docs/SECURITY.md), and [Roadmap](docs/ROADMAP.md).
+See [Architecture](docs/ARCHITECTURE.md), [Security](docs/SECURITY.md), [SOC 2 Security and Readiness Baseline](docs/SOC2_READINESS.md), and [Roadmap](docs/ROADMAP.md).
 
 ## GitHub repository scope
 
