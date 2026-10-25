@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { normalizeAppBase } from '../../app/routes';
+import { userDisplayName } from '../../domain/userDisplayName';
 import { supabase } from '../../lib/supabase';
 import { loadKitchenMenuForTenant, publicMenuPhoto, type KitchenMenu } from '../management/menuService';
 import type { StaffWorkspaceRole } from './OperationalDashboard';
@@ -106,12 +107,10 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     void supabase?.auth.getUser().then(({ data }) => {
       if (!active) return;
       const user = data.user;
-      const metadata = user?.user_metadata ?? {};
-      const metadataName = [metadata.full_name, metadata.name, metadata.display_name, metadata.first_name && metadata.last_name ? `${metadata.first_name} ${metadata.last_name}` : null]
-        .find(value => typeof value === 'string' && value.trim().length > 0);
       const email = user?.email ?? '';
+      const roleFallback = role === 'rider' ? 'Rider' : role === 'dispatcher' ? 'Dispatcher' : role === 'cashier' ? 'Cashier' : 'Kitchen Staff';
       setAccountEmail(email);
-      setAccountName(typeof metadataName === 'string' ? metadataName.trim() : email.split('@')[0] || 'My account');
+      setAccountName(userDisplayName(user, roleFallback));
     });
     return () => { active = false; };
   }, []);
@@ -430,7 +429,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
               </div></div>
             <ul className="staff-order-items">{(order.items ?? []).map(item => <li key={item.id}><span>{item.quantity} × {item.item_name}{item.options?.length ? <small>{item.options.map(option => option.name).filter(Boolean).join(', ')}</small> : null}</span><strong>{money(item.line_total_centavos)}</strong></li>)}</ul>
             {needsFee && <div className="staff-inline-control"><label htmlFor={'staff-fee-' + order.id}>Delivery fee (PHP)</label><input id={'staff-fee-' + order.id} type="number" min="0" max="10000000" step="0.01" inputMode="decimal" value={fees[order.id] ?? (order.delivery_fee_centavos == null ? '' : (order.delivery_fee_centavos / 100).toFixed(2))} onChange={event => setFees(current => ({ ...current, [order.id]: event.target.value }))} placeholder="e.g. 50.00" /><button className="staff-button staff-button-secondary" type="button" disabled={busy === order.id} onClick={() => void saveFee(order)}>Save fee</button></div>}
-            {canAssign && <div className="staff-inline-control"><label htmlFor={'staff-rider-' + order.id}>Assign branch rider</label><select id={'staff-rider-' + order.id} value={selectedRiders[order.id] ?? order.assigned_rider_user_id ?? ''} onChange={event => setSelectedRiders(current => ({ ...current, [order.id]: event.target.value }))}><option value="">Choose a rider</option>{branchRiders.map(rider => <option key={rider.user_id} value={rider.user_id}>{rider.display_name || rider.email}</option>)}</select><button className="staff-button staff-button-secondary" type="button" disabled={busy === order.id || branchRiders.length === 0} onClick={() => void assign(order)}>Assign rider</button>{branchRiders.length === 0 && <small>No active rider is assigned to this branch yet.</small>}</div>}
+            {canAssign && <div className="staff-inline-control"><label htmlFor={'staff-rider-' + order.id}>Assign branch rider</label><select id={'staff-rider-' + order.id} value={selectedRiders[order.id] ?? order.assigned_rider_user_id ?? ''} onChange={event => setSelectedRiders(current => ({ ...current, [order.id]: event.target.value }))}><option value="">Choose a rider</option>{branchRiders.map(rider => <option key={rider.user_id} value={rider.user_id}>{rider.display_name || 'Rider'}</option>)}</select><button className="staff-button staff-button-secondary" type="button" disabled={busy === order.id || branchRiders.length === 0} onClick={() => void assign(order)}>Assign rider</button>{branchRiders.length === 0 && <small>No active rider is assigned to this branch yet.</small>}</div>}
             {(buttons.length > 0 || order.assigned_rider_user_id) && <footer className="staff-order-actions">{order.assigned_rider_user_id && <span className="staff-assignment-note">'Rider ' + label(order.assignment_status ?? 'assigned')</span>}{buttons.map(button => <button key={button.action} type="button" disabled={busy === order.id} className={'staff-button ' + (button.primary ? 'staff-button-primary' : 'staff-button-secondary')} onClick={() => void act(order, button.action, button.label.toLowerCase())}>{busy === order.id ? 'Saving…' : button.label}</button>)}</footer>}
           </article>;
         })}</div>}
