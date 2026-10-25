@@ -4,7 +4,6 @@ import { peso } from './demoCatalog';
 type OrderType = 'Delivery' | 'Take-out' | 'Pickup' | 'Dine-in';
 
 type CheckoutPageProps = {
-  restaurantName: string;
   itemCount: number;
   subtotalCentavos: number;
   orderLines: readonly { name: string; quantity: number; totalCentavos: number }[];
@@ -52,7 +51,7 @@ function DeliveryAddressSection({ orderType }: { orderType: OrderType }) {
 }
 
 /** Standalone checkout screen. It prepares details only; it does not place or charge an order. */
-export function CheckoutPage({ restaurantName, itemCount, subtotalCentavos, orderLines, onBackToMenu }: CheckoutPageProps) {
+export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackToMenu }: CheckoutPageProps) {
   const [orderType, setOrderType] = useState<OrderType>('Delivery');
   const [message, setMessage] = useState('');
   const [reviewed, setReviewed] = useState(false);
