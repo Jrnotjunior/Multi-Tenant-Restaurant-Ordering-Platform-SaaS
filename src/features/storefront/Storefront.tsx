@@ -210,6 +210,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     customerName:'',phone:'',deliveryAddress:'',deliveryNotes:'',
   });
   const [checkoutMessage,setCheckoutMessage]=useState('');
+  const [cartBarVisible, setCartBarVisible] = useState(false);
 
   useEffect(() => {
     writeSessionValue(cartStorageKey + ':items', cart);
@@ -280,6 +281,16 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   }, [menu, category, query, catalog?.categories]);
   const count = cartCount(cart, menu)+customCount(customized,menu);
   const subtotal = cartSubtotal(cart, menu)+customSubtotal(customized,menu);
+
+  useEffect(() => {
+    if (count <= 0) {
+      setCartBarVisible(false);
+      return;
+    }
+    setCartBarVisible(true);
+    const timeout = window.setTimeout(() => setCartBarVisible(false), 5000);
+    return () => window.clearTimeout(timeout);
+  }, [count]);
 
   const changeCustomized=(key:string,delta:number)=>setCustomized(previous=>changeCustom(previous,key,delta));
   const addCustomized=(item:MenuItem,selected:Selection)=>setCustomized(previous=>addCustom(previous,item,selected));
@@ -469,7 +480,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       </div>
     </footer>)}
 
-    {count > 0 && !cartPage && <div className="sf-mobile-cart-bar">
+    {count > 0 && cartBarVisible && !cartPage && <div className="sf-mobile-cart-bar">
       <button type="button" onClick={() => navigateCart(true)} aria-label={'View cart, ' + count + ' items, ' + peso(subtotal)}>
         <span className="sf-mobile-cart-count">{count}</span><span>View cart</span><strong>{peso(subtotal)}</strong><ArrowIcon/>
       </button>
