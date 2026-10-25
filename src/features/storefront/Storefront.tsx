@@ -495,9 +495,22 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           if (error) throw new Error(error.message || 'Order could not be placed.');
           const result = data as { success?: boolean; order_number?: number; order_id?: string } | null;
           if (!result?.success || !Number.isFinite(Number(result.order_number))) throw new Error('The server did not confirm this order. Please check with the restaurant before retrying.');
+          let checkoutUrl: string | undefined;
+          if (submission.paymentMethod === 'online') {
+            if (!result.order_id) throw new Error('The order was created, but its payment reference was not returned. Contact the restaurant before retrying.');
+            const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-customer-order-checkout', {
+              body: { orderId: result.order_id, environment: 'test' },
+            });
+            if (checkoutError) throw new Error('Order #' + result.order_number + ' was created, but online checkout could not start. Contact the restaurant before placing another order.');
+            const checkout = checkoutData as { success?: boolean; checkoutUrl?: string; error?: string } | null;
+            if (!checkout?.success || !checkout.checkoutUrl) {
+              throw new Error(checkout?.error || ('Order #' + result.order_number + ' was created, but online checkout could not start. Contact the restaurant before placing another order.'));
+            }
+            checkoutUrl = checkout.checkoutUrl;
+          }
           setCart({});
           setCustomized({});
-          return { orderNumber: Number(result.order_number) };
+          return { orderNumber: Number(result.order_number), ...(checkoutUrl ? { checkoutUrl } : {}) };
         }}
       /> : <>
       <section className="sf-hero" aria-label="Restaurant introduction">
