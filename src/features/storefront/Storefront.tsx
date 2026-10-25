@@ -439,7 +439,6 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       {cartPage ? <CartPage count={count} onBack={() => navigateCart(false)}>
         <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} close={() => navigateCart(false)} onCheckout={() => navigateCheckout(true)}/>
       </CartPage> : checkoutPage ? <CheckoutPage
-        restaurantName={restaurant.name}
         itemCount={count}
         subtotalCentavos={subtotal}
         orderLines={[
