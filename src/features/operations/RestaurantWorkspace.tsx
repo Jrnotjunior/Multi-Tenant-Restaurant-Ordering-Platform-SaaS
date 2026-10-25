@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { OperationalDashboard, type StaffWorkspaceRole } from './OperationalDashboard';
+import type { StaffWorkspaceRole } from './OperationalDashboard';
+import { StaffOperationalWorkspace } from './StaffOperationalWorkspace';
 import { OwnerAppShell } from './OwnerAppShell';
 import { OwnerBrandingPage } from './OwnerBrandingPage';
 import { OwnerOrdersPage } from './OwnerOrdersPage';
@@ -140,7 +141,7 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
   </main>;
 
   if (membership.role !== 'restaurant_owner') {
-    return <OperationalDashboard role={membership.role} restaurantName={restaurantName} />;
+    return <StaffOperationalWorkspace tenantId={membership.tenant_id} role={membership.role} restaurantName={restaurantName} />;
   }
 
   const signOut = () => { void supabase?.auth.signOut(); };
