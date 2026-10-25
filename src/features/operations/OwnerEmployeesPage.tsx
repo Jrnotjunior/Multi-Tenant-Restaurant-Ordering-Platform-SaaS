@@ -11,7 +11,7 @@ const pretty=(value:string)=>value.replaceAll('_',' ').replace(/^./,c=>c.toUpper
 
 export function OwnerEmployeesPage({tenantId,restaurantName}:{tenantId:string;restaurantName:string|null}){
  const [directory,setDirectory]=useState<Directory>({branches:[],staff:[],invitations:[]});
- const [email,setEmail]=useState('');const [name,setName]=useState('');const [role,setRole]=useState('cashier');const [branchId,setBranchId]=useState('');
+ const [email,setEmail]=useState('');const [firstName,setFirstName]=useState('');const [lastName,setLastName]=useState('');const [role,setRole]=useState('cashier');const [branchId,setBranchId]=useState('');
  const [loading,setLoading]=useState(true);const [sending,setSending]=useState(false);const [error,setError]=useState('');const [notice,setNotice]=useState('');
  const load=useCallback(async()=>{if(!supabase){setError('Restaurant services are not configured.');setLoading(false);return;}setLoading(true);setError('');
   try{const {data,error:queryError}=await supabase.rpc('list_tenant_staff',{p_tenant_id:tenantId});if(queryError)throw queryError;
@@ -22,9 +22,9 @@ export function OwnerEmployeesPage({tenantId,restaurantName}:{tenantId:string;re
  useEffect(()=>{void load();},[load]);
  async function invite(event:React.FormEvent<HTMLFormElement>){event.preventDefault();if(!supabase)return;setError('');setNotice('');
   if(!branchId){setError('Create or activate a branch before inviting staff.');return;}setSending(true);
-  try{const {data,error:invokeError}=await supabase.functions.invoke('restaurant-invite-staff',{body:{tenant_id:tenantId,email:email.trim(),name:name.trim(),role,branch_id:branchId}});
+  try{const {data,error:invokeError}=await supabase.functions.invoke('restaurant-invite-staff',{body:{tenant_id:tenantId,email:email.trim(),first_name:firstName.trim(),last_name:lastName.trim(),role,branch_id:branchId}});
    if(invokeError)throw invokeError;const response=data as {success?:boolean;message?:string;error?:string};if(!response?.success)throw new Error(response?.error??'The invitation could not be sent.');
-   setNotice('Invitation sent to '+email.trim()+'.');setEmail('');setName('');await load();
+   setNotice('Invitation sent to '+email.trim()+'.');setEmail('');setFirstName('');setLastName('');await load();
   }catch(reason){setError(reason instanceof Error?reason.message:'Unable to send staff invitation.');}finally{setSending(false);}
  }
  return <main className="owner-content owner-employees">
@@ -32,7 +32,8 @@ export function OwnerEmployeesPage({tenantId,restaurantName}:{tenantId:string;re
   {(error||notice)&&<div className={'employees-alert '+(error?'is-error':'is-success')} role={error?'alert':'status'}>{error||notice}</div>}
   <section className="employees-panel"><div className="employees-panel-heading"><div><h2>Invite a team member</h2><p>They receive an email to finish setting up their account.</p></div><span className="employees-pill">MFA protected</span></div>
    <form className="employees-form" onSubmit={event=>void invite(event)}>
-    <label>Full name<input value={name} onChange={event=>setName(event.target.value)} required maxLength={120} autoComplete="name" placeholder="Team member name"/></label>
+    <label>First name<input value={firstName} onChange={event=>setFirstName(event.target.value)} required maxLength={60} autoComplete="given-name" placeholder="First name"/></label>
+    <label>Last name<input value={lastName} onChange={event=>setLastName(event.target.value)} required maxLength={60} autoComplete="family-name" placeholder="Last name"/></label>
     <label>Email address<input type="email" value={email} onChange={event=>setEmail(event.target.value)} required maxLength={254} autoComplete="email" placeholder="teammate@example.com"/></label>
     <label>Role<select value={role} onChange={event=>setRole(event.target.value)}>{roles.map(([value,text])=><option key={value} value={value}>{text}</option>)}</select></label>
     <label>Branch<select value={branchId} onChange={event=>setBranchId(event.target.value)} required><option value="">Choose branch</option>{directory.branches.filter(branch=>branch.is_active).map(branch=><option key={branch.id} value={branch.id}>{branch.name}</option>)}</select></label>
