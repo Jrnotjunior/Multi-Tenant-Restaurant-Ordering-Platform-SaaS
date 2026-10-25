@@ -184,12 +184,12 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         <div className="staff-sales-table-wrap"><table className="staff-sales-table"><thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Payment</th><th>Total</th></tr></thead><tbody>{salesOrders.slice().sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map(order => <tr key={order.id}><td>#{order.order_number}</td><td>{new Intl.DateTimeFormat('en-PH',{dateStyle:'medium',timeStyle:'short'}).format(new Date(order.created_at))}</td><td>{order.customer_name}</td><td><span className="staff-payment-badge payment-paid">{label(order.payment_status)}</span></td><td>{money(order.total_centavos)}</td></tr>)}</tbody></table></div>}
       <p className="staff-footnote">Sales figures reflect the orders returned by the staff order service; they are not a substitute for a reconciled accounting report.</p>
     </section> : <>
-    <section className="staff-metrics" aria-label="Order summary">
+    {role !== 'cashier' && <section className="staff-metrics" aria-label="Order summary">
       <article><span>New orders</span><strong>{stats.incoming}</strong><small>Awaiting cashier review</small></article>
       <article><span>Preparing</span><strong>{stats.preparing}</strong><small>Confirmed / in kitchen</small></article>
       <article><span>Ready for handoff</span><strong>{stats.ready}</strong><small>Awaiting rider or customer handoff</small></article>
       <article><span>Out for delivery</span><strong>{stats.delivery}</strong><small>Currently on the road</small></article>
-    </section>
+    </section>}
     <section className="staff-queue">
       <div className="staff-queue-heading"><div><p className="staff-eyebrow">WORK QUEUE</p><h2>{copy.queue}</h2></div>
         <div className="staff-queue-controls"><button type="button" className={filter === 'active' ? 'is-selected' : ''} onClick={() => setFilter('active')}>Active</button><button type="button" className={filter === 'all' ? 'is-selected' : ''} onClick={() => setFilter('all')}>All orders</button></div>
