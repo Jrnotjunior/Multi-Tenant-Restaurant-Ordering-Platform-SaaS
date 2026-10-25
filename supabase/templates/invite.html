@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
+  <title>Web2Table Invitation</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f3f3;font-family:Arial,Helvetica,sans-serif;color:#171717;">
+  <div style="display:none;font-size:1px;color:#f3f3f3;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">{{ if eq .Data.invitation_type "system_admin" }}You've been invited to join the Web2Table system administration team.{{ else if eq .Data.invitation_type "restaurant_owner" }}You've been invited to manage {{ .Data.restaurant_name }} on Web2Table.{{ else if eq .Data.invitation_type "restaurant_staff" }}{{ .Data.restaurant_name }} has invited you to join its team as {{ .Data.invitation_role }}.{{ else }}You've received a Web2Table invitation.{{ end }}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:#f3f3f3;">
+    <tr><td align="center" style="padding:36px 16px;">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background-color:#ffffff;border:1px solid #e5e5e5;border-collapse:separate;border-spacing:0;">
+        <tr><td align="center" style="background-color:#080808;padding:30px 24px;border-bottom:4px solid #e53935;">
+          <img src="https://xaihajwrsvcdjisezmmc.supabase.co/storage/v1/object/public/web2table-assets/web2table.png" alt="Web2Table" width="240" style="display:block;width:100%;max-width:240px;height:auto;border:0;outline:none;text-decoration:none;">
+        </td></tr>
+        <tr><td style="padding:40px 36px 24px 36px;">
+          <p style="margin:0 0 12px 0;font-size:12px;line-height:18px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:#e53935;">{{ if .Data.invitation_label }}{{ .Data.invitation_label }}{{ else if eq .Data.invitation_type "system_admin" }}SYSTEM ADMINISTRATOR INVITATION{{ else if eq .Data.invitation_type "restaurant_owner" }}RESTAURANT OWNER INVITATION{{ else if eq .Data.invitation_type "restaurant_staff" }}RESTAURANT TEAM INVITATION{{ else }}WEB2TABLE INVITATION{{ end }}</p>
+          <h1 style="margin:0 0 20px 0;font-size:28px;line-height:36px;font-weight:700;color:#111111;">Hi, {{ if .Data.name }}{{ .Data.name }}{{ else if .Data.full_name }}{{ .Data.full_name }}{{ else if .Data.first_name }}{{ .Data.first_name }}{{ else }}there{{ end }}!</h1>
+          <p style="margin:0 0 18px 0;font-size:16px;line-height:26px;color:#444444;">{{ if eq .Data.invitation_type "system_admin" }}You've been invited to join Web2Table as a system administrator.{{ else if eq .Data.invitation_type "restaurant_owner" }}You've been invited to become the restaurant owner for {{ .Data.restaurant_name }} on Web2Table.{{ else if eq .Data.invitation_type "restaurant_staff" }}{{ .Data.restaurant_name }} has invited you to join its restaurant team as {{ .Data.invitation_role }}.{{ else }}You've received an invitation to Web2Table.{{ end }}</p>
+          <p style="margin:0 0 28px 0;font-size:16px;line-height:26px;color:#444444;">{{ if eq .Data.invitation_type "system_admin" }}Accept this invitation to begin setting up your system administrator account. System administrator access requires completion of the required security setup.{{ else if eq .Data.invitation_type "restaurant_owner" }}Accept this invitation to finish setting up your Restaurant Owner account and continue onboarding {{ .Data.restaurant_name }}.{{ else if eq .Data.invitation_type "restaurant_staff" }}{{ if .Data.branch_name }}Your assigned branch is {{ .Data.branch_name }}. {{ end }}Accept this invitation to set up your staff account and access only the tools assigned to your role.{{ else }}Accept this invitation to continue setting up your Web2Table account.{{ end }}</p>
+          <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 28px auto;"><tr><td align="center" bgcolor="#e53935" style="background-color:#e53935;border-radius:4px;">
+            <a href="{{ .ConfirmationURL }}" target="_blank" style="display:inline-block;padding:15px 30px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:20px;font-weight:bold;color:#ffffff;text-decoration:none;border-radius:4px;">Accept Invitation</a>
+          </td></tr></table>
+          <p style="margin:0 0 12px 0;font-size:13px;line-height:21px;color:#666666;">If the button doesn't work, copy and paste this link into your browser:</p>
+          <p style="margin:0 0 28px 0;font-size:12px;line-height:21px;overflow-wrap:anywhere;word-break:break-word;"><a href="{{ .ConfirmationURL }}" target="_blank" style="color:#d32f2f;text-decoration:underline;overflow-wrap:anywhere;word-break:break-word;">Open your Web2Table invitation</a></p>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:#f8f8f8;border-left:3px solid #e53935;"><tr><td style="padding:16px 18px;">
+            <p style="margin:0 0 6px 0;font-size:13px;line-height:19px;font-weight:bold;color:#222222;">Security reminder</p>
+            <p style="margin:0;font-size:13px;line-height:21px;color:#666666;">If you weren't expecting this invitation, you can safely ignore this email. Never share your invitation link or verification codes. System administrator and privileged accounts must complete the required multi-factor authentication setup.</p>
+          </td></tr></table>
+        </td></tr>
+        <tr><td style="padding:24px 36px;background-color:#080808;border-top:1px solid #222222;">
+          <p style="margin:0 0 8px 0;font-size:14px;line-height:20px;font-weight:bold;color:#ffffff;">Web2Table</p>
+          <p style="margin:0 0 16px 0;font-size:12px;line-height:20px;color:#bdbdbd;">Restaurant operations, connected.</p>
+          <p style="margin:0 0 12px 0;font-size:12px;line-height:20px;color:#bdbdbd;">Need assistance? <a href="mailto:contact@web2table.io" style="color:#ff6b6b;text-decoration:none;">contact@web2table.io</a></p>
+          <p style="margin:0;padding-top:16px;border-top:1px solid #303030;font-size:11px;line-height:18px;color:#888888;">This is an automated account invitation email. Please do not reply directly to this message.</p>
+        </td></tr>
+      </table>
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;"><tr><td align="center" style="padding:18px 12px 0 12px;"><p style="margin:0;font-size:11px;line-height:18px;color:#888888;">&copy; Web2Table. All rights reserved.</p></td></tr></table>
+    </td></tr>
+  </table>
+</body>
+</html>
