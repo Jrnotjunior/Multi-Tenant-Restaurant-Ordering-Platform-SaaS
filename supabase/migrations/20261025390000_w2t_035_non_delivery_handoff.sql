@@ -1,28 +1,8 @@
--- W2T-035: support non-delivery handoff without sending pickup/dine-in orders to dispatch.
+-- W2T-035: support pickup and dine-in handoff without rider dispatch.
 begin;
 alter table public.customer_orders drop constraint if exists customer_orders_order_status_check;
 alter table public.customer_orders add constraint customer_orders_order_status_check
   check (order_status = any (array['pending_confirmation','confirmed','rejected','cancelled','preparing','ready_for_dispatch','ready_for_pickup','out_for_delivery','delivered','completed']));
--- Operational workspaces: branch-scoped queues and server-enforced role actions.
-create table if not exists public.delivery_assignments (
-  id uuid primary key default gen_random_uuid(),
-  tenant_id uuid not null,
-  branch_id uuid not null,
-  order_id uuid not null,
-  rider_user_id uuid not null references auth.users(id) on delete restrict,
-  assigned_by uuid not null references auth.users(id) on delete restrict,
-  status text not null default 'assigned' check (status in ('assigned','accepted','out_for_delivery','delivered','cancelled')),
-  assigned_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  delivered_at timestamptz,
-  constraint delivery_assignments_order_fk foreign key (tenant_id, order_id) references public.customer_orders(tenant_id, id) on delete cascade,
-  constraint delivery_assignments_branch_fk foreign key (tenant_id, branch_id) references public.branches(tenant_id, id) on delete restrict,
-  constraint delivery_assignments_order_unique unique (tenant_id, order_id)
-);
-create index if not exists delivery_assignments_rider_status_idx on public.delivery_assignments (tenant_id, rider_user_id, status, assigned_at desc);
-create index if not exists delivery_assignments_branch_status_idx on public.delivery_assignments (tenant_id, branch_id, status, assigned_at desc);
-alter table public.delivery_assignments enable row level security;
-
 create or replace function public.list_staff_orders(p_tenant_id uuid, p_filter text default 'active', p_limit integer default 100)
 returns jsonb language plpgsql stable security definer set search_path to ''
 as $function$
@@ -58,52 +38,6 @@ begin
     order by o.created_at desc limit p_limit
   ) q;
   return jsonb_build_object('orders',v_orders,'filter',p_filter,'limit',p_limit);
-end;
-$function$;
-
-create or replace function public.list_branch_riders(p_tenant_id uuid,p_branch_id uuid)
-returns jsonb language plpgsql stable security definer set search_path to ''
-as $function$
-declare v_user uuid := (select auth.uid()); v_role text; v_riders jsonb;
-begin
-  if v_user is null or not private.privileged_session_verified() then raise exception 'Verified MFA session required' using errcode='42501'; end if;
-  select m.role into v_role from public.tenant_memberships m where m.tenant_id=p_tenant_id and m.user_id=v_user and m.status='active';
-  if v_role not in ('restaurant_owner','dispatcher') or v_role is null then raise exception 'Dispatcher access required' using errcode='42501'; end if;
-  if v_role<>'restaurant_owner' and not exists(select 1 from public.branch_memberships bm where bm.tenant_id=p_tenant_id and bm.branch_id=p_branch_id and bm.user_id=v_user)
-    then raise exception 'You do not have access to this branch' using errcode='42501'; end if;
-  select coalesce(jsonb_agg(jsonb_build_object('user_id',m.user_id,'email',u.email,
-    'display_name',coalesce(nullif(u.raw_user_meta_data->>'full_name',''),u.email))
-    order by coalesce(nullif(u.raw_user_meta_data->>'full_name',''),u.email)),'[]'::jsonb)
-  into v_riders from public.tenant_memberships m join public.branch_memberships bm
-    on bm.tenant_id=m.tenant_id and bm.user_id=m.user_id and bm.branch_id=p_branch_id
-    join auth.users u on u.id=m.user_id
-  where m.tenant_id=p_tenant_id and m.role='rider' and m.status='active';
-  return v_riders;
-end;
-$function$;
-
-create or replace function public.assign_order_rider(p_tenant_id uuid,p_order_id uuid,p_rider_user_id uuid)
-returns jsonb language plpgsql security definer set search_path to ''
-as $function$
-declare v_user uuid := (select auth.uid()); v_role text; v_order public.customer_orders%rowtype;
-begin
-  if v_user is null or not private.privileged_session_verified() then raise exception 'Verified MFA session required' using errcode='42501'; end if;
-  select m.role into v_role from public.tenant_memberships m where m.tenant_id=p_tenant_id and m.user_id=v_user and m.status='active';
-  if v_role not in ('restaurant_owner','dispatcher') or v_role is null then raise exception 'Dispatcher access required' using errcode='42501'; end if;
-  select o.* into v_order from public.customer_orders o where o.tenant_id=p_tenant_id and o.id=p_order_id for update;
-  if not found then raise exception 'Order not found' using errcode='P0002'; end if;
-  if v_order.order_status<>'ready_for_dispatch' then raise exception 'Only orders ready for dispatch can be assigned' using errcode='22023'; end if;
-  if v_role<>'restaurant_owner' and not exists(select 1 from public.branch_memberships bm where bm.tenant_id=p_tenant_id and bm.branch_id=v_order.branch_id and bm.user_id=v_user)
-    then raise exception 'You do not have access to this branch' using errcode='42501'; end if;
-  if not exists(select 1 from public.tenant_memberships m join public.branch_memberships bm
-    on bm.tenant_id=m.tenant_id and bm.user_id=m.user_id where m.tenant_id=p_tenant_id and m.user_id=p_rider_user_id
-      and m.role='rider' and m.status='active' and bm.branch_id=v_order.branch_id)
-    then raise exception 'Select an active rider assigned to this branch' using errcode='42501'; end if;
-  insert into public.delivery_assignments(tenant_id,branch_id,order_id,rider_user_id,assigned_by,status)
-    values(p_tenant_id,v_order.branch_id,v_order.id,p_rider_user_id,v_user,'assigned')
-    on conflict(tenant_id,order_id) do update set rider_user_id=excluded.rider_user_id,assigned_by=excluded.assigned_by,
-      status='assigned',assigned_at=now(),updated_at=now(),delivered_at=null;
-  return jsonb_build_object('success',true,'order_id',v_order.id,'rider_user_id',p_rider_user_id,'status','assigned');
 end;
 $function$;
 
@@ -157,14 +91,4 @@ begin
     'previous_status',v_order.order_status,'order_status',v_next_status,'payment_status',v_order.payment_status);
 end;
 $function$;
-
-revoke all on function public.list_staff_orders(uuid,text,integer) from public,anon;
-revoke all on function public.list_branch_riders(uuid,uuid) from public,anon;
-revoke all on function public.assign_order_rider(uuid,uuid,uuid) from public,anon;
-revoke all on function public.transition_staff_order(uuid,uuid,text) from public,anon;
-grant execute on function public.list_staff_orders(uuid,text,integer) to authenticated;
-grant execute on function public.list_branch_riders(uuid,uuid) to authenticated;
-grant execute on function public.assign_order_rider(uuid,uuid,uuid) to authenticated;
-grant execute on function public.transition_staff_order(uuid,uuid,text) to authenticated;
-
 commit;
