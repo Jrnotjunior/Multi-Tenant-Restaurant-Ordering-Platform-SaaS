@@ -20,10 +20,20 @@ export function restaurantMenuPath(slug: string, baseUrl: string): string {
   return pathFor('order', baseUrl) + '/' + slug;
 }
 
+export function storefrontCartPath(slug: string, baseUrl: string): string {
+  return restaurantMenuPath(slug, baseUrl) + '/cart';
+}
+
+export function isStorefrontCartPath(pathname: string, baseUrl: string): boolean {
+  return pathname.replace(/\/+$/, '').endsWith('/cart')
+    && storefrontSlugFromPath(pathname, baseUrl) !== null;
+}
+
 export function storefrontSlugFromPath(pathname: string, baseUrl: string): string | null {
   const prefix = pathFor('order', baseUrl) + '/';
   if (!pathname.startsWith(prefix)) return null;
-  const slug = pathname.slice(prefix.length).replace(/\/+$/, '');
+  let slug = pathname.slice(prefix.length).replace(/\/+$/, '');
+  if (slug.endsWith('/cart')) slug = slug.slice(0, -5);
   return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ? slug : '';
 }
 
