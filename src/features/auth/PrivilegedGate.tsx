@@ -296,7 +296,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
         <p>Keep this QR code private. If every code is rejected, you can replace this incomplete setup and scan a fresh QR code.</p>
         <button type="button" className="auth-secondary" disabled={busy} onClick={() => {
           const confirmed = window.confirm('Replace the incomplete authenticator setup? The current unverified QR code will stop working. Continue only if you have not successfully verified an authenticator for this account.');
-          if (!confirmed) return;
+          if (!confirmed || !client) return;
           setBusy(true);
           setMessage('');
           void restartIncompleteMfa(client)
