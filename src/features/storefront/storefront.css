@@ -47,7 +47,6 @@
   --sf-font-size-auth-action: 14px;
   --sf-font-size-auth-link: 12px;
   --sf-font-size-auth-switch: 12.5px;
-  --sf-font-size-auth-consent: 11.5px;
   --sf-font-size-directory-title: clamp(35px,4vw,49px);
   --sf-font-size-checkout-title: clamp(33px,4vw,45px);
   --sf-font-size-hero-plate-mobile: 117px;
@@ -295,22 +294,18 @@
 
 /* Customer account authentication pages */
 .sf-auth-page{min-height:100vh;display:grid;place-items:center;padding:32px 16px;background:var(--sf-page-background);color:var(--sf-font-color);font-family:var(--font-body)}
-.sf-auth-card{position:relative;isolation:isolate;width:min(100%,320px);padding:24px 20px 22px;border:1px solid var(--sf-border);border-radius:22px;background:var(--sf-product-card);box-shadow:0 18px 48px rgba(16,27,47,.09);overflow:hidden}
+.sf-auth-card{position:relative;isolation:isolate;width:min(100%,420px);padding:38px 32px 30px;border:1px solid var(--sf-border);border-radius:22px;background:var(--sf-product-card);box-shadow:0 18px 48px rgba(16,27,47,.09);overflow:hidden}
 .sf-auth-card:before{content:"";position:absolute;z-index:-1;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--sf-primary-button),var(--sf-secondary-button))}
 .sf-auth-back{display:inline-block;margin-bottom:20px;color:var(--sf-muted);font-size:var(--sf-font-size-auth-link);font-weight:650;text-decoration:none}
 .sf-auth-back:hover,.sf-auth-switch a:hover{color:var(--sf-primary-button);text-decoration:underline}
-.sf-auth-configured-logo{display:block;width:auto;height:auto;max-width:min(56px,35%);max-height:38px;object-fit:contain;margin:0 auto 14px}
+.sf-auth-configured-logo{display:block;width:auto;height:auto;max-width:min(180px,70%);max-height:76px;object-fit:contain;margin:0 auto 18px}
 .sf-auth-card h1{margin:0;color:var(--sf-font-color);font-family:var(--font-heading);font-size:var(--sf-font-size-auth-title);line-height:1.15;letter-spacing:-.05em;text-align:center}
-.sf-auth-intro{margin:0 auto 18px;max-width:300px;color:var(--sf-muted);font-size:var(--sf-font-size-auth-intro);line-height:1.65;text-align:center}
-.sf-auth-form{display:grid;gap:10px}
-.sf-auth-name-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.sf-auth-privacy-consent{display:flex!important;grid-template-columns:none!important;flex-direction:row;align-items:flex-start;gap:7px!important;font-size:var(--sf-font-size-auth-consent)!important;font-weight:400!important;line-height:1.45}
-.sf-auth-privacy-consent input[type=checkbox]{flex:0 0 auto;width:13px;min-width:13px;min-height:13px;height:13px;margin:1px 0 0;accent-color:var(--sf-primary-button)}
-.sf-auth-privacy-consent a{color:var(--sf-primary-button);font-weight:700;text-decoration:underline;text-underline-offset:2px}
+.sf-auth-intro{margin:22px auto 26px;max-width:300px;color:var(--sf-muted);font-size:var(--sf-font-size-auth-intro);line-height:1.65;text-align:center}
+.sf-auth-form{display:grid;gap:15px}
 .sf-auth-form label{display:grid;gap:7px;color:var(--sf-font-color);font-size:var(--sf-font-size-auth-label);font-weight:700}
-.sf-auth-form input{width:100%;min-width:0;min-height:34px;padding:8px 10px;border:1px solid var(--sf-border);border-radius:11px;background:var(--sf-page-background);color:var(--sf-font-color);font-size:var(--sf-font-size-auth-input);outline:none}
+.sf-auth-form input{width:100%;min-width:0;min-height:46px;padding:11px 13px;border:1px solid var(--sf-border);border-radius:11px;background:var(--sf-page-background);color:var(--sf-font-color);font-size:var(--sf-font-size-auth-input);outline:none}
 .sf-auth-form input:focus{border-color:var(--sf-primary-button);box-shadow:0 0 0 3px color-mix(in srgb,var(--sf-primary-button) 12%,transparent)}
-.sf-auth-form button[type=submit]{min-height:36px;margin-top:0;padding:9px 14px;border:0;border-radius:11px;background:var(--sf-primary-button);color:var(--sf-primary-button-font);font-size:var(--sf-font-size-auth-action);font-weight:800;box-shadow:0 7px 16px color-mix(in srgb,var(--sf-primary-button) 16%,transparent)}
+.sf-auth-form button[type=submit]{min-height:50px;margin-top:4px;padding:13px 16px;border:0;border-radius:11px;background:var(--sf-primary-button);color:var(--sf-primary-button-font);font-size:var(--sf-font-size-auth-action);font-weight:800;box-shadow:0 7px 16px color-mix(in srgb,var(--sf-primary-button) 16%,transparent)}
 .sf-auth-form button:hover:not(:disabled){background:var(--sf-secondary-button)}
 .sf-auth-form button:disabled{opacity:.65;cursor:wait}
 .sf-auth-switch{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--sf-border);text-align:center;color:var(--sf-font-color);font-size:var(--sf-font-size-auth-switch)}
@@ -318,7 +313,7 @@
 .sf-auth-legal{margin:18px 0 0;color:var(--sf-muted);font-size:var(--sf-font-size-auth-link);line-height:1.55;text-align:center}
 .sf-auth-message{margin:0;padding:12px;border-radius:9px;background:#fff0ef;color:#8c1824;font-size:var(--sf-font-size-auth-input);line-height:1.5;overflow-wrap:anywhere}
 .sf-auth-success{background:#effaf2;color:#23613a}
-@media(max-width:480px){.sf-auth-card{padding:24px 20px 22px}.sf-auth-intro{margin:0 auto 18px}.sf-menu-card{grid-template-columns:112px minmax(0,1fr);min-height:128px}.sf-card-image{height:128px;min-height:128px}.sf-card-details{padding:10px 11px}.sf-card-details h3{font-size:var(--sf-font-size-14)}.sf-card-details p{font-size:var(--sf-font-size-11);line-height:1.4}.sf-auth-card{padding:34px 22px 26px;border-radius:18px}.sf-auth-intro{margin:18px auto 24px}}
+@media(max-width:480px){.sf-menu-card{grid-template-columns:112px minmax(0,1fr);min-height:128px}.sf-card-image{height:128px;min-height:128px}.sf-card-details{padding:10px 11px}.sf-card-details h3{font-size:var(--sf-font-size-14)}.sf-card-details p{font-size:var(--sf-font-size-11);line-height:1.4}.sf-auth-card{padding:34px 22px 26px;border-radius:18px}.sf-auth-intro{margin:18px auto 24px}}
 
 .sf-auth-text-button{justify-self:end;padding:0;border:0;background:transparent;color:var(--sf-primary-button);font:inherit;font-size:var(--sf-font-size-auth-link);font-weight:750;text-align:right;text-decoration:underline;cursor:pointer}.sf-auth-text-button:hover{text-decoration:underline}.sf-auth-switch .sf-auth-text-button{font-size:var(--sf-font-size-auth-switch)}
 
