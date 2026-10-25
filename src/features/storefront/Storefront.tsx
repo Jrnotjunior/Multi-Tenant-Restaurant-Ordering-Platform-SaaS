@@ -80,9 +80,9 @@ export function buildCheckoutReadiness(input: {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.slug) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.branchSlug)) {
     return { ready: false, reason: 'A valid published restaurant and branch are required.', subtotalCentavos };
   }
-  if (quantity < 1 || quantity > 100) return { ready: false, reason: 'Add valid items to your basket before continuing.', subtotalCentavos };
-  if (regularLines.length + custom.length === 0) return { ready: false, reason: 'Your basket has no valid menu items.', subtotalCentavos };
-  if (!Number.isSafeInteger(subtotalCentavos) || subtotalCentavos <= 0) return { ready: false, reason: 'The basket total is invalid.', subtotalCentavos };
+  if (quantity < 1 || quantity > 100) return { ready: false, reason: 'Add valid items to your cart before continuing.', subtotalCentavos };
+  if (regularLines.length + custom.length === 0) return { ready: false, reason: 'Your cart has no valid menu items.', subtotalCentavos };
+  if (!Number.isSafeInteger(subtotalCentavos) || subtotalCentavos <= 0) return { ready: false, reason: 'The cart total is invalid.', subtotalCentavos };
   if (input.details.customerName.trim().length < 2 || input.details.customerName.trim().length > 120) {
     return { ready: false, reason: 'Enter your name (2–120 characters).', subtotalCentavos };
   }
@@ -107,7 +107,7 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
   return <>
     {count === 0 ? <div className="sf-cart-empty">
       <div className="sf-cart-empty-icon"><BagIcon /></div>
-      <h3>Your basket is empty</h3>
+      <h3>Your cart is empty</h3>
       <p>There is something delicious waiting on the menu.</p>
       {close && <button type="button" className="sf-continue" onClick={close}>Browse menu</button>}
     </div> : <>
@@ -163,7 +163,7 @@ function MenuCard({ item, quantity, add, customize }: { item: MenuItem; quantity
           ? <button type="button" className="sf-customize-action" onClick={()=>customize(item)}>Customize</button>
           : quantity > 0
           ? <QuantityControl itemId={item.id} quantity={quantity} change={add}/>
-          : <button type="button" className="sf-add" onClick={() => add(item.id, 1)} aria-label={'Add ' + item.name + ' to basket'}>+</button>}
+          : <button type="button" className="sf-add" onClick={() => add(item.id, 1)} aria-label={'Add ' + item.name + ' to cart'}>+</button>}
       </div>
     </div>
   </article>;
@@ -350,7 +350,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
         </a>
         <nav className="sf-header-actions" aria-label="Store navigation">
           <span className="sf-header-divider" aria-hidden="true"/>
-          <button type="button" className="sf-bag-button" onClick={() => setCartOpen(true)} aria-label={'Open basket with ' + count + ' items'}>
+          <button type="button" className="sf-bag-button" onClick={() => setCartOpen(true)} aria-label={'Open cart with ' + count + ' items'}>
             <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
           </button>
           <div className="sf-account-wrap">
@@ -383,7 +383,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
         <div>
           <span className="sf-section-kicker">SELECT YOUR BRANCH</span>
           <h2>Ordering from {restaurant.branchName}</h2>
-          <p>Menus, availability and prices may vary by branch. Switching branches clears your basket.</p>
+          <p>Menus, availability and prices may vary by branch. Switching branches clears your cart.</p>
         </div>
         <label>Restaurant branch
           <select aria-label="Restaurant branch" value={restaurant.branchSlug}
@@ -437,12 +437,12 @@ export function Storefront({ baseUrl, requestedSlug }: {
     </footer>
 
     {count > 0 && <div className="sf-mobile-cart-bar">
-      <button type="button" onClick={() => setCartOpen(true)} aria-label={'View basket, ' + count + ' items, ' + peso(subtotal)}>
-        <span className="sf-mobile-cart-count">{count}</span><span>View basket</span><strong>{peso(subtotal)}</strong><ArrowIcon/>
+      <button type="button" onClick={() => setCartOpen(true)} aria-label={'View cart, ' + count + ' items, ' + peso(subtotal)}>
+        <span className="sf-mobile-cart-count">{count}</span><span>View cart</span><strong>{peso(subtotal)}</strong><ArrowIcon/>
       </button>
     </div>}
-    <dialog ref={dialogRef} className="sf-basket-dialog" onClose={() => setCartOpen(false)} aria-labelledby="sf-dialog-heading">
-      <div className="sf-dialog-top"><div><span className="sf-section-kicker">YOUR ORDER</span><h2 id="sf-dialog-heading">Your basket <span>({count})</span></h2></div><button type="button" className="sf-close" onClick={() => setCartOpen(false)} aria-label="Close basket">×</button></div>
+    <dialog ref={dialogRef} className="sf-cart-dialog" onClose={() => setCartOpen(false)} aria-labelledby="sf-dialog-heading">
+      <div className="sf-dialog-top"><div><span className="sf-section-kicker">YOUR ORDER</span><h2 id="sf-dialog-heading">Your cart <span>({count})</span></h2></div><button type="button" className="sf-close" onClick={() => setCartOpen(false)} aria-label="Close cart">×</button></div>
       <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} close={() => setCartOpen(false)} onCheckout={() => { setCheckoutMessage(''); setCheckoutOpen(true); setCartOpen(false); }}/>
     </dialog>
     {checkoutOpen && <div className="sf-checkout-backdrop" role="presentation" onMouseDown={event => {if(event.target===event.currentTarget)setCheckoutOpen(false);}}>
@@ -464,7 +464,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
           <label>Contact number<input autoComplete="tel" type="tel" required minLength={7} maxLength={24} value={checkoutDetails.phone} onChange={event=>setCheckoutDetails(previous=>({...previous,phone:event.target.value}))} placeholder="+63 9xx xxx xxxx" /></label>
           <label>Delivery address<textarea autoComplete="street-address" required minLength={8} maxLength={500} rows={3} value={checkoutDetails.deliveryAddress} onChange={event=>setCheckoutDetails(previous=>({...previous,deliveryAddress:event.target.value}))} placeholder="House/building, street, barangay, city" /></label>
           <label>Delivery instructions (optional)<textarea maxLength={300} rows={2} value={checkoutDetails.deliveryNotes} onChange={event=>setCheckoutDetails(previous=>({...previous,deliveryNotes:event.target.value}))} placeholder="Landmark or delivery instructions" /></label>
-          <div className="sf-checkout-summary"><span>Basket subtotal (estimate)</span><strong>{peso(subtotal)}</strong></div>
+          <div className="sf-checkout-summary"><span>cart subtotal (estimate)</span><strong>{peso(subtotal)}</strong></div>
           <p className="sf-cart-note">Final price, availability, delivery fee and order ID must be confirmed by the server at launch.</p>
           <button type="submit" className="sf-checkout-disabled">Validate delivery details</button>
           <button type="button" className="sf-continue" onClick={() => setCheckoutOpen(false)}>Return to menu</button>
@@ -472,6 +472,6 @@ export function Storefront({ baseUrl, requestedSlug }: {
       </section>
     </div>}
     <CustomizeDialog item={customizing} onAdd={addCustomized} onClose={()=>setCustomizing(null)}/>
-    <span className="sf-visually-hidden" aria-live="polite" aria-atomic="true">{count} items in basket, subtotal {peso(subtotal)}</span>
+    <span className="sf-visually-hidden" aria-live="polite" aria-atomic="true">{count} items in cart, subtotal {peso(subtotal)}</span>
   </div>;
 }
