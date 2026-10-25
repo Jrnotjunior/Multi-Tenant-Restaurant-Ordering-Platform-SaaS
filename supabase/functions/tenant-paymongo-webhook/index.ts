@@ -44,32 +44,44 @@ Deno.serve(async(request)=>{
   const {data:claimed,error:claimError}=await admin.rpc("claim_tenant_paymongo_webhook_event",{p_event_id:eventId,p_tenant_id:tenantId,p_environment:environment,p_event_type:eventType});
   if(claimError)throw claimError;
   if(!claimed)return json({received:true,duplicate:true},200);
-  // Finalize only from a verified PayMongo paid event, never from a browser redirect.
-  if(eventType==="checkout_session.payment.paid"){
+  // Only signed provider events can change payment state; browser redirects are informational only.
+  if(eventType==="checkout_session.payment.paid"||eventType==="checkout_session.payment.failed"){
     const resource=attrs.data??{};
     const resourceAttrs=resource.attributes??{};
     const checkoutSessionId=String(resource.id??resourceAttrs.checkout_session_id??"").trim();
-    const amount=resourceAttrs.amount;
-    if(!checkoutSessionId||typeof amount!=="number"||!Number.isSafeInteger(amount)||amount<=0){
-      await admin.from("tenant_paymongo_webhook_events").update({
-        status:"failed",last_error:"Paid checkout event missing session ID or valid amount."
-      }).eq("event_id",eventId);
-      return json({error:"Paid checkout event is missing required payment details."},400);
+    if(!checkoutSessionId){
+      await admin.from("tenant_paymongo_webhook_events").update({status:"failed",last_error:"Checkout event missing session ID."}).eq("event_id",eventId);
+      return json({error:"Checkout event is missing its session ID."},400);
     }
-    const {error:finalizeError}=await admin.rpc("finalize_customer_order_payment",{
-      p_tenant_id:tenantId,
-      p_environment:environment,
-      p_checkout_session_id:checkoutSessionId,
-      p_amount_centavos:amount
-    });
-    if(finalizeError){
-      await admin.from("tenant_paymongo_webhook_events").update({
-        status:"failed",last_error:"Order payment finalization failed."
-      }).eq("event_id",eventId);
-      throw finalizeError;
+    if(eventType==="checkout_session.payment.failed"){
+      const {error:failureError}=await admin.rpc("finalize_customer_order_payment_failure",{
+        p_tenant_id:tenantId,p_environment:environment,p_checkout_session_id:checkoutSessionId
+      });
+      if(failureError){
+        await admin.from("tenant_paymongo_webhook_events").update({status:"failed",last_error:"Order payment failure update failed."}).eq("event_id",eventId);
+        throw failureError;
+      }
+    }else{
+      const amount=resourceAttrs.amount;
+      if(typeof amount!=="number"||!Number.isSafeInteger(amount)||amount<=0){
+        await admin.from("tenant_paymongo_webhook_events").update({status:"failed",last_error:"Paid checkout event missing valid amount."}).eq("event_id",eventId);
+        return json({error:"Paid checkout event is missing a valid amount."},400);
+      }
+      const payments=Array.isArray(resourceAttrs.payments)?resourceAttrs.payments:[];
+      const paymentId=String(payments[0]?.id??payments[0]?.data?.id??"").trim();
+      const {error:referenceError}=await admin.from("customer_order_payment_sessions").update({
+        ...(paymentId?{paymongo_payment_id:paymentId}:{}),updated_at:new Date().toISOString()
+      }).eq("tenant_id",tenantId).eq("environment",environment).eq("checkout_session_id",checkoutSessionId);
+      if(referenceError)throw referenceError;
+      const {error:finalizeError}=await admin.rpc("finalize_customer_order_payment",{
+        p_tenant_id:tenantId,p_environment:environment,p_checkout_session_id:checkoutSessionId,p_amount_centavos:amount
+      });
+      if(finalizeError){
+        await admin.from("tenant_paymongo_webhook_events").update({status:"failed",last_error:"Order payment finalization failed."}).eq("event_id",eventId);
+        throw finalizeError;
+      }
     }
   }
-  // Other signed events are recorded but do not mark an order paid.
   const {error:updateError}=await admin.from("tenant_paymongo_webhook_events").update({
     status:"processed",processed_at:new Date().toISOString(),last_error:null
   }).eq("event_id",eventId);
