@@ -67,7 +67,7 @@
   --sf-soft:var(--sf-page-background);
 }
 /* Storefront uses the same default design tokens as the rest of Web2Table. */
-.sf-storefront:has(.sf-main-cart){height:100vh;height:100dvh;min-height:0;overflow:hidden};.sf-storefront{--sf-ink:var(--sf-font-color);--sf-muted:var(--color-muted,#526782);--sf-red:var(--sf-primary-button);--sf-red-dark:var(--sf-secondary-button);--sf-border:var(--color-border,#DCE3ED);--sf-soft:var(--sf-page-background);min-height:100vh;display:flex;flex-direction:column;background:var(--sf-page-background);color:var(--sf-font-color);font-family:var(--font-body);line-height:1.45}
+.sf-storefront:has(.sf-main-cart){height:100vh;height:100dvh;min-height:0;overflow:hidden}.sf-storefront{--sf-ink:var(--sf-font-color);--sf-muted:var(--color-muted,#526782);--sf-red:var(--sf-primary-button);--sf-red-dark:var(--sf-secondary-button);--sf-border:var(--color-border,#DCE3ED);--sf-soft:var(--sf-page-background);min-height:100vh;display:flex;flex-direction:column;background:var(--sf-page-background);color:var(--sf-font-color);font-family:var(--font-body);line-height:1.45}
 .sf-storefront button,.sf-storefront input{font:inherit}
 .sf-storefront button{cursor:pointer}
 .sf-storefront button:disabled{cursor:not-allowed}
@@ -438,3 +438,9 @@
 .sf-storefront:has(.sf-main-cart) .sf-main-cart{flex:1 1 auto;height:auto;min-height:0;display:flex;flex-direction:column;box-sizing:border-box;padding:16px;margin:0 auto;width:100%;max-width:900px}
 .sf-storefront:has(.sf-main-cart) .sf-cart-page{flex:1 1 auto;height:auto;min-height:0;width:100%;max-width:900px;box-sizing:border-box;background:var(--sf-product-card);border:1px solid var(--sf-border);border-radius:18px;align-content:start}
 @media(max-width:640px){.sf-storefront:has(.sf-main-cart) .sf-main-cart{padding:12px}.sf-storefront:has(.sf-main-cart) .sf-cart-page{min-height:0}}
+
+
+/* Final cart viewport sizing: card fills the available main area while retaining equal inset spacing. */
+.sf-storefront:has(.sf-main-cart) .sf-main-cart{flex:1 1 0;height:100%;min-height:0;box-sizing:border-box;display:flex;flex-direction:column;padding:16px;margin:0 auto;width:100%;max-width:900px}
+.sf-storefront:has(.sf-main-cart) .sf-cart-page{flex:1 1 0;height:100%;min-height:0;width:100%;max-width:900px;box-sizing:border-box;align-content:start;background:var(--sf-product-card);border:1px solid var(--sf-border);border-radius:18px}
+@media(max-width:640px){.sf-storefront:has(.sf-main-cart) .sf-main-cart{padding:12px}.sf-storefront:has(.sf-main-cart) .sf-cart-page{height:100%;min-height:0}}
