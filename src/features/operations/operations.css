@@ -377,3 +377,47 @@
 .w2t-map-picker-crash{padding:14px;border:1px solid #FECACA;border-radius:10px;background:#FEF2F2;color:#991B1B;font-size:12px;line-height:1.55}
 .w2t-map-picker-crash p{margin:5px 0 11px}
 .w2t-map-picker-crash button{min-height:34px;border:1px solid #DCE3ED;border-radius:8px;padding:7px 11px;background:#FFFFFF;color:#263754;font-size:11px;font-weight:750;cursor:pointer}
+
+/* Live, MFA-gated restaurant order inbox. */
+.owner-orders-toolbar{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:22px}
+.owner-orders-toolbar h1{font-size:24px;letter-spacing:-.04em;margin:0 0 6px}
+.owner-orders-toolbar p{font-size:12px;line-height:1.6;color:#657791;margin:0}
+.owner-orders-toolbar-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px}
+.owner-orders-toolbar-actions button,.owner-order-actions button{border:1px solid #101B2F;border-radius:8px;background:#101B2F;color:#fff;padding:9px 12px;font:inherit;font-size:11px;font-weight:750;cursor:pointer}
+.owner-orders-toolbar-actions button:disabled,.owner-order-actions button:disabled{opacity:.6;cursor:wait}
+.owner-orders-toolbar-actions .owner-orders-refresh{background:#fff;color:#263754;border-color:#d2dce9}
+.owner-orders-acceptance{border-radius:999px;padding:7px 10px;font-size:10px;font-weight:800;white-space:nowrap}
+.owner-orders-acceptance.is-open{background:#e7f8ef;color:#117847}
+.owner-orders-acceptance.is-paused{background:#fff3e7;color:#92521b}
+.owner-orders-notice{border-radius:9px;padding:11px 13px;font-size:12px;line-height:1.5}
+.owner-orders-notice.is-error{background:#fff0f0;color:#9d2626;border:1px solid #f2caca}
+.owner-orders-notice.is-success{background:#edf9f2;color:#176b43;border:1px solid #ccebd8}
+.owner-orders-list{margin-top:24px;background:#fff;border:1px solid #e2e8f1;border-radius:13px;padding:20px}
+.owner-orders-list-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.owner-orders-list-heading h2{font-size:16px;margin:0}
+.owner-orders-list-heading>span{font-size:11px;color:#657791}
+.owner-orders-empty{padding:32px 12px;text-align:center;color:#657791;font-size:12px;line-height:1.6}
+.owner-orders-empty h3{color:#101B2F;margin:0 0 6px;font-size:14px}
+.owner-orders-empty p{margin:0 auto;max-width:480px}
+.owner-order-card{border:1px solid #dce5f0;border-radius:12px;padding:16px;margin-top:12px}
+.owner-order-card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-bottom:1px solid #e8edf4;padding-bottom:12px}
+.owner-order-card-header h3{font-size:14px;margin:0 0 4px}
+.owner-order-card-header p{font-size:10px;color:#657791;margin:0}
+.owner-order-status{font-size:10px;font-weight:800;text-transform:capitalize;background:#eef3fa;color:#344862;border-radius:999px;padding:6px 9px;white-space:nowrap}
+.owner-order-status.status-rejected,.owner-order-status.status-cancelled{background:#fff0f0;color:#9d2626}
+.owner-order-status.status-delivered{background:#e7f8ef;color:#117847}
+.owner-order-customer{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:12px 0;color:#263754;font-size:11px}
+.owner-order-customer strong{font-size:12px}
+.owner-order-customer>span{text-align:right;color:#526782}
+.owner-order-customer p{grid-column:1/-1;margin:0;color:#526782;line-height:1.5;overflow-wrap:anywhere}
+.owner-order-customer .owner-order-notes{color:#8b5a20}
+.owner-order-items{list-style:none;margin:0;padding:0;border-top:1px solid #e8edf4}
+.owner-order-items li{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:10px 0;border-bottom:1px solid #f0f3f7;font-size:11px}
+.owner-order-items li strong{white-space:nowrap}
+.owner-order-items small{display:block;color:#657791;margin-top:3px}
+.owner-order-totals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:12px 0;color:#657791;font-size:11px}
+.owner-order-totals span{display:flex;justify-content:space-between;gap:10px}
+.owner-order-totals strong{color:#101B2F;text-align:right}
+.owner-order-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;border-top:1px solid #e8edf4;padding-top:12px}
+.owner-order-actions button.is-danger{background:#fff;color:#a72b2b;border-color:#edcaca}
+@media(max-width:760px){.owner-orders-toolbar{display:block}.owner-orders-toolbar-actions{justify-content:flex-start;margin-top:14px}.owner-orders-list{padding:13px}.owner-order-card{padding:12px}.owner-order-totals{grid-template-columns:1fr}}
