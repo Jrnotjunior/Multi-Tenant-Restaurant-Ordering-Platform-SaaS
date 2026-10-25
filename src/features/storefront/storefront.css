@@ -292,11 +292,6 @@
 .sf-auth-card:before{content:"";position:absolute;z-index:-1;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--sf-primary-button),var(--sf-secondary-button))}
 .sf-auth-back{display:inline-block;margin-bottom:20px;color:var(--sf-muted);font-size:var(--sf-font-size-13);font-weight:650;text-decoration:none}
 .sf-auth-back:hover,.sf-auth-switch a:hover{color:var(--sf-primary-button);text-decoration:underline}
-.sf-auth-brand{display:flex;align-items:center;justify-content:center;gap:12px;margin:4px 0 24px;color:var(--sf-font-color)}
-.sf-auth-brand-mark{display:grid;place-items:center;width:40px;height:40px;border-radius:10px;background:var(--sf-primary-button);color:var(--sf-primary-button-font);font-size:12px;font-weight:900;letter-spacing:-.04em;text-decoration:none}
-.sf-auth-brand>strong{font-family:var(--font-heading);font-size:var(--sf-font-size-17);font-weight:800;letter-spacing:-.04em}
-.sf-auth-tenant-brand{display:flex;justify-content:center;margin:-8px auto 18px}
-.sf-auth-tenant-brand img{display:block;width:auto;height:auto;max-width:112px;max-height:54px;object-fit:contain}
 .sf-auth-card h1{margin:0;color:var(--sf-font-color);font-family:var(--font-heading);font-size:var(--sf-font-size-auth-title);line-height:1.15;letter-spacing:-.05em;text-align:center}
 .sf-auth-intro{margin:22px auto 26px;max-width:300px;color:var(--sf-muted);font-size:var(--sf-font-size-14);line-height:1.55;text-align:center}
 .sf-auth-form{display:grid;gap:15px}
@@ -311,7 +306,7 @@
 .sf-auth-legal{margin:18px 0 0;color:var(--sf-muted);font-size:var(--sf-font-size-11);line-height:1.55;text-align:center}
 .sf-auth-message{margin:0;padding:12px;border-radius:9px;background:#fff0ef;color:#8c1824;font-size:var(--sf-font-size-13);line-height:1.5;overflow-wrap:anywhere}
 .sf-auth-success{background:#effaf2;color:#23613a}
-@media(max-width:480px){.sf-menu-card{grid-template-columns:112px minmax(0,1fr);min-height:128px}.sf-card-image{height:128px;min-height:128px}.sf-card-details{padding:10px 11px}.sf-card-details h3{font-size:var(--sf-font-size-14)}.sf-card-details p{font-size:var(--sf-font-size-11);line-height:1.4}.sf-auth-card{padding:34px 22px 26px;border-radius:18px}.sf-auth-brand{margin-bottom:22px}.sf-auth-intro{margin:18px auto 24px}}
+@media(max-width:480px){.sf-menu-card{grid-template-columns:112px minmax(0,1fr);min-height:128px}.sf-card-image{height:128px;min-height:128px}.sf-card-details{padding:10px 11px}.sf-card-details h3{font-size:var(--sf-font-size-14)}.sf-card-details p{font-size:var(--sf-font-size-11);line-height:1.4}.sf-auth-card{padding:34px 22px 26px;border-radius:18px}.sf-auth-intro{margin:18px auto 24px}}
 
 .sf-auth-text-button{justify-self:end;padding:0;border:0;background:transparent;color:var(--sf-primary-button);font:inherit;font-size:var(--sf-font-size-12);font-weight:750;text-align:right;text-decoration:underline;cursor:pointer}.sf-auth-text-button:hover{text-decoration:underline}.sf-auth-switch .sf-auth-text-button{font-size:var(--sf-font-size-13)}
 
@@ -334,8 +329,6 @@
 .sf-password-checklist li.is-valid{color:#247548}
 .sf-password-checklist li.is-valid .sf-password-check-icon{border-color:#247548;background:#eaf7ef;color:#247548}
 
-.sf-auth-tenant-brand{display:flex;justify-content:center;align-items:center;width:100%;margin:0 auto 18px;text-decoration:none}
-.sf-auth-tenant-brand img{display:block;max-width:min(180px,70%);max-height:76px;width:auto;height:auto;object-fit:contain}
 
 /* Published restaurant directory uses the database-backed platform theme. */
 .sf-directory{min-height:100vh;display:flex;flex-direction:column;background:var(--directory-page,var(--color-page,#F7F9FC));color:var(--directory-text,var(--color-text,#101B2F));font-family:var(--font-body);line-height:1.45}
