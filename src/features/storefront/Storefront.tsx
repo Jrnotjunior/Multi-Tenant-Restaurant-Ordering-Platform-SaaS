@@ -399,7 +399,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       </div>
     </header>)}
 
-    <main className="sf-main">
+    <main className={cartPage ? "sf-main sf-main-cart" : "sf-main"}>
       {cartPage ? <CartPage count={count} onBack={() => navigateCart(false)}>
         <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} close={() => navigateCart(false)} onCheckout={() => { setCheckoutMessage(''); setCheckoutOpen(true); }}/>
       </CartPage> : <>
