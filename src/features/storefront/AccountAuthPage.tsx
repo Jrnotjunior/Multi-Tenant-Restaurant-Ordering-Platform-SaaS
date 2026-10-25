@@ -1,7 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import { normalizeAppBase, restaurantMenuPath } from '../../app/routes';
-import { loadPublishedMenu } from './publishedMenu';
 
 type AuthMode = 'sign-in' | 'sign-up';
 
@@ -15,9 +14,7 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(false);
   const [resetMode, setResetMode] = useState(false);
-  const [tenantLogo, setTenantLogo] = useState<string | null>(null);
   const [resolvedRestaurantSlug, setResolvedRestaurantSlug] = useState<string | null>(restaurantSlug);
-  const [tenantName, setTenantName] = useState<string | null>(null);
   const isSignUp = mode === 'sign-up';
   const passwordRules = [
     { label: 'At least 8 characters', valid: password.length >= 8 },
@@ -31,24 +28,11 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
   const backToMenu = resolvedRestaurantSlug ? restaurantMenuPath(resolvedRestaurantSlug, baseUrl) : base;
 
   useEffect(() => {
-    let active = true;
     let slug = restaurantSlug;
     if (!slug) {
       try { slug = window.sessionStorage.getItem('web2table:customer-auth-restaurant'); } catch { /* Storage may be unavailable. */ }
     }
     setResolvedRestaurantSlug(slug && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ? slug : null);
-    setTenantLogo(null);
-    setTenantName(null);
-    if (!slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return () => { active = false; };
-    void loadPublishedMenu(slug).then(catalog => {
-      if (active && catalog) {
-        setTenantLogo(catalog.restaurant.logoUrl);
-        setTenantName(catalog.restaurant.name);
-      }
-    }).catch(() => {
-      // Branding is optional on auth pages; a missing/unpublished logo uses the clean fallback.
-    });
-    return () => { active = false; };
   }, [restaurantSlug]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -134,13 +118,6 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
 
   return <main className="sf-auth-page">
     <section className="sf-auth-card" aria-labelledby="sf-auth-title">
-      <div className="sf-auth-brand">
-        <a className="sf-auth-brand-mark" href={backToMenu} aria-label="Web2Table home">W2T</a>
-        <strong>Web2Table</strong>
-      </div>
-      {tenantLogo ? <a className="sf-auth-tenant-brand" href={backToMenu} aria-label={tenantName ? tenantName + ' home' : 'Restaurant home'}>
-        <img src={tenantLogo} alt={tenantName ? tenantName + ' logo' : 'Restaurant logo'} />
-      </a> : null}
       <h1 id="sf-auth-title">{resetMode ? 'Reset your password' : isSignUp ? 'Sign Up' : 'Sign In'}</h1>
       <p className="sf-auth-intro">{resetMode ? 'Enter your email and we’ll send you a link to reset your password.' : isSignUp ? 'Create an account to make ordering easier and keep your details in one place.' : 'Welcome back. Sign in to continue your ordering experience.'}</p>
       <form className="sf-auth-form" onSubmit={submit} noValidate>
