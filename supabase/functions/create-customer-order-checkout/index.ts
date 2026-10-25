@@ -46,7 +46,7 @@ Deno.serve(async (request) => {
       .eq("id", orderId).maybeSingle();
     if (orderError) throw orderError;
     if (!order) return json({ error: "Order not found." }, 404);
-    if (order.order_status !== "pending_confirmation" || !["not_started", "pending"].includes(order.payment_status)) {
+    if (order.order_status !== "pending_confirmation" || !["not_started", "pending", "failed"].includes(order.payment_status)) {
       return json({ error: "This order is not available for online payment." }, 409);
     }
     if (!Number.isSafeInteger(Number(order.total_centavos)) || Number(order.total_centavos) <= 0) {
