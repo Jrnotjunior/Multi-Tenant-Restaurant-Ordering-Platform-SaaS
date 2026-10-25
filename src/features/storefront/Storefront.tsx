@@ -210,8 +210,8 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
-  const [cart, setCart] = useState<Cart>(() => readSessionValue<Cart>(cartStorageKey + ':items', {}));
-  const [customized,setCustomized]=useState<CustomCart>(() => readSessionValue<CustomCart>(cartStorageKey + ':custom', {}));
+  const [cart, setCart] = useState<Cart>(() => readPersistentValue<Cart>(cartStorageKey + ':items', {}));
+  const [customized,setCustomized]=useState<CustomCart>(() => readPersistentValue<CustomCart>(cartStorageKey + ':custom', {}));
   const [customizing,setCustomizing]=useState<MenuItem|null>(null);
   const [cartPage, setCartPage] = useState(() => initialCartPage || isStorefrontCartPath(window.location.pathname, baseUrl));
   const [checkoutPage, setCheckoutPage] = useState(() => isStorefrontCheckoutPath(window.location.pathname, baseUrl));
@@ -222,11 +222,11 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const [checkoutMessage,setCheckoutMessage]=useState('');
 
   useEffect(() => {
-    writeSessionValue(cartStorageKey + ':items', cart);
+    writePersistentValue(cartStorageKey + ':items', cart);
   }, [cartStorageKey, cart]);
 
   useEffect(() => {
-    writeSessionValue(cartStorageKey + ':custom', customized);
+    writePersistentValue(cartStorageKey + ':custom', customized);
   }, [cartStorageKey, customized]);
 
   useEffect(() => {
