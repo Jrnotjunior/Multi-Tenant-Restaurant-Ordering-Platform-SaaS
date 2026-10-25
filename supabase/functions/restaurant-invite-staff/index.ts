@@ -37,21 +37,23 @@ Deno.serve(async (req: Request) => {
     const email=typeof body?.email==="string"?body.email.trim().toLowerCase():"";
     const role=body?.role;
     const branchId=typeof body?.branch_id==="string"?body.branch_id:"";
+    const tenantId=typeof body?.tenant_id==="string"?body.tenant_id:"";
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||email.length>254) return respond(req,400,{error:"Enter a valid staff email address."});
     if(!["cashier","kitchen","dispatcher","rider"].includes(role)) return respond(req,400,{error:"Choose cashier, kitchen, dispatcher, or rider."});
-    if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(branchId)) return respond(req,400,{error:"Choose an active branch."});
+    const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if(!uuid.test(branchId)||!uuid.test(tenantId)) return respond(req,400,{error:"Choose a restaurant branch."});
     const {data:existing,error:existingError}=await adminClient.auth.admin.listUsers({page:1,perPage:1000});
     if(existingError) return respond(req,500,{error:"Could not check whether the email already has an account."});
     if(existing.users.some(user=>user.email?.trim().toLowerCase()===email)) return respond(req,409,{error:"An account already exists for this email. Existing-account staff assignment is not supported by this invitation flow yet."});
-    const {data:newInvite,error:inviteRecordError}=await userClient.rpc("request_privileged_invitation",{p_tenant_id:body.tenant_id,p_email:email,p_role:role,p_branch_id:branchId});
+    const {data:newInvite,error:inviteRecordError}=await userClient.rpc("request_privileged_invitation",{p_tenant_id:tenantId,p_email:email,p_role:role,p_branch_id:branchId});
     if(inviteRecordError||typeof newInvite!=="string") {
       const msg=inviteRecordError?.message??"Could not prepare invitation.";
       return respond(req,400,{error:msg.includes("pending invitation")?"A pending invitation already exists for this email and restaurant.":msg});
     }
     invitationId=newInvite;
     const {data:sent,error:sendError}=await adminClient.auth.admin.inviteUserByEmail(email,{
-      redirectTo:APP_URL,
-      data:{full_name:typeof body.name==="string"?body.name.trim().slice(0,120):"",invitation_type:"restaurant_staff",tenant_id:body.tenant_id,tenant_role:role,tenant_invitation_id:invitationId,branch_id:branchId},
+      redirectTo:(()=>{const target=new URL(APP_URL);target.searchParams.set("type","invite");return target.toString();})(),
+      data:{full_name:typeof body.name==="string"?body.name.trim().slice(0,120):"",invitation_type:"restaurant_staff",tenant_id:tenantId,tenant_role:role,tenant_invitation_id:invitationId,branch_id:branchId},
     });
     if(sendError||!sent?.user?.id) {
       await adminClient.from("privileged_invitations").update({status:"failed"}).eq("id",invitationId);
