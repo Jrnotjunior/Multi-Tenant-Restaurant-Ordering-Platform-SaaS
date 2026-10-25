@@ -373,9 +373,9 @@ export function Storefront({ baseUrl, requestedSlug }: {
     </header>
 
     <main className="sf-main">
-      <section className="sf-hero" aria-label="Restaurant introduction">
-        <h1>{restaurant.name}</h1>
-        {restaurant.tagline?.trim() && <p>{restaurant.tagline}</p>}
+      <section className="sf-hero" aria-label="Restaurant introduction" style={{display:'flex',flexDirection:'column',alignItems:'flex-start',justifyContent:'center',boxSizing:'border-box',width:'100%',maxWidth:900,minHeight:0,height:'auto',margin:'0 auto 22px',padding:24,border:'1px solid color-mix(in srgb, var(--sf-font-color, #101B2F) 12%, transparent)',borderRadius:16,background:'var(--sf-hero-color, #E7D3BF)',boxShadow:'0 6px 18px rgba(16,27,47,.07)',color:'var(--sf-font-color, #101B2F)',overflowWrap:'anywhere'}}>
+        <h1 style={{display:'block',position:'static',margin:0,fontSize:'clamp(26px, 4vw, 42px)',fontFamily:'inherit',fontWeight:800,lineHeight:1.12,letterSpacing:'-.035em',color:'inherit'}}>{restaurant.name}</h1>
+        {restaurant.tagline?.trim() && <p style={{display:'block',position:'static',margin:'10px 0 0',maxWidth:'100%',fontSize:15,lineHeight:1.5,color:'inherit'}}>{restaurant.tagline}</p>}
       </section>
 
 
@@ -403,7 +403,7 @@ export function Storefront({ baseUrl, requestedSlug }: {
           <div className="sf-category-list sf-category-dropdown-wrap" aria-label="Menu categories">
             <span className="sf-category-label">Category</span>
             <div className="sf-category-dropdown">
-              <button type="button" className="sf-category-select" aria-haspopup="listbox" aria-expanded={categoryDropdownOpen} onClick={() => setCategoryDropdownOpen(open => !open)}>
+              <button type="button" className="sf-category-select" style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,width:'100%',minHeight:42,boxSizing:'border-box',padding:'0 13px',border:'1px solid var(--sf-border, #DCE3ED)',borderRadius:10,background:'#fff',color:'var(--sf-ink, #101B2F)',font:'inherit',fontWeight:500,textAlign:'left',cursor:'pointer'}} aria-haspopup="listbox" aria-expanded={categoryDropdownOpen} onClick={() => setCategoryDropdownOpen(open => !open)}>
                 <span>{category === 'All' ? 'All categories' : category}</span><span aria-hidden="true">⌄</span>
               </button>
               {categoryDropdownOpen && <div className="sf-category-options" role="listbox" aria-label="Menu categories">
