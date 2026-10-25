@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { loadOwnerDataForTenant, publicMenuPhoto, type OwnerData } from '../management/menuService';
+import { loadKitchenMenuForTenant, publicMenuPhoto, type Category, type Product } from '../management/menuService';
 import type { StaffWorkspaceRole } from './OperationalDashboard';
 import './staff-workspace.css';
 
@@ -32,7 +32,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [filter, setFilter] = useState<'active' | 'all'>('active');
   const [cashierTab, setCashierTab] = useState<'orders' | 'sales'>('orders');
   const [kitchenTab, setKitchenTab] = useState<'orders' | 'menu'>('orders');
-  const [kitchenMenu, setKitchenMenu] = useState<OwnerData | null>(null);
+  const [kitchenMenu, setKitchenMenu] = useState<{categories:Category[];items:Product[]} | null>(null);
   const [kitchenMenuLoading, setKitchenMenuLoading] = useState(false);
   const [kitchenMenuError, setKitchenMenuError] = useState('');
   const [search, setSearch] = useState('');
@@ -52,7 +52,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     let active = true;
     setKitchenMenuLoading(true);
     setKitchenMenuError('');
-    void loadOwnerDataForTenant(tenantId).then(data => {
+    void loadKitchenMenuForTenant(tenantId).then(data => {
       if (active) setKitchenMenu(data);
     }).catch(reason => {
       if (active) setKitchenMenuError(reason instanceof Error ? reason.message : 'Unable to load menu items.');
