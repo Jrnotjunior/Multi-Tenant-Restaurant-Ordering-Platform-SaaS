@@ -67,3 +67,6 @@
 @media(max-width:900px){.staff-workspace{padding:24px 18px}.staff-header{flex-direction:column}.staff-header-actions{width:100%;justify-content:space-between}.staff-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.staff-workspace{padding:20px 12px}.staff-metrics{gap:9px}.staff-metrics article{padding:13px}.staff-metrics article strong{font-size:1.6rem}.staff-metrics article small{line-height:1.4}.staff-queue-heading{align-items:flex-start;flex-direction:column;padding:16px}.staff-order-card{padding:16px}.staff-order-card-heading{flex-direction:column}.staff-status{max-width:100%}.staff-order-details{grid-template-columns:1fr}.staff-payment{justify-content:start;text-align:left;grid-template-columns:auto auto}.staff-inline-control{align-items:stretch;flex-direction:column}.staff-inline-control input,.staff-inline-control select{width:100%;min-width:0}.staff-order-actions{justify-content:stretch}.staff-order-actions .staff-button{flex:1}.staff-assignment-note{width:100%}}
 @media(prefers-reduced-motion:reduce){.staff-button{transition:none}}
+
+.staff-status.status-ready_for_pickup{background:#fff5dc;color:#855500;border-color:#ead7a5}
+.staff-status.status-completed{background:#edf9f1;color:#17683d;border-color:#c6ead1}
