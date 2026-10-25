@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase';
 import { clearPendingMfa, getMfaFlow, restartIncompleteMfa, verifyMfa, type MfaFlow } from './mfaFlow';
@@ -29,6 +29,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
   ];
   const passwordMeetsStandard = passwordRules.every(rule => rule.valid);
   const [code, setCode] = useState('');
+  const otpInputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const client = supabase;
@@ -307,7 +308,34 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
       </div>}
       {flow.kind === 'challenge' && !isExistingAccountMfa && <p>Enter the current six-digit code from your authenticator app.</p>}
       <form onSubmit={(e) => void submitMfa(e)} className="auth-form onboarding-mfa-form">
-        <label>Authenticator code<input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={code} onChange={(e) => setCode(e.target.value)} required /></label>
+        <fieldset className="onboarding-otp-fieldset" aria-describedby="onboarding-otp-hint">
+          <legend>Authenticator code</legend>
+          <div className="onboarding-otp-inputs" role="group" aria-label="Six-digit authenticator code">
+            {Array.from({ length: 6 }, (_, index) => (
+              <input key={index} ref={element => { otpInputRefs.current[index] = element; }} className="onboarding-otp-digit" type="text" inputMode="numeric" autoComplete={index === 0 ? 'one-time-code' : 'off'} pattern="[0-9]" maxLength={1} aria-label={`Digit ${index + 1} of 6`} value={code[index] ?? ''} required
+                onChange={event => {
+                  const digit = event.target.value.replace(/[^0-9]/g, '').slice(-1);
+                  const nextCode = (code.slice(0, index) + digit + code.slice(index + 1)).slice(0, 6);
+                  setCode(nextCode);
+                  if (digit && index < 5) otpInputRefs.current[index + 1]?.focus();
+                }}
+                onKeyDown={event => {
+                  if (event.key === 'Backspace' && !code[index] && index > 0) otpInputRefs.current[index - 1]?.focus();
+                  else if (event.key === 'ArrowLeft' && index > 0) { event.preventDefault(); otpInputRefs.current[index - 1]?.focus(); }
+                  else if (event.key === 'ArrowRight' && index < 5) { event.preventDefault(); otpInputRefs.current[index + 1]?.focus(); }
+                }}
+                onPaste={event => {
+                  event.preventDefault();
+                  const pasted = event.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+                  if (!pasted) return;
+                  setCode(pasted);
+                  otpInputRefs.current[Math.min(pasted.length, 5)]?.focus();
+                }}
+              />
+            ))}
+          </div>
+          <span id="onboarding-otp-hint" className="onboarding-otp-hint">Enter the 6-digit code from your authenticator app.</span>
+        </fieldset>
         <button className="onboarding-mfa-verify" type="submit" disabled={busy}>{busy ? 'Verifying…' : 'Verify authenticator'}</button>
       </form>
 
