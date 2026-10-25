@@ -352,7 +352,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
 
   if (!catalog || loadStatus !== 'ready') {
     return <div className="sf-storefront">
-      {!cartPage && (<header className="sf-header"><div className="sf-header-inner">
+      {!cartPage && !checkoutPage && (<header className="sf-header"><div className="sf-header-inner">
         <a className="sf-logo" href={normalizeAppBase(baseUrl)}>
           <span className="sf-logo-mark">W2T</span><span>Web2Table</span>
         </a>
