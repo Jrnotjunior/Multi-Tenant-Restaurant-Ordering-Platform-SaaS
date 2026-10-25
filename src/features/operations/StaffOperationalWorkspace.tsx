@@ -29,6 +29,8 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [selectedRiders, setSelectedRiders] = useState<Record<string, string>>({});
   const [fees, setFees] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<'active' | 'all'>('active');
+  const [search, setSearch] = useState('');
+  const [orderTypeFilter, setOrderTypeFilter] = useState<'all' | Order['order_type']>('all');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
@@ -59,6 +61,16 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
 
   useEffect(() => { void load(); }, [load]);
   useEffect(() => { const timer = window.setInterval(() => { void load(true); }, 15000); return () => window.clearInterval(timer); }, [load]);
+
+  const visibleOrders = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return orders.filter(order => {
+      const matchesType = orderTypeFilter === 'all' || order.order_type === orderTypeFilter;
+      const searchable = [String(order.order_number), order.customer_name, order.customer_phone, order.branch_name, order.order_status, ...(order.items ?? []).map(item => item.item_name)];
+      const matchesSearch = !term || searchable.some(value => value.toLowerCase().includes(term));
+      return matchesType && matchesSearch;
+    });
+  }, [orders, search, orderTypeFilter]);
 
   const stats = useMemo(() => ({
     incoming: orders.filter(o => o.order_status === 'pending_confirmation').length,
@@ -140,9 +152,13 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       <div className="staff-queue-heading"><div><p className="staff-eyebrow">WORK QUEUE</p><h2>{copy.queue}</h2></div>
         <div className="staff-queue-controls"><button type="button" className={filter === 'active' ? 'is-selected' : ''} onClick={() => setFilter('active')}>Active</button><button type="button" className={filter === 'all' ? 'is-selected' : ''} onClick={() => setFilter('all')}>All orders</button></div>
       </div>
+      <div className="staff-queue-toolbar">
+        <label className="staff-order-search"><span className="staff-search-icon" aria-hidden="true">⌕</span><input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search order number, customer, phone…" aria-label="Search orders" /><kbd>/</kbd></label>
+        <div className="staff-queue-toolbar-end"><label className="staff-order-type-filter"><span>Order type</span><select value={orderTypeFilter} onChange={event => setOrderTypeFilter(event.target.value as typeof orderTypeFilter)} aria-label="Filter by order type"><option value="all">All types</option><option value="delivery">Delivery</option><option value="take_out">Take-out</option><option value="pickup">Pickup</option><option value="dine_in">Dine-in</option></select></label><span className="staff-result-count">{visibleOrders.length} {visibleOrders.length === 1 ? 'order' : 'orders'}</span></div>
+      </div>
       {(error || notice) && <p className={'staff-notice ' + (error ? 'is-error' : 'is-success')} role={error ? 'alert' : 'status'}>{error || notice}</p>}
-      {loading ? <p className="staff-empty">Loading orders…</p> : orders.length === 0 ? <div className="staff-empty"><h3>No orders in this queue</h3><p>Orders will appear here as customers check out and your team moves them through fulfillment.</p></div> :
-        <div className="staff-order-list">{orders.map(order => {
+      {loading ? <p className="staff-empty"><span className="staff-loading-dot" aria-hidden="true" /> Loading orders…</p> : visibleOrders.length === 0 ? <div className="staff-empty"><span className="staff-empty-icon" aria-hidden="true">{orders.length > 0 ? '⌕' : '✓'}</span><h3>{orders.length > 0 ? 'No matching orders' : 'You’re all caught up'}</h3><p>{orders.length > 0 ? 'Try a different search or order type filter.' : 'New orders will appear here automatically. You can keep working while the queue stays up to date.'}</p>{(search || orderTypeFilter !== 'all') && <button type="button" className="staff-button staff-button-secondary" onClick={() => { setSearch(''); setOrderTypeFilter('all'); }}>Clear filters</button>}</div> :
+        <div className="staff-order-list">{visibleOrders.map(order => {
           const buttons = actions(order);
           const branchRiders = riders[order.branch_id] ?? [];
           const canAssign = role === 'dispatcher' && order.order_status === 'ready_for_dispatch';
