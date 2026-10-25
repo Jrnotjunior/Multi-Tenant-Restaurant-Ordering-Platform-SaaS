@@ -243,3 +243,24 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
   .app:has(.privileged-onboarding) .onboarding-steps span{width:30px;height:30px}
   .app:has(.privileged-onboarding) .onboarding-steps i{margin-top:14px}
 }
+
+
+/* Constrain onboarding to a centered 1060px canvas on wide desktop screens. */
+@media(min-width:1101px){
+  .app:has(.privileged-onboarding) .privileged-onboarding{
+    width:min(1060px,100%);
+    max-width:1060px;
+    min-height:100vh;
+    margin-inline:auto;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  }
+  .app:has(.privileged-onboarding) .onboarding-story{
+    min-height:100vh;
+  }
+  .app:has(.privileged-onboarding) .onboarding-card{
+    width:calc(100% - 40px);
+    max-width:480px;
+    margin:24px 20px;
+    padding:26px 24px;
+  }
+}
