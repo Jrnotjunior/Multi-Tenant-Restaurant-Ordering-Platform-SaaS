@@ -20,6 +20,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Pin npm to a peer-resolution fix
+        run: npm install --global npm@11.19.1
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Typecheck
