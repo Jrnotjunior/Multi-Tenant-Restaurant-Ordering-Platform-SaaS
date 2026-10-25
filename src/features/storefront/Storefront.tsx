@@ -442,6 +442,10 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
         restaurantName={restaurant.name}
         itemCount={count}
         subtotalCentavos={subtotal}
+        orderLines={[
+          ...cartLines(cart, menu).map(line => ({ name: line.item.name, quantity: line.quantity, totalCentavos: line.item.priceCentavos * line.quantity })),
+          ...customLines(customized, menu).map(line => ({ name: line.item.name, quantity: line.quantity, totalCentavos: line.totalCentavos }))
+        ]}
         onBackToMenu={() => navigateCheckout(false)}
       /> : <>
       <section className="sf-hero" aria-label="Restaurant introduction">
