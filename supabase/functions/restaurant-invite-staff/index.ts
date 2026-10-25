@@ -55,9 +55,24 @@ Deno.serve(async (req: Request) => {
       return respond(req,400,{error:msg.includes("pending invitation")?"A pending invitation already exists for this email and restaurant.":msg});
     }
     invitationId=newInvite;
+    const [{data:tenant,error:tenantError},{data:branch,error:branchError}]=await Promise.all([
+      adminClient.from("tenants").select("name,slug").eq("id",tenantId).maybeSingle(),
+      adminClient.from("branches").select("name,slug").eq("id",branchId).eq("tenant_id",tenantId).maybeSingle(),
+    ]);
+    if(tenantError||branchError||!tenant||!branch) {
+      await adminClient.from("privileged_invitations").update({status:"failed"}).eq("id",invitationId);
+      return respond(req,500,{error:"Restaurant or branch details could not be loaded for the invitation email."});
+    }
+    const roleLabels:Record<string,string>={cashier:"cashier",kitchen:"kitchen team member",dispatcher:"dispatcher",rider:"delivery rider"};
     const {data:sent,error:sendError}=await adminClient.auth.admin.inviteUserByEmail(email,{
       redirectTo:(()=>{const target=new URL(APP_URL);target.searchParams.set("type","invite");return target.toString();})(),
-      data:{first_name:firstName,last_name:lastName,full_name:fullName,invitation_type:"restaurant_staff",tenant_id:tenantId,tenant_role:role,tenant_invitation_id:invitationId,branch_id:branchId},
+      data:{
+        first_name:firstName,last_name:lastName,full_name:fullName,name:fullName,
+        invitation_type:"restaurant_staff",invitation_label:"RESTAURANT TEAM INVITATION",
+        invitation_role:roleLabels[role]??"staff member",account_setup:"your staff account",
+        restaurant_name:tenant.name,restaurant_slug:tenant.slug,branch_name:branch.name,branch_slug:branch.slug,
+        tenant_id:tenantId,tenant_role:role,tenant_invitation_id:invitationId,branch_id:branchId,
+      },
     });
     if(sendError||!sent?.user?.id) {
       await adminClient.from("privileged_invitations").update({status:"failed"}).eq("id",invitationId);
