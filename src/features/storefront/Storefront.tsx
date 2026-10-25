@@ -159,6 +159,7 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
           <strong className="sf-cart-lineprice">{peso(item.priceCentavos * quantity)}</strong>
         </div>)}
       </div>
+      {close && <button type="button" className="sf-continue sf-cart-add-more" onClick={close}>Add more items</button>}
       <div className="sf-price-breakdown">
         <div><span>Subtotal</span><strong>{peso(cartSubtotal(cart, menu)+customSubtotal(customized,menu))}</strong></div>
         <div><span>Delivery fee</span><span>At checkout</span></div>
