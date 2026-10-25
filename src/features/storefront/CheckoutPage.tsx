@@ -10,7 +10,7 @@ type CheckoutPageProps = {
   subtotalCentavos: number;
   orderLines: readonly { name: string; quantity: number; totalCentavos: number }[];
   onBackToMenu: () => void;
-  onPlaceOrder: (submission: CheckoutSubmission) => Promise<{ orderNumber: number }>;
+  onPlaceOrder: (submission: CheckoutSubmission) => Promise<{ orderNumber: number; checkoutUrl?: string }>;
 };
 
 function OrderTypeSection({ value, onChange }: {
@@ -119,7 +119,7 @@ export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackTo
         <div className="sf-payment-modal-actions">
           <button type="button" className="sf-payment-cancel" onClick={() => setPaymentModalOpen(false)}>Cancel</button>
           <button type="button" className="sf-payment-place-order" disabled={!paymentMethod || submitting} onClick={async () => {
-            if (paymentMethod === 'online') { setMessage('Online payment is not connected yet. No order has been placed.'); setPaymentModalOpen(false); return; }
+            if (paymentMethod === 'online' && orderType === 'Delivery') { setMessage('Online payment for delivery will be available after the restaurant confirms your delivery fee. No order has been placed.'); return; }
             const form = document.querySelector<HTMLFormElement>('.sf-checkout-page-form');
             if (!form) return;
             const values = new FormData(form);
@@ -136,8 +136,13 @@ export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackTo
                 phone: String(values.get('mobile') ?? '').trim(),
                 deliveryAddress: orderType === 'Delivery' ? [street, barangay, city].filter(Boolean).join(', ') : '',
                 deliveryNotes: String(values.get('notes') ?? '').trim(),
-                paymentMethod: 'cash',
+                paymentMethod,
               });
+              if (paymentMethod === 'online') {
+                if (!result.checkoutUrl) throw new Error('Order #' + result.orderNumber + ' was created, but a checkout link was not returned. Contact the restaurant before placing another order.');
+                window.location.assign(result.checkoutUrl);
+                return;
+              }
               setMessage('Order #' + result.orderNumber + ' placed successfully. Pay at the restaurant counter.');
               setPaymentModalOpen(false);
             } catch (error) {
