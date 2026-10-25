@@ -195,3 +195,9 @@
 .staff-payment-tabs button:hover{background:var(--color-page,#F7F9FC);color:var(--color-text,#101B2F)}
 .staff-payment-tabs button.is-selected{background:var(--color-text,#101B2F);color:#fff;box-shadow:0 1px 3px #101b2f24}
 @media(max-width:640px){.staff-payment-tabs{flex-wrap:wrap}.staff-payment-tabs button{padding:7px 10px}}
+
+/* Keep the order count outside the payment tab group. */
+.staff-payment-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:12px}
+.staff-payment-toolbar .staff-payment-tabs{flex:0 0 auto}
+.staff-payment-toolbar .staff-result-count{white-space:nowrap}
+@media(max-width:640px){.staff-payment-toolbar{gap:8px;flex-wrap:wrap}}
