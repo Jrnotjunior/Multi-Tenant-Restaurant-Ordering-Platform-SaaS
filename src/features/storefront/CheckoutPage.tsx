@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { peso } from './demoCatalog';
 
 type OrderType = 'Delivery' | 'Take-out' | 'Pickup' | 'Dine-in';
+type PaymentMethod = 'cash' | 'online';
 
 type CheckoutPageProps = {
   itemCount: number;
@@ -55,11 +56,13 @@ export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackTo
   const [orderType, setOrderType] = useState<OrderType>('Delivery');
   const [message, setMessage] = useState('');
   const [reviewed, setReviewed] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | ''>('');
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setReviewed(true);
-    setMessage('Your details are ready for review. Online order submission and payment are not connected yet, so no order has been placed.');
+    setMessage('');
+    setPaymentModalOpen(true);
   }
 
   return <main className="sf-checkout-page">
@@ -87,8 +90,34 @@ export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackTo
       </section>
 
       {message && <p className="sf-checkout-page-message" role="status">{message}</p>}
-      <button className="sf-checkout-submit" type="submit" disabled={itemCount === 0}>{reviewed ? 'Details reviewed' : 'Choose Payment Options'}</button>
-
+      <button className="sf-checkout-submit" type="submit" disabled={itemCount === 0}>Choose Payment Options</button>
     </form>
+
+    {paymentModalOpen && <div className="sf-payment-modal-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setPaymentModalOpen(false); }}>
+      <section className="sf-payment-modal" role="dialog" aria-modal="true" aria-labelledby="sf-payment-modal-title">
+        <button className="sf-payment-modal-close" type="button" aria-label="Close payment options" onClick={() => setPaymentModalOpen(false)}>×</button>
+        <span className="sf-section-kicker">CHECKOUT</span>
+        <h2 id="sf-payment-modal-title">Choose your payment method</h2>
+        <p className="sf-payment-modal-description">Select how you would like to pay for this order.</p>
+        <div className="sf-payment-options">
+          <label className={'sf-payment-option' + (paymentMethod === 'cash' ? ' is-selected' : '')}>
+            <span className="sf-payment-option-icon" aria-hidden="true">₱</span>
+            <span className="sf-payment-option-copy"><strong>Pay cash at the counter</strong><small>Place your order now and pay the cashier at the restaurant counter before preparation.</small></span>
+            <input type="radio" name="paymentMethod" value="cash" checked={paymentMethod === 'cash'} onChange={() => setPaymentMethod('cash')} />
+          </label>
+          <label className={'sf-payment-option' + (paymentMethod === 'online' ? ' is-selected' : '')}>
+            <span className="sf-payment-option-icon" aria-hidden="true">↗</span>
+            <span className="sf-payment-option-copy"><strong>Online Payment</strong><small>Pay securely through our online payment gateway.</small></span>
+            <input type="radio" name="paymentMethod" value="online" checked={paymentMethod === 'online'} onChange={() => setPaymentMethod('online')} />
+          </label>
+        </div>
+        <p className="sf-payment-policy">By placing your order, you agree to our Cancellation &amp; Refund Policy.</p>
+        {message && <p className="sf-checkout-page-message" role="status">{message}</p>}
+        <div className="sf-payment-modal-actions">
+          <button type="button" className="sf-payment-cancel" onClick={() => setPaymentModalOpen(false)}>Cancel</button>
+          <button type="button" className="sf-payment-place-order" disabled={!paymentMethod} onClick={() => { setMessage(paymentMethod === 'online' ? 'Online payment is not connected yet. No order has been placed.' : 'Order submission is not connected yet. No order has been placed.'); setPaymentModalOpen(false); }}>Place Order</button>
+        </div>
+      </section>
+    </div>}
   </main>;
 }
