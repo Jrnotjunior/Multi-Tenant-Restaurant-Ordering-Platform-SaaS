@@ -192,22 +192,26 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
   </>;
 }
 
-function MenuCard({ item, quantity, add, customize }: { item: MenuItem; quantity: number; add: (id: string, delta: number) => void; customize:(item:MenuItem)=>void }) {
-  return <article className="sf-menu-card" style={{display:'grid',gridTemplateColumns:'150px minmax(0,1fr)',minHeight:150,borderRadius:13}}>
+function MenuCard({ item, quantity, add, customize, notify }: { item: MenuItem; quantity: number; add: (id: string, delta: number) => void; customize:(item:MenuItem)=>void; notify:(message:string)=>void }) {
+  const soldOut = item.isAvailable === false;
+  const tryAdd = () => { if (soldOut) { notify(`${item.name} is sold out and can’t be added to your cart.`); return; } add(item.id, 1); };
+  return <article className={'sf-menu-card' + (soldOut ? ' is-sold-out' : '')} style={{display:'grid',gridTemplateColumns:'150px minmax(0,1fr)',minHeight:150,borderRadius:13}}>
     <div className="sf-card-image" style={{height:150,minHeight:150,alignSelf:'stretch'}}>
       <FoodArt item={item}/>
-      {item.popular && <span className="sf-popular">★ Popular</span>}
+      {soldOut ? <span className="sf-sold-out-badge">Sold out</span> : item.popular && <span className="sf-popular">★ Popular</span>}
     </div>
     <div className="sf-card-details" style={{display:'flex',flexDirection:'column',minWidth:0,padding:'12px 14px'}}>
       <h3 style={{marginTop:0}}>{item.name}</h3>
       <p>{item.description}</p>
       <div className="sf-card-bottom" style={{marginTop:'auto',paddingTop:8}}>
         <strong>{peso(item.priceCentavos)}</strong>
-        {(item.modifierGroups?.length??0)>0
+        {soldOut
+          ? <button type="button" className="sf-add sf-add-sold-out" onClick={tryAdd} aria-label={'Add ' + item.name + ' to cart (sold out)'}>+</button>
+          : (item.modifierGroups?.length??0)>0
           ? <button type="button" className="sf-customize-action" onClick={()=>customize(item)}>Customize</button>
           : quantity > 0
           ? <QuantityControl itemId={item.id} quantity={quantity} change={add}/>
-          : <button type="button" className="sf-add" onClick={() => add(item.id, 1)} aria-label={'Add ' + item.name + ' to cart'}>+</button>}
+          : <button type="button" className="sf-add" onClick={tryAdd} aria-label={'Add ' + item.name + ' to cart'}>+</button>}
       </div>
     </div>
   </article>;
@@ -237,6 +241,8 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     customerName:'',phone:'',deliveryAddress:'',deliveryNotes:'',
   });
   const [checkoutMessage,setCheckoutMessage]=useState('');
+  const [availabilityMessage,setAvailabilityMessage]=useState('');
+  useEffect(() => { if (!availabilityMessage) return; const timer=window.setTimeout(()=>setAvailabilityMessage(''),3500); return ()=>window.clearTimeout(timer); }, [availabilityMessage]);
 
   useEffect(() => {
     writeSessionValue(cartStorageKey + ':items', cart);
@@ -311,8 +317,11 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
 
   const changeCustomized=(key:string,delta:number)=>setCustomized(previous=>changeCustom(previous,key,delta));
   const addCustomized=(item:MenuItem,selected:Selection)=>setCustomized(previous=>addCustom(previous,item,selected));
-  const change = (itemId: string, delta: number) =>
+  const change = (itemId: string, delta: number) => {
+    const item=menu.find(entry=>entry.id===itemId);
+    if (delta>0 && item?.isAvailable===false) { setAvailabilityMessage(`${item.name} is sold out and can’t be added to your cart.`); return; }
     setCart((previous) => updateCart(previous, itemId, delta, menu));
+  };
 
   function navigateCart(open: boolean) {
     if (!resolvedSlug) { setCartPage(open); setCheckoutPage(false); return; }
@@ -520,6 +529,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
         </label>
       </section>}
 
+      {availabilityMessage && <div className="sf-availability-error" role="alert">{availabilityMessage}</div>}
       <div className="sf-layout" id="sf-menu">
         <div className="sf-catalog">
           <div className="sf-search-wrap">
@@ -538,7 +548,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
             </div>
           </div>
           {results.length ? <div className="sf-menu-grid" style={{display:'grid',gridTemplateColumns:'minmax(0,1fr)',gap:12}}> 
-            {results.map((item) => <MenuCard item={item} quantity={cart[item.id] ?? 0} add={change} customize={setCustomizing} key={item.id}/>)}
+            {results.map((item) => <MenuCard item={item} quantity={cart[item.id] ?? 0} add={change} customize={setCustomizing} notify={setAvailabilityMessage} key={item.id}/>)}
           </div> : menu.length === 0 ? <div className="sf-no-results sf-menu-coming-soon"><span aria-hidden="true">🍽️</span><h3>Menu coming soon</h3><p>{restaurant.name} is preparing its menu. Please check back soon.</p></div>
           : <div className="sf-no-results"><span aria-hidden="true">🔎</span><h3>Nothing on the menu matched</h3><p>Try another search or choose a different category.</p><button type="button" onClick={() => {setQuery('');setCategory('All');}}>Clear filters</button></div>}
         </div>
