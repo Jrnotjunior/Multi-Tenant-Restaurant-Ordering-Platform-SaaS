@@ -6,7 +6,8 @@ import { filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
 import { branchSlugFromSearch, loadDefaultPublishedMenu, loadPublishedMenu, type StorefrontCatalog } from './publishedMenu';
 import { isStorefrontCartPath, isStorefrontCheckoutPath, normalizeAppBase, restaurantMenuPath, storefrontCartPath, storefrontCheckoutPath } from '../../app/routes';
 import { CartPage } from './CartPage';
-import { CheckoutPage } from './CheckoutPage';
+import { CheckoutPage, type CheckoutSubmission } from './CheckoutPage';
+import { supabase } from '../../lib/supabase';
 import './storefront.css';
 
 function readSessionValue<T>(key: string, fallback: T): T {
@@ -83,6 +84,7 @@ type CheckoutDetails = Readonly<{
   phone: string;
   deliveryAddress: string;
   deliveryNotes: string;
+  orderType?: 'Delivery' | 'Take-out' | 'Pickup' | 'Dine-in';
 }>;
 
 export function buildCheckoutReadiness(input: {
@@ -111,7 +113,7 @@ export function buildCheckoutReadiness(input: {
   if (!/^09\d{9}$/.test(input.details.phone.trim())) {
     return { ready: false, reason: 'Enter an 11-digit Philippine mobile number starting with 09.', subtotalCentavos };
   }
-  if (input.details.deliveryAddress.trim().length < 8 || input.details.deliveryAddress.trim().length > 500) {
+  if ((input.details.orderType ?? 'Delivery') === 'Delivery' && (input.details.deliveryAddress.trim().length < 8 || input.details.deliveryAddress.trim().length > 500)) {
     return { ready: false, reason: 'Enter a complete delivery address (8–500 characters).', subtotalCentavos };
   }
   if (input.details.deliveryNotes.trim().length > 300) {
@@ -468,6 +470,35 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           ...customLines(customized, menu).map(line => ({ name: line.item.name, quantity: line.quantity, totalCentavos: line.totalCentavos }))
         ]}
         onBackToMenu={() => navigateCheckout(false)}
+        onPlaceOrder={async (submission: CheckoutSubmission) => {
+          if (!supabase) throw new Error('Ordering service is not configured. No order was placed.');
+          if (!restaurant?.slug || !restaurant.branchSlug) throw new Error('Restaurant branch is unavailable. No order was placed.');
+          const orderItems = [
+            ...cartLines(cart, menu).map(line => ({ item_id: line.item.id, quantity: line.quantity, option_ids: [] as string[] })),
+            ...customLines(customized, menu).map(line => ({ item_id: line.itemId, quantity: line.quantity, option_ids: [...line.optionIds] })),
+          ];
+          if (!orderItems.length) throw new Error('Your cart is empty. No order was placed.');
+          const orderTypeMap = { Delivery: 'delivery', 'Take-out': 'take_out', Pickup: 'pickup', 'Dine-in': 'dine_in' } as const;
+          const idempotencyKey = window.crypto?.randomUUID?.();
+          if (!idempotencyKey) throw new Error('This browser cannot securely start checkout. Please update your browser and try again.');
+          const { data, error } = await supabase.rpc('create_customer_order', {
+            p_restaurant_slug: restaurant.slug,
+            p_branch_slug: restaurant.branchSlug,
+            p_customer_name: submission.customerName,
+            p_customer_phone: submission.phone,
+            p_delivery_address: submission.deliveryAddress,
+            p_delivery_notes: submission.deliveryNotes,
+            p_idempotency_key: idempotencyKey,
+            p_order_type: orderTypeMap[submission.orderType],
+            p_items: orderItems,
+          });
+          if (error) throw new Error(error.message || 'Order could not be placed.');
+          const result = data as { success?: boolean; order_number?: number; order_id?: string } | null;
+          if (!result?.success || !Number.isFinite(Number(result.order_number))) throw new Error('The server did not confirm this order. Please check with the restaurant before retrying.');
+          setCart({});
+          setCustomized({});
+          return { orderNumber: Number(result.order_number) };
+        }}
       /> : <>
       <section className="sf-hero" aria-label="Restaurant introduction">
         <h1>{restaurant.name}</h1>
