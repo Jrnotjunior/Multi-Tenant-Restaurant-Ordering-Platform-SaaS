@@ -117,6 +117,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       { action: 'confirm', label: 'Confirm order', primary: true }, { action: 'reject', label: 'Reject', primary: false },
     ];
     if (role === 'cashier' && order.order_status === 'confirmed') return [{ action: 'cancel', label: 'Cancel order', primary: false }];
+    if (role === 'cashier' && order.order_status === 'ready_for_pickup') return [{ action: 'complete_handoff', label: 'Complete handoff', primary: true }];
     if (role === 'kitchen' && order.order_status === 'confirmed') return [{ action: 'start_preparing', label: 'Start preparing', primary: true }];
     if (role === 'kitchen' && order.order_status === 'preparing') return [{ action: 'mark_ready', label: 'Mark ready', primary: true }];
     if (role === 'dispatcher' && order.order_status === 'ready_for_dispatch' && order.assigned_rider_user_id) return [{ action: 'dispatch', label: 'Dispatch order', primary: true }];
@@ -132,7 +133,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     <section className="staff-metrics" aria-label="Order summary">
       <article><span>New orders</span><strong>{stats.incoming}</strong><small>Awaiting cashier review</small></article>
       <article><span>Preparing</span><strong>{stats.preparing}</strong><small>Confirmed / in kitchen</small></article>
-      <article><span>Ready for dispatch</span><strong>{stats.ready}</strong><small>Awaiting rider handoff</small></article>
+      <article><span>Ready for handoff</span><strong>{stats.ready}</strong><small>Awaiting rider or customer handoff</small></article>
       <article><span>Out for delivery</span><strong>{stats.delivery}</strong><small>Currently on the road</small></article>
     </section>
     <section className="staff-queue">
