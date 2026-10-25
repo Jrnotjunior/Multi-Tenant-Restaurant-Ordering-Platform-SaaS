@@ -6,6 +6,7 @@ import { filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
 import { branchSlugFromSearch, loadDefaultPublishedMenu, loadPublishedMenu, type StorefrontCatalog } from './publishedMenu';
 import { isStorefrontCartPath, normalizeAppBase, restaurantMenuPath, storefrontCartPath } from '../../app/routes';
 import { CartPage } from './CartPage';
+import { CheckoutPage } from './CheckoutPage';
 import './storefront.css';
 
 function readSessionValue<T>(key: string, fallback: T): T {
@@ -213,6 +214,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const [customized,setCustomized]=useState<CustomCart>(() => readSessionValue<CustomCart>(cartStorageKey + ':custom', {}));
   const [customizing,setCustomizing]=useState<MenuItem|null>(null);
   const [cartPage, setCartPage] = useState(() => initialCartPage || isStorefrontCartPath(window.location.pathname, baseUrl));
+  const [checkoutPage, setCheckoutPage] = useState(() => isStorefrontCheckoutPath(window.location.pathname, baseUrl));
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutDetails,setCheckoutDetails]=useState<CheckoutDetails>({
     customerName:'',phone:'',deliveryAddress:'',deliveryNotes:'',
@@ -232,6 +234,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     function syncBranchFromHistory() {
       setSelectedBranch(branchSlugFromSearch(window.location.search));
       setCartPage(isStorefrontCartPath(window.location.pathname, baseUrl));
+      setCheckoutPage(isStorefrontCheckoutPath(window.location.pathname, baseUrl));
       setCustomizing(null);
       setCategory('All');
     }
@@ -306,12 +309,25 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     setCart((previous) => updateCart(previous, itemId, delta, menu));
 
   function navigateCart(open: boolean) {
-    if (!resolvedSlug) { setCartPage(open); return; }
+    if (!resolvedSlug) { setCartPage(open); setCheckoutPage(false); return; }
     const nextPath = open ? storefrontCartPath(resolvedSlug, baseUrl) : restaurantMenuPath(resolvedSlug, baseUrl);
     const url = new URL(window.location.href);
     url.pathname = nextPath;
     window.history.pushState({}, '', url.pathname + url.search + url.hash);
     setCartPage(open);
+    setCheckoutPage(false);
+    setAccountMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  function navigateCheckout(open: boolean) {
+    if (!resolvedSlug) { setCheckoutPage(open); setCartPage(false); return; }
+    const nextPath = open ? storefrontCheckoutPath(resolvedSlug, baseUrl) : restaurantMenuPath(resolvedSlug, baseUrl);
+    const url = new URL(window.location.href);
+    url.pathname = nextPath;
+    window.history.pushState({}, '', url.pathname + url.search + url.hash);
+    setCheckoutPage(open);
+    setCartPage(false);
     setAccountMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'auto' });
   }
@@ -329,6 +345,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     setCustomized({});
     setCustomizing(null);
     setCartPage(false);
+    setCheckoutPage(false);
     setCategory('All');
     setQuery('');
   }
@@ -420,8 +437,13 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
 
     <main className={cartPage ? "sf-main sf-main-cart" : "sf-main"}>
       {cartPage ? <CartPage count={count} onBack={() => navigateCart(false)}>
-        <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} close={() => navigateCart(false)} onCheckout={() => { setCheckoutMessage(''); setCheckoutOpen(true); }}/>
-      </CartPage> : <>
+        <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} close={() => navigateCart(false)} onCheckout={() => navigateCheckout(true)}/>
+      </CartPage> : checkoutPage ? <CheckoutPage
+        restaurantName={restaurant.name}
+        itemCount={count}
+        subtotalCentavos={subtotal}
+        onBackToMenu={() => navigateCheckout(false)}
+      /> : <>
       <section className="sf-hero" aria-label="Restaurant introduction">
         <h1>{restaurant.name}</h1>
         {restaurant.tagline?.trim() && <p>{restaurant.tagline}</p>}
@@ -471,7 +493,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       </>}
     </main>
 
-    {!cartPage && (<footer className="sf-footer">
+    {!cartPage && !checkoutPage && (<footer className="sf-footer">
       <div className="sf-footer-inner">
       <section className="sf-footer-social-section" aria-label="Follow the restaurant">
         <h2 className="sf-footer-heading">Follow Us</h2>
@@ -488,7 +510,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       </div>
     </footer>)}
 
-    {count > 0 && cartBarVisible && !cartPage && <div className="sf-mobile-cart-bar">
+    {count > 0 && cartBarVisible && !cartPage && !checkoutPage && <div className="sf-mobile-cart-bar">
       <button type="button" onClick={() => navigateCart(true)} aria-label={'View cart, ' + count + ' items, ' + peso(subtotal)}>
         <span className="sf-mobile-cart-count">{count}</span><span>View cart</span><strong>{peso(subtotal)}</strong><ArrowIcon/>
       </button>
