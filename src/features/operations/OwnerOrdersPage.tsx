@@ -138,6 +138,33 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
     }
   }
 
+  async function refundOrder(order: CustomerOrder) {
+    if (!supabase) return;
+    const confirmed = window.confirm(`Request a full refund for order #${order.order_number}? This contacts PayMongo and cannot be treated as a simple status change.`);
+    if (!confirmed) return;
+    setBusyOrder(order.id);
+    setError('');
+    setMessage('');
+    try {
+      const { data, error: refundError } = await supabase.functions.invoke('refund-customer-order', {
+        body: { tenantId, orderId: order.id, reason: 'requested_by_customer' },
+      });
+      if (refundError) throw refundError;
+      const result = data as { success?: boolean; status?: string; message?: string; error?: string } | null;
+      if (result?.error) throw new Error(result.error);
+      if (result?.status === 'refunded') {
+        setMessage(`Order #${order.order_number} was refunded successfully.`);
+      } else {
+        setMessage(result?.message || `Refund request for order #${order.order_number} is pending PayMongo confirmation.`);
+      }
+      await load();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Unable to request a refund.');
+    } finally {
+      setBusyOrder('');
+    }
+  }
+
   async function toggleAcceptance() {
     if (!supabase) return;
     setBusyAcceptance(true);
@@ -238,8 +265,16 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
           <span>Subtotal <strong>{peso(order.subtotal_centavos)}</strong></span>
           <span>{order.order_type === 'delivery' ? 'Delivery fee' : 'Fulfillment fee'} <strong>{peso(order.delivery_fee_centavos)}</strong></span>
           <span>Total <strong>{peso(order.total_centavos)}</strong></span>
-          <span>Payment <strong>{statusLabel(order.payment_status)}</strong></span>
+          <span className={'owner-order-payment-status payment-' + order.payment_status}>
+            Payment <strong>{order.payment_status === 'paid' ? 'Payment successful' : order.payment_status === 'failed' ? 'Payment failed' : order.payment_status === 'refunded' ? 'Refund successful' : statusLabel(order.payment_status)}</strong>
+          </span>
         </div>
+        {order.payment_status === 'paid' ? <div className="owner-order-actions">
+          <button type="button" className="is-danger" disabled={busyOrder === order.id}
+            onClick={() => void refundOrder(order)}>
+            {busyOrder === order.id ? 'Processing…' : 'Issue full refund'}
+          </button>
+        </div> : null}
         {nextActions[order.order_status]?.length ? <footer className="owner-order-actions">
           {nextActions[order.order_status].map(action => <button type="button" key={action.action}
             className={action.action === 'reject' || action.action === 'cancel' ? 'is-danger' : ''}
