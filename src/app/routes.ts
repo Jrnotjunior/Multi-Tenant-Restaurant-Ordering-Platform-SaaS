@@ -53,7 +53,11 @@ export function viewForPath(pathname: string, baseUrl: string): View {
   if (!pathname.startsWith(base)) return 'home';
   const relative = pathname.slice(base.length).replace(/\/+$/, '');
   if (relative === 'order' || relative.startsWith('order/')) return 'order';
-  if (relative === 'restaurant' || relative === 'admin') return relative;
+  // Hash-based protected workspaces include nested routes such as
+  // #/restaurant/rider and #/restaurant/cashier/sales. On refresh the full
+  // fragment is normalized into this path, so match the workspace prefix.
+  if (relative === 'restaurant' || relative.startsWith('restaurant/')) return 'restaurant';
+  if (relative === 'admin' || relative.startsWith('admin/')) return 'admin';
   return 'home';
 }
 
