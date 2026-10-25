@@ -8,6 +8,8 @@ type AuthMode = 'sign-in' | 'sign-up';
 export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthMode; baseUrl: string; restaurantSlug: string | null }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [privacyConsent, setPrivacyConsent] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -68,6 +70,14 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
       setMessage('Enter both your first name and last name.');
       return;
     }
+    if (isSignUp && !/^09[0-9]{9}$/.test(phone.trim())) {
+      setMessage('Enter an 11-digit mobile number starting with 09.');
+      return;
+    }
+    if (isSignUp && !privacyConsent) {
+      setMessage('Please agree to the Privacy Notice to create an account.');
+      return;
+    }
 
     setBusy(true);
     try {
@@ -83,7 +93,7 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
           email: email.trim(),
           password,
           options: {
-            data: { first_name: firstName.trim(), last_name: lastName.trim(), full_name: `${firstName.trim()} ${lastName.trim()}` },
+            data: { first_name: firstName.trim(), last_name: lastName.trim(), full_name: `${firstName.trim()} ${lastName.trim()}`, phone: phone.trim(), personal_info_consent: privacyConsent },
             emailRedirectTo: new URL(base, window.location.origin).toString(),
           },
         });
@@ -130,18 +140,24 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
 
   return <main className="sf-auth-page">
     <section className="sf-auth-card" aria-labelledby="sf-auth-title">
-      {!isSignUp && !resetMode && configuredLogoUrl && <img className="sf-auth-configured-logo" src={configuredLogoUrl} alt="Restaurant logo" />}
+      {!resetMode && configuredLogoUrl && <img className="sf-auth-configured-logo" src={configuredLogoUrl} alt="Restaurant logo" />}
       <h1 id="sf-auth-title">{resetMode ? 'Reset your password' : isSignUp ? 'Sign Up' : 'Sign In'}</h1>
       <p className="sf-auth-intro">{resetMode ? 'Enter your email and we’ll send you a link to reset your password.' : isSignUp ? 'Create an account to make ordering easier and keep your details in one place.' : 'Welcome back. Sign in to continue your ordering experience.'}</p>
       <form className="sf-auth-form" onSubmit={submit} noValidate>
         {isSignUp && <>
+          <div className="sf-auth-name-row">
+            <label>
+              First name
+              <input autoComplete="given-name" name="firstName" value={firstName} onChange={event => setFirstName(event.target.value)} required maxLength={60} placeholder="First name" />
+            </label>
+            <label>
+              Last name
+              <input autoComplete="family-name" name="lastName" value={lastName} onChange={event => setLastName(event.target.value)} required maxLength={60} placeholder="Last name" />
+            </label>
+          </div>
           <label>
-            First name
-            <input autoComplete="given-name" name="firstName" value={firstName} onChange={event => setFirstName(event.target.value)} required maxLength={60} placeholder="First name" />
-          </label>
-          <label>
-            Last name
-            <input autoComplete="family-name" name="lastName" value={lastName} onChange={event => setLastName(event.target.value)} required maxLength={60} placeholder="Last name" />
+            Phone number
+            <input autoComplete="tel-national" inputMode="numeric" type="tel" name="phone" value={phone} onChange={event => setPhone(event.target.value.replace(/[^0-9]/g, '').slice(0, 11))} required maxLength={11} placeholder="" />
           </label>
         </>}
         <label>
@@ -163,9 +179,13 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
             </li>)}
           </ul>}
         </label>}
-        {!isSignUp && !resetMode && <button className="sf-auth-text-button" type="button" onClick={() => { setResetMode(true); setMessage(''); setSuccess(false); }}>Forgot password?</button>}
+        {isSignUp && <label className="sf-auth-privacy-consent">
+          <input type="checkbox" checked={privacyConsent} onChange={event => setPrivacyConsent(event.target.checked)} required />
+          <span>I agree to the <a href="#privacy">Privacy Notice</a>.</span>
+        </label>}
+        {!isSignUp && !resetMode && <button className="sf-auth-text-button" type="button" onClick={() => { setResetMode(true); setMessage(''); setSuccess(false); }}>Forgot password?</button>
         {message && <p className={success ? 'sf-auth-message sf-auth-success' : 'sf-auth-message'} role="status">{message}</p>}
-        <button type="submit" disabled={busy}>{busy ? 'Please wait…' : resetMode ? 'Send reset link' : isSignUp ? 'Create account' : 'Sign in'}</button>
+        <button type="submit" disabled={busy}>{busy ? 'Please wait…' : resetMode ? 'Send reset link' : isSignUp ? 'Sign Up' : 'Sign in'}</button>
       </form>
       <p className="sf-auth-switch">
         {resetMode ? <button className="sf-auth-text-button" type="button" onClick={() => { setResetMode(false); setMessage(''); setSuccess(false); }}>Back to sign in</button> : <>{isSignUp ? 'Already have an account? ' : 'New customer? '}<a href={base + (isSignUp ? 'account/sign-in' : 'account/sign-up') + (resolvedRestaurantSlug ? '?restaurant=' + encodeURIComponent(resolvedRestaurantSlug) : '')}>{isSignUp ? 'Sign In' : 'Sign Up'}</a></>}
