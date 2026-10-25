@@ -136,7 +136,7 @@ export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackTo
                 phone: String(values.get('mobile') ?? '').trim(),
                 deliveryAddress: orderType === 'Delivery' ? [street, barangay, city].filter(Boolean).join(', ') : '',
                 deliveryNotes: String(values.get('notes') ?? '').trim(),
-                paymentMethod,
+                paymentMethod: 'cash',
               });
               setMessage('Order #' + result.orderNumber + ' placed successfully. Pay at the restaurant counter.');
               setPaymentModalOpen(false);
