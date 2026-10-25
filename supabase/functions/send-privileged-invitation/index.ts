@@ -56,8 +56,23 @@ Deno.serve(async (request) => {
   });
   redirect.searchParams.set("invite_id", invitationId);
   try {
+    const { data: tenant, error: tenantError } = await admin.from("tenants")
+      .select("name,slug").eq("id", body.tenantId).maybeSingle();
+    if (tenantError || !tenant) throw new Error("Invitation restaurant could not be resolved");
+    const isOwner = body.role === "restaurant_owner";
     const { data: invite, error } = await admin.auth.admin.inviteUserByEmail(body.email.trim().toLowerCase(), {
       redirectTo: redirect.toString(),
+      data: {
+        invitation_type: isOwner ? "restaurant_owner" : "restaurant_staff",
+        invitation_label: isOwner ? "RESTAURANT OWNER INVITATION" : "RESTAURANT TEAM INVITATION",
+        restaurant_name: tenant.name,
+        invitation_role: isOwner ? "restaurant owner" : body.role,
+        account_setup: isOwner ? "your Restaurant Owner account" : "your staff account",
+        tenant_id: body.tenantId,
+        tenant_slug: tenant.slug,
+        tenant_invitation_id: invitationId,
+        name: "",
+      },
     });
     if (error || !invite.user?.id) throw new Error("Email invitation failed");
 
