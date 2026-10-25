@@ -42,9 +42,6 @@ function AccountIcon() {
   return <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.8"/><path d="M5 20c.5-3.5 3.2-5.5 7-5.5s6.5 2 7 5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>;
 }
 
-function ArrowIcon() {
-  return <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"/></svg>;
-}
 
 function FoodArt({ item, small = false }: { item: MenuItem; small?: boolean }) {
   const [imageFailed, setImageFailed] = useState(false);
@@ -240,7 +237,6 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     customerName:'',phone:'',deliveryAddress:'',deliveryNotes:'',
   });
   const [checkoutMessage,setCheckoutMessage]=useState('');
-  const [cartBarVisible, setCartBarVisible] = useState(false);
 
   useEffect(() => {
     writeSessionValue(cartStorageKey + ':items', cart);
@@ -312,16 +308,6 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   }, [menu, category, query, catalog?.categories]);
   const count = cartCount(cart, menu)+customCount(customized,menu);
   const subtotal = cartSubtotal(cart, menu)+customSubtotal(customized,menu);
-
-  useEffect(() => {
-    if (count <= 0) {
-      setCartBarVisible(false);
-      return;
-    }
-    setCartBarVisible(true);
-    const timeout = window.setTimeout(() => setCartBarVisible(false), 5000);
-    return () => window.clearTimeout(timeout);
-  }, [count]);
 
   const changeCustomized=(key:string,delta:number)=>setCustomized(previous=>changeCustom(previous,key,delta));
   const addCustomized=(item:MenuItem,selected:Selection)=>setCustomized(previous=>addCustom(previous,item,selected));
@@ -579,11 +565,6 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       </div>
     </footer>)}
 
-    {count > 0 && cartBarVisible && !cartPage && !checkoutPage && <div className="sf-mobile-cart-bar">
-      <button type="button" onClick={() => navigateCart(true)} aria-label={'View cart, ' + count + ' items, ' + peso(subtotal)}>
-        <span className="sf-mobile-cart-count">{count}</span><span>View cart</span><strong>{peso(subtotal)}</strong><ArrowIcon/>
-      </button>
-    </div>}
     {checkoutOpen && <div className="sf-checkout-backdrop" role="presentation" onMouseDown={event => {if(event.target===event.currentTarget)setCheckoutOpen(false);}}>
       <section className="sf-checkout-panel" role="dialog" aria-modal="true" aria-labelledby="sf-checkout-heading">
         <div className="sf-dialog-top"><div><span className="sf-section-kicker">DELIVERY ONLY</span><h2 id="sf-checkout-heading">Delivery details</h2></div><button type="button" className="sf-close" onClick={() => setCheckoutOpen(false)} aria-label="Close checkout preparation">×</button></div>
