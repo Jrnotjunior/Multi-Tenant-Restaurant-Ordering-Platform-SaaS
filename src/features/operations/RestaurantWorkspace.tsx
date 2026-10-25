@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { normalizeAppBase } from '../../app/routes';
+import { userDisplayName } from '../../domain/userDisplayName';
 import type { StaffWorkspaceRole } from './OperationalDashboard';
 import { StaffOperationalWorkspace } from './StaffOperationalWorkspace';
 import { OwnerAppShell } from './OwnerAppShell';
@@ -15,7 +16,7 @@ import './operations.css';
 
 type WorkspaceRole = 'restaurant_owner' | StaffWorkspaceRole;
 type Membership = { tenant_id: string; role: WorkspaceRole };
-type CachedWorkspace = { userId: string; membership: Membership | null; restaurantName: string | null; accountEmail: string };
+type CachedWorkspace = { userId: string; membership: Membership | null; restaurantName: string | null; displayName: string };
 let cachedWorkspace: CachedWorkspace | null = null;
 
 const ownerPages = new Set<OwnerPage>([
@@ -33,7 +34,7 @@ function ownerPageFromHash(): OwnerPage {
 export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
   const [membership, setMembership] = useState<Membership | null>(cachedWorkspace?.membership ?? null);
   const [restaurantName, setRestaurantName] = useState<string | null>(cachedWorkspace?.restaurantName ?? null);
-  const [accountEmail, setAccountEmail] = useState(cachedWorkspace?.accountEmail ?? 'Store Owner');
+  const [displayName, setDisplayName] = useState(cachedWorkspace?.displayName ?? 'Store Owner');
   const [ownerPage, setOwnerPage] = useState<OwnerPage>(() => ownerPageFromHash());
   const [visitedOwnerPages, setVisitedOwnerPages] = useState<Set<OwnerPage>>(() => new Set<OwnerPage>([ownerPageFromHash()]));
   const [orderFilter, setOrderFilter] = useState<'active' | 'all'>('active');
@@ -123,11 +124,11 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
           nextRestaurantName = tenant?.name ?? null;
         }
         if (!active) return;
-        const nextEmail = authData.user.email ?? 'Store Owner';
-        cachedWorkspace = { userId, membership: selected, restaurantName: nextRestaurantName, accountEmail: nextEmail };
+        const nextDisplayName = userDisplayName(authData.user, selected?.role === 'restaurant_owner' ? 'Store Owner' : selected?.role === 'dispatcher' ? 'Dispatcher' : selected?.role === 'rider' ? 'Rider' : selected?.role === 'cashier' ? 'Cashier' : 'Kitchen Staff');
+        cachedWorkspace = { userId, membership: selected, restaurantName: nextRestaurantName, displayName: nextDisplayName };
         setMembership(selected);
         setRestaurantName(nextRestaurantName);
-        setAccountEmail(nextEmail);
+        setDisplayName(nextDisplayName);
         setError('');
       } catch (reason) {
         if (active) setError(reason instanceof Error ? reason.message : 'Unable to load your restaurant workspace.');
@@ -173,7 +174,7 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
     return <OwnerSectionPage page={page} restaurantName={restaurantName} onNavigate={navigateOwnerPage} />;
   };
 
-  return <OwnerAppShell baseUrl={baseUrl} groups={ownerNavGroups} page={ownerPage} email={accountEmail} onNavigate={navigateOwnerPage} onSignOut={signOut}>
+  return <OwnerAppShell baseUrl={baseUrl} groups={ownerNavGroups} page={ownerPage} displayName={displayName} onNavigate={navigateOwnerPage} onSignOut={signOut}>
     {ownerNavGroups.flatMap(group => group.items).filter(item => visitedOwnerPages.has(item.key)).map(item => (
       <div key={item.key} style={{ display: ownerPage === item.key ? 'contents' : 'none' }} aria-hidden={ownerPage !== item.key}>
         {renderOwnerPage(item.key)}
