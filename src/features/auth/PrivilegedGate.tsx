@@ -42,21 +42,24 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
       return;
     }
     let active = true;
-    // Do not treat the initial null React state as a signed-out session.
-    // Supabase must finish restoring its persisted browser session first.
+    // Supabase can resolve getUser() and emit INITIAL_SESSION close together.
+    // Accept only the first successful hydration result so a late stale
+    // INITIAL_SESSION event cannot overwrite a restored, authenticated user.
+    let initialAuthResolved = false;
     void client.auth.getUser().then(({ data, error }) => {
-      if (!active) return;
+      if (!active || initialAuthResolved) return;
       if (error) {
         setMessage(error.message);
         setStatus('error');
         setAuthReady(true);
         return;
       }
+      initialAuthResolved = true;
       setUser(data.user ?? null);
       setStatus(data.user ? 'checking' : 'signedout');
       setAuthReady(true);
     }).catch((err: unknown) => {
-      if (active) {
+      if (active && !initialAuthResolved) {
         setMessage(String(err));
         setStatus('error');
         setAuthReady(true);
@@ -65,6 +68,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
     const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
       if (!active) return;
       if (event === 'SIGNED_OUT') {
+        initialAuthResolved = true;
         clearPendingMfa(client);
         setUser(null);
         setAuthReady(true);
@@ -78,9 +82,8 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
       if (event === 'TOKEN_REFRESHED') return;
 
       if (event === 'INITIAL_SESSION') {
-        // Supabase emits this only after resolving persisted browser storage.
-        // Capture the restored user here as well as through getUser(), avoiding
-        // a transient "signed out" state when a saved session already exists.
+        if (initialAuthResolved) return;
+        initialAuthResolved = true;
         setUser(session?.user ?? null);
         setStatus(session?.user ? 'checking' : 'signedout');
         setAuthReady(true);
@@ -88,6 +91,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
       }
 
       if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'MFA_CHALLENGE_VERIFIED') {
+        initialAuthResolved = true;
         setUser(session?.user ?? null);
         setAuthReady(true);
         setRevision((previous) => previous + 1);
