@@ -139,12 +139,15 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
             <strong>{line.item.name}</strong>
             <p className="sf-custom-cart-line">{line.options.map(option=>option.name).join(' · ')}</p>
             <span>{peso(line.unitPriceCentavos)} each</span>
-            <div className="sf-qty">
-              <button type="button" aria-label={'Remove one customized '+line.item.name}
-                onClick={()=>changeCustomized(line.key,-1)}>−</button>
-              <span>{line.quantity}</span>
-              <button type="button" aria-label={'Add one customized '+line.item.name}
-                disabled={line.quantity>=20} onClick={()=>changeCustomized(line.key,1)}>+</button>
+            <div className="sf-cart-item-actions">
+              <div className="sf-qty">
+                <button type="button" aria-label={'Remove one customized '+line.item.name}
+                  onClick={()=>changeCustomized(line.key,-1)}>−</button>
+                <span>{line.quantity}</span>
+                <button type="button" aria-label={'Add one customized '+line.item.name}
+                  disabled={line.quantity>=20} onClick={()=>changeCustomized(line.key,1)}>+</button>
+              </div>
+              <button type="button" className="sf-cart-remove" onClick={()=>changeCustomized(line.key,-line.quantity)}>Remove</button>
             </div>
           </div>
           <strong className="sf-cart-lineprice">{peso(line.totalCentavos)}</strong>
@@ -154,7 +157,10 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
           <div className="sf-cart-item-content">
             <strong>{item.name}</strong>
             <span>{peso(item.priceCentavos)}</span>
-            <QuantityControl itemId={item.id} quantity={quantity} change={change}/>
+            <div className="sf-cart-item-actions">
+              <QuantityControl itemId={item.id} quantity={quantity} change={change}/>
+              <button type="button" className="sf-cart-remove" onClick={()=>change(item.id,-quantity)}>Remove</button>
+            </div>
           </div>
           <strong className="sf-cart-lineprice">{peso(item.priceCentavos * quantity)}</strong>
         </div>)}
