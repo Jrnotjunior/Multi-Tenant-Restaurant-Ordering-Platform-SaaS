@@ -21,7 +21,8 @@ type CustomerOrder = {
   branch_name: string;
   customer_name: string;
   customer_phone: string;
-  delivery_address: string;
+  order_type: 'delivery' | 'take_out' | 'pickup' | 'dine_in';
+  delivery_address: string | null;
   delivery_notes: string;
   subtotal_centavos: number;
   delivery_fee_centavos: number | null;
@@ -199,12 +200,12 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
         </div>
       ) : orders.map(order => <article className="owner-order-card" key={order.id}>
         <header className="owner-order-card-header">
-          <div><h3>Order #{order.order_number}</h3><p>{dateTime(order.created_at)} · {order.branch_name}</p></div>
+          <div><h3>Order #{order.order_number}</h3><p>{dateTime(order.created_at)} · {order.branch_name} · {({delivery:'Delivery',take_out:'Take-out',pickup:'Pickup',dine_in:'Dine-in'} as const)[order.order_type] ?? 'Delivery'}</p></div>
           <span className={'owner-order-status status-' + order.order_status}>{statusLabel(order.order_status)}</span>
         </header>
         <div className="owner-order-customer">
           <strong>{order.customer_name}</strong><span>{order.customer_phone}</span>
-          <p>{order.delivery_address}</p>
+          {order.order_type === 'delivery' && order.delivery_address && <p>{order.delivery_address}</p>}
           {order.delivery_notes && <p className="owner-order-notes">Note: {order.delivery_notes}</p>}
         </div>
         <ul className="owner-order-items">{(order.items ?? []).map(item => <li key={item.id}>
@@ -212,7 +213,7 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
           <strong>{peso(item.line_total_centavos)}</strong>
         </li>)}</ul>
 
-        {order.order_status === 'pending_confirmation' && order.payment_status === 'not_started' ? <div className="owner-order-delivery-fee">
+        {order.order_type === 'delivery' && order.order_status === 'pending_confirmation' && order.payment_status === 'not_started' ? <div className="owner-order-delivery-fee">
           <label htmlFor={'delivery-fee-' + order.id}>Delivery fee (PHP)</label>
           <div>
             <input
@@ -235,7 +236,7 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
         </div> : null}
         <div className="owner-order-totals">
           <span>Subtotal <strong>{peso(order.subtotal_centavos)}</strong></span>
-          <span>Delivery fee <strong>{peso(order.delivery_fee_centavos)}</strong></span>
+          <span>{order.order_type === 'delivery' ? 'Delivery fee' : 'Fulfillment fee'} <strong>{peso(order.delivery_fee_centavos)}</strong></span>
           <span>Total <strong>{peso(order.total_centavos)}</strong></span>
           <span>Payment <strong>{statusLabel(order.payment_status)}</strong></span>
         </div>
