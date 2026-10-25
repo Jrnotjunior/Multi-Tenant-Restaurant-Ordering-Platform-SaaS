@@ -56,6 +56,7 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
   const [busyAcceptance, setBusyAcceptance] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [deliveryFees, setDeliveryFees] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     if (!supabase) {
@@ -99,6 +100,38 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
       await load();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Unable to update this order.');
+    } finally {
+      setBusyOrder('');
+    }
+  }
+
+
+  async function saveDeliveryFee(order: CustomerOrder) {
+    if (!supabase) return;
+    const raw = (deliveryFees[order.id] ?? (order.delivery_fee_centavos == null ? '' : (order.delivery_fee_centavos / 100).toFixed(2))).trim();
+    if (!/^\\d{1,8}(?:\\.\\d{1,2})?$/.test(raw)) {
+      setError('Enter a valid delivery fee, such as 50 or 50.00.');
+      return;
+    }
+    const feeCentavos = Math.round(Number(raw) * 100);
+    if (!Number.isSafeInteger(feeCentavos) || feeCentavos < 0 || feeCentavos > 1000000000) {
+      setError('Delivery fee must be between ₱0.00 and ₱10,000,000.00.');
+      return;
+    }
+    setBusyOrder(order.id);
+    setError('');
+    setMessage('');
+    try {
+      const { error: actionError } = await supabase.rpc('set_customer_order_delivery_fee', {
+        p_tenant_id: tenantId,
+        p_order_id: order.id,
+        p_delivery_fee_centavos: feeCentavos,
+      });
+      if (actionError) throw actionError;
+      setMessage('Delivery fee saved for order #' + order.order_number + '.');
+      await load();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Unable to save delivery fee.');
     } finally {
       setBusyOrder('');
     }
@@ -178,6 +211,28 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
           <span>{item.quantity} × {item.item_name}{item.options?.length ? <small>{item.options.map(option => option.name).filter(Boolean).join(', ')}</small> : null}</span>
           <strong>{peso(item.line_total_centavos)}</strong>
         </li>)}</ul>
+
+        {order.order_status === 'pending_confirmation' && order.payment_status === 'not_started' ? <div className="owner-order-delivery-fee">
+          <label htmlFor={'delivery-fee-' + order.id}>Delivery fee (PHP)</label>
+          <div>
+            <input
+              id={'delivery-fee-' + order.id}
+              type="number"
+              min="0"
+              max="10000000"
+              step="0.01"
+              inputMode="decimal"
+              placeholder="e.g. 50.00"
+              value={deliveryFees[order.id] ?? (order.delivery_fee_centavos == null ? '' : (order.delivery_fee_centavos / 100).toFixed(2))}
+              onChange={event => setDeliveryFees(current => ({ ...current, [order.id]: event.target.value }))}
+              aria-label={'Delivery fee for order ' + order.order_number + ' in pesos'}
+            />
+            <button type="button" disabled={busyOrder === order.id} onClick={() => void saveDeliveryFee(order)}>
+              {busyOrder === order.id ? 'Saving…' : 'Save fee'}
+            </button>
+          </div>
+          <small>Set the final delivery fee before confirming this order.</small>
+        </div> : null}
         <div className="owner-order-totals">
           <span>Subtotal <strong>{peso(order.subtotal_centavos)}</strong></span>
           <span>Delivery fee <strong>{peso(order.delivery_fee_centavos)}</strong></span>
