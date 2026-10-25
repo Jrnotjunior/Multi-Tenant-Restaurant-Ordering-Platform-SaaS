@@ -36,6 +36,20 @@ export function App() {
 
   if (authMode) return <AccountAuthPage mode={authMode} baseUrl={baseUrl} restaurantSlug={new URLSearchParams(window.location.search).get('restaurant')} />;
 
+  // PayMongo redirects are customer-facing guidance only. Verified webhooks determine the actual payment state.
+  if (cleanPath.endsWith('/payment/success')) return <main className="content">
+    <p className="eyebrow">WEB2TABLE · PAYMENT</p>
+    <h1>Thanks! We’re confirming your payment.</h1>
+    <p className="intro">PayMongo returned you to Web2Table. Your order status will update after we receive and verify the payment confirmation. Please don’t pay again while confirmation is processing.</p>
+    <section className="panel"><p>If your order status doesn’t update shortly, contact the restaurant and share your order reference.</p><a className="status-pill" href={baseUrl}>Return to storefront</a></section>
+  </main>;
+  if (cleanPath.endsWith('/payment/cancel')) return <main className="content">
+    <p className="eyebrow">WEB2TABLE · PAYMENT</p>
+    <h1>Payment wasn’t completed.</h1>
+    <p className="intro">The checkout page was closed or payment was not completed. Your order may still be awaiting confirmation; check with the restaurant before placing another order.</p>
+    <section className="panel"><p>For your safety, Web2Table only updates payment status after a verified PayMongo event.</p><a className="status-pill" href={baseUrl}>Return to storefront</a></section>
+  </main>;
+
   // The homepage of a restaurant ordering site is its menu, not an app dashboard.
   // The root storefront opens the published restaurant menu directly; do not show a separate restaurant directory.
   if (view === 'home' || view === 'order') {
