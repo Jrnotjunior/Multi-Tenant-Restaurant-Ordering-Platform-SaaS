@@ -209,6 +209,12 @@
 .staff-workspace-tabs button.is-selected{background:var(--color-text,#101B2F);color:#fff;box-shadow:0 1px 3px #101b2f24}
 .staff-kitchen-menu-panel{padding:20px;background:#fff;min-height:250px}
 .staff-kitchen-menu-toolbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+.staff-kitchen-menu-search{display:flex;align-items:center;gap:9px;width:min(100%,520px);min-height:42px;margin:0 0 18px;padding:0 12px;border:1px solid var(--color-border,#DCE3ED);border-radius:10px;background:#fff;color:var(--color-muted,#526782)}
+.staff-kitchen-menu-search:focus-within{border-color:var(--color-primary,#101B2F);box-shadow:0 0 0 3px rgb(16 27 47 / 8%)}
+.staff-kitchen-menu-search span{font-size:1.25rem;line-height:1}
+.staff-kitchen-menu-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:var(--color-text,#101B2F);font:inherit;font-size:.875rem}
+.staff-kitchen-menu-search input::placeholder{color:var(--color-muted,#526782)}
+
 .staff-kitchen-menu-toolbar h3{margin:0 0 4px;font-size:1rem}
 .staff-kitchen-menu-toolbar p{margin:0;color:var(--color-muted,#526782);font-size:.85rem}
 .staff-kitchen-menu-toolbar label{display:flex;align-items:center;gap:8px;color:var(--color-muted,#526782);font-size:.8rem;font-weight:650}
