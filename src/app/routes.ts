@@ -29,19 +29,19 @@ export function storefrontCheckoutPath(slug: string, baseUrl: string): string {
 }
 
 export function isStorefrontCartPath(pathname: string, baseUrl: string): boolean {
-  return pathname.replace(/\\/+$/, '').endsWith('/cart')
+  return pathname.replace(/\/+$/, '').endsWith('/cart')
     && storefrontSlugFromPath(pathname, baseUrl) !== null;
 }
 
 export function isStorefrontCheckoutPath(pathname: string, baseUrl: string): boolean {
-  return pathname.replace(/\\/+$/, '').endsWith('/checkout')
+  return pathname.replace(/\/+$/, '').endsWith('/checkout')
     && storefrontSlugFromPath(pathname, baseUrl) !== null;
 }
 
 export function storefrontSlugFromPath(pathname: string, baseUrl: string): string | null {
   const prefix = pathFor('order', baseUrl) + '/';
   if (!pathname.startsWith(prefix)) return null;
-  let slug = pathname.slice(prefix.length).replace(/\\/+$/, '');
+  let slug = pathname.slice(prefix.length).replace(/\/+$/, '');
   if (slug.endsWith('/checkout')) slug = slug.slice(0, -9);
   else if (slug.endsWith('/cart')) slug = slug.slice(0, -5);
   return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ? slug : '';
@@ -51,7 +51,7 @@ export function viewForPath(pathname: string, baseUrl: string): View {
   const base = normalizeAppBase(baseUrl);
   if (pathname === base.slice(0, -1)) return 'home';
   if (!pathname.startsWith(base)) return 'home';
-  const relative = pathname.slice(base.length).replace(/\\/+$/, '');
+  const relative = pathname.slice(base.length).replace(/\/+$/, '');
   if (relative === 'order' || relative.startsWith('order/')) return 'order';
   if (relative === 'restaurant' || relative === 'admin') return relative;
   return 'home';
