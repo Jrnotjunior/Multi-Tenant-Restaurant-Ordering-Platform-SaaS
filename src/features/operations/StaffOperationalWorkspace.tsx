@@ -37,6 +37,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [accountEmail, setAccountEmail] = useState('');
+  const [accountName, setAccountName] = useState('');
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const copy = roleCopy[role];
@@ -44,7 +45,14 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   useEffect(() => {
     let active = true;
     void supabase?.auth.getUser().then(({ data }) => {
-      if (active) setAccountEmail(data.user?.email ?? '');
+      if (!active) return;
+      const user = data.user;
+      const metadata = user?.user_metadata ?? {};
+      const metadataName = [metadata.full_name, metadata.name, metadata.display_name, metadata.first_name && metadata.last_name ? `${metadata.first_name} ${metadata.last_name}` : null]
+        .find(value => typeof value === 'string' && value.trim().length > 0);
+      const email = user?.email ?? '';
+      setAccountEmail(email);
+      setAccountName(typeof metadataName === 'string' ? metadataName.trim() : email.split('@')[0] || 'My account');
     });
     return () => { active = false; };
   }, []);
@@ -195,7 +203,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
         </button>
         {accountMenuOpen && <div className="staff-account-dropdown" role="menu">
-          <span className="staff-account-email">{accountEmail || 'Signed-in account'}</span>
+          <span className="staff-account-email">{accountName || 'My account'}</span>
           <button type="button" role="menuitem" onClick={() => void signOut()} disabled={signingOut}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg>
             {signingOut ? 'Signing out…' : 'Log out'}
