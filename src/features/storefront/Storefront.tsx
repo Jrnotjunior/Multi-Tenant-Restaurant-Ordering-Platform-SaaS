@@ -134,35 +134,33 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
     </div> : <>
       <div className="sf-cart-items">
         {customLines(customized,menu).map(line=><div className="sf-cart-item" key={line.key}>
-          <FoodArt item={line.item} small />
-          <div className="sf-cart-item-content">
+          <div className="sf-cart-item-top">
             <strong>{line.item.name}</strong>
-            <p className="sf-custom-cart-line">{line.options.map(option=>option.name).join(' · ')}</p>
-            <span>{peso(line.unitPriceCentavos)} each</span>
-            <div className="sf-cart-item-actions">
-              <div className="sf-qty">
-                <button type="button" aria-label={'Remove one customized '+line.item.name}
-                  onClick={()=>changeCustomized(line.key,-1)}>−</button>
-                <span>{line.quantity}</span>
-                <button type="button" aria-label={'Add one customized '+line.item.name}
-                  disabled={line.quantity>=20} onClick={()=>changeCustomized(line.key,1)}>+</button>
-              </div>
-              <button type="button" className="sf-cart-remove" onClick={()=>changeCustomized(line.key,-line.quantity)}>Remove</button>
-            </div>
+            <strong className="sf-cart-lineprice">{peso(line.totalCentavos)}</strong>
           </div>
-          <strong className="sf-cart-lineprice">{peso(line.totalCentavos)}</strong>
+          {line.options.length>0 && <p className="sf-custom-cart-line">{line.options.map(option=>option.name).join(' · ')}</p>}
+          <span className="sf-cart-unit-price">{peso(line.unitPriceCentavos)}</span>
+          <div className="sf-cart-item-actions">
+            <div className="sf-qty">
+              <button type="button" aria-label={'Remove one customized '+line.item.name}
+                onClick={()=>changeCustomized(line.key,-1)}>−</button>
+              <span>{line.quantity}</span>
+              <button type="button" aria-label={'Add one customized '+line.item.name}
+                disabled={line.quantity>=20} onClick={()=>changeCustomized(line.key,1)}>+</button>
+            </div>
+            <button type="button" className="sf-cart-remove" onClick={()=>changeCustomized(line.key,-line.quantity)}>Remove</button>
+          </div>
         </div>)}
         {lines.map(({ item, quantity }) => <div className="sf-cart-item" key={item.id}>
-          <FoodArt item={item} small />
-          <div className="sf-cart-item-content">
+          <div className="sf-cart-item-top">
             <strong>{item.name}</strong>
-            <span>{peso(item.priceCentavos)}</span>
-            <div className="sf-cart-item-actions">
-              <QuantityControl itemId={item.id} quantity={quantity} change={change}/>
-              <button type="button" className="sf-cart-remove" onClick={()=>change(item.id,-quantity)}>Remove</button>
-            </div>
+            <strong className="sf-cart-lineprice">{peso(item.priceCentavos * quantity)}</strong>
           </div>
-          <strong className="sf-cart-lineprice">{peso(item.priceCentavos * quantity)}</strong>
+          <span className="sf-cart-unit-price">{peso(item.priceCentavos)}</span>
+          <div className="sf-cart-item-actions">
+            <QuantityControl itemId={item.id} quantity={quantity} change={change}/>
+            <button type="button" className="sf-cart-remove" onClick={()=>change(item.id,-quantity)}>Remove</button>
+          </div>
         </div>)}
       </div>
       {close && <button type="button" className="sf-continue sf-cart-add-more" onClick={close}>Add more items</button>}
