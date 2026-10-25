@@ -169,7 +169,7 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
         <div className="sf-cart-subtotal-row"><span>Subtotal</span><strong>{peso(cartSubtotal(cart, menu)+customSubtotal(customized,menu))}</strong></div>
         <p className="sf-cart-fee-note">Delivery fees and payment details will be calculated during checkout.</p>
       </div>
-      <button type="button" className="sf-checkout-disabled" onClick={onCheckout}>Checkout <ArrowIcon /></button>
+      <button type="button" className="sf-checkout-disabled" onClick={onCheckout}>Checkout</button>
       <p className="sf-cart-note">Checkout preparation only. No order is submitted or charged.</p>
     </>}
   </>;
