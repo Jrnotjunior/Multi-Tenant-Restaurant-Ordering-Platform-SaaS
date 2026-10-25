@@ -1,22 +1,198 @@
-import type { OwnerPage } from './ownerWorkspaceConfig';
+import { useCallback, useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabase';
 
-type Props = { filter: 'active' | 'all'; onFilterChange: (filter: 'active' | 'all') => void };
+type Props = {
+  tenantId: string;
+  filter: 'active' | 'all';
+  onFilterChange: (filter: 'active' | 'all') => void;
+};
+type OrderItem = {
+  id: string;
+  item_name: string;
+  quantity: number;
+  unit_price_centavos: number;
+  line_total_centavos: number;
+  options: { id?: string; name?: string; group_name?: string }[];
+};
+type CustomerOrder = {
+  id: string;
+  order_number: number;
+  branch_id: string;
+  branch_name: string;
+  customer_name: string;
+  customer_phone: string;
+  delivery_address: string;
+  delivery_notes: string;
+  subtotal_centavos: number;
+  delivery_fee_centavos: number | null;
+  total_centavos: number | null;
+  order_status: string;
+  payment_status: string;
+  created_at: string;
+  items: OrderItem[];
+};
+type OrdersResult = { orders?: CustomerOrder[] };
 
-export function OwnerOrdersPage({ filter, onFilterChange }: Props) {
-  return <main className="owner-content">
+const peso = (centavos: number | null) => centavos == null
+  ? 'Awaiting confirmation'
+  : new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(centavos / 100);
+const dateTime = (value: string) => new Intl.DateTimeFormat('en-PH', {
+  dateStyle: 'medium', timeStyle: 'short',
+}).format(new Date(value));
+const statusLabel = (value: string) => value.replaceAll('_', ' ');
+const nextActions: Record<string, { action: string; label: string }[]> = {
+  pending_confirmation: [{ action: 'confirm', label: 'Confirm order' }, { action: 'reject', label: 'Reject' }],
+  confirmed: [{ action: 'start_preparing', label: 'Start preparing' }, { action: 'cancel', label: 'Cancel' }],
+  preparing: [{ action: 'mark_ready', label: 'Mark ready' }],
+  ready_for_dispatch: [{ action: 'dispatch', label: 'Dispatch' }],
+  out_for_delivery: [{ action: 'deliver', label: 'Mark delivered' }],
+};
+
+export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
+  const [orders, setOrders] = useState<CustomerOrder[]>([]);
+  const [acceptingOrders, setAcceptingOrders] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [busyOrder, setBusyOrder] = useState('');
+  const [busyAcceptance, setBusyAcceptance] = useState(false);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+
+  const load = useCallback(async () => {
+    if (!supabase) {
+      setError('Restaurant order services are not configured.');
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      const [ordersResponse, storefrontResponse] = await Promise.all([
+        supabase.rpc('list_customer_orders', { p_tenant_id: tenantId, p_filter: filter, p_limit: 100 }),
+        supabase.from('tenant_storefronts').select('accepting_orders').eq('tenant_id', tenantId).maybeSingle(),
+      ]);
+      if (ordersResponse.error) throw ordersResponse.error;
+      if (storefrontResponse.error) throw storefrontResponse.error;
+      setOrders(((ordersResponse.data as OrdersResult | null)?.orders ?? []) as CustomerOrder[]);
+      setAcceptingOrders(Boolean(storefrontResponse.data?.accepting_orders));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Unable to load restaurant orders.');
+    } finally {
+      setLoading(false);
+    }
+  }, [tenantId, filter]);
+
+  useEffect(() => { void load(); }, [load]);
+
+  async function transition(order: CustomerOrder, action: string, label: string) {
+    if (!supabase) return;
+    setBusyOrder(order.id);
+    setError('');
+    setMessage('');
+    try {
+      const { error: actionError } = await supabase.rpc('transition_customer_order', {
+        p_tenant_id: tenantId,
+        p_order_id: order.id,
+        p_action: action,
+      });
+      if (actionError) throw actionError;
+      setMessage(`Order #${order.order_number}: ${label.toLowerCase()}.`);
+      await load();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Unable to update this order.');
+    } finally {
+      setBusyOrder('');
+    }
+  }
+
+  async function toggleAcceptance() {
+    if (!supabase) return;
+    setBusyAcceptance(true);
+    setError('');
+    setMessage('');
+    try {
+      const nextValue = !acceptingOrders;
+      const { data, error: actionError } = await supabase.rpc('set_tenant_order_acceptance', {
+        p_tenant_id: tenantId,
+        p_accepting: nextValue,
+      });
+      if (actionError) throw actionError;
+      setAcceptingOrders(Boolean((data as { accepting_orders?: boolean } | null)?.accepting_orders ?? nextValue));
+      setMessage(nextValue ? 'New order requests are enabled.' : 'New order requests are paused.');
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Unable to update order acceptance.');
+    } finally {
+      setBusyAcceptance(false);
+    }
+  }
+
+  const count = (statuses: string[]) => orders.filter(order => statuses.includes(order.order_status)).length;
+
+  return <main className="owner-content owner-orders-page">
+    <div className="owner-orders-toolbar">
+      <div>
+        <h1>Orders</h1>
+        <p>Review incoming requests and move accepted orders through fulfillment.</p>
+      </div>
+      <div className="owner-orders-toolbar-actions">
+        <span className={'owner-orders-acceptance ' + (acceptingOrders ? 'is-open' : 'is-paused')}>
+          {acceptingOrders ? 'Accepting orders' : 'Orders paused'}
+        </span>
+        <button type="button" disabled={busyAcceptance} onClick={() => void toggleAcceptance()}>
+          {busyAcceptance ? 'Saving…' : acceptingOrders ? 'Pause orders' : 'Accept orders'}
+        </button>
+        <button type="button" className="owner-orders-refresh" disabled={loading} onClick={() => void load()}>Refresh</button>
+      </div>
+    </div>
+
     <nav className="owner-order-tabs" aria-label="Order filter">
-      <button className={filter === 'active' ? 'active' : ''} onClick={() => onFilterChange('active')}>Active (—)</button>
-      <button className={filter === 'all' ? 'active' : ''} onClick={() => onFilterChange('all')}>All (—)</button>
+      <button className={filter === 'active' ? 'active' : ''} onClick={() => onFilterChange('active')}>Active</button>
+      <button className={filter === 'all' ? 'active' : ''} onClick={() => onFilterChange('all')}>All orders</button>
     </nav>
+
     <section className="owner-order-stats">
-      <article><div><h2>New Orders</h2><p>New customer orders waiting for cashier review</p></div><span>—</span></article>
-      <article><div><h2>In the Kitchen</h2><p>Orders being prepared</p></div><span>—</span></article>
-      <article><div><h2>Ready</h2><p>Ready for pickup or dine-in</p></div><span>—</span></article>
-      <article><div><h2>Completed</h2><p>Finished orders</p></div><span>—</span></article>
+      <article><div><h2>New Orders</h2><p>Waiting for review</p></div><span>{count(['pending_confirmation'])}</span></article>
+      <article><div><h2>In the Kitchen</h2><p>Being prepared</p></div><span>{count(['confirmed', 'preparing'])}</span></article>
+      <article><div><h2>Ready / Delivery</h2><p>Ready or on the way</p></div><span>{count(['ready_for_dispatch', 'out_for_delivery'])}</span></article>
+      <article><div><h2>Completed</h2><p>Delivered orders</p></div><span>{count(['delivered'])}</span></article>
     </section>
-    <section className="owner-orders-empty">
-      <h2>{filter === 'active' ? 'Active orders' : 'All orders'}</h2>
-      <p>Live order counts will appear here when the secure tenant-scoped order service is connected. Counts are not fabricated.</p>
+
+    {(error || message) && <p className={'owner-orders-notice ' + (error ? 'is-error' : 'is-success')} role={error ? 'alert' : 'status'}>{error || message}</p>}
+
+    <section className="owner-orders-list" aria-live="polite">
+      <div className="owner-orders-list-heading"><h2>{filter === 'active' ? 'Active orders' : 'All orders'}</h2><span>{orders.length} shown</span></div>
+      {loading ? <p className="owner-orders-empty">Loading orders…</p> : orders.length === 0 ? (
+        <div className="owner-orders-empty"><h3>{filter === 'active' ? 'No active orders yet' : 'No orders yet'}</h3>
+          <p>New order requests will appear here after checkout is connected and the restaurant is accepting orders.</p>
+        </div>
+      ) : orders.map(order => <article className="owner-order-card" key={order.id}>
+        <header className="owner-order-card-header">
+          <div><h3>Order #{order.order_number}</h3><p>{dateTime(order.created_at)} · {order.branch_name}</p></div>
+          <span className={'owner-order-status status-' + order.order_status}>{statusLabel(order.order_status)}</span>
+        </header>
+        <div className="owner-order-customer">
+          <strong>{order.customer_name}</strong><span>{order.customer_phone}</span>
+          <p>{order.delivery_address}</p>
+          {order.delivery_notes && <p className="owner-order-notes">Note: {order.delivery_notes}</p>}
+        </div>
+        <ul className="owner-order-items">{(order.items ?? []).map(item => <li key={item.id}>
+          <span>{item.quantity} × {item.item_name}{item.options?.length ? <small>{item.options.map(option => option.name).filter(Boolean).join(', ')}</small> : null}</span>
+          <strong>{peso(item.line_total_centavos)}</strong>
+        </li>)}</ul>
+        <div className="owner-order-totals">
+          <span>Subtotal <strong>{peso(order.subtotal_centavos)}</strong></span>
+          <span>Delivery fee <strong>{peso(order.delivery_fee_centavos)}</strong></span>
+          <span>Total <strong>{peso(order.total_centavos)}</strong></span>
+          <span>Payment <strong>{statusLabel(order.payment_status)}</strong></span>
+        </div>
+        {nextActions[order.order_status]?.length ? <footer className="owner-order-actions">
+          {nextActions[order.order_status].map(action => <button type="button" key={action.action}
+            className={action.action === 'reject' || action.action === 'cancel' ? 'is-danger' : ''}
+            disabled={busyOrder === order.id}
+            onClick={() => void transition(order, action.action, action.label)}>
+            {busyOrder === order.id ? 'Saving…' : action.label}
+          </button>)}
+        </footer> : null}
+      </article>)}
     </section>
   </main>;
 }
