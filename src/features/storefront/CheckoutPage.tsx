@@ -136,7 +136,7 @@ export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackTo
                 phone: String(values.get('mobile') ?? '').trim(),
                 deliveryAddress: orderType === 'Delivery' ? [street, barangay, city].filter(Boolean).join(', ') : '',
                 deliveryNotes: String(values.get('notes') ?? '').trim(),
-                paymentMethod,
+                paymentMethod: paymentMethod === 'online' ? 'online' : 'cash',
               });
               if (paymentMethod === 'online') {
                 if (!result.checkoutUrl) throw new Error('Order #' + result.orderNumber + ' was created, but a checkout link was not returned. Contact the restaurant before placing another order.');
