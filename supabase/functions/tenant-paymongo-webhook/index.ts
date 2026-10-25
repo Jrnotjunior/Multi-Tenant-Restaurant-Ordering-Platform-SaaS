@@ -82,11 +82,13 @@ Deno.serve(async(request)=>{
       }
     }
   }
-  if(eventType==="refund.updated"){
+  if(["refund.updated","refund.succeeded","refund.failed"].includes(eventType)){
     const refundResource=attrs.data??{};
     const refundAttributes=refundResource.attributes??{};
     const refundId=String(refundResource.id??"").trim();
-    const refundStatus=String(refundAttributes.status??"").toLowerCase();
+    // Some provider events carry the final state in the event type rather than attributes.status.
+    const eventStatus=eventType==="refund.succeeded"?"succeeded":eventType==="refund.failed"?"failed":"";
+    const refundStatus=String(refundAttributes.status??eventStatus).toLowerCase();
     const refundAmount=refundAttributes.amount;
     if(refundId){
       const {data:refundSession,error:refundLookupError}=await admin.from("customer_order_payment_sessions")
