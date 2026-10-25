@@ -88,8 +88,7 @@ export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackTo
 
       {message && <p className="sf-checkout-page-message" role="status">{message}</p>}
       <button className="sf-checkout-submit" type="submit" disabled={itemCount === 0}>{reviewed ? 'Details reviewed' : 'Choose Payment Options'}</button>
-      <button className="sf-checkout-back-menu" type="button" onClick={onBackToMenu}>Add more items</button>
-      <p className="sf-checkout-page-footnote">No order is submitted or charged on this page.</p>
+
     </form>
   </main>;
 }
