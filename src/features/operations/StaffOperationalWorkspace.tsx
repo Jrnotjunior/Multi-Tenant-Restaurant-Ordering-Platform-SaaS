@@ -263,7 +263,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     </section>}
     <section className="staff-queue">
       <div className="staff-queue-heading"><div><p className="staff-eyebrow">WORK QUEUE</p><h2>{copy.queue}</h2></div>
-        <div className="staff-queue-controls"><button type="button" className={filter === 'active' ? 'is-selected' : ''} onClick={() => setFilter('active')}>Active</button><button type="button" className={filter === 'all' ? 'is-selected' : ''} onClick={() => setFilter('all')}>All orders</button></div>
+        {role !== 'cashier' && role !== 'kitchen' && <div className="staff-queue-controls"><button type="button" className={filter === 'active' ? 'is-selected' : ''} onClick={() => setFilter('active')}>Active</button><button type="button" className={filter === 'all' ? 'is-selected' : ''} onClick={() => setFilter('all')}>All orders</button></div>}
       </div>
       {role === 'kitchen' && kitchenTab === 'menu' ? <div className="staff-kitchen-menu-panel">
       {kitchenMenuLoading ? <p className="staff-empty">Loading menu…</p> : kitchenMenuError ? <p className="staff-notice is-error" role="alert">{kitchenMenuError}</p> : !kitchenMenu?.items.length ? <div className="staff-empty"><h3>No menu items yet</h3><p>Menu items added for this restaurant will appear here.</p></div> : <div className="staff-kitchen-menu-grid">{(kitchenMenu?.items ?? []).map(item => {
