@@ -4,7 +4,7 @@ import {addCustom,changeCustom,customCount,customLines,customSubtotal,type Custo
 import {CustomizeDialog} from './CustomizeDialog';
 import { filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
 import { branchSlugFromSearch, loadDefaultPublishedMenu, loadPublishedMenu, type StorefrontCatalog } from './publishedMenu';
-import { isStorefrontCartPath, isStorefrontCheckoutPath, normalizeAppBase, restaurantMenuPath, storefrontCartPath, storefrontCheckoutPath } from '../../app/routes';
+import { isStorefrontCartPath, isStorefrontCheckoutPath, normalizeAppBase, restaurantMenuHash, routePathFromLocation, storefrontCartHash, storefrontCheckoutHash } from '../../app/routes';
 import { CartPage } from './CartPage';
 import { CheckoutPage, type CheckoutSubmission } from './CheckoutPage';
 import { supabase } from '../../lib/supabase';
@@ -237,8 +237,8 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const [cart, setCart] = useState<Cart>(() => readSessionValue<Cart>(cartStorageKey + ':items', {}));
   const [customized,setCustomized]=useState<CustomCart>(() => readSessionValue<CustomCart>(cartStorageKey + ':custom', {}));
   const [customizing,setCustomizing]=useState<MenuItem|null>(null);
-  const [cartPage, setCartPage] = useState(() => initialCartPage || isStorefrontCartPath(window.location.pathname, baseUrl));
-  const [checkoutPage, setCheckoutPage] = useState(() => isStorefrontCheckoutPath(window.location.pathname, baseUrl));
+  const [cartPage, setCartPage] = useState(() => initialCartPage || isStorefrontCartPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
+  const [checkoutPage, setCheckoutPage] = useState(() => isStorefrontCheckoutPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutDetails,setCheckoutDetails]=useState<CheckoutDetails>({
     customerName:'',phone:'',deliveryAddress:'',deliveryNotes:'',
@@ -258,13 +258,15 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   useEffect(() => {
     function syncBranchFromHistory() {
       setSelectedBranch(branchSlugFromSearch(window.location.search));
-      setCartPage(isStorefrontCartPath(window.location.pathname, baseUrl));
-      setCheckoutPage(isStorefrontCheckoutPath(window.location.pathname, baseUrl));
+      const routePath = routePathFromLocation(window.location.pathname, window.location.hash, baseUrl);
+      setCartPage(isStorefrontCartPath(routePath, baseUrl));
+      setCheckoutPage(isStorefrontCheckoutPath(routePath, baseUrl));
       setCustomizing(null);
       setCategory('All');
     }
     window.addEventListener('popstate',syncBranchFromHistory);
-    return () => window.removeEventListener('popstate',syncBranchFromHistory);
+    window.addEventListener('hashchange',syncBranchFromHistory);
+    return () => { window.removeEventListener('popstate',syncBranchFromHistory); window.removeEventListener('hashchange',syncBranchFromHistory); };
   }, [baseUrl]);
 
   useEffect(() => {
@@ -328,10 +330,8 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
 
   function navigateCart(open: boolean) {
     if (!resolvedSlug) { setCartPage(open); setCheckoutPage(false); return; }
-    const nextPath = open ? storefrontCartPath(resolvedSlug, baseUrl) : restaurantMenuPath(resolvedSlug, baseUrl);
-    const url = new URL(window.location.href);
-    url.pathname = nextPath;
-    window.history.pushState({}, '', url.pathname + url.search + url.hash);
+    const nextHash = open ? storefrontCartHash(resolvedSlug) : restaurantMenuHash(resolvedSlug);
+    window.location.hash = nextHash.slice(1);
     setCartPage(open);
     setCheckoutPage(false);
     setAccountMenuOpen(false);
@@ -340,10 +340,8 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
 
   function navigateCheckout(open: boolean) {
     if (!resolvedSlug) { setCheckoutPage(open); setCartPage(false); return; }
-    const nextPath = open ? storefrontCheckoutPath(resolvedSlug, baseUrl) : restaurantMenuPath(resolvedSlug, baseUrl);
-    const url = new URL(window.location.href);
-    url.pathname = nextPath;
-    window.history.pushState({}, '', url.pathname + url.search + url.hash);
+    const nextHash = open ? storefrontCheckoutHash(resolvedSlug) : restaurantMenuHash(resolvedSlug);
+    window.location.hash = nextHash.slice(1);
     setCheckoutPage(open);
     setCartPage(false);
     setAccountMenuOpen(false);
@@ -406,7 +404,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   }
 
   if (!restaurant) return null;
-  const menuUrl = restaurantMenuPath(restaurant.slug, baseUrl)
+  const menuUrl = restaurantMenuHash(restaurant.slug)
     + (restaurant.branchSlug ? '?branch=' + restaurant.branchSlug : '');
   const tenantFontClass = restaurant.fontFamily === 'classic' ? ' sf-font-classic' : restaurant.fontFamily === 'rounded' ? ' sf-font-rounded' : ' sf-font-modern';
   const websiteColors = restaurant.websiteColors;
