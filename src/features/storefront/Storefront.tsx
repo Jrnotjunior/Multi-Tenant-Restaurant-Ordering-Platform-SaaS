@@ -405,7 +405,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     '--sf-red-dark': websiteColors.secondaryButton,
   } as CSSProperties;
   return <div className={'sf-storefront' + tenantFontClass} style={storefrontTheme}>
-    {!cartPage && (<header className="sf-header">
+    {!cartPage && !checkoutPage && (<header className="sf-header">
       <div className="sf-header-inner">
         <a href={menuUrl} className="sf-logo" aria-label={restaurant.name + " menu"}>
           {restaurant.logoUrl
