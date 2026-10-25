@@ -56,3 +56,24 @@ export function viewForPath(pathname: string, baseUrl: string): View {
   if (relative === 'restaurant' || relative === 'admin') return relative;
   return 'home';
 }
+
+/** Convert supported hash routes into the internal path shape used by page selection. */
+export function routePathFromLocation(pathname: string, hash: string, baseUrl: string): string {
+  const fragment = hash.replace(/^#\/?/, '').replace(/\/+$/, '');
+  if (/^(order|account|restaurant|admin|payment)(\/|$)/.test(fragment)) {
+    return normalizeAppBase(baseUrl) + fragment;
+  }
+  return pathname;
+}
+
+/** Hash URL builders keep customer routes independent of server-side path rewrites. */
+export function restaurantMenuHash(slug: string): string {
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) throw new Error('Invalid restaurant slug');
+  return '#order/' + slug;
+}
+export function storefrontCartHash(slug: string): string {
+  return restaurantMenuHash(slug) + '/cart';
+}
+export function storefrontCheckoutHash(slug: string): string {
+  return restaurantMenuHash(slug) + '/checkout';
+}
