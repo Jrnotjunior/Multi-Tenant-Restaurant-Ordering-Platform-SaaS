@@ -223,3 +223,10 @@
 .staff-workspace--kitchen>.staff-workspace-tabs{grid-column:1;grid-row:1;align-self:start;margin-bottom:20px}
 .staff-workspace--kitchen>section{grid-column:1/-1;min-width:0}
 @media(max-width:560px){.staff-workspace--kitchen{column-gap:8px}.staff-workspace--kitchen>.staff-workspace-tabs{gap:4px}.staff-workspace--kitchen>.staff-workspace-tabs button{padding:9px 16px}}
+
+.staff-kitchen-menu-details{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
+.staff-kitchen-menu-category{color:var(--color-muted,#526782);font-size:.72rem;font-weight:700;letter-spacing:.02em}
+.staff-kitchen-menu-status{display:inline-flex;margin-top:4px;padding:3px 8px;border-radius:999px;background:var(--color-page,#F7F9FC);color:var(--color-muted,#526782);font-size:.7rem;font-weight:750}
+.staff-kitchen-menu-status.is-published{background:#e9f8ef;color:#17663a}
+.staff-kitchen-menu-status.is-draft{background:#fff5df;color:#865c0a}
+.staff-kitchen-menu-status.is-archived{background:#eef0f4;color:#596273}
