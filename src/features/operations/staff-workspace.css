@@ -124,3 +124,9 @@
 @media(max-width:760px){.staff-workspace{padding:24px 16px}.staff-queue-toolbar{align-items:stretch;flex-direction:column;padding:14px 16px}.staff-order-search{max-width:none}.staff-queue-toolbar-end{justify-content:space-between}.staff-order-type-filter{flex:1;justify-content:space-between}.staff-order-type-filter select{flex:1;max-width:220px}}
 @media(max-width:560px){.staff-workspace{padding:18px 12px}.staff-header{gap:16px}.staff-header h1{font-size:clamp(1.8rem,8vw,2.35rem)}.staff-header-actions{align-items:flex-start}.staff-live-indicator{font-size:.74rem}.staff-queue-heading{padding:16px}.staff-queue-toolbar-end{gap:10px}.staff-order-type-filter{align-items:flex-start;flex-direction:column;gap:6px}.staff-order-type-filter select{width:100%;max-width:none}.staff-result-count{align-self:flex-end}.staff-order-card{padding:16px}.staff-order-actions .staff-button{min-width:0}.staff-empty{padding:36px 18px}}
 @media(prefers-reduced-motion:reduce){.staff-metrics article,.staff-loading-dot{transition:none;animation:none}}
+
+/* Surface orders that need staff action without changing their workflow. */
+.staff-order-card.is-actionable{border-left:3px solid var(--color-active,#263754);padding-left:calc(24px - 3px);background:color-mix(in srgb,var(--color-page,#F7F9FC) 24%,var(--color-surface,#fff))}
+.staff-order-card.is-actionable .staff-order-number{display:inline-flex;align-items:center;gap:8px}
+.staff-order-card.is-actionable .staff-order-number::after{content:"Needs action";display:inline-flex;align-items:center;border:1px solid #ead7a5;border-radius:999px;padding:3px 7px;background:#fff5dc;color:#855500;font-size:.64rem;font-weight:800;letter-spacing:.01em}
+@media(max-width:560px){.staff-order-card.is-actionable{padding-left:13px}}
