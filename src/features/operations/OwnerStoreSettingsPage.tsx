@@ -164,6 +164,7 @@ function Toggle({ label, checked, onChange, disabled = false, small = false }: {
 export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('profile');
   const [row, setRow] = useState<StorefrontRow | null>(null);
+  const [restaurantSlug, setRestaurantSlug] = useState('');
   const [restaurantAddress, setRestaurantAddress] = useState('');
   const [tagline, setTagline] = useState('');
   const [acceptingOrders, setAcceptingOrders] = useState(false);
@@ -186,6 +187,9 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
     async function loadSettings() {
       try {
         if (!supabase) throw new Error('Store settings service is not configured.');
+        const { data: tenant, error: tenantError } = await supabase.from('tenants').select('slug').eq('id', tenantId).maybeSingle();
+        if (tenantError) throw tenantError;
+        if (tenant && typeof tenant.slug === 'string') setRestaurantSlug(tenant.slug);
         const { data, error } = await supabase.from('tenant_storefronts')
           .select('tenant_id,display_name,tagline,restaurant_address,store_address,delivery_location_latitude,delivery_location_longitude,accepting_orders,opening_hours,delivery_pricing,cash_payment_options,rider_assignment,online_payments')
           .eq('tenant_id', tenantId).maybeSingle();
@@ -340,7 +344,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         <section className="w2t-delivery-location" aria-labelledby="w2t-delivery-location-heading">
           <div className="w2t-delivery-location-header"><div><span className="w2t-delivery-location-kicker">Delivery setup</span><h2 id="w2t-delivery-location-heading">Store address</h2><p>Set the exact location delivery orders should route from. Distance and fees are calculated from this point.</p></div><span className="w2t-route-origin">Route origin</span></div>
           <MapPickerErrorBoundary>
-            <MapboxDeliveryLocationPicker variant="restaurant" disabled={saving} initialLatitude={latitude} initialLongitude={longitude}
+            <MapboxDeliveryLocationPicker restaurantSlug={restaurantSlug} variant="restaurant" disabled={saving} initialLatitude={latitude} initialLongitude={longitude}
               onSelect={(selected: MapboxDeliveryAddress) => {
                 if (selected.latitude === null || selected.longitude === null) throw new Error('The map did not return an exact store location.');
                 setLatitude(selected.latitude); setLongitude(selected.longitude);
