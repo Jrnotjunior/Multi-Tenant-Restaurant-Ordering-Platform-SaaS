@@ -7,6 +7,14 @@ type Mode = 'admin' | 'restaurant';
 type State = 'checking' | 'signedout' | 'passwordsetup' | 'mfa' | 'authorized' | 'denied' | 'error';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+function getAccessErrorMessage(error: unknown): string {
+  const detail = error instanceof Error ? error.message : String(error ?? '');
+  if (detail.includes('too_many_enrolled_mfa_factors') || detail.toLowerCase().includes('existing-factor limit')) {
+    return 'We couldn’t start authenticator setup because your account has reached its security-device limit. Please sign out and sign back in. If the problem continues, contact your administrator for help. Your existing security settings have not been changed.';
+  }
+  return detail || 'We couldn’t verify your access. Please try again or contact your administrator.';
+}
+
 // Cache successful access checks for this browser session to prevent loading flashes on navigation.
 const authorizedSessionByMode = new Map<string, string>();
 
@@ -176,7 +184,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
           }
         }
       } catch (err) {
-        if (active) { setStatus('error'); setMessage(err instanceof Error ? err.message : 'Authorization check failed.'); }
+        if (active) { setStatus('error'); setMessage(getAccessErrorMessage(err)); }
       }
     }
     void checkAccess();
