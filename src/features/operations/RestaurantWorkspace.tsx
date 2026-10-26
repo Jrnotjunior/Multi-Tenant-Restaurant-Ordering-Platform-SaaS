@@ -151,7 +151,12 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
     return <StaffOperationalWorkspace tenantId={membership.tenant_id} role={membership.role} restaurantName={restaurantName} />;
   }
 
-  const signOut = () => { void supabase?.auth.signOut(); };
+  const signOut = async () => {
+    if (!supabase) return;
+    const { error } = await supabase.auth.signOut();
+    if (error) return;
+    window.location.assign(new URL('account/sign-in', window.location.origin + normalizeAppBase(baseUrl)).toString());
+  };
   const navigateOwnerPage = (nextPage: OwnerPage) => {
     setVisitedOwnerPages(current => {
       if (current.has(nextPage)) return current;
