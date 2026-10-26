@@ -180,8 +180,8 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 }
 .privileged-auth-only .auth-message{width:100%;margin:14px 0;white-space:normal;overflow-wrap:anywhere;word-break:normal}.privileged-auth-only .onboarding-card button,.privileged-auth-only .onboarding-card input{width:100%;max-width:100%;box-sizing:border-box}
 .app:has(.privileged-onboarding)>.topbar,.app:has(.privileged-onboarding)>footer,.app:has(.privileged-onboarding) .sidebar{display:none}
-.app:has(.privileged-onboarding) .workspace{display:block;max-width:none;margin:0}
-.app:has(.privileged-onboarding) .content{max-width:none;padding:0}
+.app:has(.privileged-onboarding) .workspace,.app:has(.privileged-auth-only) .workspace{display:block;max-width:none;margin:0}
+.app:has(.privileged-onboarding) .content,.app:has(.privileged-auth-only) .content{max-width:none;padding:0}
 .workspace-loading{min-height:100vh;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:var(--color-page);color:var(--color-text);font-family:var(--font-body)}
 .workspace-loading-brand{display:flex;align-items:center;gap:10px;font-weight:750;font-size:var(--font-size-18);letter-spacing:-.3px}
 .workspace-loading-mark{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:var(--color-sidebar);color:#fff;font-size:var(--font-size-12);letter-spacing:.2px}
