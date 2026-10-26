@@ -87,6 +87,6 @@ export function storefrontCartHash(slug: string): string {
 export function storefrontCheckoutHash(slug: string): string {
   return restaurantMenuHash(slug) + '/checkout';
 }
-\nexport function storefrontTrackingHash(slug: string): string {
+export function storefrontTrackingHash(slug: string): string {
   return restaurantMenuHash(slug) + '/track';
 }
