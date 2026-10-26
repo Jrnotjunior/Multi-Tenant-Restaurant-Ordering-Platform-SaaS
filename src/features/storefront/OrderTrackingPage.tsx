@@ -17,8 +17,13 @@ export function OrderTrackingPage({ onBackToMenu }: { onBackToMenu: () => void }
   const [error, setError] = useState('');
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [orderMeta] = useState(() => {
-    try { return JSON.parse(window.sessionStorage.getItem('web2table:latest-order-details') || '{}') as { paymentMethod?: string; lines?: { name: string; quantity: number; totalCentavos: number }[] }; }
-    catch { return {}; }
+    try {
+      const raw = window.sessionStorage.getItem('web2table:latest-order-details')
+        || window.localStorage.getItem('web2table:latest-order-details')
+        || '{}';
+      const parsed = JSON.parse(raw) as { paymentMethod?: string; lines?: { name: string; quantity: number; totalCentavos: number }[] };
+      return { ...parsed, lines: Array.isArray(parsed.lines) ? parsed.lines : [] };
+    } catch { return { lines: [] as { name: string; quantity: number; totalCentavos: number }[] }; }
   });
 
   useEffect(() => {
