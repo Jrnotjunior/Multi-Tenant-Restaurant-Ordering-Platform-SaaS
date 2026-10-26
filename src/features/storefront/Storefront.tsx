@@ -578,8 +578,8 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           const orderTypeMap = { Delivery: 'delivery', 'Take-out': 'take_out', Pickup: 'pickup', 'Dine-in': 'dine_in' } as const;
           const idempotencyKey = window.crypto?.randomUUID?.();
           if (!idempotencyKey) throw new Error('This browser cannot securely start checkout. Please update your browser and try again.');
-          const { data, error } = await supabase.functions.invoke('delivery-pricing', { body: {
-            action: 'create_order', restaurantSlug: restaurant.slug, branchSlug: restaurant.branchSlug,
+          const { data, error } = await supabase.functions.invoke('create-customer-order', { body: {
+            restaurantSlug: restaurant.slug, branchSlug: restaurant.branchSlug,
             customerName: submission.customerName, customerPhone: submission.phone,
             deliveryAddress: submission.deliveryAddress, deliveryNotes: submission.deliveryNotes,
             idempotencyKey, orderType: orderTypeMap[submission.orderType], items: orderItems,
