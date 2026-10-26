@@ -92,8 +92,38 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 /* Center authenticator QR code in the MFA setup card */
 .onboarding-card .auth-qr{display:block;width:min(150px,100%);margin:7px auto 10px}
 
-/* Sign-in and existing-account MFA use a single-column layout; the welcome hero is onboarding-only. */
-.privileged-auth-only{grid-template-columns:minmax(0,1fr)}
+/* Existing-account MFA and access errors use a compact content-sized card. */
+.privileged-auth-only{
+  box-sizing:border-box;
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  align-content:start;
+  place-items:start center;
+  width:min(600px,calc(100% - 32px));
+  max-width:600px;
+  min-height:0;
+  height:auto;
+  margin:24px auto;
+  padding:0;
+  background:transparent;
+  box-shadow:none;
+}
+.privileged-auth-only .onboarding-card{
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+  max-width:600px;
+  height:auto;
+  margin:0;
+  padding:26px;
+  border:1px solid #DCE3ED;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 18px 50px #101B2F0D;
+}
+.privileged-auth-only .auth-message,
+.privileged-auth-only .onboarding-card button,
+.privileged-auth-only .onboarding-card input{max-width:100%;box-sizing:border-box}
 
 .workspace-loading{min-height:100vh;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#F7F9FC;color:#101B2F;font-family:var(--font-body)}
 .workspace-loading-brand{display:flex;align-items:center;gap:10px;font-weight:750;font-size:var(--font-size-18);letter-spacing:-.3px}
@@ -106,24 +136,6 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 
 
 /* Responsive privileged onboarding and sign-in layouts across desktop, tablet and mobile. */
-.privileged-auth-only{
-  box-sizing:border-box;
-  width:100%;
-  min-height:calc(100vh - 40px);
-  grid-template-columns:minmax(0,1fr);
-  place-items:center;
-  padding:clamp(12px,3vw,32px);
-}
-.privileged-auth-only .onboarding-card{
-  box-sizing:border-box;
-  width:min(600px,100%);
-  min-width:0;
-  max-width:600px;
-  margin:0;
-}
-.privileged-auth-only .auth-message,
-.privileged-auth-only .onboarding-card button,
-.privileged-auth-only .onboarding-card input{max-width:100%;box-sizing:border-box}
 @media(max-width:760px){
   .privileged-onboarding{grid-template-columns:minmax(0,1fr);width:100%;max-width:600px;min-height:0}
   .privileged-onboarding .onboarding-story{
