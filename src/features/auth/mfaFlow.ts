@@ -78,6 +78,19 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
     enrollment = result.data;
     enrollmentError = result.error;
     if (!enrollmentError) break;
+    if (/maximum number of verified factors|max(imum)? number.*verified factors|verified factors reached/i.test(enrollmentError.message)) {
+      // Factor state can change between listFactors() and enroll(). Re-read it
+      // before surfacing an error; if a verified factor exists, challenge it
+      // instead of attempting another enrollment.
+      const { data: refreshed, error: refreshError } = await client.auth.mfa.listFactors();
+      if (refreshError) throw refreshError;
+      const activeVerified = refreshed.totp.find((factor) => factor.status === 'verified');
+      if (activeVerified) {
+        enrollments.delete(client);
+        return { kind: 'challenge', factorId: activeVerified.id };
+      }
+      throw new Error('Authenticator setup needs recovery. Please sign out and sign back in, or contact your administrator for secure account recovery. No verified authenticator was removed.');
+    }
     if (!/friendly name.*already exists|already exists.*friendly name/i.test(enrollmentError.message)) {
       throw enrollmentError;
     }
