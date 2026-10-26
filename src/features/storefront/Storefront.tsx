@@ -457,6 +457,26 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     window.scrollTo({ top: 0, behavior: 'auto' });
   }
 
+  useEffect(() => {
+    if (!customerSignedIn || !trackingPage) return;
+    // Guest tracking links are not the signed-in customer's order history.
+    // Clear guest tracking context and return authenticated customers to the menu.
+    try {
+      window.sessionStorage.removeItem('web2table:latest-order-tracking');
+      window.sessionStorage.removeItem('web2table:latest-order-number');
+      window.sessionStorage.removeItem('web2table:latest-order-details');
+      window.localStorage.removeItem('web2table:latest-order-details');
+    } catch {
+      // Storage may be unavailable; route protection still applies.
+    }
+    setHasTrackedOrder(false);
+    setTrackingPage(false);
+    setCartPage(false);
+    setCheckoutPage(false);
+    if (resolvedSlug) navigateHashRoute(restaurantMenuHash(resolvedSlug));
+    else window.history.replaceState({}, '', normalizeAppBase(baseUrl));
+  }, [customerSignedIn, trackingPage, resolvedSlug, baseUrl]);
+
   function navigateCheckout(open: boolean) {
     if (!resolvedSlug) { setCheckoutPage(open); setCartPage(false); return; }
     const nextHash = open ? storefrontCheckoutHash(resolvedSlug) : restaurantMenuHash(resolvedSlug);
