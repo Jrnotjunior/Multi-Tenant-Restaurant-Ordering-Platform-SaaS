@@ -75,15 +75,14 @@ async function verifyTenantOrigin(origin: string) {
   // GitHub Pages is an explicitly scoped temporary storefront used for manual
   // testing; every other browser origin must resolve to an active tenant domain.
   if (host === 'jrnotjunior.github.io') {
+    // Preview deployments resolve against the same active tenant registry as
+    // production domains; do not depend on the legacy restaurants table.
     const slug = String(import.meta.env.VITE_RESTAURANT_SLUG ?? '').trim();
     if (!slug) return false;
-    const restaurants = await supabaseGet<{ id: string }>('restaurants', {
-      select: 'id',
-      slug: `eq.${slug}`,
-      is_active: 'eq.true',
-      limit: '1',
+    const tenants = await supabaseRpc<{ id?: string }>('resolve_restaurant_by_slug', {
+      p_slug: slug,
     });
-    return restaurants.length > 0;
+    return tenants.length > 0;
   }
 
   const restaurants = await supabaseRpc<{ id?: string }>('resolve_restaurant_by_domain', {
