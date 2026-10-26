@@ -558,7 +558,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           if (submission.paymentMethod === 'online') {
             if (!result.order_id) throw new Error('The order was created, but its payment reference was not returned. Contact the restaurant before retrying.');
             const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-customer-order-checkout', {
-              body: { orderId: result.order_id, environment: 'test' },
+              body: { orderId: result.order_id, environment: 'test', trackingToken: idempotencyKey },
             });
             if (checkoutError) throw new Error('Order #' + result.order_number + ' was created, but online checkout could not start. Contact the restaurant before placing another order.');
             const checkout = checkoutData as { success?: boolean; checkoutUrl?: string; error?: string } | null;
