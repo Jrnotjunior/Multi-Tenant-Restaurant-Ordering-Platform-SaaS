@@ -32,7 +32,7 @@ begin
   from (
     select o.id,o.order_number,o.tenant_id,o.branch_id,b.name as branch_name,o.order_type,o.customer_name,o.customer_phone,
       o.delivery_address,o.delivery_notes,o.currency,o.subtotal_centavos,o.delivery_fee_centavos,o.total_centavos,
-      o.order_status,o.payment_status,o.created_at,o.updated_at,da.rider_user_id as assigned_rider_user_id,da.status as assignment_status,
+      o.order_status,o.payment_status,o.payment_method,o.payment_collected_at,o.payment_collected_by,o.created_at,o.updated_at,da.rider_user_id as assigned_rider_user_id,da.status as assignment_status,
       coalesce((select jsonb_agg(jsonb_build_object('id',i.id,'line_number',i.line_number,'item_name',i.item_name_snapshot,
         'unit_price_centavos',i.unit_price_centavos,'quantity',i.quantity,'line_total_centavos',i.line_total_centavos,
         'options',i.options_snapshot) order by i.line_number) from public.customer_order_items i
