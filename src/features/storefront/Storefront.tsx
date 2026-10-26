@@ -488,7 +488,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
         </a>
         <nav className="sf-header-actions" aria-label="Store navigation">
           {!trackingPage && <button type="button" className="sf-track-order-button" onClick={navigateTracking} aria-label="Track order" title="Track order">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/><path d="M8 2.8 5.8 5M16 2.8 18.2 5"/></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 5.5h15v13h-15z"/><path d="M8 9h8M8 12h5"/></svg>
           </button>}
           <span className="sf-header-divider" aria-hidden="true"/>
           <button type="button" className="sf-bag-button" onClick={() => navigateCart(true)} aria-label={'Open cart with ' + count + ' items'}>
