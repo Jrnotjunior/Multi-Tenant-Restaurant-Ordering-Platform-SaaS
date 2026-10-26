@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { isStorefrontCartPath, pathFor, routePathFromLocation, storefrontSlugFromPath, viewForPath, type View } from './routes';
 import { PrivilegedGate } from '../features/auth/PrivilegedGate';
 import { Storefront } from '../features/storefront/Storefront';
-import { CustomerOrderTracking } from '../features/storefront/CustomerOrderTracking';
 import { AccountAuthPage } from '../features/storefront/AccountAuthPage';
 import { CustomerOrderHistoryPage } from '../features/storefront/CustomerOrderHistoryPage';
 import { LegalPoliciesPage } from '../features/storefront/LegalPoliciesPage';
@@ -47,21 +46,7 @@ export function App() {
   const legalRoute = ['#legal', '#privacy', '#terms', '#refunds'].includes(window.location.hash) ? window.location.hash : null;
   if (legalRoute) return <LegalPoliciesPage route={legalRoute} />;
 
-  // PayMongo redirects are customer-facing guidance only. Verified webhooks determine the actual payment state.
-  if (cleanPath.endsWith('/payment/success')) return <main className="content">
-    <p className="eyebrow">WEB2TABLE · PAYMENT</p>
-    <h1>Thanks! We’re confirming your payment.</h1>
-    <p className="intro">PayMongo returned you to Web2Table. Your order status will update after we receive and verify the payment confirmation. Please don’t pay again while confirmation is processing.</p>
-    <CustomerOrderTracking trackingToken={new URLSearchParams(window.location.search).get("tracking")} />
-    <section className="panel"><p>If your order status doesn’t update shortly, contact the restaurant and share your order reference.</p><a className="status-pill" href={baseUrl}>Return to storefront</a></section>
-  </main>;
-  if (cleanPath.endsWith('/payment/cancel')) return <main className="content">
-    <p className="eyebrow">WEB2TABLE · PAYMENT</p>
-    <h1>Payment wasn’t completed.</h1>
-    <p className="intro">The checkout page was closed or payment was not completed. Your order may still be awaiting confirmation; check with the restaurant before placing another order.</p>
-    <CustomerOrderTracking trackingToken={new URLSearchParams(window.location.search).get("tracking")} />
-    <section className="panel"><p>For your safety, Web2Table only updates payment status after a verified PayMongo event.</p><a className="status-pill" href={baseUrl}>Return to storefront</a></section>
-  </main>;
+  // PayMongo returns directly to the existing restaurant tracking route. Do not render a duplicate payment tracking page here.
 
   // The homepage of a restaurant ordering site is its menu, not an app dashboard.
   // The root storefront opens the published restaurant menu directly; do not show a separate restaurant directory.
