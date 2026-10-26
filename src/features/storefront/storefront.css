@@ -479,9 +479,9 @@
 @media(max-width:420px){.sf-order-tracking{padding:14px}.sf-order-tracking-steps{gap:12px 5px}.sf-order-tracking-steps li{align-items:flex-start;flex-direction:column;gap:4px;font-size:var(--sf-font-size-10)}}
 
 /* Dedicated order tracking receipt, matching the original dine-in tracking design. */
-.sf-order-tracking-page{position:fixed;inset:0;z-index:1000;width:100%;height:100vh;height:100dvh;min-height:100dvh;max-width:none;margin:0;padding:16px;overflow-y:auto;box-sizing:border-box;color:var(--sf-font-color);background:var(--sf-page-background)}
+.sf-order-tracking-page{position:relative;inset:auto;z-index:auto;width:100%;min-height:0;max-width:none;margin:0;padding:16px;overflow:visible;box-sizing:border-box;color:var(--sf-font-color);background:var(--sf-page-background)}
 .sf-tracking-receipt{width:100%;min-height:100%;padding:12px;border:0;border-radius:0;background:var(--sf-product-card);box-sizing:border-box}
-@media(max-width:600px){.sf-order-tracking-page{padding:0}.sf-tracking-receipt{min-height:100%;padding:16px}}
+@media(max-width:600px){.sf-order-tracking-page{padding:0}.sf-tracking-receipt{min-height:0;padding:16px}}
 .sf-tracking-order-heading{padding:14px 10px 12px;text-align:center;border:1px solid var(--sf-border);border-radius:11px}
 .sf-tracking-eyebrow{display:block;font-size:var(--sf-font-size-11);font-weight:900;letter-spacing:.12em;text-transform:uppercase}
 .sf-tracking-order-heading h1{margin:7px 0;font-size:var(--sf-font-size-26);line-height:1.1;letter-spacing:.04em}
