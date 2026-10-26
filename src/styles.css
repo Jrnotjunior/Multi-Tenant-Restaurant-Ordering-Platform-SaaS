@@ -22,12 +22,16 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 
 
 /* Restaurant owner invitation onboarding */
-.privileged-onboarding{min-height:calc(100vh - 76px);display:grid;grid-template-columns:minmax(0,1fr);background:#F7F9FC;color:#101B2F;place-items:center;}
-.onboarding-story{min-height:calc(100vh - 76px);position:relative;overflow:hidden;isolation:isolate;padding:clamp(28px,5.6vw,86px);display:flex;flex-direction:column;justify-content:space-between;background:radial-gradient(ellipse at 72% 30%,#57341f 0,transparent 38%),radial-gradient(ellipse at 20% 82%,#40251b 0,transparent 35%),linear-gradient(135deg,#171514,#201813 54%,#090909)}
+.privileged-onboarding{box-sizing:border-box;width:min(1060px,100%);max-width:1060px;min-height:100vh;margin-inline:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:#F7F9FC;color:#101B2F;place-items:stretch;}
+.onboarding-story{box-sizing:border-box;height:360px;min-height:0;position:relative;overflow:hidden;padding:22px 24px 18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#050505;border-bottom:4px solid #ff001b}
 .onboarding-story:before,.onboarding-story:after{content:"";position:absolute;z-index:-1;pointer-events:none}
 .onboarding-story:before{inset:0;background:linear-gradient(90deg,#08080855,#08080812),repeating-linear-gradient(90deg,transparent 0 24%,#ffffff04 24.2% 24.6%,transparent 25% 40%)}
 .onboarding-story:after{width:65%;aspect-ratio:1;right:-16%;bottom:-18%;border:1px solid #e4a86a22;border-radius:50%;box-shadow:0 0 0 35px #e4a86a08,0 0 0 75px #e4a86a06}
 .onboarding-brand{display:inline-flex;align-items:center;gap:12px;align-self:flex-start;color:white;text-decoration:none}
+.onboarding-brand.onboarding-logo-only{display:flex;align-items:center;justify-content:center;align-self:center;width:min(100%,200px);margin:0;flex:0 0 auto}
+.onboarding-logo-only svg{display:block;width:100%;height:auto;max-height:118px}
+.onboarding-welcome-title{position:relative;z-index:1;text-align:center;color:#fff}
+.onboarding-welcome-title h1{margin:0;color:#fff;font-size:clamp(25px,2.3vw,32px);line-height:1.08;letter-spacing:-.045em}
 .onboarding-brand span{display:grid;place-items:center;width:44px;height:44px;border-radius:10px;background:var(--onboard-red);font-weight:850;font-size:var(--font-size-13)}
 .onboarding-brand strong{font-size:var(--font-size-21);letter-spacing:-.04em}
 .onboarding-story-copy{max-width:460px;margin:65px 0;position:relative;z-index:1}
@@ -78,8 +82,8 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .onboarding-card .auth-qr{width:min(260px,100%);margin:10px 0}
 .onboarding-card .auth-message{padding:12px 15px;border-radius:0 8px 8px 0}
 .onboarding-card .auth-primary-link{padding:15px 18px;text-decoration:none}
-@media(max-width:900px){.privileged-onboarding{grid-template-columns:1fr}.onboarding-story{min-height:auto;padding:24px 28px 20px}.onboarding-story-copy{margin:32px 0 8px}.onboarding-story-copy h1{font-size:var(--font-size-36);margin:12px 0}.onboarding-story-copy>p{font-size:var(--font-size-14);margin:0}.onboarding-kicker,.onboarding-benefits{display:none}.onboarding-card{width:calc(100% - 32px);margin:22px 16px 36px;padding:26px 22px}.onboarding-steps{margin-bottom:27px}.onboarding-steps>div{min-width:65px}.onboarding-steps small{font-size:var(--font-size-10)}.onboarding-steps span{width:34px;height:34px}.onboarding-steps i{margin-top:16px}}
-@media(max-width:430px){.onboarding-card{padding:23px 18px}.onboarding-card h2{font-size:var(--font-size-27)}.onboarding-password-rules{padding:16px}.onboarding-story{padding:20px 22px}.onboarding-story-copy{margin-top:24px}.onboarding-story-copy h1{font-size:var(--font-size-32)}}
+@media(max-width:1100px){.privileged-onboarding{grid-template-columns:minmax(0,1fr);width:100%;max-width:600px}.onboarding-story{height:280px;min-height:0;padding:18px 22px 14px}.onboarding-brand.onboarding-logo-only{width:min(100%,180px)}.onboarding-logo-only svg{max-height:95px}.onboarding-welcome-title h1{font-size:26px}.onboarding-story-copy{margin:24px 0 12px}.onboarding-story-copy h1{font-size:var(--font-size-36);margin:12px 0}.onboarding-story-copy>p{font-size:var(--font-size-14);margin:0}.onboarding-kicker,.onboarding-benefits{display:none}.onboarding-card{width:calc(100% - 32px);margin:22px 16px 36px;padding:26px 22px}.onboarding-steps{margin-bottom:27px}.onboarding-steps>div{min-width:65px}.onboarding-steps small{font-size:var(--font-size-10)}.onboarding-steps span{width:34px;height:34px}.onboarding-steps i{margin-top:16px}}
+@media(max-width:430px){.onboarding-card{padding:23px 18px}.onboarding-card h2{font-size:var(--font-size-27)}.onboarding-password-rules{padding:16px}.onboarding-story{height:250px;padding:18px}.onboarding-brand.onboarding-logo-only{width:min(100%,170px)}.onboarding-logo-only svg{max-height:88px}.onboarding-welcome-title h1{font-size:25px}.onboarding-story-copy{margin-top:24px}.onboarding-story-copy h1{font-size:var(--font-size-32)}}
 
 .app:has(.privileged-onboarding)>.topbar,.app:has(.privileged-onboarding)>footer,.app:has(.privileged-onboarding) .sidebar{display:none}
 .app:has(.privileged-onboarding) .workspace{display:block;max-width:none;margin:0}
@@ -245,179 +249,3 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 }
 
 
-/* Constrain onboarding to a centered 1060px canvas on wide desktop screens. */
-@media(min-width:1101px){
-  .app:has(.privileged-onboarding) .privileged-onboarding{
-    width:min(1060px,100%);
-    max-width:1060px;
-    min-height:100vh;
-    margin-inline:auto;
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-  }
-  .app:has(.privileged-onboarding) .onboarding-story{
-    min-height:100vh;
-  }
-  .app:has(.privileged-onboarding) .onboarding-card{
-    width:calc(100% - 40px);
-    max-width:480px;
-    margin:24px 20px;
-    padding:26px 24px;
-  }
-}
-
-
-/* Onboarding brand header: black field, centered W2T mark, red baseline. */
-.privileged-onboarding .onboarding-story{
-  min-height:0 !important;
-  height:304px;
-  padding:24px 28px 0 !important;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#050505 !important;
-  border-bottom:4px solid #ff001b;
-  overflow:hidden;
-}
-.privileged-onboarding .onboarding-story:before,
-.privileged-onboarding .onboarding-story:after,
-.privileged-onboarding .onboarding-story-glow,
-.privileged-onboarding .onboarding-story-copy{display:none !important}
-.privileged-onboarding .onboarding-brand.onboarding-logo-only{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  align-self:center;
-  width:min(100%,260px);
-  margin:0;
-}
-.privileged-onboarding .onboarding-logo-only svg{display:block;width:100%;height:auto;max-height:150px}
-@media(max-width:900px){
-  .privileged-onboarding .onboarding-story{height:220px;min-height:0 !important;padding:18px 22px 0 !important}
-  .privileged-onboarding .onboarding-brand.onboarding-logo-only{width:min(100%,230px)}
-  .privileged-onboarding .onboarding-logo-only svg{max-height:130px}
-}
-
-
-/* Keep the complete onboarding composition within a centered 1060px desktop canvas. */
-@media(min-width:1101px){
-  .app:has(.privileged-onboarding) .workspace,
-  .app:has(.privileged-onboarding) .content{
-    width:100%;
-    max-width:none;
-    margin-inline:0;
-  }
-  .app:has(.privileged-onboarding) .privileged-onboarding{
-    display:grid;
-    width:min(1060px,100%);
-    max-width:1060px;
-    min-height:100vh;
-    margin-inline:auto;
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-    justify-items:stretch;
-    align-items:stretch;
-  }
-  .app:has(.privileged-onboarding) .onboarding-story{
-    width:100%;
-    min-width:0;
-    height:304px;
-    min-height:0 !important;
-  }
-  .app:has(.privileged-onboarding) .onboarding-card{
-    width:calc(100% - 40px);
-    max-width:480px;
-    margin:24px 20px;
-    justify-self:center;
-  }
-}
-
-
-/* Keep the welcome headline alongside the black logo header. */
-.privileged-onboarding .onboarding-story{
-  flex-direction:column;
-  gap:8px;
-}
-.privileged-onboarding .onboarding-brand.onboarding-logo-only{
-  flex:0 0 auto;
-  width:min(100%,220px);
-}
-.privileged-onboarding .onboarding-logo-only svg{max-height:118px}
-.privileged-onboarding .onboarding-welcome-title{
-  position:relative;
-  z-index:1;
-  text-align:center;
-  color:#fff;
-}
-.privileged-onboarding .onboarding-welcome-title h1{
-  margin:0;
-  color:#fff;
-  font-size:clamp(25px,2.3vw,32px);
-  line-height:1.05;
-  letter-spacing:-.045em;
-}
-@media(max-width:900px){
-  .privileged-onboarding .onboarding-story{height:250px}
-  .privileged-onboarding .onboarding-brand.onboarding-logo-only{width:min(100%,180px)}
-  .privileged-onboarding .onboarding-logo-only svg{max-height:95px}
-  .privileged-onboarding .onboarding-welcome-title h1{font-size:26px}
-}
-
-
-/* Final desktop onboarding correction: visible white title and true 1060px centered canvas. */
-@media(min-width:1101px){
-  .app:has(.privileged-onboarding) .workspace{
-    display:flex !important;
-    justify-content:center !important;
-    width:100% !important;
-    max-width:none !important;
-    margin-inline:0 !important;
-  }
-  .app:has(.privileged-onboarding) .content{
-    display:flex !important;
-    justify-content:center !important;
-    width:100% !important;
-    max-width:none !important;
-    padding:0 !important;
-    margin-inline:0 !important;
-  }
-  .app:has(.privileged-onboarding) .privileged-onboarding{
-    flex:none !important;
-    width:min(1060px,100%) !important;
-    max-width:1060px !important;
-    margin-inline:auto !important;
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
-  }
-  .app:has(.privileged-onboarding) .onboarding-story{
-    height:360px !important;
-    min-height:0 !important;
-    padding:22px 24px 18px !important;
-    justify-content:center !important;
-    gap:10px !important;
-  }
-  .app:has(.privileged-onboarding) .onboarding-brand.onboarding-logo-only{
-    width:min(100%,200px) !important;
-  }
-  .app:has(.privileged-onboarding) .onboarding-logo-only svg{max-height:118px !important}
-  .app:has(.privileged-onboarding) .onboarding-welcome-title h1{
-    color:#fff !important;
-    font-size:clamp(25px,2.3vw,32px) !important;
-    line-height:1.08 !important;
-    margin:0 !important;
-  }
-}
-.privileged-onboarding .onboarding-welcome-title,
-.privileged-onboarding .onboarding-welcome-title h1{
-  color:#fff !important;
-}
-@media(max-width:1100px){
-  .privileged-onboarding .onboarding-story{
-    height:280px !important;
-    min-height:0 !important;
-    padding:18px 22px 14px !important;
-    gap:8px !important;
-  }
-  .privileged-onboarding .onboarding-welcome-title h1{
-    color:#fff !important;
-    font-size:26px !important;
-    line-height:1.08 !important;
-  }
-}
