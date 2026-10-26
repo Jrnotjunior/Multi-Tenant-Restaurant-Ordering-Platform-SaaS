@@ -161,11 +161,11 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .privileged-auth-only .auth-message,
 .privileged-auth-only .onboarding-card button,
 .privileged-auth-only .onboarding-card input{max-width:100%;box-sizing:border-box}
-@media(max-width:1100px){
+@media(max-width:760px){
   .privileged-onboarding{grid-template-columns:minmax(0,1fr);width:100%;max-width:600px;min-height:0}
   .privileged-onboarding .onboarding-story{
-    min-height:0;
-    height:260px;
+    min-height:220px;
+    height:auto;
     padding:24px 20px;
   }
   .privileged-onboarding .onboarding-card{
