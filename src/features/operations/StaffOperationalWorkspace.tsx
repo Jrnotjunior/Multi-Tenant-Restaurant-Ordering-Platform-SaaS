@@ -398,7 +398,6 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     </section>}
     <section className="staff-queue">
       <div className="staff-queue-heading"><div><p className="staff-eyebrow">WORK QUEUE</p><h2>{copy.queue}</h2></div>
-        {role === 'rider' && <div className="staff-queue-controls"><button type="button" className={filter === 'active' ? 'is-selected' : ''} onClick={() => setFilter('active')}>Active</button><button type="button" className={filter === 'all' ? 'is-selected' : ''} onClick={() => setFilter('all')}>All orders</button></div>}
       </div>
       {role === 'kitchen' && kitchenTab === 'menu' ? <div className="staff-kitchen-menu-panel">
       <div className="staff-kitchen-menu-toolbar"><div><h3>Menu availability</h3><p>Mark items unavailable when stock runs out. Changes apply to this branch’s storefront.</p></div></div>
