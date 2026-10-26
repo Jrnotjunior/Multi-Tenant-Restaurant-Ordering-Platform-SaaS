@@ -533,7 +533,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     '--sf-red-dark': websiteColors.secondaryButton,
   } as CSSProperties;
   return <div className={'sf-storefront' + tenantFontClass} style={storefrontTheme}>
-    {!trackingPage && !cartPage && !checkoutPage && (<header className="sf-header">
+    {(<header className="sf-header">
       <div className="sf-header-inner">
         <a href={menuUrl} className="sf-logo" aria-label={restaurant.name + " menu"}>
           {restaurant.logoUrl
@@ -670,7 +670,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       </>}
     </main>
 
-    {!trackingPage && !cartPage && !checkoutPage && (<footer className="sf-footer">
+    {(<footer className="sf-footer">
       <div className="sf-footer-inner">
       <section className="sf-footer-social-section" aria-label="Follow the restaurant">
         <h2 className="sf-footer-heading">Follow Us</h2>
