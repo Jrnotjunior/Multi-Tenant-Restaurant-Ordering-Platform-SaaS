@@ -127,7 +127,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       setSigningOut(false);
       return;
     }
-    window.location.reload();
+    window.location.assign(new URL('account/sign-in', window.location.origin + normalizeAppBase(import.meta.env.BASE_URL)).toString());
   }
 
   const load = useCallback(async (quiet = false) => {
