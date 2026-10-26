@@ -312,3 +312,15 @@
 .staff-cashier-modal-total strong:last-child{font-size:1.4rem;font-weight:850}
 .staff-cashier-modal-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:10px;margin-top:22px}
 @media(max-width:520px){.staff-cashier-order-summary{align-items:flex-start;padding:13px;gap:10px}.staff-cashier-summary-main,.staff-cashier-summary-payment{align-items:flex-start;flex-direction:column;gap:5px}.staff-cashier-summary-payment{align-items:flex-end}.staff-cashier-modal-backdrop{padding:12px}.staff-cashier-modal{padding:20px 16px;border-radius:16px}.staff-cashier-modal-actions{flex-direction:column}.staff-cashier-modal-actions .staff-button{width:100%}}
+
+
+/* Ensure cashier summary rows render as designed rather than browser-default buttons. */
+.staff-queue .staff-order-list>.staff-cashier-order-summary{appearance:none;-webkit-appearance:none;box-sizing:border-box;width:100%;min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:20px;margin:0;padding:16px;border:1px solid var(--color-border,#DCE3ED);border-radius:12px;background:var(--color-surface,#fff);color:var(--color-text,#101B2F);font-family:inherit;font-size:inherit;line-height:1.4;text-align:left;white-space:normal;cursor:pointer}
+.staff-queue .staff-order-list>.staff-cashier-order-summary .staff-cashier-summary-main{display:flex;align-items:center;gap:12px;min-width:0}
+.staff-queue .staff-order-list>.staff-cashier-order-summary .staff-cashier-summary-main>strong{font-size:.94rem;font-weight:800;white-space:nowrap}
+.staff-queue .staff-order-list>.staff-cashier-order-summary .staff-cashier-summary-main>span{color:var(--color-muted,#526782);font-size:.86rem}
+.staff-queue .staff-order-list>.staff-cashier-order-summary .staff-cashier-summary-payment{display:flex;align-items:center;justify-content:flex-end;gap:12px;min-width:0}
+.staff-queue .staff-order-list>.staff-cashier-order-summary .staff-cashier-summary-payment>span{padding:5px 10px;border-radius:999px;background:var(--color-page,#F1F4F8);color:var(--color-muted,#526782);font-size:.78rem;white-space:nowrap}
+.staff-queue .staff-order-list>.staff-cashier-order-summary .staff-cashier-summary-payment>strong{font-size:.94rem;font-weight:800;white-space:nowrap}
+.staff-queue .staff-order-list>.staff-cashier-order-summary:hover{border-color:var(--color-active,#263754);box-shadow:0 3px 12px #101b2f0a}
+@media(max-width:520px){.staff-queue .staff-order-list>.staff-cashier-order-summary{align-items:flex-start;gap:10px;padding:13px}.staff-queue .staff-order-list>.staff-cashier-order-summary .staff-cashier-summary-main,.staff-queue .staff-order-list>.staff-cashier-order-summary .staff-cashier-summary-payment{align-items:flex-start;flex-direction:column;gap:5px}.staff-queue .staff-order-list>.staff-cashier-order-summary .staff-cashier-summary-payment{align-items:flex-end}}
