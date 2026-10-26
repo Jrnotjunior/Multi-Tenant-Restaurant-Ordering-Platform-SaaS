@@ -569,7 +569,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           }
           setCart({});
           setCustomized({});
-          return { orderNumber: Number(result.order_number), ...(checkoutUrl ? { checkoutUrl } : {}) };
+          return { orderNumber: Number(result.order_number), trackingToken: idempotencyKey, ...(checkoutUrl ? { checkoutUrl } : {}) };
         }}
       /> : <>
       <section className="sf-hero" aria-label="Restaurant introduction">
