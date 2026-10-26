@@ -280,7 +280,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
           <text x="130" y="103" fontFamily="Arial, Helvetica, sans-serif" fontSize="67" fontWeight="900" fontStyle="italic" fill="#fff">T</text>
         </svg>
       </a>
-      <div className="onboarding-welcome-title"><h1>Welcome to<br />Web2Table</h1><p>Restaurant operations, connected.</p></div>
+      <div className="onboarding-welcome-title"><h1>Welcome to Web2Table</h1><p>Restaurant operations, connected.</p></div>
     </aside>}
     <section className="auth-panel onboarding-card">
       {(isSetup || (isMfa && !isExistingAccountMfa)) && <div className="onboarding-steps" aria-label="Account setup progress">
