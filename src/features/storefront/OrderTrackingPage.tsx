@@ -4,7 +4,8 @@ import './storefront.css';
 
 const peso = (centavos: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 2 }).format(centavos / 100);
 
-type TrackedItem = { name: string; quantity: number; total_centavos: number; unit_price_centavos?: number; options?: unknown[] };\ntype TrackedStatus = { order_status: string; payment_status: string; order_type?: string; updated_at: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null };
+type TrackedItem = { name: string; quantity: number; total_centavos: number; unit_price_centavos?: number; options?: unknown[] };
+type TrackedStatus = { order_status: string; payment_status: string; order_type?: string; updated_at: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null };
 
 export function OrderTrackingPage({ onBackToMenu }: { onBackToMenu: () => void }) {
   const [trackingToken] = useState<string | null>(() => {
