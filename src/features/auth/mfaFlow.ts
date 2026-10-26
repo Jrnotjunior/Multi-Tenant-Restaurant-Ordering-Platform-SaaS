@@ -84,12 +84,23 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
       // instead of attempting another enrollment.
       const { data: refreshed, error: refreshError } = await client.auth.mfa.listFactors();
       if (refreshError) throw refreshError;
-      const activeVerified = refreshed.totp.find((factor) => factor.status === 'verified');
-      if (activeVerified) {
+
+      // Supabase's verified-factor limit applies to the account's MFA factors,
+      // not just TOTP. Check all factor types before deciding enrollment is safe.
+      const allFactors = refreshed.all ?? [...refreshed.totp, ...refreshed.phone];
+      const verifiedFactors = allFactors.filter((factor) => factor.status === 'verified');
+      const verifiedTotp = verifiedFactors.find((factor) => factor.factor_type === 'totp');
+      if (verifiedTotp) {
         enrollments.delete(client);
-        return { kind: 'challenge', factorId: activeVerified.id };
+        return { kind: 'challenge', factorId: verifiedTotp.id };
       }
-      throw new Error('Authenticator setup needs recovery. Please sign out and sign back in, or contact your administrator for secure account recovery. No verified authenticator was removed.');
+      if (verifiedFactors.length > 0) {
+        throw new Error('This account already has a verified security factor, so Supabase will not allow another enrollment. Sign in using the existing security method or ask an administrator to review the account. No verified factor was changed.');
+      }
+
+      // The factor list and enrollment API disagreed. Do not repeat enrollment
+      // indefinitely or report that the user definitely completed setup.
+      throw new Error('Supabase rejected authenticator enrollment because of its verified-factor limit, but no verified factor was returned for this account. Refresh the session and try again; if it persists, an administrator needs to inspect the account MFA state. No verified factor was changed.');
     }
     if (!/friendly name.*already exists|already exists.*friendly name/i.test(enrollmentError.message)) {
       throw enrollmentError;
