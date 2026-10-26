@@ -224,7 +224,8 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   baseUrl: string; requestedSlug: string | null; initialCartPage?: boolean;
 }) {
   const [selectedBranch, setSelectedBranch] = useState<string|null>(() => branchSlugFromSearch(window.location.search));
-  const cartStorageKey = 'web2table:cart:' + (requestedSlug ?? 'default') + ':' + (selectedBranch ?? 'default');
+  // The root storefront can resolve to a tenant slug after loading. Use that same tenant key for the menu and its route-backed cart page.
+  const cartStorageKey = 'web2table:cart:' + (resolvedSlug ?? requestedSlug ?? 'default') + ':' + (selectedBranch ?? 'default');
   const [resolvedSlug, setResolvedSlug] = useState<string | null>(requestedSlug);
   const [remoteCatalog, setRemoteCatalog] = useState<StorefrontCatalog | null>(null);
   const [loadStatus, setLoadStatus] = useState<'loading'|'ready'|'unavailable'>(
