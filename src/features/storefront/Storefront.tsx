@@ -520,7 +520,20 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
 
     <main className={cartPage ? "sf-main sf-main-cart" : "sf-main"}>
       {cartPage ? <CartPage count={count} onBack={() => navigateCart(false)}>
-        <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} close={() => navigateCart(false)} onCheckout={() => navigateCheckout(true)}/>
+        {loadStatus === 'loading' ? (
+          <div className="sf-no-results" role="status">
+            <h3>Loading your cart…</h3>
+            <p>We’re loading this restaurant’s current menu before displaying your saved items.</p>
+          </div>
+        ) : loadStatus === 'unavailable' || !catalog ? (
+          <div className="sf-no-results" role="alert">
+            <h3>We couldn’t load this restaurant’s menu</h3>
+            <p>Your saved cart has not been cleared. Try again to restore the current item details and prices.</p>
+            <button type="button" onClick={() => window.location.reload()}>Try again</button>
+          </div>
+        ) : (
+          <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} close={() => navigateCart(false)} onCheckout={() => navigateCheckout(true)}/>
+        )}
       </CartPage> : checkoutPage ? <CheckoutPage
         itemCount={count}
         subtotalCentavos={subtotal}
