@@ -37,10 +37,14 @@ function safeEqual(a: string, b: string) {
   for (let index = 0; index < a.length; index++) difference |= a.charCodeAt(index) ^ b.charCodeAt(index);
   return difference === 0;
 }
-function accountIdFromEvent(attributes: any) {
+function accountIdFromEvent(attributes: any, eventType: string) {
   const data = attributes?.data ?? {};
   const nested = data?.attributes ?? {};
-  // Account lifecycle events identify the child as the event resource.
+  // Identity-verification events carry the child account ID in data.attributes.account_id;
+  // activation/decline events identify the child account as data.id.
+  if (eventType.startsWith("account.identity_verification.")) {
+    return String(nested?.account_id ?? "").trim();
+  }
   return String(data?.id ?? nested?.account_id ?? attributes?.account_id ?? "").trim();
 }
 Deno.serve(async (request) => {
@@ -77,7 +81,7 @@ Deno.serve(async (request) => {
     const lifecycleEvents = new Set([
       "account.activated", "merchant.activated", "consumer.activated",
       "account.declined", "merchant.declined", "consumer.declined",
-      "account.identity_verification.updated", "identity_verification.updated",
+      "account.identity_verification.passed", "account.identity_verification.failed",
     ]);
     if (!lifecycleEvents.has(eventType)) {
       // This endpoint intentionally handles lifecycle events only. Payment/refund
@@ -85,7 +89,7 @@ Deno.serve(async (request) => {
       return json({ received: true, ignored: true, eventType }, 200);
     }
 
-    const childAccountId = accountIdFromEvent(attributes);
+    const childAccountId = accountIdFromEvent(attributes, eventType);
     if (!childAccountId) return json({ error: "Lifecycle event did not include a child account ID." }, 400);
     const url = Deno.env.get("SUPABASE_URL") ?? "";
     const key = serviceKey();
@@ -120,8 +124,17 @@ Deno.serve(async (request) => {
       update.onboarding_step = "activation";
       update.last_error = "PayMongo declined child account activation. Review the account in PayMongo.";
     } else {
-      if (identity) update.identity_verification_status = identity;
+      const verificationResult = String(resource?.result ?? "").toLowerCase();
+      if (verificationResult) update.identity_verification_status = verificationResult;
+      else if (identity) update.identity_verification_status = identity;
       if (activation) update.activation_status = activation;
+      if (eventType === "account.identity_verification.failed") {
+        update.onboarding_step = "identity_verification";
+        update.last_error = "PayMongo identity verification failed. The restaurant owner must retry verification.";
+      } else if (eventType === "account.identity_verification.passed") {
+        update.onboarding_step = "business_information";
+        update.last_error = null;
+      }
     }
     const { error: updateError } = await admin.from("tenant_paymongo_accounts").update(update)
       .eq("tenant_id", connection.tenant_id).eq("environment", environment).eq("paymongo_account_id", childAccountId);
