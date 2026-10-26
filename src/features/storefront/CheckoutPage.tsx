@@ -43,7 +43,7 @@ function CustomerInformation({ orderType }: { orderType: OrderType }) {
   </fieldset>;
 }
 
-function DeliveryAddressSection({ orderType, value, onSelect, restaurantSlug }: { orderType: OrderType; value: MapboxDeliveryAddress | null; onSelect: (address: MapboxDeliveryAddress) => void; restaurantSlug: string }) {
+function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onStreetAddressChange, restaurantSlug }: { orderType: OrderType; value: MapboxDeliveryAddress | null; onSelect: (address: MapboxDeliveryAddress) => void; streetAddress: string; onStreetAddressChange: (streetAddress: string) => void; restaurantSlug: string }) {
   if (orderType !== 'Delivery') return null;
   return <fieldset className="sf-checkout-section">
     <legend>Delivery address</legend>
@@ -52,7 +52,7 @@ function DeliveryAddressSection({ orderType, value, onSelect, restaurantSlug }: 
     <div className="sf-checkout-fields sf-checkout-locality-fields">
       <label>Municipality / City<input name="deliveryCity" autoComplete="address-level2" value={value?.city ?? ''} readOnly placeholder="Automatically filled by Mapbox" aria-describedby="delivery-locality-hint" /></label>
       <label>Barangay<input name="deliveryBarangay" value={value?.barangay ?? ''} readOnly placeholder="Automatically filled by Mapbox" aria-describedby="delivery-locality-hint" /></label>
-      <label>Street address<input name="deliveryStreetAddress" autoComplete="street-address" value={value?.address ?? ''} readOnly placeholder="Automatically filled by Mapbox" aria-describedby="delivery-locality-hint" /></label>
+      <label>Street address<input name="deliveryStreetAddress" autoComplete="street-address" value={streetAddress} onChange={event => onStreetAddressChange(event.target.value)} maxLength={240} placeholder="Automatically filled by Mapbox — you can edit it" aria-describedby="delivery-locality-hint" /></label>
       <p id="delivery-locality-hint" className="sf-checkout-optional">City and barangay are filled from the selected Mapbox location. If either is missing, adjust the pin or search for a more specific address.</p>
     </div>
     <div className="sf-checkout-fields">
@@ -65,6 +65,7 @@ function DeliveryAddressSection({ orderType, value, onSelect, restaurantSlug }: 
 export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orderLines, onBackToMenu, onPlaceOrder }: CheckoutPageProps) {
   const [orderType, setOrderType] = useState<OrderType>('Delivery');
   const [deliveryAddress, setDeliveryAddress] = useState<MapboxDeliveryAddress | null>(null);
+  const [streetAddress, setStreetAddress] = useState('');
   const [message, setMessage] = useState('');
   const [reviewed, setReviewed] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -147,7 +148,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
     <form className="sf-checkout-page-form" onSubmit={handleSubmit}>
       <OrderTypeSection value={orderType} onChange={type => { setOrderType(type); setMessage(''); setReviewed(false); }} />
       <CustomerInformation orderType={orderType} />
-      <DeliveryAddressSection orderType={orderType} value={deliveryAddress} onSelect={setDeliveryAddress} restaurantSlug={restaurantSlug} />
+      <DeliveryAddressSection orderType={orderType} value={deliveryAddress} onSelect={address => { setDeliveryAddress(address); setStreetAddress(address.address); }} streetAddress={streetAddress} onStreetAddressChange={setStreetAddress} restaurantSlug={restaurantSlug} />
 
       <section className="sf-checkout-total" aria-label="Order summary">
         <div className="sf-checkout-summary-heading"><span>Order summary</span></div>
@@ -193,13 +194,14 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
             const firstName = String(values.get('firstName') ?? '').trim();
             const lastName = String(values.get('lastName') ?? '').trim();
             if (orderType === 'Delivery' && !deliveryAddress) { setMessage('Please choose and confirm your delivery location on the map.'); return; }
+            if (orderType === 'Delivery' && !streetAddress.trim()) { setMessage('Please enter a street address for delivery.'); return; }
             setSubmitting(true);
             setMessage('');
             try {
               const result = await onPlaceOrder({
                 orderType, customerName: (firstName + ' ' + lastName).trim(),
                 phone: String(values.get('mobile') ?? '').trim(),
-                deliveryAddress: orderType === 'Delivery' && deliveryAddress ? (deliveryAddress.formattedAddress || [deliveryAddress.address, deliveryAddress.barangay, deliveryAddress.city].filter(Boolean).join(', ')) : '',
+                deliveryAddress: orderType === 'Delivery' && deliveryAddress ? [streetAddress.trim(), deliveryAddress.barangay, deliveryAddress.city].filter(Boolean).join(', ') : '',
                 deliveryNotes: String(values.get('notes') ?? '').trim(),
                 paymentMethod: paymentMethod === 'online' ? 'online' : 'cash',
               });
