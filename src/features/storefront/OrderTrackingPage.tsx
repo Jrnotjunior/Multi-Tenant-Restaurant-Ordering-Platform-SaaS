@@ -71,6 +71,7 @@ export function OrderTrackingPage({ onBackToMenu }: { onBackToMenu: () => void }
   const currentStage = current < 0 ? (terminal ? (status?.order_status ?? 'unknown').replaceAll('_', ' ') : 'Order Received') : labels[current];
   const orderNumText = orderNumber ? String(orderNumber).padStart(5, '0') : '…';
   const orderTypeLabel = dineIn ? 'Dine-in' : orderType.replaceAll('-', ' ').replace(/\\b\\w/g, x => x.toUpperCase());
+  const paymentLabel = orderMeta.paymentMethod === 'online' ? 'Online payment' : orderType === 'delivery' ? 'Cash on delivery' : orderMeta.paymentMethod === 'cash' ? 'Cash' : status?.payment_status?.replaceAll('_', ' ') ?? 'Cash';
 
   return <main className="sf-order-tracking-page">
     {trackingToken && status ? <section className="sf-tracking-receipt" aria-live="polite" aria-label="Live order tracking">
@@ -85,7 +86,7 @@ export function OrderTrackingPage({ onBackToMenu }: { onBackToMenu: () => void }
       </section>
       {detailsOpen && <div className="sf-tracking-order-lines">
         {status.items?.length ? status.items.map((line, index) => <div key={line.name + index}><span>{line.quantity} × {line.name}</span><strong>{peso(line.total_centavos)}</strong></div>) : <p>Order items are not available for this order.</p>}{status.subtotal_centavos != null && <p><span>Subtotal</span><strong>{peso(status.subtotal_centavos)}</strong></p>}{status.delivery_fee_centavos != null && <p><span>Delivery fee</span><strong>{peso(status.delivery_fee_centavos)}</strong></p>}{status.total_centavos != null && <p><span>Total</span><strong>{peso(status.total_centavos)}</strong></p>}
-        <p><span>Payment</span><strong>{orderMeta.paymentMethod === 'online' ? 'Online payment' : orderMeta.paymentMethod === 'cash' ? 'Cash' : status.payment_status.replaceAll('_', ' ')}</strong></p>
+        <p><span>Payment</span><strong>{paymentLabel}</strong></p>
       </div>}
       <ol className="sf-tracking-timeline">{stages.map((stage, index) => {
         const done = current >= index && !terminal;
@@ -97,7 +98,7 @@ export function OrderTrackingPage({ onBackToMenu }: { onBackToMenu: () => void }
       })}</ol>
       {terminal && <p className="sf-tracking-error" role="status">This order was {currentStage.toLowerCase()}. Please contact the restaurant if you need assistance.</p>}
       {error && <p className="sf-tracking-error" role="status">{error}</p>}
-      <footer className="sf-tracking-footer"><span>{orderTypeLabel}</span><span>{status.payment_status.replaceAll('_', ' ')}</span></footer>
+      <footer className="sf-tracking-footer"><span>{orderTypeLabel}</span><span>{paymentLabel}</span></footer>
     </section> : trackingToken ? <section className="sf-tracking-receipt"><p>{error || 'Connecting to your order…'}</p></section> : <section className="sf-tracking-receipt"><p>No recent order was found in this browser. Place an order first, then use Track Order.</p><button type="button" className="sf-tracking-back" onClick={onBackToMenu}>Back to restaurant</button></section>}
   </main>;
 }
