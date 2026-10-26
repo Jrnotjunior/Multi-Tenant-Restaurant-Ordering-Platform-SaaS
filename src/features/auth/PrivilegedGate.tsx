@@ -291,7 +291,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
       {!isExistingAccountMfa && <span className="auth-eyebrow">{isSetup ? 'STEP 1 OF 3 · ACCOUNT SECURITY' : isMfa ? 'STEP 2 OF 3 · ACCOUNT SECURITY' : 'PRIVILEGED ACCESS · MFA REQUIRED'}</span>}
       <h2>{isSetup ? 'Create your password' : isExistingAccountMfa ? 'Verify your identity' : isMfa ? 'Secure your account' : mode === 'admin' ? 'System administrator sign-in' : 'Restaurant team sign-in'}</h2>
       <p>{isSetup ? 'Set a secure password to activate your restaurant owner account.' : isExistingAccountMfa ? 'Your authenticator is already set up. Enter its current six-digit code to continue to your workspace.' : isMfa ? 'One quick security step, then you’re ready to get started.' : 'Accounts are provisioned by invitation only. Access is based on your verified role and database membership.'}</p>
-      {message && <p className="auth-message" role="alert">{message}</p>}
+      {message && !message.includes("Authenticator setup needs recovery") && <p className="auth-message" role="alert">{message}</p>}
 
     {status === 'passwordsetup' && <form onSubmit={(e) => void savePassword(e)} className="auth-form">
       <label>Password<div className="onboarding-password-wrap"><input type={showNewPassword ? 'text' : 'password'} autoComplete="new-password" minLength={8} maxLength={128} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required /><button className="onboarding-password-toggle" type="button" onClick={() => setShowNewPassword(v => !v)} aria-label={showNewPassword ? 'Hide password' : 'Show password'}>{showNewPassword ? 'Hide' : 'Show'}</button></div></label>
