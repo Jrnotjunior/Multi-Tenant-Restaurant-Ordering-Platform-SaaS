@@ -249,6 +249,26 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   useEffect(() => { if (!availabilityMessage) return; const timer=window.setTimeout(()=>setAvailabilityMessage(''),3500); return ()=>window.clearTimeout(timer); }, [availabilityMessage]);
 
   useEffect(() => {
+    // Rehydrate when a root storefront resolves to its tenant/branch-specific cart key.
+    setCart(readSessionValue<Cart>(cartStorageKey + ':items', {}));
+    setCustomized(readSessionValue<CustomCart>(cartStorageKey + ':custom', {}));
+  }, [cartStorageKey]);
+
+  useEffect(() => {
+    // Keep separately opened menu/cart tabs in sync through the shared localStorage copy.
+    const syncCart = (event: StorageEvent) => {
+      if (event.key === cartStorageKey + ':items') {
+        try { setCart(event.newValue ? JSON.parse(event.newValue) as Cart : {}); } catch { /* Ignore malformed cross-tab state. */ }
+      }
+      if (event.key === cartStorageKey + ':custom') {
+        try { setCustomized(event.newValue ? JSON.parse(event.newValue) as CustomCart : {}); } catch { /* Ignore malformed cross-tab state. */ }
+      }
+    };
+    window.addEventListener('storage', syncCart);
+    return () => window.removeEventListener('storage', syncCart);
+  }, [cartStorageKey]);
+
+  useEffect(() => {
     writeSessionValue(cartStorageKey + ':items', cart);
   }, [cartStorageKey, cart]);
 
@@ -286,6 +306,33 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     }).catch(() => { if (active) setLoadStatus('unavailable'); });
     return () => { active = false; };
   }, [requestedSlug, selectedBranch]);
+
+  useEffect(() => {
+    if (!supabase || !resolvedSlug) return;
+    let active = true;
+    const channel = supabase
+      .channel('storefront:' + resolvedSlug, { config: { private: false } })
+      .on('broadcast', { event: 'menu_changed' }, () => {
+        const refresh = requestedSlug
+          ? loadPublishedMenu(requestedSlug, selectedBranch).then((catalog) => catalog ? { slug: requestedSlug, catalog } : null)
+          : loadDefaultPublishedMenu(selectedBranch);
+        void refresh.then((result) => {
+          if (!active) return;
+          setResolvedSlug(result?.slug ?? requestedSlug);
+          setRemoteCatalog(result?.catalog ?? null);
+          setLoadStatus(result ? 'ready' : 'unavailable');
+        }).catch(() => {
+          if (active) setLoadStatus('unavailable');
+        });
+      })
+      .subscribe();
+    return () => {
+      active = false;
+      void supabase?.removeChannel(channel);
+    };
+  }, [resolvedSlug, requestedSlug, selectedBranch]);
+
+
 
   useEffect(() => {
     const faviconUrl = remoteCatalog?.restaurant.faviconUrl;
