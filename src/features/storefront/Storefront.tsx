@@ -20,12 +20,11 @@ function readSessionValue<T>(key: string, fallback: T): T {
   }
 }
 
-function writeSessionValue<T>(key: string, value: T): void {
+function writeCustomerCartValue<T>(key: string, value: T, customerId: string | null): void {
+  if (!customerId) return; // Guest carts are intentionally memory-only and reset on refresh.
   try {
     const serialized = JSON.stringify(value);
     window.localStorage.setItem(key, serialized);
-    // Keep the previous session copy compatible with already-open storefront tabs.
-    window.sessionStorage.setItem(key, serialized);
   } catch {
     // The cart remains usable for the current page if storage is unavailable.
   }
@@ -238,9 +237,11 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [customerSignedIn, setCustomerSignedIn] = useState(false);
   const [customerDisplayName, setCustomerDisplayName] = useState('');
-  const [cart, setCart] = useState<Cart>(() => readSessionValue<Cart>(cartStorageKey + ':items', {}));
-  const [customized,setCustomized]=useState<CustomCart>(() => readSessionValue<CustomCart>(cartStorageKey + ':custom', {}));
-  const [hydratedCartKey, setHydratedCartKey] = useState(cartStorageKey);
+  const [customerUserId, setCustomerUserId] = useState<string | null>(null);
+  const activeCartStorageKey = customerUserId ? cartStorageKey + ':customer:' + customerUserId : cartStorageKey + ':guest';
+  const [cart, setCart] = useState<Cart>({});
+  const [customized,setCustomized]=useState<CustomCart>({});
+  const [hydratedCartKey, setHydratedCartKey] = useState('');
   const [customizing,setCustomizing]=useState<MenuItem|null>(null);
   const [cartPage, setCartPage] = useState(() => initialCartPage || isStorefrontCartPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
   const [checkoutPage, setCheckoutPage] = useState(() => isStorefrontCheckoutPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
@@ -259,6 +260,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     if (!supabase) return;
     const syncCustomer = (user: { user_metadata?: Record<string, unknown>; email?: string } | null) => {
       setCustomerSignedIn(Boolean(user));
+      setCustomerUserId((user as { id?: string } | null)?.id ?? null);
       const metadata = user?.user_metadata ?? {};
       const firstName = typeof metadata.first_name === 'string' ? metadata.first_name.trim() : '';
       const lastName = typeof metadata.last_name === 'string' ? metadata.last_name.trim() : '';
@@ -285,35 +287,35 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   }, []);
 
   useEffect(() => {
-    // Rehydrate when a root storefront resolves to its tenant/branch-specific cart key.
-    setCart(readSessionValue<Cart>(cartStorageKey + ':items', {}));
-    setCustomized(readSessionValue<CustomCart>(cartStorageKey + ':custom', {}));
-    setHydratedCartKey(cartStorageKey);
-  }, [cartStorageKey]);
+    // Guest carts intentionally start empty after refresh; signed-in carts are isolated by customer ID.
+    setCart(customerUserId ? readSessionValue<Cart>(activeCartStorageKey + ':items', {}) : {});
+    setCustomized(customerUserId ? readSessionValue<CustomCart>(activeCartStorageKey + ':custom', {}) : {});
+    setHydratedCartKey(activeCartStorageKey);
+  }, [activeCartStorageKey, customerUserId]);
 
   useEffect(() => {
-    // Keep separately opened menu/cart tabs in sync through the shared localStorage copy.
     const syncCart = (event: StorageEvent) => {
-      if (event.key === cartStorageKey + ':items') {
+      if (!customerUserId) return;
+      if (event.key === activeCartStorageKey + ':items') {
         try { setCart(event.newValue ? JSON.parse(event.newValue) as Cart : {}); } catch { /* Ignore malformed cross-tab state. */ }
       }
-      if (event.key === cartStorageKey + ':custom') {
+      if (event.key === activeCartStorageKey + ':custom') {
         try { setCustomized(event.newValue ? JSON.parse(event.newValue) as CustomCart : {}); } catch { /* Ignore malformed cross-tab state. */ }
       }
     };
     window.addEventListener('storage', syncCart);
     return () => window.removeEventListener('storage', syncCart);
-  }, [cartStorageKey]);
+  }, [activeCartStorageKey, customerUserId]);
 
   useEffect(() => {
-    if (hydratedCartKey !== cartStorageKey) return;
-    writeSessionValue(cartStorageKey + ':items', cart);
-  }, [cartStorageKey, cart, hydratedCartKey]);
+    if (hydratedCartKey !== activeCartStorageKey || !customerUserId) return;
+    writeCustomerCartValue(activeCartStorageKey + ':items', cart, customerUserId);
+  }, [activeCartStorageKey, cart, hydratedCartKey, customerUserId]);
 
   useEffect(() => {
-    if (hydratedCartKey !== cartStorageKey) return;
-    writeSessionValue(cartStorageKey + ':custom', customized);
-  }, [cartStorageKey, customized, hydratedCartKey]);
+    if (hydratedCartKey !== activeCartStorageKey || !customerUserId) return;
+    writeCustomerCartValue(activeCartStorageKey + ':custom', customized, customerUserId);
+  }, [activeCartStorageKey, customized, hydratedCartKey, customerUserId]);
 
   useEffect(() => {
     function syncBranchFromHistory() {
