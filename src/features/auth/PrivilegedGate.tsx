@@ -9,8 +9,11 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function getAccessErrorMessage(error: unknown): string {
   const detail = error instanceof Error ? error.message : String(error ?? '');
+  if (detail.includes('Supabase still rejected authenticator setup after incomplete factors were cleared')) {
+    return detail;
+  }
   if (detail.includes('too_many_enrolled_mfa_factors') || detail.toLowerCase().includes('existing-factor limit')) {
-    return 'We couldn’t start authenticator setup because your account has reached its security-device limit. Please sign out and sign back in. If the problem continues, contact your administrator for help. Your existing security settings have not been changed.';
+    return 'We couldn’t start authenticator setup because Supabase reports a security-factor limit. Incomplete authenticator setups were checked, and no verified factor was changed. Please retry once; if it continues, the detailed Auth error is needed to identify any remaining server-side limit.';
   }
   return detail || 'We couldn’t verify your access. Please try again or contact your administrator.';
 }
