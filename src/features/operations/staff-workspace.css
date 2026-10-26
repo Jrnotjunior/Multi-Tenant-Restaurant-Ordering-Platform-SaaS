@@ -189,6 +189,12 @@
 @media(max-width:760px){.staff-workspace--cashier .staff-account-row{top:24px;right:16px}}
 @media(max-width:560px){.staff-workspace--cashier .staff-account-row{top:18px;right:12px}}
 
+/* Keep dispatch content aligned with the account control at the top of the workspace. */
+.staff-workspace--dispatcher{position:relative}
+.staff-workspace--dispatcher .staff-account-row{position:absolute;top:clamp(22px,3.2vw,48px);right:clamp(22px,3.2vw,48px);margin:0}
+@media(max-width:760px){.staff-workspace--dispatcher .staff-account-row{top:24px;right:16px}}
+@media(max-width:560px){.staff-workspace--dispatcher .staff-account-row{top:18px;right:12px}}
+
 /* Cashier payment category tabs replace the order-type selector. */
 .staff-payment-tabs{display:flex;align-items:center;gap:4px;padding:4px;border:1px solid var(--color-border,#DCE3ED);border-radius:10px;background:var(--color-surface,#fff)}
 .staff-payment-tabs button{appearance:none;border:0;border-radius:7px;min-height:34px;padding:7px 14px;background:transparent;color:var(--color-muted,#526782);font:inherit;font-size:.82rem;font-weight:750;white-space:nowrap;cursor:pointer}
