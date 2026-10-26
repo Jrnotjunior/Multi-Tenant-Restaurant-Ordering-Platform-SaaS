@@ -239,6 +239,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
               try {
                 window.sessionStorage.setItem('web2table:latest-order-tracking', result.trackingToken);
                 window.sessionStorage.setItem('web2table:latest-order-number', String(result.orderNumber));
+                window.sessionStorage.setItem('web2table:latest-order-details', JSON.stringify({ paymentMethod, lines: orderLines }));
               } catch { /* Tracking continues in memory if session storage is unavailable. */ }
               if (paymentMethod === 'online') {
                 if (!result.checkoutUrl) throw new Error('Order #' + result.orderNumber + ' was created, but a checkout link was not returned. Contact the restaurant before placing another order.');
