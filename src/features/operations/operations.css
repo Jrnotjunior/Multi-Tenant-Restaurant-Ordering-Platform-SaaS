@@ -430,3 +430,35 @@
 .owner-order-delivery-fee button:disabled{opacity:.6;cursor:wait}
 .owner-order-delivery-fee small{font-size:10px;line-height:1.5;color:#657791}
 @media(max-width:420px){.owner-order-delivery-fee>div{align-items:stretch}.owner-order-delivery-fee input{flex:1}}
+
+.owner-loyalty-page{display:flex;flex-direction:column;gap:16px}
+.owner-page-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.owner-page-heading h1{margin:4px 0 8px;font-size:clamp(24px,2.5vw,32px);font-weight:750;letter-spacing:-.035em;color:var(--color-text)}
+.owner-page-heading p:not(.op-eyebrow){margin:0;color:#64748b;font-size:14px}
+.owner-loyalty-tabs{display:flex;align-items:center;gap:26px;flex-wrap:wrap;border-bottom:1px solid var(--color-border);margin:0;padding:0 4px}
+.owner-loyalty-tabs button{position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 2px;margin:0 0 -1px;border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;color:#475569;font:inherit;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer}
+.owner-loyalty-tabs button:hover{color:var(--color-text)}
+.owner-loyalty-tabs button.is-active{border-bottom-color:var(--color-button-background);color:var(--color-button-background);font-weight:700}
+.owner-loyalty-tabs button:focus-visible{outline:2px solid var(--color-primary);outline-offset:3px}
+.owner-loyalty-card{padding:clamp(16px,2.5vw,24px);border:1px solid var(--color-border);border-radius:14px;background:var(--color-surface)}
+.owner-loyalty-form{display:grid;gap:18px}
+.owner-loyalty-toggle{display:flex;align-items:flex-start;gap:10px;padding:4px 0;color:var(--color-text);font-size:14px;font-weight:700}
+.owner-loyalty-toggle input{width:18px;height:18px;margin:1px 0 0;accent-color:var(--color-primary);flex:0 0 auto}
+.owner-loyalty-toggle span{display:grid;gap:5px}
+.owner-loyalty-toggle small{color:#64748b;font-size:12px;font-weight:500;line-height:1.5}
+.owner-loyalty-rule{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.owner-loyalty-rule label{display:grid;gap:7px;color:var(--color-text);font-size:13px;font-weight:650}
+.owner-loyalty-rule input{width:100%;box-sizing:border-box;min-height:42px;border:1px solid var(--color-border);border-radius:8px;padding:9px 11px;background:var(--color-background);color:var(--color-text);font:inherit;font-weight:500}
+.owner-loyalty-preview{display:grid;gap:7px;padding:16px;border:1px solid var(--color-border);border-radius:10px;background:var(--color-secondary)}
+.owner-loyalty-preview span{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#64748b;font-weight:750}
+.owner-loyalty-preview strong{font-size:14px;color:var(--color-text)}
+.owner-loyalty-preview small{font-size:12px;line-height:1.55;color:#64748b}
+.owner-loyalty-redemption{display:grid;gap:16px;padding-top:18px;border-top:1px solid var(--color-border)}
+.owner-loyalty-actions{display:flex;justify-content:flex-start;padding-top:2px}
+.owner-loyalty-actions button{min-height:40px;padding:0 22px;border:1px solid var(--color-button-background);border-radius:8px;background:var(--color-button-background);color:#fff;font:inherit;font-size:13px;font-weight:750;cursor:pointer}
+.owner-loyalty-actions button:disabled{opacity:.55;cursor:wait}
+.owner-loyalty-alert{padding:12px 14px;border-radius:9px;font-size:13px}
+.owner-loyalty-alert.is-error{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+.owner-loyalty-alert.is-success{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+.owner-loyalty-muted{color:#64748b;font-size:13px;line-height:1.6}
+@media(max-width:640px){.owner-loyalty-rule{grid-template-columns:minmax(0,1fr)}.owner-loyalty-tabs{gap:20px}.owner-page-heading{flex-direction:column}}
