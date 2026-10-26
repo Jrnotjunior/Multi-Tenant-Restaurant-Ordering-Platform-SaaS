@@ -15,6 +15,7 @@ type CheckoutPageProps = {
   orderLines: readonly { name: string; quantity: number; totalCentavos: number }[];
   onBackToMenu: () => void;
   onPlaceOrder: (submission: CheckoutSubmission) => Promise<{ orderNumber: number; checkoutUrl?: string; trackingToken: string }>;
+  trackingOnly?: boolean;
 };
 
 function OrderTypeSection({ value, onChange }: {
