@@ -131,22 +131,10 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
         throw new Error('We found incomplete authenticator setups that could not be cleared automatically. Please contact your administrator for help. No verified factor was changed.');
       }
 
-      // Retry enrollment immediately after cleanup is confirmed. Keep this
-      // retry separate from friendly-name collision retries so a repeated
-      // factor-limit rejection cannot fall through to the generic message.
-      const retrySuffix = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-        ? crypto.randomUUID().replace(/-/g, '').slice(0, 12)
-        : Math.random().toString(36).slice(2, 14);
-      const retryFriendlyName = `Web2Table Authenticator ${new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14)} ${retrySuffix}`;
-      const retry = await client.auth.mfa.enroll({ factorType: 'totp', friendlyName: retryFriendlyName });
-      if (retry.error) {
-        const reason = retry.error.message || 'Unknown Supabase Auth error';
-        const errorCode = retry.error.code ? ` (${retry.error.code})` : '';
-        throw new Error(`Supabase still rejected authenticator setup after incomplete factors were cleared${errorCode}: ${reason}. No verified security factor was changed.`);
-      }
-      enrollment = retry.data;
-      enrollmentError = null;
-      break;
+      // Do not automatically enroll again after Supabase returns a factor-limit
+      // error. Some failed enroll requests still leave an unverified row behind;
+      // automatic retries can accumulate abandoned factors and make recovery worse.
+      throw new Error('Supabase rejected authenticator setup because it reports a factor limit. Incomplete authenticator setups were checked, and no verified factor was changed. Use “Restart incomplete authenticator setup” to clear pending setup and try again.');
     }
     if (!/friendly name.*already exists|already exists.*friendly name/i.test(enrollmentError.message)) {
       throw enrollmentError;
