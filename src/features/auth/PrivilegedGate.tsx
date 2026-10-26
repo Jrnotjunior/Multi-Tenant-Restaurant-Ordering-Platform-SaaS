@@ -273,7 +273,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
           decoding="async"
         />
       </a>
-      <div className="onboarding-welcome-title"><h1>Welcome to Web2Table</h1><p>Restaurant operations, connected.</p></div>
+      <div className="onboarding-welcome-title"><h1>Welcome to Web<span className="onboarding-brand-red">2</span>Table</h1><p>Restaurant operations, connected.</p></div>
     </aside>}
     <section className="auth-panel onboarding-card">
       {(isSetup || (isMfa && !isExistingAccountMfa)) && <div className="onboarding-steps" aria-label="Account setup progress">
