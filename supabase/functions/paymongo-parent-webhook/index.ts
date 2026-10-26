@@ -42,7 +42,7 @@ function accountIdFromEvent(attributes: any, eventType: string) {
   const nested = data?.attributes ?? {};
   // Identity-verification events carry the child account ID in data.attributes.account_id;
   // activation/decline events identify the child account as data.id.
-  if (eventType.startsWith("account.identity_verification.")) {
+  if (eventType.startsWith("account.identity_verification.") || eventType.startsWith("accounts.identity_verifications.")) {
     return String(nested?.account_id ?? "").trim();
   }
   return String(data?.id ?? nested?.account_id ?? attributes?.account_id ?? "").trim();
@@ -82,6 +82,8 @@ Deno.serve(async (request) => {
       "account.activated", "merchant.activated", "consumer.activated",
       "account.declined", "merchant.declined", "consumer.declined",
       "account.identity_verification.passed", "account.identity_verification.failed",
+      // PayMongo webhook reference also documents the plural aliases.
+      "accounts.identity_verifications.passed", "accounts.identity_verifications.failed",
     ]);
     if (!lifecycleEvents.has(eventType)) {
       // This endpoint intentionally handles lifecycle events only. Payment/refund
@@ -128,10 +130,10 @@ Deno.serve(async (request) => {
       if (verificationResult) update.identity_verification_status = verificationResult;
       else if (identity) update.identity_verification_status = identity;
       if (activation) update.activation_status = activation;
-      if (eventType === "account.identity_verification.failed") {
+      if (eventType === "account.identity_verification.failed" || eventType === "accounts.identity_verifications.failed") {
         update.onboarding_step = "identity_verification";
         update.last_error = "PayMongo identity verification failed. The restaurant owner must retry verification.";
-      } else if (eventType === "account.identity_verification.passed") {
+      } else if (eventType === "account.identity_verification.passed" || eventType === "accounts.identity_verifications.passed") {
         update.onboarding_step = "business_information";
         update.last_error = null;
       }
