@@ -57,6 +57,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [kitchenMenuError, setKitchenMenuError] = useState('');
   const [search, setSearch] = useState('');
   const [paymentTab, setPaymentTab] = useState<'online_paid' | 'paid'>('online_paid');
+  const [dispatcherTab, setDispatcherTab] = useState<Order['order_type']>('delivery');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
@@ -160,7 +161,8 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       const matchesPaymentTab = paymentTab === 'online_paid' ? isPaid && order.payment_channel === 'online' : isPaid && order.payment_channel !== 'online';
       const searchable = [String(order.order_number), order.customer_name, order.customer_phone, order.branch_name, order.order_status, ...(order.items ?? []).map(item => item.item_name)];
       const matchesSearch = !term || searchable.some(value => value.toLowerCase().includes(term));
-      return matchesPaymentTab && matchesSearch;
+      const matchesDispatcherTab = role !== 'dispatcher' || order.order_type === dispatcherTab;
+      return (role !== 'cashier' || matchesPaymentTab) && matchesSearch && matchesDispatcherTab;
     }).sort((a, b) => {
       // Put work that needs an immediate staff action at the top, then keep
       // each queue in oldest-first order so earlier orders are not overlooked.
@@ -181,7 +183,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       const rankDifference = priority(a) - priority(b);
       return rankDifference || new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
     });
-  }, [orders, search, paymentTab, role]);
+  }, [orders, search, paymentTab, role, dispatcherTab]);
 
   const salesOrders = useMemo(() => orders.filter(order =>
     ['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase()) &&
@@ -399,6 +401,12 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     <section className="staff-queue">
       <div className="staff-queue-heading"><div><p className="staff-eyebrow">WORK QUEUE</p><h2>{copy.queue}</h2></div>
       </div>
+      {role === 'dispatcher' && <nav className="staff-workspace-tabs" aria-label="Order type" role="tablist">
+        <button type="button" role="tab" aria-selected={dispatcherTab === 'delivery'} className={dispatcherTab === 'delivery' ? 'is-active' : ''} onClick={() => setDispatcherTab('delivery')}>Delivery</button>
+        <button type="button" role="tab" aria-selected={dispatcherTab === 'pickup'} className={dispatcherTab === 'pickup' ? 'is-active' : ''} onClick={() => setDispatcherTab('pickup')}>Pick up</button>
+        <button type="button" role="tab" aria-selected={dispatcherTab === 'take_out'} className={dispatcherTab === 'take_out' ? 'is-active' : ''} onClick={() => setDispatcherTab('take_out')}>Take out</button>
+        <button type="button" role="tab" aria-selected={dispatcherTab === 'dine_in'} className={dispatcherTab === 'dine_in' ? 'is-active' : ''} onClick={() => setDispatcherTab('dine_in')}>Dine in</button>
+      </nav>
       {role === 'kitchen' && kitchenTab === 'menu' ? <div className="staff-kitchen-menu-panel">
       <div className="staff-kitchen-menu-toolbar"><div><h3>Menu availability</h3><p>Mark items unavailable when stock runs out. Changes apply to this branch’s storefront.</p></div></div>
       {kitchenMenu?.items.length ? <><div className="staff-kitchen-menu-controls"><label className="staff-kitchen-menu-search"><span aria-hidden="true">⌕</span><input type="search" value={kitchenMenuSearch} onChange={event=>setKitchenMenuSearch(event.target.value)} placeholder="Search products" aria-label="Search menu items" /></label><nav className="staff-kitchen-category-tabs" aria-label="Menu categories"><button type="button" className={kitchenMenuCategory==='all'?'is-selected':''} onClick={()=>setKitchenMenuCategory('all')}>All</button>{(kitchenMenu?.categories ?? []).map(category=><button type="button" key={category.id} className={kitchenMenuCategory===category.id?'is-selected':''} onClick={()=>setKitchenMenuCategory(category.id)}>{category.name}</button>)}</nav></div></> : null}
