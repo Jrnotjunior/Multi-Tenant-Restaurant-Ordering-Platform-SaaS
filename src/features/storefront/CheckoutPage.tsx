@@ -63,8 +63,8 @@ export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackTo
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | ''>('');
   const [submitting, setSubmitting] = useState(false);
-  const [trackingToken, setTrackingToken] = useState<string | null>(null);
-  const [trackedOrderNumber, setTrackedOrderNumber] = useState<number | null>(null);
+  const [trackingToken, setTrackingToken] = useState<string | null>(() => { try { return window.sessionStorage.getItem('web2table:latest-order-tracking'); } catch { return null; } });
+  const [trackedOrderNumber, setTrackedOrderNumber] = useState<number | null>(() => { try { const value = window.sessionStorage.getItem('web2table:latest-order-number'); return value ? Number(value) : null; } catch { return null; } });
   const [trackedStatus, setTrackedStatus] = useState<{ order_status: string; payment_status: string; updated_at: string } | null>(null);
   const [trackingError, setTrackingError] = useState('');
 
@@ -196,6 +196,10 @@ export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackTo
                 deliveryNotes: String(values.get('notes') ?? '').trim(),
                 paymentMethod: paymentMethod === 'online' ? 'online' : 'cash',
               });
+              try {
+                window.sessionStorage.setItem('web2table:latest-order-tracking', result.trackingToken);
+                window.sessionStorage.setItem('web2table:latest-order-number', String(result.orderNumber));
+              } catch { /* Tracking continues in memory if session storage is unavailable. */ }
               if (paymentMethod === 'online') {
                 if (!result.checkoutUrl) throw new Error('Order #' + result.orderNumber + ' was created, but a checkout link was not returned. Contact the restaurant before placing another order.');
                 window.location.assign(result.checkoutUrl);
