@@ -36,7 +36,7 @@ export function CustomerOrderTracking({ trackingToken }: { trackingToken: string
       setMessage('');
     };
     void refresh();
-    const channel = supabase.channel('order-tracking:' + trackingToken)
+    const channel = supabase.channel('order-tracking:' + trackingToken, { config: { private: true } })
       .on('broadcast', { event: 'order_changed' }, () => {
         if (debounceTimer !== undefined) window.clearTimeout(debounceTimer);
         debounceTimer = window.setTimeout(() => { void refresh(); }, 100);
