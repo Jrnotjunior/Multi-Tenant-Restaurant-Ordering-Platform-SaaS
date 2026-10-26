@@ -330,3 +330,13 @@
 .staff-cashier-modal-breakdown>div{display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:.86rem}
 .staff-cashier-modal-breakdown>div>span{color:var(--color-muted,#526782)}
 .staff-cashier-modal-breakdown>div>strong{font-weight:700;white-space:nowrap}
+
+
+/* Keep the cashier modal's amount labels and values in distinct columns. */
+.staff-cashier-modal-breakdown{display:grid;gap:10px;padding:14px 0 8px;border-top:1px solid var(--color-border,#DCE3ED)}
+.staff-cashier-modal-breakdown>div{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:24px;font-size:.9rem;line-height:1.45}
+.staff-cashier-modal-breakdown>div>span{display:block;min-width:0;color:var(--color-muted,#526782)}
+.staff-cashier-modal-breakdown>div>strong{display:block;min-width:104px;text-align:right;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.staff-cashier-modal-total{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:24px;padding-top:10px;line-height:1.4}
+.staff-cashier-modal-total>strong:first-child{min-width:0}
+.staff-cashier-modal-total>strong:last-child{min-width:104px;text-align:right;font-variant-numeric:tabular-nums}
