@@ -237,6 +237,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [cart, setCart] = useState<Cart>(() => readSessionValue<Cart>(cartStorageKey + ':items', {}));
   const [customized,setCustomized]=useState<CustomCart>(() => readSessionValue<CustomCart>(cartStorageKey + ':custom', {}));
+  const [hydratedCartKey, setHydratedCartKey] = useState(cartStorageKey);
   const [customizing,setCustomizing]=useState<MenuItem|null>(null);
   const [cartPage, setCartPage] = useState(() => initialCartPage || isStorefrontCartPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
   const [checkoutPage, setCheckoutPage] = useState(() => isStorefrontCheckoutPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
@@ -252,6 +253,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     // Rehydrate when a root storefront resolves to its tenant/branch-specific cart key.
     setCart(readSessionValue<Cart>(cartStorageKey + ':items', {}));
     setCustomized(readSessionValue<CustomCart>(cartStorageKey + ':custom', {}));
+    setHydratedCartKey(cartStorageKey);
   }, [cartStorageKey]);
 
   useEffect(() => {
@@ -269,12 +271,14 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   }, [cartStorageKey]);
 
   useEffect(() => {
+    if (hydratedCartKey !== cartStorageKey) return;
     writeSessionValue(cartStorageKey + ':items', cart);
-  }, [cartStorageKey, cart]);
+  }, [cartStorageKey, cart, hydratedCartKey]);
 
   useEffect(() => {
+    if (hydratedCartKey !== cartStorageKey) return;
     writeSessionValue(cartStorageKey + ':custom', customized);
-  }, [cartStorageKey, customized]);
+  }, [cartStorageKey, customized, hydratedCartKey]);
 
   useEffect(() => {
     function syncBranchFromHistory() {
