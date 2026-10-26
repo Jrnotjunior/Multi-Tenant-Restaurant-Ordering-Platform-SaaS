@@ -60,7 +60,12 @@ Deno.serve(async (request) => {
       .select("paymongo_account_id,connection_status").eq("tenant_id", order.tenant_id)
       .eq("environment", environment).maybeSingle();
     if (accountError) throw accountError;
-    if (!account?.paymongo_account_id || account.connection_status !== "active") {
+    // In test mode only, allow checkout through the platform's PayMongo test account.
+    // Live mode always requires the tenant's own active connected account.
+    const platformTest = environment === "test" && !!secret &&
+      (!account?.paymongo_account_id || account.connection_status !== "active");
+    const effectiveAccountId = platformTest ? "platform_test" : account?.paymongo_account_id;
+    if (!effectiveAccountId || (!platformTest && account?.connection_status !== "active")) {
       return json({ error: "This restaurant has not enabled online payments for " + environment + " mode." }, 409);
     }
 
@@ -77,7 +82,7 @@ Deno.serve(async (request) => {
     const { data: session, error: insertError } = await admin.from("customer_order_payment_sessions")
       .insert({
         tenant_id: order.tenant_id, order_id: order.id, environment,
-        paymongo_account_id: account.paymongo_account_id,
+        paymongo_account_id: effectiveAccountId,
         amount_centavos: Number(order.total_centavos), status: "creating",
       }).select("id").single();
     if (insertError) {
@@ -109,7 +114,7 @@ Deno.serve(async (request) => {
       method: "POST",
       headers: {
         Authorization: basic(secret), "Content-Type": "application/json",
-        "Account-ID": account.paymongo_account_id,
+        ...(platformTest ? {} : { "Account-ID": effectiveAccountId }),
         "Idempotency-Key": "w2t-checkout-" + session.id,
       },
       body: JSON.stringify(payload),
