@@ -237,6 +237,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const [query, setQuery] = useState('');
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [customerSignedIn, setCustomerSignedIn] = useState(false);
+  const [customerDisplayName, setCustomerDisplayName] = useState('');
   const [cart, setCart] = useState<Cart>(() => readSessionValue<Cart>(cartStorageKey + ':items', {}));
   const [customized,setCustomized]=useState<CustomCart>(() => readSessionValue<CustomCart>(cartStorageKey + ':custom', {}));
   const [hydratedCartKey, setHydratedCartKey] = useState(cartStorageKey);
@@ -256,8 +257,16 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
 
   useEffect(() => {
     if (!supabase) return;
-    void supabase.auth.getSession().then(({ data }) => setCustomerSignedIn(Boolean(data.session?.user)));
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => setCustomerSignedIn(Boolean(session?.user)));
+    const syncCustomer = (user: { user_metadata?: Record<string, unknown>; email?: string } | null) => {
+      setCustomerSignedIn(Boolean(user));
+      const metadata = user?.user_metadata ?? {};
+      const firstName = typeof metadata.first_name === 'string' ? metadata.first_name.trim() : '';
+      const lastName = typeof metadata.last_name === 'string' ? metadata.last_name.trim() : '';
+      const fullName = typeof metadata.full_name === 'string' ? metadata.full_name.trim() : '';
+      setCustomerDisplayName([firstName, lastName].filter(Boolean).join(' ') || fullName || '');
+    };
+    void supabase.auth.getSession().then(({ data }) => syncCustomer(data.session?.user ?? null));
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => syncCustomer(session?.user ?? null));
     return () => authListener.subscription.unsubscribe();
   }, []);
 
@@ -554,7 +563,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
             </button>
             {accountMenuOpen && <div className="sf-account-menu" role="menu" aria-label="Your account">
               <div className="sf-account-menu-heading">
-                <strong>{customerSignedIn ? 'Your account' : 'Your account'}</strong>
+                <strong>{customerSignedIn && customerDisplayName ? customerDisplayName : 'Your account'}</strong>
                 <span>{customerSignedIn ? 'You are signed in.' : 'Sign in or review our policies.'}</span>
               </div>
               <a role="menuitem" href={baseUrl + '#legal'} onClick={() => setAccountMenuOpen(false)}>Legal &amp; Policies</a>
