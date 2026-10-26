@@ -106,9 +106,9 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
   color:var(--color-text);
   box-shadow:none;
 }
-.onboarding-card h2{font-size:1.5rem;letter-spacing:-.04em;margin:4px 0 6px}
-.onboarding-card>p{font-size:1rem;color:var(--color-muted);line-height:1.55;margin:0 0 10px}
-.onboarding-card>div>p{font-size:1rem;color:var(--color-muted);line-height:1.6;margin:0 0 10px}
+.onboarding-card h2{font-size:var(--sf-font-size-auth-title);letter-spacing:-.05em;line-height:1.15;margin:4px 0 6px}
+.onboarding-card>p{font-size:var(--sf-font-size-auth-intro);color:var(--color-muted);line-height:1.65;margin:0 0 10px}
+.onboarding-card>div>p{font-size:var(--sf-font-size-auth-intro);color:var(--color-muted);line-height:1.65;margin:0 0 10px}
 .onboarding-steps{display:flex;align-items:flex-start;justify-content:center;gap:6px;margin:0 auto 12px;max-width:420px}
 .onboarding-steps>div{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;flex:1;text-align:center}
 .onboarding-steps span{display:grid;place-items:center;width:27px;height:27px;border-radius:50%;background:#303034;color:#f4f4f5;font-weight:750;font-size:12px}
@@ -119,12 +119,12 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .onboarding-steps i{height:2px;background:#39393e;flex:1;margin-top:13px;min-width:5px}
 .onboarding-card .auth-form{gap:7px;margin-top:8px}
 .onboarding-card .onboarding-otp-fieldset{border:0;padding:0;margin:0;min-width:0}
-.onboarding-card .onboarding-otp-fieldset legend{padding:0;margin:0 0 6px;color:var(--color-text);font-size:.875rem;font-weight:650}
+.onboarding-card .onboarding-otp-fieldset legend{padding:0;margin:0 0 6px;color:var(--color-text);font-size:var(--sf-font-size-auth-label);font-weight:700}
 .onboarding-card .onboarding-otp-inputs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;width:100%}
-.onboarding-card .onboarding-otp-digit{box-sizing:border-box;width:100%;min-width:0;height:34px;padding:0;text-align:center;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;border:1px solid var(--color-border);border-radius:7px;background:var(--color-surface);color:var(--color-text);caret-color:var(--color-text)}
+.onboarding-card .onboarding-otp-digit{box-sizing:border-box;width:100%;min-width:0;height:34px;padding:0;text-align:center;font-size:var(--sf-font-size-auth-input);font-weight:700;font-variant-numeric:tabular-nums;border:1px solid var(--color-border);border-radius:7px;background:var(--color-surface);color:var(--color-text);caret-color:var(--color-text)}
 .onboarding-card .onboarding-otp-digit:focus{outline:0;border-color:var(--color-active);box-shadow:0 0 0 3px #26375422}
-.onboarding-card .onboarding-otp-hint{display:block;margin-top:4px;color:var(--color-muted);font-size:.75rem;line-height:1.4}
-.onboarding-card .auth-form label{font-size:.875rem;font-weight:650;gap:5px}
+.onboarding-card .onboarding-otp-hint{display:block;margin-top:4px;color:var(--color-muted);font-size:var(--sf-font-size-auth-link);line-height:1.4}
+.onboarding-card .auth-form label{font-size:var(--sf-font-size-auth-label);font-weight:700;gap:5px}
 .onboarding-password-wrap{position:relative;display:flex;align-items:center}
 .onboarding-card .onboarding-password-wrap input{padding:8px 44px 8px 10px;border-radius:8px;border-color:var(--color-border);background:var(--color-surface);color:var(--color-text);font-size:var(--font-size-13);min-height:36px}
 .onboarding-card .onboarding-password-wrap input:focus{outline:0;border-color:var(--color-active);box-shadow:0 0 0 3px #26375422}
@@ -136,10 +136,10 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .onboarding-card .sf-password-check-icon{display:grid;place-items:center;width:20px;height:20px;flex-shrink:0;border-radius:50%;border:1px solid var(--color-border);color:var(--color-muted);font-size:var(--font-size-11)}
 .onboarding-card .sf-password-checklist li.is-valid .sf-password-check-icon{background:#3fc77b;border-color:#3fc77b;color:#102519;font-weight:900}
 .onboarding-card .sf-password-checklist li.is-valid{color:var(--color-active)}
-.onboarding-card .auth-form>button[type=submit],.onboarding-card .auth-form .auth-primary-link{display:flex;align-items:center;justify-content:center;min-height:38px;margin-top:2px;border:0;border-radius:8px;background:var(--color-sidebar);color:#fff;font-size:.875rem;font-weight:800;text-align:center}
+.onboarding-card .auth-form>button[type=submit],.onboarding-card .auth-form .auth-primary-link{display:flex;align-items:center;justify-content:center;min-height:38px;margin-top:2px;border:0;border-radius:8px;background:var(--color-sidebar);color:#fff;font-size:var(--sf-font-size-auth-action);font-weight:800;text-align:center}
 .onboarding-card .auth-form>button[type=submit]:hover:not(:disabled){background:var(--color-active)}
 .onboarding-card .auth-form>button[type=submit]:disabled{opacity:.48}
-.onboarding-card .auth-qr{display:block;width:min(132px,100%);height:auto;margin:5px auto 10px;padding:0;background:#fff;border-radius:6px}
+.onboarding-card .auth-qr{display:block;width:min(140px,100%);height:auto;margin:5px auto 10px;padding:0;background:#fff;border-radius:6px}
 .onboarding-card .auth-message{padding:10px 12px;border-radius:0 8px 8px 0}
 .onboarding-card .auth-primary-link{padding:9px 12px;text-decoration:none}
 .onboarding-card .onboarding-mfa-form{margin-top:8px}
@@ -201,7 +201,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
   .onboarding-card{padding:18px}
   .onboarding-steps{margin-bottom:10px}
   .onboarding-steps i{margin-top:12px}
-  .onboarding-card .auth-qr{width:min(132px,100%)}
+  .onboarding-card .auth-qr{width:min(140px,100%)}
 }
 @media(max-width:430px){
   .privileged-onboarding,.existing-account-mfa{width:calc(100% - 16px);margin:8px auto;border-radius:14px}
@@ -211,7 +211,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
   .onboarding-welcome-title h1{font-size:17px}
   .onboarding-welcome-title p{font-size:10px}
   .onboarding-card,.existing-account-mfa .onboarding-card{padding:16px 14px}
-  .onboarding-card h2{font-size:1.5rem}
+  .onboarding-card h2{font-size:var(--sf-font-size-auth-title)}
   .onboarding-steps{gap:4px}
   .onboarding-steps small{font-size:9px}
   .onboarding-card .onboarding-otp-inputs{gap:5px}
