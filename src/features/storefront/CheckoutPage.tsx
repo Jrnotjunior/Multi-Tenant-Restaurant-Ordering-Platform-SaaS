@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { peso } from './demoCatalog';
+import { MapboxDeliveryLocationPicker, type MapboxDeliveryAddress } from '../operations/MapboxDeliveryLocationPicker';
 
 type OrderType = 'Delivery' | 'Take-out' | 'Pickup' | 'Dine-in';
 type PaymentMethod = 'cash' | 'online';
@@ -40,14 +41,13 @@ function CustomerInformation({ orderType }: { orderType: OrderType }) {
   </fieldset>;
 }
 
-function DeliveryAddressSection({ orderType }: { orderType: OrderType }) {
+function DeliveryAddressSection({ orderType, value, onSelect }: { orderType: OrderType; value: MapboxDeliveryAddress | null; onSelect: (address: MapboxDeliveryAddress) => void }) {
   if (orderType !== 'Delivery') return null;
   return <fieldset className="sf-checkout-section">
     <legend>Delivery address</legend>
+    <MapboxDeliveryLocationPicker variant="delivery" initialLatitude={value?.latitude ?? null} initialLongitude={value?.longitude ?? null} onSelect={onSelect} />
+    {value && <p className="sf-checkout-address-confirmed" role="status">Selected address: {value.formattedAddress || value.address}</p>}
     <div className="sf-checkout-fields">
-      <label>House / building and street<input name="street" autoComplete="address-line1" required minLength={4} maxLength={180} /></label>
-      <label>Barangay<input name="barangay" required minLength={2} maxLength={100} /></label>
-      <label>City / municipality<input name="city" autoComplete="address-level2" required minLength={2} maxLength={100} /></label>
       <label>Delivery instructions <span className="sf-checkout-optional">(optional)</span><textarea name="notes" rows={2} maxLength={300} placeholder="Landmark or instructions for the rider" /></label>
     </div>
   </fieldset>;
@@ -56,6 +56,7 @@ function DeliveryAddressSection({ orderType }: { orderType: OrderType }) {
 /** Standalone checkout screen. It prepares details only; it does not place or charge an order. */
 export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackToMenu, onPlaceOrder }: CheckoutPageProps) {
   const [orderType, setOrderType] = useState<OrderType>('Delivery');
+  const [deliveryAddress, setDeliveryAddress] = useState<MapboxDeliveryAddress | null>(null);
   const [message, setMessage] = useState('');
   const [reviewed, setReviewed] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -80,7 +81,7 @@ export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackTo
     <form className="sf-checkout-page-form" onSubmit={handleSubmit}>
       <OrderTypeSection value={orderType} onChange={type => { setOrderType(type); setMessage(''); setReviewed(false); }} />
       <CustomerInformation orderType={orderType} />
-      <DeliveryAddressSection orderType={orderType} />
+      <DeliveryAddressSection orderType={orderType} value={deliveryAddress} onSelect={setDeliveryAddress} />
 
       <section className="sf-checkout-total" aria-label="Order summary">
         <div className="sf-checkout-summary-heading"><span>Order summary</span></div>
@@ -125,16 +126,14 @@ export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackTo
             const values = new FormData(form);
             const firstName = String(values.get('firstName') ?? '').trim();
             const lastName = String(values.get('lastName') ?? '').trim();
-            const street = String(values.get('street') ?? '').trim();
-            const barangay = String(values.get('barangay') ?? '').trim();
-            const city = String(values.get('city') ?? '').trim();
+            if (orderType === 'Delivery' && !deliveryAddress) { setMessage('Please choose and confirm your delivery location on the map.'); return; }
             setSubmitting(true);
             setMessage('');
             try {
               const result = await onPlaceOrder({
                 orderType, customerName: (firstName + ' ' + lastName).trim(),
                 phone: String(values.get('mobile') ?? '').trim(),
-                deliveryAddress: orderType === 'Delivery' ? [street, barangay, city].filter(Boolean).join(', ') : '',
+                deliveryAddress: orderType === 'Delivery' && deliveryAddress ? (deliveryAddress.formattedAddress || [deliveryAddress.address, deliveryAddress.barangay, deliveryAddress.city].filter(Boolean).join(', ')) : '',
                 deliveryNotes: String(values.get('notes') ?? '').trim(),
                 paymentMethod: paymentMethod === 'online' ? 'online' : 'cash',
               });
