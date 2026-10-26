@@ -200,7 +200,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
         <div className="sf-payment-modal-actions">
           <button type="button" className="sf-payment-cancel" onClick={() => setPaymentModalOpen(false)}>Cancel</button>
           <button type="button" className="sf-payment-place-order" disabled={!paymentMethod || submitting} onClick={async () => {
-            if (paymentMethod === 'online' && orderType === 'Delivery') { setMessage('Online payment for delivery will be available after the restaurant confirms your delivery fee. No order has been placed.'); return; }
+            if (paymentMethod === 'online' && orderType === 'Delivery' && !deliveryQuote) { setMessage('Please wait for the delivery fee to be confirmed before online payment. No order has been placed.'); return; }
             const form = document.querySelector<HTMLFormElement>('.sf-checkout-page-form');
             if (!form) return;
             const values = new FormData(form);
