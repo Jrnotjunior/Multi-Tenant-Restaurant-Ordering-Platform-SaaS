@@ -157,7 +157,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
   max-width:none;
   min-height:100vh;
   height:auto;
-  margin:0;
+  margin:0 auto;
   padding:16px;
   overflow:visible;
   border:0;
