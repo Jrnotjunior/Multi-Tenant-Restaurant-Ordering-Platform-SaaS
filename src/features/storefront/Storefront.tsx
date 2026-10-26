@@ -584,6 +584,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
             deliveryAddress: submission.deliveryAddress, deliveryNotes: submission.deliveryNotes,
             idempotencyKey, orderType: orderTypeMap[submission.orderType], items: orderItems,
             latitude: submission.deliveryLatitude, longitude: submission.deliveryLongitude,
+            paymentMethod: submission.paymentMethod,
           } });
           if (error) throw new Error(error.message || 'Order could not be placed.');
           const result = data as { success?: boolean; order_number?: number; order_id?: string; error?: string; delivery_fee_confirmed?: boolean } | null;
