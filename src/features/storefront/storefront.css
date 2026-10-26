@@ -504,3 +504,8 @@
 .sf-tracking-updated{margin:10px 0 0;color:var(--sf-muted);font-size:var(--sf-font-size-10)}
 .sf-tracking-back{margin-top:12px;min-height:40px;padding:0 14px;border:1px solid var(--sf-border);border-radius:9px;background:var(--sf-product-card);color:var(--sf-font-color);font-weight:800;cursor:pointer}
 .sf-tracking-error{padding:10px;border-radius:8px;background:var(--sf-muted-bg);font-size:var(--sf-font-size-12)}
+
+/* Temporary mobile cart notification bar, shown after cart changes. */
+.sf-mobile-cart-bar{display:none}
+.sf-mobile-cart-count{background:color-mix(in srgb,var(--sf-secondary-button-font) 18%,transparent);width:25px;height:26px;border-radius:7px;display:grid;place-items:center;flex:0 0 25px}
+@media(max-width:900px){.sf-mobile-cart-bar{display:block;position:fixed;bottom:0;left:0;right:0;z-index:25;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:transparent;border-top:0;box-shadow:none;pointer-events:none}.sf-mobile-cart-bar button{display:flex;align-items:center;gap:12px;width:100%;min-height:51px;border:0;border-radius:12px;background:color-mix(in srgb,var(--sf-secondary-button) 82%,transparent);color:var(--sf-secondary-button-font);padding:0 16px;font-weight:800;font-size:var(--sf-font-size-13);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);pointer-events:auto}.sf-mobile-cart-bar strong{margin-left:auto}.sf-main{padding-bottom:105px}}
