@@ -4,6 +4,7 @@ import { PrivilegedGate } from '../features/auth/PrivilegedGate';
 import { Storefront } from '../features/storefront/Storefront';
 import { CustomerOrderTracking } from '../features/storefront/CustomerOrderTracking';
 import { AccountAuthPage } from '../features/storefront/AccountAuthPage';
+import { CustomerOrderHistoryPage } from '../features/storefront/CustomerOrderHistoryPage';
 import { LegalPoliciesPage } from '../features/storefront/LegalPoliciesPage';
 import { RestaurantWorkspace } from '../features/operations/RestaurantWorkspace';
 
@@ -41,6 +42,7 @@ export function App() {
   void locationKey;
 
   if (authMode) return <AccountAuthPage mode={authMode} baseUrl={baseUrl} restaurantSlug={new URLSearchParams(window.location.search).get('restaurant')} />;
+  if (cleanPath === cleanBase + '/account/orders') return <CustomerOrderHistoryPage baseUrl={baseUrl} />;
 
   const legalRoute = ['#legal', '#privacy', '#terms', '#refunds'].includes(window.location.hash) ? window.location.hash : null;
   if (legalRoute) return <LegalPoliciesPage route={legalRoute} />;
