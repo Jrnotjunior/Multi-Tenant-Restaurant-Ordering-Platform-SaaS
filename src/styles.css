@@ -153,6 +153,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .existing-account-mfa .onboarding-card{padding:26px}
 .privileged-auth-only{
   box-sizing:border-box;
+  grid-template-columns:minmax(0,1fr);
   position:fixed;
   inset:0;
   z-index:1000;
