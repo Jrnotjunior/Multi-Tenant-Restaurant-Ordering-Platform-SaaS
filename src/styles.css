@@ -202,7 +202,8 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 @keyframes w2t-loading-slide{0%{transform:translateX(-110%)}100%{transform:translateX(390%)}}
 @media(prefers-reduced-motion:reduce){.workspace-loading-indicator span{animation:none;width:100%}}
 @media(max-width:760px){
-  .privileged-onboarding{position:relative;inset:auto;height:auto;max-height:none;overflow:visible;margin:16px auto}
+  .privileged-onboarding:not(.privileged-auth-only){position:relative;inset:auto;height:min(720px,calc(100dvh - 80px));max-height:none;min-height:0;grid-template-rows:auto minmax(0,1fr);overflow:hidden;margin:16px auto}
+  .privileged-onboarding:not(.privileged-auth-only) .onboarding-card{height:100%;min-height:0}
   .app:has(.privileged-onboarding){min-height:0}
   .app:has(.privileged-onboarding) .workspace{height:auto;min-height:0;align-items:flex-start}
   .app:has(.privileged-onboarding) .content{height:auto;min-height:0;align-items:flex-start;padding:16px}
