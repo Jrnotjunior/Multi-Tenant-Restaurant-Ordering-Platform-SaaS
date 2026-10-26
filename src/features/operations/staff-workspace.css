@@ -277,3 +277,8 @@
 .staff-workspace--rider .staff-customer>p:not(.staff-order-notes){overflow-wrap:anywhere}
 .staff-workspace--rider .staff-order-card.is-actionable{border-left-color:var(--color-active,#263754)}
 @media(max-width:560px){.staff-rider-quick-actions{display:grid;grid-template-columns:1fr}.staff-rider-quick-actions .staff-button{width:100%;box-sizing:border-box}}
+
+/* Compact order-count badges inside cashier payment tabs. */
+
+.staff-payment-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--color-page,#F7F9FC);color:var(--color-muted,#526782);font-size:.7rem;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.staff-payment-tabs button.is-selected .staff-payment-count{background:#ffffff24;color:#fff}
