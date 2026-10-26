@@ -98,8 +98,6 @@ export function OrderTrackingPage({ onBackToMenu }: { onBackToMenu: () => void }
       {terminal && <p className="sf-tracking-error" role="status">This order was {currentStage.toLowerCase()}. Please contact the restaurant if you need assistance.</p>}
       {error && <p className="sf-tracking-error" role="status">{error}</p>}
       <footer className="sf-tracking-footer"><span>{orderTypeLabel}</span><span>{status.payment_status.replaceAll('_', ' ')}</span></footer>
-      <p className="sf-tracking-updated">Last updated {new Date(status.updated_at).toLocaleTimeString()}</p>
-      <button type="button" className="sf-tracking-back" onClick={onBackToMenu}>Back to restaurant</button>
     </section> : trackingToken ? <section className="sf-tracking-receipt"><p>{error || 'Connecting to your order…'}</p></section> : <section className="sf-tracking-receipt"><p>No recent order was found in this browser. Place an order first, then use Track Order.</p><button type="button" className="sf-tracking-back" onClick={onBackToMenu}>Back to restaurant</button></section>}
   </main>;
 }
