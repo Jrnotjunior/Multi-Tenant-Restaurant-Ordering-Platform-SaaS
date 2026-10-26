@@ -11,6 +11,7 @@ type PickerVariant = 'delivery' | 'restaurant';
 type InitMessage = {
   source: 'web2table-storefront';
   type: 'init';
+  restaurantSlug: string;
   variant: PickerVariant;
   disabled: boolean;
   initialLatitude: number | null;
@@ -32,6 +33,7 @@ export function MapboxDeliveryLocationPicker({
   onSelect,
   onLocationChange,
   variant = 'delivery',
+  restaurantSlug,
   initialLatitude = null,
   initialLongitude = null,
 }: {
@@ -39,17 +41,18 @@ export function MapboxDeliveryLocationPicker({
   onSelect: (address: MapboxDeliveryAddress) => void | Promise<void>;
   onLocationChange?: () => void;
   variant?: PickerVariant;
+  restaurantSlug: string;
   initialLatitude?: number | null;
   initialLongitude?: number | null;
 }) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
-  const callbacksRef = useRef({ onSelect, onLocationChange, disabled, variant, initialLatitude, initialLongitude });
+  const callbacksRef = useRef({ onSelect, onLocationChange, disabled, variant, initialLatitude, initialLongitude, restaurantSlug });
   const readyRef = useRef(false);
   const service = mapServiceUrl();
   const [serviceError, setServiceError] = useState(service.configurationError);
   const [frameHeight, setFrameHeight] = useState(520);
 
-  callbacksRef.current = { onSelect, onLocationChange, disabled, variant, initialLatitude, initialLongitude };
+  callbacksRef.current = { onSelect, onLocationChange, disabled, variant, initialLatitude, initialLongitude, restaurantSlug };
 
   function sendInit() {
     const target = iframeRef.current?.contentWindow;
@@ -58,6 +61,7 @@ export function MapboxDeliveryLocationPicker({
     const message: InitMessage = {
       source: 'web2table-storefront',
       type: 'init',
+      restaurantSlug: current.restaurantSlug,
       variant: current.variant,
       disabled: current.disabled,
       initialLatitude: current.initialLatitude,
@@ -142,7 +146,7 @@ export function MapboxDeliveryLocationPicker({
     if (readyRef.current) sendInit();
     // Forward relevant settings without reloading the shared iframe or losing its selected location.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [disabled, variant, initialLatitude, initialLongitude]);
+  }, [disabled, variant, initialLatitude, initialLongitude, restaurantSlug]);
 
   return (
     <div className="mapbox-central-service">
