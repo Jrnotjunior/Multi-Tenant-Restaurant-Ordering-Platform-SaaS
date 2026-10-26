@@ -4,7 +4,7 @@ import {addCustom,changeCustom,customCount,customLines,customSubtotal,type Custo
 import {CustomizeDialog} from './CustomizeDialog';
 import { filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
 import { branchSlugFromSearch, loadDefaultPublishedMenu, loadPublishedMenu, type StorefrontCatalog } from './publishedMenu';
-import { isStorefrontCartPath, isStorefrontCheckoutPath, normalizeAppBase, restaurantMenuHash, routePathFromLocation, storefrontCartHash, storefrontCheckoutHash } from '../../app/routes';
+import { isStorefrontCartPath, isStorefrontCheckoutPath, isStorefrontTrackingPath, normalizeAppBase, restaurantMenuHash, routePathFromLocation, storefrontCartHash, storefrontCheckoutHash } from '../../app/routes';
 import { CartPage } from './CartPage';
 import { CheckoutPage, type CheckoutSubmission } from './CheckoutPage';
 import { supabase } from '../../lib/supabase';
@@ -241,6 +241,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const [customizing,setCustomizing]=useState<MenuItem|null>(null);
   const [cartPage, setCartPage] = useState(() => initialCartPage || isStorefrontCartPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
   const [checkoutPage, setCheckoutPage] = useState(() => isStorefrontCheckoutPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
+  const [trackingPage, setTrackingPage] = useState(() => isStorefrontTrackingPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutDetails,setCheckoutDetails]=useState<CheckoutDetails>({
     customerName:'',phone:'',deliveryAddress:'',deliveryNotes:'',
@@ -286,6 +287,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       const routePath = routePathFromLocation(window.location.pathname, window.location.hash, baseUrl);
       setCartPage(isStorefrontCartPath(routePath, baseUrl));
       setCheckoutPage(isStorefrontCheckoutPath(routePath, baseUrl));
+      setTrackingPage(isStorefrontTrackingPath(routePath, baseUrl));
       setCustomizing(null);
       setCategory('All');
     }
@@ -394,6 +396,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     navigateHashRoute(nextHash);
     setCartPage(open);
     setCheckoutPage(false);
+    setTrackingPage(false);
     setAccountMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'auto' });
   }
@@ -403,6 +406,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     const nextHash = open ? storefrontCheckoutHash(resolvedSlug) : restaurantMenuHash(resolvedSlug);
     window.location.hash = nextHash.slice(1);
     setCheckoutPage(open);
+    setTrackingPage(false);
     setCartPage(false);
     setAccountMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -540,7 +544,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     </header>)}
 
     <main className={cartPage ? "sf-main sf-main-cart" : "sf-main"}>
-      {cartPage ? <CartPage count={count} onBack={() => navigateCart(false)}>
+      {trackingPage ? <CheckoutPage trackingOnly restaurantSlug={resolvedSlug ?? requestedSlug ?? ''} itemCount={count} subtotalCentavos={subtotal} orderLines={[]} onBackToMenu={() => { setTrackingPage(false); navigateCheckout(false); }} onPlaceOrder={async () => { throw new Error('Order tracking is read-only.'); }} /> : cartPage ? <CartPage count={count} onBack={() => navigateCart(false)}>
         <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} close={() => navigateCart(false)} onCheckout={() => navigateCheckout(true)}/>
       </CartPage> : checkoutPage ? <CheckoutPage
         restaurantSlug={resolvedSlug ?? requestedSlug ?? ''}
