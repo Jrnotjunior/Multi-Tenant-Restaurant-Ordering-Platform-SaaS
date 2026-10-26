@@ -24,17 +24,21 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 /* Restaurant-owner onboarding: one canonical layout, sized like the sign-in modal. */
 .privileged-onboarding{
   box-sizing:border-box;
+  position:fixed;
+  inset:0;
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
   align-items:stretch;
   width:min(600px,calc(100% - 32px));
   max-width:600px;
   min-width:0;
-  height:auto;
+  height:max-content;
+  max-height:calc(100dvh - 32px);
   min-height:0;
-  margin:0 auto;
+  margin:auto;
   padding:0;
-  overflow:hidden;
+  overflow-x:hidden;
+  overflow-y:auto;
   border:1px solid var(--color-border);
   border-radius:18px;
   background:var(--color-surface);
