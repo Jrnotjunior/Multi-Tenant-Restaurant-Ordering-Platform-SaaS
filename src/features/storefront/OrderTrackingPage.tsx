@@ -4,7 +4,7 @@ import './storefront.css';
 
 type TrackedStatus = { order_status: string; payment_status: string; updated_at: string };
 
-export function OrderTrackingPage({ restaurantSlug, onBackToMenu }: { restaurantSlug: string; onBackToMenu: () => void }) {
+export function OrderTrackingPage({ onBackToMenu }: { onBackToMenu: () => void }) {
   const [trackingToken] = useState<string | null>(() => {
     try { return window.sessionStorage.getItem('web2table:latest-order-tracking'); } catch { return null; }
   });
