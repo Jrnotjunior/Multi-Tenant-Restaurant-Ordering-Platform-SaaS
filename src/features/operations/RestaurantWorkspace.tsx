@@ -9,6 +9,7 @@ import { OwnerOrdersPage } from './OwnerOrdersPage';
 import { OwnerMenuPage } from './OwnerMenuPage';
 import { OwnerStoreSettingsPage } from './OwnerStoreSettingsPage';
 import { OwnerSectionPage } from './OwnerSectionPage';
+import { OwnerLoyaltyPage } from './OwnerLoyaltyPage';
 import { OwnerEmployeesPage } from './OwnerEmployeesPage';
 import { ownerNavGroups, type OwnerPage } from './ownerWorkspaceConfig';
 import { supabase } from '../../lib/supabase';
@@ -176,6 +177,7 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
     if (page === 'settings') return <OwnerStoreSettingsPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
     if (page === 'branding') return <OwnerBrandingPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
     if (page === 'employees') return <OwnerEmployeesPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
+    if (page === 'loyalty') return <OwnerLoyaltyPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
     return <OwnerSectionPage page={page} restaurantName={restaurantName} onNavigate={navigateOwnerPage} />;
   };
 
