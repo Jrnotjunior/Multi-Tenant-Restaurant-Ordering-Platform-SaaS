@@ -585,10 +585,17 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
             </button>
             {accountMenuOpen && <div className="sf-account-menu" role="menu" aria-label="Your account">
               <div className="sf-account-menu-heading">
-                <strong>{customerSignedIn && customerDisplayName ? customerDisplayName : 'Your account'}</strong>
+                {customerSignedIn
+                  ? <a href={baseUrl + 'account'} onClick={() => setAccountMenuOpen(false)}><strong>{customerDisplayName || 'Your account'}</strong></a>
+                  : <strong>Your account</strong>}
                 <span>{customerSignedIn ? 'You are signed in.' : 'Sign in or review our policies.'}</span>
               </div>
-              <a role="menuitem" href={baseUrl + '#legal'} onClick={() => setAccountMenuOpen(false)}>Legal &amp; Policies</a>
+              {customerSignedIn ? <>
+                <a role="menuitem" href={baseUrl + 'account/loyalty'} onClick={() => setAccountMenuOpen(false)}>Loyalty Points</a>
+                <a role="menuitem" href={baseUrl + '#legal'} onClick={() => setAccountMenuOpen(false)}>Legal &amp; Policies</a>
+                <a role="menuitem" href={baseUrl + 'account/orders'} onClick={() => setAccountMenuOpen(false)}>Order History</a>
+                <a role="menuitem" href={baseUrl + 'account/addresses'} onClick={() => setAccountMenuOpen(false)}>Saved Addresses</a>
+              </> : <a role="menuitem" href={baseUrl + '#legal'} onClick={() => setAccountMenuOpen(false)}>Legal &amp; Policies</a>}
               {customerSignedIn ? <button type="button" role="menuitem" className="sf-account-menu-action" onClick={async () => {
                 setAccountMenuOpen(false);
                 if (!supabase) return;
