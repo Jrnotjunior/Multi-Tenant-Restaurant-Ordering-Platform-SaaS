@@ -45,6 +45,13 @@ BEGIN
     v_tracking_token := NEW.idempotency_key;
   END IF;
 
+  IF TG_OP = 'UPDATE'
+     AND OLD.order_status IS NOT DISTINCT FROM NEW.order_status
+     AND OLD.payment_status IS NOT DISTINCT FROM NEW.payment_status
+     AND OLD.order_type IS NOT DISTINCT FROM NEW.order_type THEN
+    RETURN NEW;
+  END IF;
+
   IF v_tracking_token IS NOT NULL THEN
     PERFORM realtime.send(
       jsonb_build_object('changed', true),
@@ -64,12 +71,6 @@ DROP TRIGGER IF EXISTS customer_order_tracking_realtime_notify ON public.custome
 CREATE TRIGGER customer_order_tracking_realtime_notify
 AFTER INSERT OR UPDATE ON public.customer_orders
 FOR EACH ROW
-WHEN (
-  TG_OP = 'INSERT'
-  OR OLD.order_status IS DISTINCT FROM NEW.order_status
-  OR OLD.payment_status IS DISTINCT FROM NEW.payment_status
-  OR OLD.order_type IS DISTINCT FROM NEW.order_type
-)
 EXECUTE FUNCTION private.broadcast_customer_order_tracking_change();
 
 COMMIT;
