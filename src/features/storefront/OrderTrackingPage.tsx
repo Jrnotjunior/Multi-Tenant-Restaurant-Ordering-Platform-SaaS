@@ -73,74 +73,32 @@ export function OrderTrackingPage({ onBackToMenu }: { onBackToMenu: () => void }
   const orderTypeLabel = dineIn ? 'Dine-in' : orderType.replaceAll('-', ' ').replace(/\\b\\w/g, x => x.toUpperCase());
   const paymentLabel = orderMeta.paymentMethod === 'online' ? 'Online payment' : orderType === 'delivery' ? 'Cash on delivery' : orderMeta.paymentMethod === 'cash' ? 'Cash' : status?.payment_status?.replaceAll('_', ' ') ?? 'Cash';
 
-  const statusTitle = terminal
-    ? `Your order was ${currentStage.toLowerCase()}.`
-    : current === 0 ? 'We received your order.'
-    : current === 1 ? 'Your order is confirmed.'
-    : current === 2 ? 'Preparing your order…'
-    : current === stages.length - 1 ? (dineIn ? 'Your order has been served!' : 'Your order has been delivered!')
-    : current >= 0 ? labels[current] + ' your order…' : 'Waiting for restaurant confirmation';
-  const stageIcons = dineIn ? ['🧾', '✓', '🍲', '🍽️', '✓'] : ['🧾', '✓', '🍲', '🛍️', '🛵', '✓'];
-  const firstItem = status?.items?.[0];
-
   return <main className="sf-order-tracking-page">
     {trackingToken && status ? <section className="sf-tracking-receipt" aria-live="polite" aria-label="Live order tracking">
-      <header className="sf-tracking-topbar">
-        <button type="button" className="sf-tracking-back-icon" onClick={onBackToMenu} aria-label="Back to restaurant">‹</button>
-        <span className="sf-tracking-brand">WEB2TABLE <span>·</span> ORDER TRACKING</span>
-        <span className="sf-tracking-live-dot" aria-label="Live updates enabled" title="Live updates enabled" />
+      <header className="sf-tracking-order-heading">
+        <span className="sf-tracking-eyebrow">{dineIn ? 'DINE-IN · TELL THE CASHIER' : orderTypeLabel.toUpperCase()}</span>
+        <h1>ORD-{orderNumText}</h1>
+        <p>{dineIn ? 'Give this order number to the cashier to help them find your order.' : 'Your order status updates automatically.'}</p>
       </header>
-
-      <section className="sf-tracking-status-hero">
-        <span className="sf-tracking-eyebrow">{orderTypeLabel.toUpperCase()} ORDER · ORD-{orderNumText}</span>
-        <h1>{statusTitle}</h1>
-        <p>{terminal ? 'Please contact the restaurant if you need help with this order.' : 'We’ll update this page automatically as your order progresses.'}</p>
-        <div className="sf-tracking-food-art" aria-hidden="true">{dineIn ? '🍲' : '🥡'}<span>✦</span></div>
+      <section className="sf-tracking-details">
+        <div><span className="sf-tracking-eyebrow">YOUR ORDER</span><h2>Order details</h2></div>
+        <button type="button" aria-expanded={detailsOpen} onClick={() => setDetailsOpen(value => !value)}>{detailsOpen ? 'Hide details' : 'View details'} <span aria-hidden="true">{detailsOpen ? '⌃' : '⌄'}</span></button>
       </section>
-
-      <section className="sf-tracking-progress-card" aria-label="Order progress">
-        <div className="sf-tracking-progress-line" aria-hidden="true">
-          <span style={{ width: (current < 0 ? 0 : (current / Math.max(stages.length - 1, 1)) * 100) + '%' }} />
-        </div>
-        <ol className="sf-tracking-progress-steps">{stages.map((stage, index) => {
-          const done = current >= index && !terminal;
-          const active = current === index && !terminal;
-          return <li key={stage} className={done ? 'is-complete' : active ? 'is-active' : ''}>
-            <span className="sf-tracking-progress-icon">{done && index < current ? '✓' : stageIcons[index]}</span>
-            <span className="sf-tracking-progress-label">{labels[index]}</span>
-          </li>;
-        })}</ol>
-        <div className="sf-tracking-current-pill">{terminal ? currentStage : (current >= 0 ? labels[current] : 'Waiting for restaurant confirmation')}</div>
-      </section>
-
+      {detailsOpen && <div className="sf-tracking-order-lines">
+        {status.items?.length ? status.items.map((line, index) => <div key={line.name + index}><span>{line.quantity} × {line.name}</span><strong>{peso(line.total_centavos)}</strong></div>) : <p>Order items are not available for this order.</p>}{status.subtotal_centavos != null && <p><span>Subtotal</span><strong>{peso(status.subtotal_centavos)}</strong></p>}{status.delivery_fee_centavos != null && <p><span>Delivery fee</span><strong>{peso(status.delivery_fee_centavos)}</strong></p>}{status.total_centavos != null && <p><span>Total</span><strong>{peso(status.total_centavos)}</strong></p>}
+        <p><span>Payment</span><strong>{paymentLabel}</strong></p>
+      </div>}
+      <ol className="sf-tracking-timeline">{stages.map((stage, index) => {
+        const done = current >= index && !terminal;
+        const active = current === index && !terminal;
+        return <li key={stage} className={done ? 'is-complete' : ''}>
+          <span className="sf-tracking-timeline-marker">{done ? '✓' : index + 1}</span>
+          <div><h3>{labels[index]}</h3><p>{descriptions[index]}</p>{active && <span className="sf-tracking-current">Current status</span>}</div>
+        </li>;
+      })}</ol>
+      {terminal && <p className="sf-tracking-error" role="status">This order was {currentStage.toLowerCase()}. Please contact the restaurant if you need assistance.</p>}
       {error && <p className="sf-tracking-error" role="status">{error}</p>}
-
-      <section className="sf-tracking-info-section">
-        <h2>{dineIn ? 'Order details' : orderType === 'delivery' ? 'Delivery details' : 'Order details'}</h2>
-        <div className="sf-tracking-info-card">
-          <div className="sf-tracking-info-row"><span className="sf-tracking-info-icon" aria-hidden="true">⌖</span><div><strong>Order type</strong><p>{orderTypeLabel}</p></div></div>
-          <div className="sf-tracking-info-row"><span className="sf-tracking-info-icon" aria-hidden="true">₱</span><div><strong>Payment</strong><p>{paymentLabel} · {status.payment_status.replaceAll('_', ' ')}</p></div></div>
-          <div className="sf-tracking-info-row"><span className="sf-tracking-info-icon" aria-hidden="true">◷</span><div><strong>Last updated</strong><p>{new Date(status.updated_at).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })}</p></div></div>
-        </div>
-      </section>
-
-      <section className="sf-tracking-summary-card">
-        <div className="sf-tracking-summary-heading"><h2>Order summary</h2><span>ORD-{orderNumText}</span></div>
-        {firstItem ? <div className="sf-tracking-summary-item"><div><strong>{firstItem.name}</strong><p>{firstItem.quantity > 1 ? firstItem.quantity + ' items' : 'Your order'}</p></div><strong>{peso(firstItem.total_centavos)}</strong></div> : <p className="sf-tracking-summary-empty">Your order items will appear here.</p>}
-        <button type="button" className="sf-tracking-view-details" aria-expanded={detailsOpen} onClick={() => setDetailsOpen(value => !value)}>{detailsOpen ? 'Hide details' : 'View details'} <span aria-hidden="true">{detailsOpen ? '⌃' : '›'}</span></button>
-        {detailsOpen && <div className="sf-tracking-order-lines">
-          {status.items?.length ? status.items.map((line, index) => <div key={line.name + index}><span>{line.quantity} × {line.name}</span><strong>{peso(line.total_centavos)}</strong></div>) : <p>Order items are not available for this order.</p>}
-          {status.subtotal_centavos != null && <p><span>Subtotal</span><strong>{peso(status.subtotal_centavos)}</strong></p>}
-          {status.delivery_fee_centavos != null && <p><span>Delivery fee</span><strong>{peso(status.delivery_fee_centavos)}</strong></p>}
-          <p><span>Payment method</span><strong>{paymentLabel}</strong></p>
-        </div>}
-      </section>
-
-      <footer className="sf-tracking-total-footer">
-        <div><span>{status.payment_status === 'paid' ? 'Total paid' : 'Total due'}</span><strong>{status.total_centavos != null ? peso(status.total_centavos) : status.subtotal_centavos != null ? peso(status.subtotal_centavos + (status.delivery_fee_centavos ?? 0)) : '—'}</strong></div>
-        <p>Order status and payment updates refresh automatically.</p>
-        <button type="button" onClick={onBackToMenu}>Back to restaurant</button>
-      </footer>
-    </section> : trackingToken ? <section className="sf-tracking-receipt sf-tracking-loading"><div className="sf-tracking-loading-art" aria-hidden="true">🍲</div><h1>Getting your order status…</h1><p>{error || 'Connecting to live order updates.'}</p></section> : <section className="sf-tracking-receipt sf-tracking-loading"><div className="sf-tracking-loading-art" aria-hidden="true">🧾</div><h1>No recent order found</h1><p>Place an order first, then use Track Order.</p><button type="button" className="sf-tracking-primary-action" onClick={onBackToMenu}>Back to restaurant</button></section>}
+      <footer className="sf-tracking-footer"><span>{orderTypeLabel}</span><span>{paymentLabel}</span></footer>
+    </section> : trackingToken ? <section className="sf-tracking-receipt"><p>{error || 'Connecting to your order…'}</p></section> : <section className="sf-tracking-receipt"><p>No recent order was found in this browser. Place an order first, then use Track Order.</p><button type="button" className="sf-tracking-back" onClick={onBackToMenu}>Back to restaurant</button></section>}
   </main>;
 }
