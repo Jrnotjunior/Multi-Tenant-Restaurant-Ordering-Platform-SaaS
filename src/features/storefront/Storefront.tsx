@@ -573,7 +573,16 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
                 setAccountMenuOpen(false);
                 if (!supabase) return;
                 const { error } = await supabase.auth.signOut();
-                if (error) setAvailabilityMessage('Could not sign out. Please try again.');
+                if (error) {
+                  setAvailabilityMessage('Could not sign out. Please try again.');
+                  return;
+                }
+                const slug = resolvedSlug ?? requestedSlug;
+                if (slug) {
+                  try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', slug); } catch { /* Query parameter still carries context. */ }
+                }
+                const signInUrl = baseUrl + 'account/sign-in' + (slug ? '?restaurant=' + encodeURIComponent(slug) : '');
+                window.location.assign(signInUrl);
               }}>Sign out</button> : <>
                 <a role="menuitem" href={baseUrl + 'account/sign-in' + (resolvedSlug ? '?restaurant=' + encodeURIComponent(resolvedSlug) : '')} onClick={() => { if (resolvedSlug) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', resolvedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign in</a>
                 <a role="menuitem" href={baseUrl + 'account/sign-up' + (resolvedSlug ? '?restaurant=' + encodeURIComponent(resolvedSlug) : '')} onClick={() => { if (resolvedSlug) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', resolvedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign up</a>
