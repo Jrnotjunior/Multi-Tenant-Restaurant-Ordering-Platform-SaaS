@@ -86,10 +86,10 @@
 .sf-logo-name small{font-size:var(--sf-font-size-10);color:var(--sf-muted);letter-spacing:.01em}
 .sf-logo-name small b{color:var(--sf-primary-button);font-weight:800}
 .sf-header-actions{display:flex;align-items:center;gap:20px}
-.sf-track-order-button{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 13px;border:1px solid var(--sf-border);border-radius:999px;background:var(--sf-product-card);color:var(--sf-text);font-size:var(--sf-font-size-12);font-weight:800;white-space:nowrap;cursor:pointer}
-.sf-track-order-button:hover{border-color:var(--sf-red)}
+.sf-track-order-button{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;flex:0 0 36px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--sf-header-icon);cursor:pointer}.sf-track-order-button svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.sf-track-order-button:hover{background:rgba(255,255,255,.08);color:var(--sf-header-icon)}
 .sf-track-order-button:focus-visible{outline:2px solid var(--sf-red);outline-offset:2px}
-@media(max-width:480px){.sf-header-actions{gap:10px}.sf-track-order-button{min-height:34px;padding:0 10px;font-size:var(--sf-font-size-11)}}
+@media(max-width:480px){.sf-header-actions{gap:10px}.sf-track-order-button{width:32px;height:32px;flex-basis:32px}.sf-track-order-button svg{width:19px;height:19px}}
 .sf-menu-link{font-weight:700;font-size:var(--sf-font-size-13);color:var(--sf-header-icon)}
 .sf-header-divider{height:25px;width:1px;background:var(--sf-border)}
 .sf-bag-button{display:flex;align-items:center;gap:9px;border:0;background:transparent;color:var(--sf-header-icon);font-size:var(--sf-font-size-13);font-weight:800;min-height:44px;position:relative}
