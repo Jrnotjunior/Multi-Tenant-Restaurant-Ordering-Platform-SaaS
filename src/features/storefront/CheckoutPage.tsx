@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { supabase } from '../../lib/supabase';
 import { peso } from './demoCatalog';
 import { MapboxDeliveryLocationPicker, type MapboxDeliveryAddress } from '../operations/MapboxDeliveryLocationPicker';
 
@@ -11,7 +12,7 @@ type CheckoutPageProps = {
   subtotalCentavos: number;
   orderLines: readonly { name: string; quantity: number; totalCentavos: number }[];
   onBackToMenu: () => void;
-  onPlaceOrder: (submission: CheckoutSubmission) => Promise<{ orderNumber: number; checkoutUrl?: string }>;
+  onPlaceOrder: (submission: CheckoutSubmission) => Promise<{ orderNumber: number; checkoutUrl?: string; trackingToken: string }>;
 };
 
 function OrderTypeSection({ value, onChange }: {
@@ -62,6 +63,43 @@ export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackTo
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | ''>('');
   const [submitting, setSubmitting] = useState(false);
+  const [trackingToken, setTrackingToken] = useState<string | null>(null);
+  const [trackedOrderNumber, setTrackedOrderNumber] = useState<number | null>(null);
+  const [trackedStatus, setTrackedStatus] = useState<{ order_status: string; payment_status: string; updated_at: string } | null>(null);
+  const [trackingError, setTrackingError] = useState('');
+
+  useEffect(() => {
+    if (!trackingToken || !supabase) return;
+    let active = true;
+    let refreshTimer: number | undefined;
+    const refreshStatus = async () => {
+      const { data, error } = await supabase!.rpc('track_customer_order', { p_tracking_token: trackingToken });
+      if (!active) return;
+      if (error) { setTrackingError('Live tracking is reconnecting. We will keep trying.'); return; }
+      const result = data as { found?: boolean; order_number?: number; order_status?: string; payment_status?: string; updated_at?: string } | null;
+      if (!result?.found || !result.order_status || !result.payment_status || !result.updated_at) {
+        setTrackingError('We could not find this order. Keep your tracking link and contact the restaurant if needed.');
+        return;
+      }
+      setTrackingError('');
+      setTrackedOrderNumber(Number(result.order_number));
+      setTrackedStatus({ order_status: result.order_status, payment_status: result.payment_status, updated_at: result.updated_at });
+    };
+    void refreshStatus();
+    const channel = supabase.channel('order-tracking:' + trackingToken)
+      .on('broadcast', { event: 'order_changed' }, () => {
+        if (refreshTimer !== undefined) window.clearTimeout(refreshTimer);
+        refreshTimer = window.setTimeout(() => { void refreshStatus(); }, 100);
+      })
+      .subscribe((status) => { if (status === 'SUBSCRIBED') void refreshStatus(); });
+    const fallbackTimer = window.setInterval(() => { void refreshStatus(); }, 30000);
+    return () => {
+      active = false;
+      if (refreshTimer !== undefined) window.clearTimeout(refreshTimer);
+      window.clearInterval(fallbackTimer);
+      void supabase?.removeChannel(channel);
+    };
+  }, [trackingToken]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -76,7 +114,28 @@ export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackTo
       <p>Choose how you will receive your food, then provide the details we need.</p>
     </div>
 
-    {itemCount === 0 && <p className="sf-checkout-page-notice" role="status">Your cart is empty. Add items from the menu before checkout.</p>}
+    {itemCount === 0 && !trackingToken && <p className="sf-checkout-page-notice" role="status">Your cart is empty. Add items from the menu before checkout.</p>}
+
+    {trackingToken && <section className="sf-order-tracking" aria-live="polite" aria-label="Live order tracking">
+      <span className="sf-section-kicker">LIVE ORDER TRACKING</span>
+      <h2>Order #{trackedOrderNumber ?? '…'}</h2>
+      {trackedStatus ? <>
+        <p className="sf-order-tracking-status">{trackedStatus.order_status.replaceAll('_', ' ')}</p>
+        <p className="sf-order-tracking-payment">Payment: {trackedStatus.payment_status.replaceAll('_', ' ')}</p>
+        <ol className="sf-order-tracking-steps">
+          {['pending_confirmation','confirmed','preparing','ready_for_dispatch','out_for_delivery','delivered'].map((status, index) => {
+            const sequence = ['pending_confirmation','confirmed','preparing','ready_for_dispatch','out_for_delivery','delivered'];
+            const current = sequence.indexOf(trackedStatus.order_status);
+            const terminal = ['rejected','cancelled'].includes(trackedStatus.order_status);
+            const done = current >= index && !terminal;
+            return <li key={status} className={done ? 'is-complete' : ''}><span>{index + 1}</span><small>{status.replaceAll('_', ' ')}</small></li>;
+          })}
+        </ol>
+        <p className="sf-order-tracking-updated">Last updated {new Date(trackedStatus.updated_at).toLocaleTimeString()}</p>
+      </> : <p>Connecting to live order updates…</p>}
+      {trackingError && <p className="sf-checkout-page-message" role="status">{trackingError}</p>}
+      <p className="sf-order-tracking-note">Keep this page open to see updates. Your order status refreshes automatically.</p>
+    </section>}
 
     <form className="sf-checkout-page-form" onSubmit={handleSubmit}>
       <OrderTypeSection value={orderType} onChange={type => { setOrderType(type); setMessage(''); setReviewed(false); }} />
@@ -142,6 +201,8 @@ export function CheckoutPage({ itemCount, subtotalCentavos, orderLines, onBackTo
                 window.location.assign(result.checkoutUrl);
                 return;
               }
+              setTrackedOrderNumber(result.orderNumber);
+              setTrackingToken(result.trackingToken);
               setMessage('Order #' + result.orderNumber + ' placed successfully. Pay at the restaurant counter.');
               setPaymentModalOpen(false);
             } catch (error) {
