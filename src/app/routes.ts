@@ -43,6 +43,7 @@ export function storefrontSlugFromPath(pathname: string, baseUrl: string): strin
   if (!pathname.startsWith(prefix)) return null;
   let slug = pathname.slice(prefix.length).replace(/\/+$/, '');
   if (slug.endsWith('/checkout')) slug = slug.slice(0, -9);
+  else if (slug.endsWith('/track')) slug = slug.slice(0, -6);
   else if (slug.endsWith('/cart')) slug = slug.slice(0, -5);
   return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ? slug : '';
 }
