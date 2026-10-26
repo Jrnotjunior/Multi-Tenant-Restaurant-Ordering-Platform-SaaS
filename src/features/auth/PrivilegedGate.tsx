@@ -303,17 +303,6 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
     {status === 'mfa' && flow && flow.kind !== 'ready' && <div>
       {flow.kind === 'enroll' && <div><p>Set up an authenticator app, then enter a six-digit code. Scan this QR code once and use the code for this Web2Table entry.</p>
         <img className="auth-qr" src={flow.qrCode} alt="Authenticator enrollment QR code" />
-        <p>Keep this QR code private. If every code is rejected, you can replace this incomplete setup and scan a fresh QR code.</p>
-        <button type="button" className="auth-secondary" disabled={busy} onClick={() => {
-          const confirmed = window.confirm('Replace the incomplete authenticator setup? The current unverified QR code will stop working. Continue only if you have not successfully verified an authenticator for this account.');
-          if (!confirmed || !client) return;
-          setBusy(true);
-          setMessage('');
-          void restartIncompleteMfa(client)
-            .then(() => { setCode(''); setFlow(null); setRevision(previous => previous + 1); })
-            .catch((err: unknown) => setMessage(err instanceof Error ? err.message : 'Could not restart authenticator setup.'))
-            .finally(() => setBusy(false));
-        }}>Replace QR code and restart setup</button>
       </div>}
       {flow.kind === 'challenge' && !isExistingAccountMfa && <p>Enter the current six-digit code from your authenticator app.</p>}
       <form onSubmit={(e) => void submitMfa(e)} className="auth-form onboarding-mfa-form">
