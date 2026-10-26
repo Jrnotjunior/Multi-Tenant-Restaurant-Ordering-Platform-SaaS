@@ -33,7 +33,7 @@ export function isStorefrontCartPath(pathname: string, baseUrl: string): boolean
     && storefrontSlugFromPath(pathname, baseUrl) !== null;
 }
 
-export function isStorefrontCheckoutPath(pathname: string, baseUrl: string): boolean {
+export function isStorefrontTrackingPath(pathname: string, baseUrl: string): boolean {\n  return pathname.replace(/\\/+$/, '').endsWith('/track') && storefrontSlugFromPath(pathname, baseUrl) !== null;\n}\n\nexport function isStorefrontCheckoutPath(pathname: string, baseUrl: string): boolean {
   return pathname.replace(/\/+$/, '').endsWith('/checkout')
     && storefrontSlugFromPath(pathname, baseUrl) !== null;
 }
@@ -81,3 +81,4 @@ export function storefrontCartHash(slug: string): string {
 export function storefrontCheckoutHash(slug: string): string {
   return restaurantMenuHash(slug) + '/checkout';
 }
+\nexport function storefrontTrackingHash(slug: string): string { return restaurantMenuHash(slug) + '/track'; }\n
