@@ -118,7 +118,23 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
           p_workspace: 'restaurant',
         });
         if (accessError) throw accessError;
-        window.location.assign(canEnterWorkspace === true ? new URL('restaurant', window.location.origin + base).toString() : base);
+        if (canEnterWorkspace === true) {
+          window.location.assign(new URL('restaurant', window.location.origin + base).toString());
+          return;
+        }
+
+        // A guest order's browser-stored tracking token must not carry over into
+        // an authenticated customer's session. Account order history is loaded
+        // separately from the server-side customer_order_history RPC.
+        try {
+          window.sessionStorage.removeItem('web2table:latest-order-tracking');
+          window.sessionStorage.removeItem('web2table:latest-order-number');
+          window.sessionStorage.removeItem('web2table:latest-order-details');
+          window.localStorage.removeItem('web2table:latest-order-details');
+        } catch {
+          // Storage can be unavailable; sign-in should still complete.
+        }
+        window.location.assign(base);
         return;
       }
     } catch (error) {
