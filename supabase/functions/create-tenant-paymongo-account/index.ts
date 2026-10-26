@@ -45,7 +45,7 @@ Deno.serve(async (request) => {
     if (!tenantId) return json({ error: "Restaurant is required." }, 400);
     await assertTenantOwner(admin, user.id, tenantId);
     const { data: existing, error: loadError } = await admin.from("tenant_paymongo_accounts")
-      .select("paymongo_account_id,connection_status,activation_status,verification_url,identity_verification_status,onboarding_step,last_error")
+      .select("paymongo_account_id,connection_status,activation_status,verification_url,identity_verification_status,onboarding_step,last_error,webhook_id,webhook_secret_id")
       .eq("tenant_id", tenantId).eq("environment", "live").maybeSingle();
     if (loadError) throw loadError;
     if (existing?.connection_status === "active" && existing.paymongo_account_id) {
@@ -72,6 +72,48 @@ Deno.serve(async (request) => {
         identity_verification_status: String(payload?.data?.attributes?.person?.identity_verification_status ?? "pending"), last_error: null,
       }, { onConflict: "tenant_id,environment" });
       if (error) throw error;
+    }
+    // Register the child webhook immediately after account creation, before activation.
+    // PayMongo delivers linked-account transaction events to this child webhook, not the parent webhook.
+    if (!existing?.webhook_id || !existing?.webhook_secret_id) {
+      const webhookResponse = await fetch("https://api.paymongo.com/v1/webhooks", {
+        method: "POST",
+        headers: {
+          Authorization: basic(key),
+          "Content-Type": "application/json",
+          "Account-ID": accountId,
+          "Idempotency-Key": "web2table-tenant-paymongo-webhook-" + tenantId + "-live",
+        },
+        body: JSON.stringify({ data: { attributes: {
+          url: url + "/functions/v1/tenant-paymongo-webhook",
+          events: [
+            "checkout_session.payment.paid", "checkout_session.payment.failed", "checkout_session.expired",
+            "payment.failed", "payment.refunded", "refund.created", "refund.updated", "refund.succeeded", "refund.failed",
+          ],
+        } } }),
+      });
+      const webhookPayload = await webhookResponse.json().catch(() => null);
+      if (!webhookResponse.ok) {
+        const message = typeof webhookPayload?.errors?.[0]?.detail === "string"
+          ? webhookPayload.errors[0].detail : "PayMongo child webhook setup failed.";
+        await admin.from("tenant_paymongo_accounts").update({
+          onboarding_step: "webhook_configuration", last_error: message,
+        }).eq("tenant_id", tenantId).eq("environment", "live");
+        return json({ error: message, paymongoAccountId: accountId, onboardingStep: "webhook_configuration" }, 502);
+      }
+      const webhookId = String(webhookPayload?.data?.id ?? "").trim();
+      const webhookSecret = String(webhookPayload?.data?.attributes?.secret_key ?? "").trim();
+      if (!webhookId || !webhookSecret) {
+        return json({ error: "PayMongo did not return child webhook credentials.", paymongoAccountId: accountId }, 502);
+      }
+      const { error: secretError } = await admin.rpc("set_tenant_paymongo_webhook_secret", {
+        p_tenant_id: tenantId, p_secret: webhookSecret, p_environment: "live",
+      });
+      if (secretError) throw secretError;
+      const { error: webhookUpdateError } = await admin.from("tenant_paymongo_accounts").update({
+        webhook_id: webhookId, onboarding_step: "identity_verification", last_error: null,
+      }).eq("tenant_id", tenantId).eq("environment", "live");
+      if (webhookUpdateError) throw webhookUpdateError;
     }
     if (!verificationUrl) {
       const response = await fetch("https://api.paymongo.com/v2/accounts/" + encodeURIComponent(accountId) + "/identity_verification", {
