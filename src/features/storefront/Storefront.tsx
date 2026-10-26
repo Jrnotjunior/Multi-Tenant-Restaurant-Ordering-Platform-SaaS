@@ -236,6 +236,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [customerSignedIn, setCustomerSignedIn] = useState(false);
   const [cart, setCart] = useState<Cart>(() => readSessionValue<Cart>(cartStorageKey + ':items', {}));
   const [customized,setCustomized]=useState<CustomCart>(() => readSessionValue<CustomCart>(cartStorageKey + ':custom', {}));
   const [hydratedCartKey, setHydratedCartKey] = useState(cartStorageKey);
@@ -251,6 +252,13 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const [checkoutMessage,setCheckoutMessage]=useState('');
   const [availabilityMessage,setAvailabilityMessage]=useState('');
   useEffect(() => { if (!availabilityMessage) return; const timer=window.setTimeout(()=>setAvailabilityMessage(''),3500); return ()=>window.clearTimeout(timer); }, [availabilityMessage]);
+
+  useEffect(() => {
+    if (!supabase) return;
+    void supabase.auth.getSession().then(({ data }) => setCustomerSignedIn(Boolean(data.session?.user)));
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => setCustomerSignedIn(Boolean(session?.user)));
+    return () => authListener.subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     const syncTrackingAvailability = () => {
@@ -503,6 +511,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
                 <strong>Your account</strong>
                 <span>Sign in or review our policies.</span>
               </div>
+              {customerSignedIn && <a role="menuitem" href={baseUrl + 'account/orders'} onClick={() => setAccountMenuOpen(false)}>Order history</a>}
               <a role="menuitem" href={baseUrl + '#legal'} onClick={() => setAccountMenuOpen(false)}>Legal &amp; Policies</a>
               <a role="menuitem" href={baseUrl + 'account/sign-in' + (resolvedSlug ? '?restaurant=' + encodeURIComponent(resolvedSlug) : '')} onClick={() => { if (resolvedSlug) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', resolvedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign in</a>
               <a role="menuitem" href={baseUrl + 'account/sign-up' + (resolvedSlug ? '?restaurant=' + encodeURIComponent(resolvedSlug) : '')} onClick={() => { if (resolvedSlug) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', resolvedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign up</a>
