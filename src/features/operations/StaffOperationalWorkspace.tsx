@@ -60,6 +60,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [dispatcherTab, setDispatcherTab] = useState<Order['order_type']>('delivery');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState('');
+  const [selectedCashierOrderId, setSelectedCashierOrderId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [accountEmail, setAccountEmail] = useState('');
@@ -466,6 +467,10 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           const canAssign = role === 'dispatcher' && order.order_status === 'ready_for_dispatch';
           const needsFee = role === 'cashier' && order.order_type === 'delivery' && order.order_status === 'pending_confirmation' && order.total_centavos == null;
           const needsAttention = (role === 'cashier' && order.order_status === 'pending_confirmation') || (role === 'kitchen' && ['confirmed', 'preparing'].includes(order.order_status)) || (role === 'dispatcher' && order.order_status === 'ready_for_dispatch');
+          if (role === 'cashier') return <button type="button" className="staff-cashier-order-summary" key={order.id} onClick={() => setSelectedCashierOrderId(order.id)} aria-label={`Open order ${order.order_number} details`}>
+            <span className="staff-cashier-summary-main"><strong>ORD-{String(order.order_number).padStart(5, '0')}</strong><span>{typeLabel(order.order_type)}</span></span>
+            <span className="staff-cashier-summary-payment"><span>{order.payment_channel === 'online' ? 'Online' : 'Cash'} · {['paid','succeeded','completed'].includes(order.payment_status.toLowerCase()) ? 'Paid' : 'Unpaid'}</span><strong>{money(order.total_centavos)}</strong></span>
+          </button>;
           return <article className={'staff-order-card' + (needsAttention ? ' is-actionable' : '')} key={order.id}>
             <header className="staff-order-card-heading"><div><span className="staff-order-number">Order #{order.order_number}</span><span className="staff-order-meta">{new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(order.created_at))} · {order.branch_name}</span></div><span className={'staff-status status-' + order.order_status}>{label(order.order_status)}</span></header>
             <div className="staff-order-details"><div className="staff-customer"><strong>{order.customer_name}</strong><span>{order.customer_phone}</span><span>{typeLabel(order.order_type)}</span>{order.order_type === 'delivery' && order.delivery_address && <p>{order.delivery_address}</p>}{order.delivery_notes && <p className="staff-order-notes">Note: {order.delivery_notes}</p>}</div>
@@ -481,7 +486,26 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         })}</div>}
     </div>}
     </section>
-    
+    {role === 'cashier' && selectedCashierOrderId && (() => {
+      const order = orders.find(item => item.id === selectedCashierOrderId);
+      if (!order) return null;
+      const buttons = actions(order);
+      const needsFee = order.order_type === 'delivery' && order.order_status === 'pending_confirmation' && order.total_centavos == null;
+      return <div className="staff-cashier-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setSelectedCashierOrderId(null); }}>
+        <section className="staff-cashier-modal" role="dialog" aria-modal="true" aria-labelledby="staff-cashier-modal-title">
+          <button type="button" className="staff-cashier-modal-close" aria-label="Close order details" onClick={() => setSelectedCashierOrderId(null)}>×</button>
+          <header><h2 id="staff-cashier-modal-title">ORD-{String(order.order_number).padStart(5, '0')}</h2><p>{label(order.order_status)} · {new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(order.created_at))}</p></header>
+          <p className="staff-cashier-modal-meta">{typeLabel(order.order_type)} · {order.payment_channel === 'online' ? 'Online' : 'Cash'} · {['paid','succeeded','completed'].includes(order.payment_status.toLowerCase()) ? 'Paid' : 'Unpaid'}</p>
+          <div className="staff-cashier-modal-customer"><strong>Customer</strong><span>{order.customer_name}</span></div>
+          {order.order_type === 'delivery' && order.delivery_address && <div className="staff-cashier-modal-note"><strong>Delivery address</strong><span>{order.delivery_address}</span></div>}
+          {order.delivery_notes && <div className="staff-cashier-modal-note"><strong>Special Instructions</strong><span>{order.delivery_notes}</span></div>}
+          <ul className="staff-cashier-modal-items">{(order.items ?? []).map(item => <li key={item.id}><span>{item.quantity} × {item.item_name}{item.options?.length ? <small>{item.options.map(option => option.name).filter(Boolean).join(', ')}</small> : null}</span><strong>{money(item.line_total_centavos)}</strong></li>)}</ul>
+          <div className="staff-cashier-modal-total"><strong>Total</strong><strong>{money(order.total_centavos)}</strong></div>
+          {needsFee && <div className="staff-inline-control"><label htmlFor={'staff-fee-modal-' + order.id}>Delivery fee (PHP)</label><input id={'staff-fee-modal-' + order.id} type="number" min="0" max="10000000" step="0.01" inputMode="decimal" value={fees[order.id] ?? ''} onChange={event => setFees(current => ({ ...current, [order.id]: event.target.value }))} placeholder="e.g. 50.00" /><button className="staff-button staff-button-secondary" type="button" disabled={busy === order.id} onClick={() => void saveFee(order)}>Save fee</button></div>}
+          {buttons.length > 0 && <footer className="staff-cashier-modal-actions">{buttons.map(button => <button key={button.action} type="button" disabled={busy === order.id} className={'staff-button ' + (button.primary ? 'staff-button-primary' : 'staff-button-secondary')} onClick={() => void act(order, button.action, button.label.toLowerCase())}>{busy === order.id ? 'Saving…' : button.label}</button>)}</footer>}
+        </section>
+      </div>;
+    })()}
     </>}
   </main>;
 }
