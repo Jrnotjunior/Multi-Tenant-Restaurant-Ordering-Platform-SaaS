@@ -94,7 +94,7 @@ Deno.serve(async (request) => {
       throw insertError;
     }
 
-    const baseUrl = (Deno.env.get("PUBLIC_STOREFRONT_URL") ?? "").replace(/\/$/, "");
+    const baseUrl = (Deno.env.get("PUBLIC_STOREFRONT_URL") ?? "https://app.web2table.io").trim().replace(/\/$/, "");
     if (!baseUrl || !/^https:\/\//i.test(baseUrl)) {
       await admin.from("customer_order_payment_sessions").update({ status: "failed", updated_at: new Date().toISOString() }).eq("id", session.id);
       return json({ error: "The public storefront URL is not configured." }, 500);
