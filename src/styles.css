@@ -143,7 +143,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .onboarding-card .auth-form>button[type=submit],.onboarding-card .auth-form .auth-primary-link{display:flex;align-items:center;justify-content:center;min-height:38px;margin-top:2px;border:0;border-radius:8px;background:var(--color-sidebar);color:#fff;font-size:var(--sf-font-size-auth-action);font-weight:800;text-align:center}
 .onboarding-card .auth-form>button[type=submit]:hover:not(:disabled){background:var(--color-active)}
 .onboarding-card .auth-form>button[type=submit]:disabled{opacity:.48}
-.onboarding-card .auth-qr{display:block;width:min(140px,100%);height:auto;margin:5px auto 10px;padding:0;background:#fff;border-radius:6px}
+.onboarding-card .auth-qr{display:block;width:min(160px,100%);height:auto;margin:5px auto 10px;padding:0;background:#fff;border-radius:6px}
 .onboarding-card .auth-message{padding:10px 12px;border-radius:0 8px 8px 0}
 .onboarding-card .auth-primary-link{padding:9px 12px;text-decoration:none}
 .onboarding-card .onboarding-mfa-form{margin-top:8px}
@@ -223,7 +223,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
   .onboarding-card{padding:18px}
   .onboarding-steps{margin-bottom:10px}
   .onboarding-steps i{margin-top:12px}
-  .onboarding-card .auth-qr{width:min(140px,100%)}
+  .onboarding-card .auth-qr{width:min(160px,100%)}
 }
 @media(max-width:430px){
   .privileged-onboarding:not(.privileged-auth-only){width:100%;height:100dvh;margin:0;padding:0;border:0;border-radius:0}
