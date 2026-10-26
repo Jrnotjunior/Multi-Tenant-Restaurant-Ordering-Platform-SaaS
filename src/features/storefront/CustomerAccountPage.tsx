@@ -9,6 +9,8 @@ type CustomerProfile = {
   full_name?: string;
 };
 
+const WEB2TABLE_LOGO = 'https://wvibrchebfwirbgkcnbr.supabase.co/storage/v1/object/public/web2table-assets/web2table.png';
+
 export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
   const [name, setName] = useState('Your account');
   const [email, setEmail] = useState('');
@@ -42,12 +44,38 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
     return () => { active = false; };
   }, [base]);
 
-  return <main className="sf-order-tracking-page">
-    <section className="sf-tracking-receipt" aria-live="polite">
-      <span className="sf-tracking-eyebrow">WEB2TABLE CUSTOMER ACCOUNT</span>
-      <h1>{name}</h1>
-      <p>{loading ? 'Loading your account…' : email}</p>
-      {message && <p role="status">{message}</p>}
+  const signOut = async () => {
+    if (!supabase) return;
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      setMessage('Could not sign out. Please try again.');
+      return;
+    }
+    window.location.assign(base + 'account/sign-in');
+  };
+
+  return <div className="sf-storefront sf-account-page">
+    <a className="sf-skip-link" href="#customer-account-main">Skip to account content</a>
+    <header className="sf-header">
+      <div className="sf-header-inner">
+        <a className="sf-logo" href={base} aria-label="Web2Table storefront">
+          <img src={WEB2TABLE_LOGO} alt="Web2Table" className="sf-account-logo" />
+        </a>
+        <nav className="sf-header-actions" aria-label="Account navigation">
+          <a className="sf-account-header-link" href={base} aria-label="Back to storefront">Storefront</a>
+          <button type="button" className="sf-account-button" aria-label="Sign out" title="Sign out" onClick={() => void signOut()}>
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 4H5v16h5M14 8l4 4-4 4M8 12h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+        </nav>
+      </div>
+    </header>
+    <main id="customer-account-main" className="sf-main sf-account-main">
+      <section className="sf-account-hero" aria-live="polite">
+        <span className="sf-tracking-eyebrow">WEB2TABLE CUSTOMER ACCOUNT</span>
+        <h1>{name}</h1>
+        <p className="sf-account-email">{loading ? 'Loading your account…' : email}</p>
+        {message && <p className="sf-account-message" role="status">{message}</p>}
+      </section>
       <div className="sf-account-dashboard-grid">
         <a className="sf-tracking-details sf-account-dashboard-card" href={base + 'account/loyalty'}>
           <div><span className="sf-tracking-eyebrow">REWARDS</span><h2>Loyalty Points</h2><p>View your rewards balance and points activity.</p></div>
@@ -62,7 +90,12 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
           <span aria-hidden="true">›</span>
         </a>
       </div>
-      <a className="sf-tracking-back" href={base}>Back to storefront</a>
-    </section>
-  </main>;
+    </main>
+    <footer className="sf-footer">
+      <div className="sf-footer-inner">
+        <div className="sf-footer-brand"><img src={WEB2TABLE_LOGO} alt="Web2Table" className="sf-account-footer-logo" /><span>Restaurant operations, connected</span></div>
+        <div className="sf-footer-bottom"><span>© {new Date().getFullYear()} All rights reserved.</span><span>Powered by Web2Table</span></div>
+      </div>
+    </footer>
+  </div>;
 }
