@@ -62,10 +62,10 @@ export function OrderTrackingPage({ onBackToMenu }: { onBackToMenu: () => void }
     : ['pending_confirmation', 'confirmed', 'preparing', 'ready_for_dispatch', 'out_for_delivery', 'delivered'];
   const labels = dineIn
     ? ['Order Received', 'Confirmed', 'Preparing', 'Ready to serve', 'Served']
-    : ['Order Received', 'Confirmed', 'Preparing', 'Ready for dispatch', 'Out for delivery', 'Delivered'];
+    : ['Order Received', 'Confirmed', 'Preparing', 'Ready', 'Out for delivery', 'Delivered'];
   const descriptions = dineIn
     ? ['Your order has been received by the restaurant.', 'The restaurant has confirmed your order.', 'The kitchen is preparing your food.', 'Your food is ready. Restaurant staff will bring it to your table.', 'Your order has been served. Thank you!']
-    : ['Your order has been received by the restaurant.', 'The restaurant has confirmed your order.', 'The kitchen is preparing your food.', 'Ready.', 'Your order is on its way to you.', 'Your order has been delivered. Thank you!'];
+    : ['Your order has been received by the restaurant.', 'The restaurant has confirmed your order.', 'The kitchen is preparing your food.', 'Your order is being prepared for dispatch.', 'Your order is on its way to you.', 'Your order has been delivered. Thank you!'];
   const current = status ? stages.indexOf(status.order_status) : -1;
   const terminal = status ? ['rejected', 'cancelled'].includes(status.order_status) : false;
   const currentStage = current < 0 ? (terminal ? (status?.order_status ?? 'unknown').replaceAll('_', ' ') : 'Order Received') : labels[current];
