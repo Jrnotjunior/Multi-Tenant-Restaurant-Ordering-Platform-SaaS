@@ -33,6 +33,14 @@ Deno.serve(async(request)=>{
       secret=String(stored??"");
     }
   }
+  // Platform-owned test checkout sessions use one dashboard webhook signing secret.
+  // The tenant/order association is still verified by the signed event metadata and payment-session RPC.
+  const resourceForLookup=attrs.data??{};
+  const resourceAttrsForLookup=resourceForLookup.attributes??{};
+  const metadataTenantId=String(resourceAttrsForLookup.metadata?.tenant_id??"").trim();
+  const platformTestSecret=Deno.env.get("PAYMONGO_TEST_WEBHOOK_SECRET")??"";
+  const platformTest=environment==="test"&&!tenantId&&!!platformTestSecret&&/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(metadataTenantId);
+  if(platformTest){tenantId=metadataTenantId;secret=platformTestSecret;}
   if(!tenantId||!secret)return json({error:"Webhook account is not registered."},401);
   const signature=parseSignature(request.headers.get("Paymongo-Signature")??"");
   if(!signature.timestamp||!/^\d+$/.test(signature.timestamp))return json({error:"Invalid webhook signature."},401);
