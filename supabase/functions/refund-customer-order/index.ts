@@ -33,7 +33,7 @@ Deno.serve(async(req)=>{
   try{
    response=await fetch("https://api.paymongo.com/v1/refunds",{
     method:"POST",
-    headers:{Authorization:basic(secret),"Content-Type":"application/json","Account-ID":refund.paymongo_account_id,"Idempotency-Key":"w2t-refund-"+refund.payment_session_id},
+    headers:{Authorization:basic(secret),"Content-Type":"application/json",...(refund.paymongo_account_id==="platform_test"?{}:{"Account-ID":refund.paymongo_account_id}),"Idempotency-Key":"w2t-refund-"+refund.payment_session_id},
     body:JSON.stringify({data:{attributes:{amount:Number(refund.amount_centavos),payment_id:refund.paymongo_payment_id,reason:refund.reason}}})
    });
   }catch{
