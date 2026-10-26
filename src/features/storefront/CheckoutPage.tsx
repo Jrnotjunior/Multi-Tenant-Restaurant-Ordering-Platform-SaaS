@@ -122,6 +122,8 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
       .finally(() => { if (active) setQuotingDelivery(false); });
     return () => { active = false; };
   }, [orderType, deliveryAddress?.latitude, deliveryAddress?.longitude, restaurantSlug]);
+  const paymentComplete = ['paid', 'succeeded', 'completed'].includes((trackedStatus?.payment_status ?? '').toLowerCase());
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage('');
@@ -130,14 +132,14 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
 
   return <main className="sf-checkout-page">
     <div className="sf-checkout-page-intro">
-      <span className="sf-section-kicker">CHECKOUT</span>
-      <h1>How would you like your order?</h1>
-      <p>Choose how you will receive your food, then provide the details we need.</p>
+      <span className="sf-section-kicker">{paymentComplete ? 'ORDER TRACKING' : 'CHECKOUT'}</span>
+      <h1>{paymentComplete ? 'Payment received — track your order' : 'How would you like your order?'}</h1>
+      <p>{paymentComplete ? 'Your cashier has confirmed payment. Follow your order status here; updates appear automatically.' : 'Choose how you will receive your food, then provide the details we need.'}</p>
     </div>
 
     {itemCount === 0 && !trackingToken && <p className="sf-checkout-page-notice" role="status">Your cart is empty. Add items from the menu before checkout.</p>}
 
-    {trackingToken && <section className="sf-order-tracking" aria-live="polite" aria-label="Live order tracking">
+    {trackingToken && <section className={"sf-order-tracking" + (paymentComplete ? ' sf-order-tracking-paid' : '')}" aria-live="polite" aria-label="Live order tracking">
       <span className="sf-section-kicker">LIVE ORDER TRACKING</span>
       <h2>Order #{trackedOrderNumber ?? '…'}</h2>
       {trackedStatus ? <>
@@ -158,7 +160,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
       <p className="sf-order-tracking-note">Keep this page open to see updates. Your order status refreshes automatically.</p>
     </section>}
 
-    <form className="sf-checkout-page-form" onSubmit={handleSubmit}>
+    {!paymentComplete && <form className="sf-checkout-page-form" onSubmit={handleSubmit}>
       <OrderTypeSection value={orderType} onChange={type => { setOrderType(type); setMessage(''); setReviewed(false); }} />
       <CustomerInformation orderType={orderType} />
       <DeliveryAddressSection orderType={orderType} value={deliveryAddress} onSelect={address => { setDeliveryAddress(address); setStreetAddress(address.address); }} streetAddress={streetAddress} onStreetAddressChange={setStreetAddress} restaurantSlug={restaurantSlug} />
@@ -175,9 +177,9 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
 
       {message && <p className="sf-checkout-page-message" role="status">{message}</p>}
       <button className="sf-checkout-submit" type="submit" disabled={itemCount === 0 || (orderType === 'Delivery' && (!deliveryQuote || quotingDelivery))}>Choose Payment Options</button>
-    </form>
+    </form>}
 
-    {paymentModalOpen && <div className="sf-payment-modal-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setPaymentModalOpen(false); }}>
+    {!paymentComplete && paymentModalOpen && <div className="sf-payment-modal-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setPaymentModalOpen(false); }}>
       <section className="sf-payment-modal" role="dialog" aria-modal="true" aria-labelledby="sf-payment-modal-title">
         <button className="sf-payment-modal-close" type="button" aria-label="Close payment options" onClick={() => setPaymentModalOpen(false)}>×</button>
         <span className="sf-section-kicker">CHECKOUT</span>
