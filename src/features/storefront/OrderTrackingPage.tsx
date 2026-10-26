@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import './storefront.css';
 
+const peso = (centavos: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 2 }).format(centavos / 100);
+
 type TrackedStatus = { order_status: string; payment_status: string; order_type?: string; updated_at: string };
 
 export function OrderTrackingPage({ onBackToMenu }: { onBackToMenu: () => void }) {
