@@ -360,3 +360,64 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
   .privileged-onboarding .onboarding-logo-only svg{max-height:95px}
   .privileged-onboarding .onboarding-welcome-title h1{font-size:26px}
 }
+
+
+/* Final desktop onboarding correction: visible white title and true 1060px centered canvas. */
+@media(min-width:1101px){
+  .app:has(.privileged-onboarding) .workspace{
+    display:flex !important;
+    justify-content:center !important;
+    width:100% !important;
+    max-width:none !important;
+    margin-inline:0 !important;
+  }
+  .app:has(.privileged-onboarding) .content{
+    display:flex !important;
+    justify-content:center !important;
+    width:100% !important;
+    max-width:none !important;
+    padding:0 !important;
+    margin-inline:0 !important;
+  }
+  .app:has(.privileged-onboarding) .privileged-onboarding{
+    flex:none !important;
+    width:min(1060px,100%) !important;
+    max-width:1060px !important;
+    margin-inline:auto !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+  }
+  .app:has(.privileged-onboarding) .onboarding-story{
+    height:360px !important;
+    min-height:0 !important;
+    padding:22px 24px 18px !important;
+    justify-content:center !important;
+    gap:10px !important;
+  }
+  .app:has(.privileged-onboarding) .onboarding-brand.onboarding-logo-only{
+    width:min(100%,200px) !important;
+  }
+  .app:has(.privileged-onboarding) .onboarding-logo-only svg{max-height:118px !important}
+  .app:has(.privileged-onboarding) .onboarding-welcome-title h1{
+    color:#fff !important;
+    font-size:clamp(25px,2.3vw,32px) !important;
+    line-height:1.08 !important;
+    margin:0 !important;
+  }
+}
+.privileged-onboarding .onboarding-welcome-title,
+.privileged-onboarding .onboarding-welcome-title h1{
+  color:#fff !important;
+}
+@media(max-width:1100px){
+  .privileged-onboarding .onboarding-story{
+    height:280px !important;
+    min-height:0 !important;
+    padding:18px 22px 14px !important;
+    gap:8px !important;
+  }
+  .privileged-onboarding .onboarding-welcome-title h1{
+    color:#fff !important;
+    font-size:26px !important;
+    line-height:1.08 !important;
+  }
+}
