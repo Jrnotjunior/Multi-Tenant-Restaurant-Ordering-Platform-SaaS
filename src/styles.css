@@ -149,20 +149,25 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .existing-account-mfa .onboarding-card{padding:26px}
 .privileged-auth-only{
   box-sizing:border-box;
-  display:grid;
-  grid-template-columns:minmax(0,1fr);
-  align-content:center;
-  place-items:center;
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   width:100%;
   max-width:none;
-  min-height:100vh;
-  height:auto;
-  margin:0 auto;
+  min-width:0;
+  height:100vh;
+  height:100dvh;
+  min-height:0;
+  margin:0;
   padding:16px;
-  overflow:visible;
+  overflow-x:hidden;
+  overflow-y:auto;
   border:0;
   border-radius:0;
-  background:transparent;
+  background:var(--color-page);
   box-shadow:none;
 }
 .privileged-auth-only .onboarding-card{
