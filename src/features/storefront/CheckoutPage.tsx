@@ -247,6 +247,11 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
               }
               setTrackedOrderNumber(result.orderNumber);
               setTrackingToken(result.trackingToken);
+              try {
+                window.sessionStorage.setItem('web2table:latest-order-tracking', result.trackingToken);
+                window.sessionStorage.setItem('web2table:latest-order-number', String(result.orderNumber));
+                window.dispatchEvent(new CustomEvent('web2table:tracking-order-saved'));
+              } catch { /* Current page can still track this order in memory. */ }
               window.location.hash = storefrontTrackingHash(restaurantSlug).slice(1);
               setMessage('Order #' + result.orderNumber + ' placed successfully. Pay at the restaurant counter.');
               setPaymentModalOpen(false);
