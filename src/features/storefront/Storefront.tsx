@@ -490,35 +490,6 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
 
   if (!catalog || loadStatus !== 'ready') {
     return <div className="sf-storefront">
-      {!trackingPage && !cartPage && !checkoutPage && (<header className="sf-header"><div className="sf-header-inner">
-        <a className="sf-logo" href={normalizeAppBase(baseUrl)}>
-          <span className="sf-logo-mark">W2T</span><span>Web2Table</span>
-        </a>
-        <nav className="sf-header-actions" aria-label="Store navigation">
-          {!trackingPage && <button type="button" className="sf-track-order-button" onClick={navigateTracking} aria-label="Track order" title="Track order">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 5.5h15v13h-15z"/><path d="M8 9h8M8 12h5"/></svg>
-          </button>}
-          <span className="sf-header-divider" aria-hidden="true"/>
-          <button type="button" className="sf-bag-button" onClick={() => navigateCart(true)} aria-label={'Open cart with ' + count + ' items'}>
-            <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
-          </button>
-          <div className="sf-account-wrap">
-            <button type="button" className="sf-account-button" aria-label="Customer account options" title="Customer account" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(open => !open)}>
-              <AccountIcon/>
-            </button>
-            {accountMenuOpen && <div className="sf-account-menu" role="menu" aria-label="Your account">
-              <div className="sf-account-menu-heading">
-                <strong>Your account</strong>
-                <span>Sign in or review our policies.</span>
-              </div>
-              {customerSignedIn && <a role="menuitem" href={baseUrl + 'account/orders'} onClick={() => setAccountMenuOpen(false)}>Order history</a>}
-              <a role="menuitem" href={baseUrl + '#legal'} onClick={() => setAccountMenuOpen(false)}>Legal &amp; Policies</a>
-              <a role="menuitem" href={baseUrl + 'account/sign-in' + (resolvedSlug ? '?restaurant=' + encodeURIComponent(resolvedSlug) : '')} onClick={() => { if (resolvedSlug) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', resolvedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign in</a>
-              <a role="menuitem" href={baseUrl + 'account/sign-up' + (resolvedSlug ? '?restaurant=' + encodeURIComponent(resolvedSlug) : '')} onClick={() => { if (resolvedSlug) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', resolvedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign up</a>
-            </div>}
-          </div>
-        </nav>
-      </div></header>)}
       <main className="sf-unavailable" role="status">
         <span className="sf-empty-art">🍽️</span>
         <h1>{loadStatus === 'loading' ? 'Loading restaurant menu…' : 'Restaurant menu unavailable'}</h1>
