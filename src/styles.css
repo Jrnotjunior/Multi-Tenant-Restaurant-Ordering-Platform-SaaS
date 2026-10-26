@@ -329,3 +329,34 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
     justify-self:center;
   }
 }
+
+
+/* Keep the welcome headline alongside the black logo header. */
+.privileged-onboarding .onboarding-story{
+  flex-direction:column;
+  gap:8px;
+}
+.privileged-onboarding .onboarding-brand.onboarding-logo-only{
+  flex:0 0 auto;
+  width:min(100%,220px);
+}
+.privileged-onboarding .onboarding-logo-only svg{max-height:118px}
+.privileged-onboarding .onboarding-welcome-title{
+  position:relative;
+  z-index:1;
+  text-align:center;
+  color:#fff;
+}
+.privileged-onboarding .onboarding-welcome-title h1{
+  margin:0;
+  color:#fff;
+  font-size:clamp(25px,2.3vw,32px);
+  line-height:1.05;
+  letter-spacing:-.045em;
+}
+@media(max-width:900px){
+  .privileged-onboarding .onboarding-story{height:250px}
+  .privileged-onboarding .onboarding-brand.onboarding-logo-only{width:min(100%,180px)}
+  .privileged-onboarding .onboarding-logo-only svg{max-height:95px}
+  .privileged-onboarding .onboarding-welcome-title h1{font-size:26px}
+}
