@@ -14,7 +14,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .auth-panel button:disabled{opacity:.5;cursor:not-allowed}
 .auth-panel .auth-secondary,.auth-footer button,.onboarding-card .onboarding-signout{background:transparent;color:#263754;border:1px solid #DCE3ED}.onboarding-card .onboarding-signout{width:100%;box-sizing:border-box}
 .auth-footer{text-align:center}
-.auth-message{color:#991B1B!important;border-left:3px solid #dc4655;padding:9px 14px;background:#2e1b22}
+.auth-message{color:#991B1B!important;border:1px solid #FECACA;border-left:4px solid #DC2626;border-radius:0 8px 8px 0;padding:12px 14px;background:#FEF2F2;line-height:1.5;overflow-wrap:anywhere;word-break:normal}
 .auth-qr{width:min(220px,100%);height:auto;background:white;border-radius:10px;padding:10px}
 
 /* Typography policy: Inter is the sole UI/body font; Manrope is for headings and brand marks. */
@@ -151,13 +151,13 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
   box-sizing:border-box;
   display:grid;
   grid-template-columns:minmax(0,1fr);
-  align-content:start;
-  place-items:start center;
+  align-content:center;
+  place-items:center;
   width:min(600px,calc(100% - 32px));
   max-width:600px;
-  min-height:0;
+  min-height:100vh;
   height:auto;
-  margin:32px auto;
+  margin:0 auto;
   padding:0;
   background:transparent;
   box-shadow:none;
@@ -175,7 +175,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
   background:var(--color-surface);
   box-shadow:0 18px 50px #101B2F0D;
 }
-.privileged-auth-only .auth-message,.privileged-auth-only .onboarding-card button,.privileged-auth-only .onboarding-card input{max-width:100%;box-sizing:border-box}
+.privileged-auth-only .auth-message{width:100%;margin:14px 0;white-space:normal;overflow-wrap:anywhere;word-break:normal}.privileged-auth-only .onboarding-card button,.privileged-auth-only .onboarding-card input{max-width:100%;box-sizing:border-box}
 .app:has(.privileged-onboarding)>.topbar,.app:has(.privileged-onboarding)>footer,.app:has(.privileged-onboarding) .sidebar{display:none}
 .app:has(.privileged-onboarding) .workspace{display:block;max-width:none;margin:0}
 .app:has(.privileged-onboarding) .content{max-width:none;padding:0}
