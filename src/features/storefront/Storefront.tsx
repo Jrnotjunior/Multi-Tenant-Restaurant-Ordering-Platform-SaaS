@@ -490,7 +490,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
 
   if (!catalog || loadStatus !== 'ready') {
     return <div className="sf-storefront">
-      {!cartPage && !checkoutPage && (<header className="sf-header"><div className="sf-header-inner">
+      {!trackingPage && !cartPage && !checkoutPage && (<header className="sf-header"><div className="sf-header-inner">
         <a className="sf-logo" href={normalizeAppBase(baseUrl)}>
           <span className="sf-logo-mark">W2T</span><span>Web2Table</span>
         </a>
@@ -687,7 +687,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       </>}
     </main>
 
-    {!cartPage && !checkoutPage && (<footer className="sf-footer">
+    {!trackingPage && !cartPage && !checkoutPage && (<footer className="sf-footer">
       <div className="sf-footer-inner">
       <section className="sf-footer-social-section" aria-label="Follow the restaurant">
         <h2 className="sf-footer-heading">Follow Us</h2>
