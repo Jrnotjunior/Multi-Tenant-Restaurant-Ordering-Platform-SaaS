@@ -29,6 +29,7 @@ type CustomerOrder = {
   total_centavos: number | null;
   order_status: string;
   payment_status: string;
+  payment_method: 'cash' | 'online';
   created_at: string;
   items: OrderItem[];
 };
@@ -298,7 +299,7 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
           </button>
         </div> : null}
         {nextActions[order.order_status]?.length ? <footer className="owner-order-actions">
-          {nextActions[order.order_status].map(action => <button type="button" key={action.action}
+          {(order.order_status === 'out_for_delivery' && order.order_type === 'delivery' && order.payment_method === 'cash' && order.payment_status !== 'paid' ? [{ action: 'confirm_cash_collected', label: 'Confirm cash collected' }] : nextActions[order.order_status]).map(action => <button type="button" key={action.action}
             className={action.action === 'reject' || action.action === 'cancel' ? 'is-danger' : ''}
             disabled={busyOrder === order.id}
             onClick={() => void transition(order, action.action, action.label)}>
