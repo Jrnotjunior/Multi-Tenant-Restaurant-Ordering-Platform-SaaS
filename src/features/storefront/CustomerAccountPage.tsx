@@ -58,11 +58,11 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
     <a className="sf-skip-link" href="#customer-account-main">Skip to account content</a>
     <header className="sf-header">
       <div className="sf-header-inner">
-        <a className="sf-logo" href={base} aria-label="Web2Table storefront">
-          <img src={WEB2TABLE_LOGO} alt="Web2Table" className="sf-account-logo" />
+        <a href={base} className="sf-logo" aria-label="Web2Table storefront">
+          <img className="sf-logo-image" src={WEB2TABLE_LOGO} alt="Web2Table" width={46} height={46} />
         </a>
-        <nav className="sf-header-actions" aria-label="Account navigation">
-          <a className="sf-account-header-link" href={base} aria-label="Back to storefront">Storefront</a>
+        <nav className="sf-header-actions" aria-label="Store navigation">
+          <a href={base} className="sf-track-order-button sf-account-storefront-link" aria-label="Back to storefront" title="Storefront">Storefront</a>
           <button type="button" className="sf-account-button" aria-label="Sign out" title="Sign out" onClick={() => void signOut()}>
             <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 4H5v16h5M14 8l4 4-4 4M8 12h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
@@ -93,8 +93,18 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
     </main>
     <footer className="sf-footer">
       <div className="sf-footer-inner">
-        <div className="sf-footer-brand"><img src={WEB2TABLE_LOGO} alt="Web2Table" className="sf-account-footer-logo" /><span>Restaurant operations, connected</span></div>
-        <div className="sf-footer-bottom"><span>© {new Date().getFullYear()} All rights reserved.</span><span>Powered by Web2Table</span></div>
+        <section className="sf-footer-social-section" aria-label="Follow the restaurant">
+          <h2 className="sf-footer-heading">Follow Us</h2>
+          <nav className="sf-footer-socials" aria-label="Social media links">
+            <span className="sf-footer-social-link is-disabled" aria-label="Facebook not configured" aria-disabled="true"><span aria-hidden="true">f</span></span>
+            <span className="sf-footer-social-link is-disabled" aria-label="Instagram not configured" aria-disabled="true"><span aria-hidden="true">◎</span></span>
+            <span className="sf-footer-social-link is-disabled" aria-label="TikTok not configured" aria-disabled="true"><span aria-hidden="true">♪</span></span>
+          </nav>
+        </section>
+        <div className="sf-footer-bottom">
+          <small>© {new Date().getFullYear()} All rights reserved.</small>
+          <a className="sf-footer-powered-by" href="https://web2table.io" target="_blank" rel="noreferrer">Powered by <strong>Web2Table</strong></a>
+        </div>
       </div>
     </footer>
   </div>;
