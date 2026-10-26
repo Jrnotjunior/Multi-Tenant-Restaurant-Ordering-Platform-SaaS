@@ -22,7 +22,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 
 
 /* Restaurant owner invitation onboarding */
-.privileged-onboarding{box-sizing:border-box;width:min(1060px,100%);max-width:1060px;min-height:0;height:auto;margin:24px auto;display:grid;grid-template-columns:minmax(0,44fr) minmax(0,56fr);align-items:stretch;gap:0;padding:0;background:#fff;color:#101B2F;border-radius:24px;overflow:hidden;box-shadow:0 18px 48px #101B2F12;}
+.privileged-onboarding{box-sizing:border-box;width:min(900px,calc(100% - 32px));max-width:900px;min-height:0;height:auto;margin:24px auto;display:grid;grid-template-columns:minmax(0,40fr) minmax(0,60fr);align-items:stretch;gap:0;padding:0;background:#fff;color:#101B2F;border-radius:24px;overflow:hidden;box-shadow:0 18px 48px #101B2F12;}
 .onboarding-story{box-sizing:border-box;width:100%;height:auto;min-height:0;position:relative;isolation:isolate;overflow:hidden;padding:28px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:radial-gradient(ellipse at 82% 88%,#5c000b88 0%,#26000655 20%,transparent 48%),radial-gradient(ellipse at 18% 38%,#31000666 0%,transparent 42%),#050505;border-bottom:4px solid #ff001b}
 
 .onboarding-brand{display:inline-flex;align-items:center;gap:12px;align-self:flex-start;color:white;text-decoration:none}
@@ -42,29 +42,29 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .onboarding-benefits strong,.onboarding-benefits small{display:block}
 .onboarding-benefits strong{font-size:var(--font-size-14);color:#fff}
 .onboarding-benefits small{font-size:var(--font-size-12);color:#bcb6b2;margin-top:5px}
-.onboarding-card{box-sizing:border-box;width:100%;max-width:none;min-width:0;align-self:stretch;justify-self:stretch;margin:0;padding:24px 24px;border:0;border-radius:0;background:#FFFFFF;color:#101B2F;box-shadow:none}
-.onboarding-card h2{font-size:22px;letter-spacing:-.04em;margin:6px 0 8px}
-.onboarding-card>p{font-size:12px;color:#526782;line-height:1.5;margin:0 0 12px}.onboarding-card>div>p{font-size:13px;color:#526782;line-height:1.5;margin:0 0 10px}
-.onboarding-steps{display:flex;align-items:flex-start;justify-content:center;gap:10px;margin:0 auto 22px;max-width:500px}
+.onboarding-card{box-sizing:border-box;width:100%;max-width:none;min-width:0;align-self:stretch;justify-self:stretch;margin:0;padding:18px 20px;border:0;border-radius:0;background:#FFFFFF;color:#101B2F;box-shadow:none}
+.onboarding-card h2{font-size:20px;letter-spacing:-.04em;margin:4px 0 6px}
+.onboarding-card>p{font-size:11px;color:#526782;line-height:1.45;margin:0 0 9px}.onboarding-card>div>p{font-size:12px;color:#526782;line-height:1.45;margin:0 0 8px}
+.onboarding-steps{display:flex;align-items:flex-start;justify-content:center;gap:8px;margin:0 auto 14px;max-width:420px}
 .onboarding-steps>div{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:70px;text-align:center}
-.onboarding-steps span{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#303034;color:#f4f4f5;font-weight:750;font-size:13px}
+.onboarding-steps span{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#303034;color:#f4f4f5;font-weight:750;font-size:13px}
 .onboarding-steps .active span{background:var(--onboard-red);box-shadow:0 0 0 5px #f21f2b18}
 .onboarding-steps .done span{background:#36b873;color:#fff}
 .onboarding-steps small{font-size:11px;color:#aaaab0;white-space:nowrap}
 .onboarding-steps .active small{color:#fff}
-.onboarding-steps i{height:2px;background:#39393e;flex:1;margin-top:16px;min-width:12px}
-.onboarding-card .auth-form{gap:10px;margin-top:12px}
+.onboarding-steps i{height:2px;background:#39393e;flex:1;margin-top:14px;min-width:10px}
+.onboarding-card .auth-form{gap:8px;margin-top:9px}
 .onboarding-card .onboarding-otp-fieldset{border:0;padding:0;margin:0;min-width:0}
 .onboarding-card .onboarding-otp-fieldset legend{padding:0;margin:0 0 7px;color:#101B2F;font-size:12px;font-weight:650}
 .onboarding-card .onboarding-otp-inputs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:clamp(6px,2vw,11px);width:100%}
-.onboarding-card .onboarding-otp-digit{box-sizing:border-box;width:100%;min-width:0;height:44px;padding:0;text-align:center;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;border:1px solid #DCE3ED;border-radius:8px;background:#FFFFFF;color:#101B2F;caret-color:#101B2F}
+.onboarding-card .onboarding-otp-digit{box-sizing:border-box;width:100%;min-width:0;height:38px;padding:0;text-align:center;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;border:1px solid #DCE3ED;border-radius:8px;background:#FFFFFF;color:#101B2F;caret-color:#101B2F}
 .onboarding-card .onboarding-otp-digit:focus{outline:0;border-color:#263754;box-shadow:0 0 0 3px #26375422}
-.onboarding-card .onboarding-otp-hint{display:block;margin-top:6px;color:#526782;font-size:10px;line-height:1.45}
+.onboarding-card .onboarding-otp-hint{display:block;margin-top:4px;color:#526782;font-size:9px;line-height:1.4}
 @media(max-width:380px){.onboarding-card .onboarding-otp-inputs{gap:5px}.onboarding-card .onboarding-otp-digit{height:46px;border-radius:8px;font-size:var(--font-size-20)}}
 
-.onboarding-card .auth-form label{font-size:12px;font-weight:650;gap:7px}
+.onboarding-card .auth-form label{font-size:11px;font-weight:650;gap:5px}
 .onboarding-password-wrap{position:relative;display:flex;align-items:center}
-.onboarding-card .onboarding-password-wrap input{padding:11px 54px 11px 14px;border-radius:9px;border-color:#DCE3ED;background:#FFFFFF;color:#101B2F;font-size:var(--font-size-15);min-height:44px}
+.onboarding-card .onboarding-password-wrap input{padding:9px 48px 9px 12px;border-radius:8px;border-color:#DCE3ED;background:#FFFFFF;color:#101B2F;font-size:var(--font-size-13);min-height:38px}
 .onboarding-card .onboarding-password-wrap input:focus{outline:0;border-color:#263754;box-shadow:0 0 0 3px #26375422}
 .onboarding-card .onboarding-password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);margin:0;padding:8px 10px;border:0;background:transparent;color:#526782;font-size:var(--font-size-12)}
 .onboarding-password-rules{border:1px solid #DCE3ED;border-radius:12px;background:#F7F9FC;padding:20px 24px}
@@ -74,7 +74,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .onboarding-card .sf-password-check-icon{display:grid;place-items:center;width:23px;height:23px;flex-shrink:0;border-radius:50%;border:1px solid #DCE3ED;color:#526782;font-size:var(--font-size-12)}
 .onboarding-card .sf-password-checklist li.is-valid .sf-password-check-icon{background:#3fc77b;border-color:#3fc77b;color:#102519;font-weight:900}
 .onboarding-card .sf-password-checklist li.is-valid{color:#263754}
-.onboarding-card .auth-form>button[type=submit],.onboarding-card .auth-form .auth-primary-link{display:flex;align-items:center;justify-content:center;min-height:42px;margin-top:3px;border:0;border-radius:9px;background:#101B2F;color:#fff;font-size:var(--font-size-13);font-weight:800;text-align:center}
+.onboarding-card .auth-form>button[type=submit],.onboarding-card .auth-form .auth-primary-link{display:flex;align-items:center;justify-content:center;min-height:36px;margin-top:2px;border:0;border-radius:8px;background:#101B2F;color:#fff;font-size:var(--font-size-12);font-weight:800;text-align:center}
 .onboarding-card .auth-form>button[type=submit]:hover:not(:disabled){background:#263754}
 .onboarding-card .auth-form>button[type=submit]:disabled{opacity:.48}
 .onboarding-card .auth-qr{width:min(190px,100%);margin:8px 0}
@@ -90,7 +90,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .app:has(.privileged-onboarding) .onboarding-story{min-height:0;height:auto;}
 
 /* Center authenticator QR code in the MFA setup card */
-.onboarding-card .auth-qr{display:block;width:min(190px,100%);margin:12px auto 16px}
+.onboarding-card .auth-qr{display:block;width:min(150px,100%);margin:7px auto 10px}
 
 /* Sign-in and existing-account MFA use a single-column layout; the welcome hero is onboarding-only. */
 .privileged-auth-only{grid-template-columns:minmax(0,1fr)}
