@@ -151,8 +151,31 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     finally { if (!quiet) setLoading(false); }
   }, [tenantId, role, filter]);
 
-  useEffect(() => { void load(); }, [load]);
-  useEffect(() => { const timer = window.setInterval(() => { void load(true); }, 15000); return () => window.clearInterval(timer); }, [load]);
+  useEffect(() => {
+    void load();
+    if (!supabase) return;
+
+    let refreshTimer: number | undefined;
+    const channel = supabase
+      .channel('tenant:' + tenantId, { config: { private: true } })
+      .on('broadcast', { event: 'db_change' }, () => {
+        // Coalesce bursts from one transaction, then reload authorized RPC data.
+        if (refreshTimer !== undefined) window.clearTimeout(refreshTimer);
+        refreshTimer = window.setTimeout(() => { void load(true); }, 100);
+      })
+      .subscribe((status) => {
+        // Reconcile immediately after initial connection and every successful reconnect.
+        if (status === 'SUBSCRIBED') void load(true);
+      });
+
+    // Fallback reconciliation protects against missed events or temporary outages.
+    const reconciliationTimer = window.setInterval(() => { void load(true); }, 60000);
+    return () => {
+      if (refreshTimer !== undefined) window.clearTimeout(refreshTimer);
+      window.clearInterval(reconciliationTimer);
+      void supabase?.removeChannel(channel);
+    };
+  }, [load, tenantId]);
 
   const visibleOrders = useMemo(() => {
     const term = search.trim().toLowerCase();
