@@ -6,6 +6,7 @@ import { supabaseGet, supabaseRpc } from './mapServiceSupabase';
 
 type PickerVariant = 'delivery' | 'restaurant';
 type InitOptions = {
+  restaurantSlug: string;
   variant: PickerVariant;
   disabled: boolean;
   initialLatitude: number | null;
@@ -30,10 +31,12 @@ function parseInit(value: unknown): InitOptions | null {
   const message = record(value);
   if (!message || message.source !== 'web2table-storefront' || message.type !== 'init') return null;
   if (message.variant !== 'delivery' && message.variant !== 'restaurant') return null;
+  if (typeof message.restaurantSlug !== 'string' || !/^[a-z0-9-]{1,80}$/i.test(message.restaurantSlug)) return null;
   const latitude = nullableCoordinate(message.initialLatitude, -90, 90);
   const longitude = nullableCoordinate(message.initialLongitude, -180, 180);
   if ((latitude === null) !== (longitude === null)) return null;
   return {
+    restaurantSlug: message.restaurantSlug.toLowerCase(),
     variant: message.variant,
     disabled: message.disabled === true,
     initialLatitude: latitude,
@@ -70,14 +73,14 @@ async function loadPublicToken(): Promise<string> {
   return body.token;
 }
 
-async function verifyTenantOrigin(origin: string) {
+async function verifyTenantOrigin(origin: string, restaurantSlug: string) {
   const host = new URL(origin).hostname.toLowerCase();
-  // GitHub Pages is an explicitly scoped temporary storefront used for manual
-  // testing; every other browser origin must resolve to an active tenant domain.
-  if (host === 'jrnotjunior.github.io') {
+  // Shared Web2Table production origin and GitHub Pages preview carry tenant
+  // identity in the storefront route; verify the requested active tenant slug.
+  if (host === 'app.web2table.io' || host === 'jrnotjunior.github.io') {
     // Preview deployments resolve against the same active tenant registry as
     // production domains; do not depend on the legacy restaurants table.
-    const slug = String(import.meta.env.VITE_RESTAURANT_SLUG ?? '').trim();
+    const slug = restaurantSlug.trim().toLowerCase();
     if (!slug) return false;
     const tenants = await supabaseRpc<{ id?: string }>('resolve_restaurant_by_slug', {
       p_slug: slug,
@@ -125,7 +128,7 @@ export function MapServiceApp() {
       setStatus('Verifying restaurant website…');
 
       try {
-        const isRegisteredTenant = await verifyTenantOrigin(trustedOrigin);
+        const isRegisteredTenant = await verifyTenantOrigin(trustedOrigin, options.restaurantSlug);
         if (disposed || generation !== setupGenerationRef.current) return;
         if (!isRegisteredTenant) throw new Error('This map is available only inside an active Web2Table restaurant website.');
 
