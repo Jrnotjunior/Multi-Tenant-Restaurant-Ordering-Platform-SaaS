@@ -26,10 +26,10 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .onboarding-story{box-sizing:border-box;width:100%;height:100%;min-height:100%;position:relative;overflow:hidden;padding:28px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#050505;border-bottom:4px solid #ff001b}
 
 .onboarding-brand{display:inline-flex;align-items:center;gap:12px;align-self:flex-start;color:white;text-decoration:none}
-.onboarding-brand.onboarding-logo-only{display:flex;align-items:center;justify-content:center;align-self:center;width:min(100%,200px);margin:0;flex:0 0 auto}
-.onboarding-logo-only svg{display:block;width:100%;height:auto;max-height:118px}
+.onboarding-brand.onboarding-logo-only{display:flex;align-items:center;justify-content:center;align-self:center;width:min(100%,150px);margin:0;flex:0 0 auto}
+.onboarding-logo-only svg{display:block;width:100%;height:auto;max-height:86px}
 .onboarding-welcome-title{position:relative;z-index:1;text-align:center;color:#fff}
-.onboarding-welcome-title h1{margin:0;color:#fff;font-size:clamp(25px,2.3vw,32px);line-height:1.08;letter-spacing:-.045em}
+.onboarding-welcome-title h1{margin:0;color:#fff;font-size:24px;line-height:1.12;letter-spacing:-.04em}.onboarding-welcome-title p{margin:7px 0 0;color:#d1d5db;font-size:13px;line-height:1.45}
 .onboarding-brand span{display:grid;place-items:center;width:44px;height:44px;border-radius:10px;background:var(--onboard-red);font-weight:850;font-size:var(--font-size-13)}
 .onboarding-brand strong{font-size:var(--font-size-21);letter-spacing:-.04em}
 .onboarding-story-copy{max-width:460px;margin:65px 0;position:relative;z-index:1}
@@ -42,27 +42,27 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .onboarding-benefits strong,.onboarding-benefits small{display:block}
 .onboarding-benefits strong{font-size:var(--font-size-14);color:#fff}
 .onboarding-benefits small{font-size:var(--font-size-12);color:#bcb6b2;margin-top:5px}
-.onboarding-card{box-sizing:border-box;width:100%;max-width:none;min-width:0;align-self:stretch;justify-self:stretch;margin:0;padding:36px 32px;border:0;border-radius:0;background:#FFFFFF;color:#101B2F;box-shadow:none}
-.onboarding-card h2{font-size:clamp(25px,2.2vw,34px);letter-spacing:-.055em;margin:8px 0 10px}
-.onboarding-card>p{font-size:var(--font-size-14);color:#526782;line-height:1.6;margin:0 0 16px}
-.onboarding-steps{display:flex;align-items:flex-start;justify-content:center;gap:12px;margin:0 auto 35px;max-width:500px}
-.onboarding-steps>div{display:flex;flex-direction:column;align-items:center;gap:9px;min-width:82px;text-align:center}
-.onboarding-steps span{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:#303034;color:#f4f4f5;font-weight:750}
+.onboarding-card{box-sizing:border-box;width:100%;max-width:none;min-width:0;align-self:stretch;justify-self:stretch;margin:0;padding:24px 24px;border:0;border-radius:0;background:#FFFFFF;color:#101B2F;box-shadow:none}
+.onboarding-card h2{font-size:24px;letter-spacing:-.04em;margin:6px 0 8px}
+.onboarding-card>p{font-size:13px;color:#526782;line-height:1.5;margin:0 0 12px}
+.onboarding-steps{display:flex;align-items:flex-start;justify-content:center;gap:10px;margin:0 auto 22px;max-width:500px}
+.onboarding-steps>div{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:70px;text-align:center}
+.onboarding-steps span{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#303034;color:#f4f4f5;font-weight:750;font-size:13px}
 .onboarding-steps .active span{background:var(--onboard-red);box-shadow:0 0 0 5px #f21f2b18}
 .onboarding-steps .done span{background:#36b873;color:#fff}
-.onboarding-steps small{font-size:var(--font-size-12);color:#aaaab0;white-space:nowrap}
+.onboarding-steps small{font-size:11px;color:#aaaab0;white-space:nowrap}
 .onboarding-steps .active small{color:#fff}
-.onboarding-steps i{height:2px;background:#39393e;flex:1;margin-top:19px;min-width:15px}
-.onboarding-card .auth-form{gap:12px;margin-top:16px}
+.onboarding-steps i{height:2px;background:#39393e;flex:1;margin-top:16px;min-width:12px}
+.onboarding-card .auth-form{gap:10px;margin-top:12px}
 .onboarding-card .onboarding-otp-fieldset{border:0;padding:0;margin:0;min-width:0}
-.onboarding-card .onboarding-otp-fieldset legend{padding:0;margin:0 0 9px;color:#101B2F;font-size:var(--font-size-14);font-weight:650}
+.onboarding-card .onboarding-otp-fieldset legend{padding:0;margin:0 0 7px;color:#101B2F;font-size:13px;font-weight:650}
 .onboarding-card .onboarding-otp-inputs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:clamp(6px,2vw,11px);width:100%}
-.onboarding-card .onboarding-otp-digit{box-sizing:border-box;width:100%;min-width:0;height:52px;padding:0;text-align:center;font-size:var(--font-size-22);font-weight:700;font-variant-numeric:tabular-nums;border:1px solid #DCE3ED;border-radius:10px;background:#FFFFFF;color:#101B2F;caret-color:#101B2F}
+.onboarding-card .onboarding-otp-digit{box-sizing:border-box;width:100%;min-width:0;height:44px;padding:0;text-align:center;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;border:1px solid #DCE3ED;border-radius:8px;background:#FFFFFF;color:#101B2F;caret-color:#101B2F}
 .onboarding-card .onboarding-otp-digit:focus{outline:0;border-color:#263754;box-shadow:0 0 0 3px #26375422}
-.onboarding-card .onboarding-otp-hint{display:block;margin-top:8px;color:#526782;font-size:var(--font-size-12);line-height:1.5}
+.onboarding-card .onboarding-otp-hint{display:block;margin-top:6px;color:#526782;font-size:11px;line-height:1.45}
 @media(max-width:380px){.onboarding-card .onboarding-otp-inputs{gap:5px}.onboarding-card .onboarding-otp-digit{height:46px;border-radius:8px;font-size:var(--font-size-20)}}
 
-.onboarding-card .auth-form label{font-size:var(--font-size-14);font-weight:650;gap:9px}
+.onboarding-card .auth-form label{font-size:13px;font-weight:650;gap:7px}
 .onboarding-password-wrap{position:relative;display:flex;align-items:center}
 .onboarding-card .onboarding-password-wrap input{padding:11px 54px 11px 14px;border-radius:9px;border-color:#DCE3ED;background:#FFFFFF;color:#101B2F;font-size:var(--font-size-15);min-height:44px}
 .onboarding-card .onboarding-password-wrap input:focus{outline:0;border-color:#263754;box-shadow:0 0 0 3px #26375422}
@@ -77,7 +77,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .onboarding-card .auth-form>button[type=submit],.onboarding-card .auth-form .auth-primary-link{display:flex;align-items:center;justify-content:center;min-height:42px;margin-top:3px;border:0;border-radius:9px;background:#101B2F;color:#fff;font-size:var(--font-size-14);font-weight:800;text-align:center}
 .onboarding-card .auth-form>button[type=submit]:hover:not(:disabled){background:#263754}
 .onboarding-card .auth-form>button[type=submit]:disabled{opacity:.48}
-.onboarding-card .auth-qr{width:min(260px,100%);margin:10px 0}
+.onboarding-card .auth-qr{width:min(190px,100%);margin:8px 0}
 .onboarding-card .auth-message{padding:12px 15px;border-radius:0 8px 8px 0}
 .onboarding-card .auth-primary-link{padding:15px 18px;text-decoration:none}
 @media(max-width:1100px){.privileged-onboarding{grid-template-columns:minmax(0,1fr);width:100%;max-width:600px}.onboarding-story{height:280px;min-height:0;padding:18px 22px 14px}.onboarding-brand.onboarding-logo-only{width:min(100%,180px)}.onboarding-logo-only svg{max-height:95px}.onboarding-welcome-title h1{font-size:26px}.onboarding-story-copy{margin:24px 0 12px}.onboarding-story-copy h1{font-size:var(--font-size-36);margin:12px 0}.onboarding-story-copy>p{font-size:var(--font-size-14);margin:0}.onboarding-kicker,.onboarding-benefits{display:none}.onboarding-card{width:calc(100% - 32px);margin:22px 16px 36px;padding:26px 22px}.onboarding-steps{margin-bottom:27px}.onboarding-steps>div{min-width:65px}.onboarding-steps small{font-size:var(--font-size-10)}.onboarding-steps span{width:34px;height:34px}.onboarding-steps i{margin-top:16px}}
@@ -90,7 +90,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .app:has(.privileged-onboarding) .onboarding-story{min-height:100%;}
 
 /* Center authenticator QR code in the MFA setup card */
-.onboarding-card .auth-qr{display:block;margin:18px auto 22px}
+.onboarding-card .auth-qr{display:block;width:min(190px,100%);margin:12px auto 16px}
 
 /* Sign-in and existing-account MFA use a single-column layout; the welcome hero is onboarding-only. */
 .privileged-auth-only{grid-template-columns:minmax(0,1fr)}
