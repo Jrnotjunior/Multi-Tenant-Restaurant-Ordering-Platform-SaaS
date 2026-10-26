@@ -580,7 +580,14 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
             <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
           </button>
           <div className="sf-account-wrap">
-            <button type="button" className="sf-account-button" aria-label="Customer account options" title="Customer account" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(open => !open)}>
+            <button type="button" className="sf-account-button" aria-label={customerSignedIn ? "Open customer account" : "Customer account options"} title={customerSignedIn ? "My account" : "Customer account"} aria-haspopup={customerSignedIn ? undefined : "menu"} aria-expanded={customerSignedIn ? undefined : accountMenuOpen} onClick={() => {
+              if (customerSignedIn) {
+                setAccountMenuOpen(false);
+                window.location.assign(baseUrl + 'account');
+                return;
+              }
+              setAccountMenuOpen(open => !open);
+            }}>
               <AccountIcon/>
             </button>
             {accountMenuOpen && <div className="sf-account-menu" role="menu" aria-label="Your account">
