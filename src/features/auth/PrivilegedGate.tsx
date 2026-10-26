@@ -266,19 +266,12 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
   return <main className={isExistingAccountMfa ? 'privileged-onboarding existing-account-mfa' : isOnboarding ? 'privileged-onboarding' : 'privileged-onboarding privileged-auth-only'} aria-live="polite">
     {isOnboarding && <aside className="onboarding-story">
       <a className="onboarding-brand onboarding-logo-only" href="/" aria-label="Web2Table home">
-        <svg viewBox="0 0 240 130" role="img" aria-label="W2T logo">
-          <g fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round">
-            <path d="M57 53a62 62 0 0 1 119 0" />
-            <path d="M45 62q72-72 144 0" />
-            <path d="M47 61h140" />
-            <path d="M78 30q-29 32 0 64" />
-            <path d="M155 30q29 32 0 64" />
-          </g>
-          <path d="M170 25c36 1 50 20 38 42-9 16-25 29-43 39 17-20 21-35 11-46-7-8-20-12-37-13z" fill="#ff001b"/>
-          <text x="28" y="103" fontFamily="Arial, Helvetica, sans-serif" fontSize="67" fontWeight="900" fontStyle="italic" fill="#fff">W</text>
-          <text x="86" y="103" fontFamily="Arial, Helvetica, sans-serif" fontSize="67" fontWeight="900" fontStyle="italic" fill="#ff001b">2</text>
-          <text x="130" y="103" fontFamily="Arial, Helvetica, sans-serif" fontSize="67" fontWeight="900" fontStyle="italic" fill="#fff">T</text>
-        </svg>
+        <img
+          className="onboarding-logo-image"
+          src="https://wvibrchebfwirbgkcnbr.supabase.co/storage/v1/object/public/web2table-assets/web2table.png"
+          alt="Web2Table"
+          decoding="async"
+        />
       </a>
       <div className="onboarding-welcome-title"><h1>Welcome to Web2Table</h1><p>Restaurant operations, connected.</p></div>
     </aside>}
