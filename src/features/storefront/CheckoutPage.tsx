@@ -5,7 +5,7 @@ import { MapboxDeliveryLocationPicker, type MapboxDeliveryAddress } from '../ope
 
 type OrderType = 'Delivery' | 'Take-out' | 'Pickup' | 'Dine-in';
 type PaymentMethod = 'cash' | 'online';
-export type CheckoutSubmission = { orderType: OrderType; customerName: string; phone: string; deliveryAddress: string; deliveryNotes: string; paymentMethod: PaymentMethod };
+export type CheckoutSubmission = { orderType: OrderType; customerName: string; phone: string; deliveryAddress: string; deliveryNotes: string; paymentMethod: PaymentMethod; deliveryLatitude: number | null; deliveryLongitude: number | null };
 
 type CheckoutPageProps = {
   restaurantSlug: string;
@@ -75,6 +75,8 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
   const [trackedOrderNumber, setTrackedOrderNumber] = useState<number | null>(() => { try { const value = window.sessionStorage.getItem('web2table:latest-order-number'); return value ? Number(value) : null; } catch { return null; } });
   const [trackedStatus, setTrackedStatus] = useState<{ order_status: string; payment_status: string; updated_at: string } | null>(null);
   const [trackingError, setTrackingError] = useState('');
+  const [deliveryQuote, setDeliveryQuote] = useState<{ feeCentavos: number; distanceMeters: number } | null>(null);
+  const [quotingDelivery, setQuotingDelivery] = useState(false);
 
   useEffect(() => {
     if (!trackingToken || !supabase) return;
@@ -109,6 +111,17 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
     };
   }, [trackingToken]);
 
+  useEffect(() => {
+    let active = true;
+    setDeliveryQuote(null);
+    if (orderType !== 'Delivery' || !deliveryAddress || deliveryAddress.latitude === null || deliveryAddress.longitude === null || !supabase) { setQuotingDelivery(false); return; }
+    setQuotingDelivery(true);
+    void supabase.functions.invoke('delivery-pricing', { body: { action: 'quote', restaurantSlug, latitude: deliveryAddress.latitude, longitude: deliveryAddress.longitude } })
+      .then(({ data, error }) => { if (error) throw error; const result = data as { success?: boolean; feeCentavos?: number; distanceMeters?: number; error?: string } | null; if (!result?.success || !Number.isFinite(result.feeCentavos) || !Number.isFinite(result.distanceMeters)) throw new Error(result?.error || 'Unable to calculate the delivery fee.'); if (active) setDeliveryQuote({ feeCentavos: Number(result.feeCentavos), distanceMeters: Number(result.distanceMeters) }); })
+      .catch((error: unknown) => { if (active) { setDeliveryQuote(null); setMessage(error instanceof Error ? error.message : 'Unable to calculate the delivery fee.'); } })
+      .finally(() => { if (active) setQuotingDelivery(false); });
+    return () => { active = false; };
+  }, [orderType, deliveryAddress?.latitude, deliveryAddress?.longitude, restaurantSlug]);
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage('');
@@ -156,12 +169,12 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
           <span>{line.quantity} × {line.name}</span><strong>{peso(line.totalCentavos)}</strong>
         </div>)}
         <div className="sf-checkout-summary-subtotal"><span>Subtotal</span><strong>{peso(subtotalCentavos)}</strong></div>
-        {orderType === 'Delivery' && <div className="sf-checkout-summary-delivery"><span>Delivery fee</span><strong>Set by restaurant</strong></div>}
-        <div className="sf-checkout-summary-grand-total"><span>{orderType === 'Delivery' ? 'Subtotal (delivery fee pending)' : 'Total'}</span><strong>{peso(subtotalCentavos)}</strong></div>
+        {orderType === 'Delivery' && <div className="sf-checkout-summary-delivery"><span>Delivery fee</span><strong>{quotingDelivery ? 'Calculating…' : deliveryQuote ? peso(deliveryQuote.feeCentavos) : 'Select a delivery location'}</strong></div>}
+        <div className="sf-checkout-summary-grand-total"><span>Total</span><strong>{peso(orderType === 'Delivery' ? subtotalCentavos + (deliveryQuote?.feeCentavos ?? 0) : subtotalCentavos)}</strong></div>{orderType === 'Delivery' && deliveryQuote && <p className="sf-checkout-optional">Driving distance: {(deliveryQuote.distanceMeters / 1000).toFixed(1)} km. The server validates the fee again when placing the order.</p>}
       </section>
 
       {message && <p className="sf-checkout-page-message" role="status">{message}</p>}
-      <button className="sf-checkout-submit" type="submit" disabled={itemCount === 0}>Choose Payment Options</button>
+      <button className="sf-checkout-submit" type="submit" disabled={itemCount === 0 || (orderType === 'Delivery' && (!deliveryQuote || quotingDelivery))}>Choose Payment Options</button>
     </form>
 
     {paymentModalOpen && <div className="sf-payment-modal-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setPaymentModalOpen(false); }}>
@@ -194,6 +207,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
             const firstName = String(values.get('firstName') ?? '').trim();
             const lastName = String(values.get('lastName') ?? '').trim();
             if (orderType === 'Delivery' && !deliveryAddress) { setMessage('Please choose and confirm your delivery location on the map.'); return; }
+            if (orderType === 'Delivery' && (!deliveryQuote || quotingDelivery || deliveryAddress?.latitude == null || deliveryAddress?.longitude == null)) { setMessage('Please wait for a valid delivery fee quote before placing your order.'); return; }
             if (orderType === 'Delivery' && !streetAddress.trim()) { setMessage('Please enter a street address for delivery.'); return; }
             setSubmitting(true);
             setMessage('');
@@ -204,6 +218,8 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
                 deliveryAddress: orderType === 'Delivery' && deliveryAddress ? [streetAddress.trim(), deliveryAddress.barangay, deliveryAddress.city].filter(Boolean).join(', ') : '',
                 deliveryNotes: String(values.get('notes') ?? '').trim(),
                 paymentMethod: paymentMethod === 'online' ? 'online' : 'cash',
+                deliveryLatitude: orderType === 'Delivery' ? deliveryAddress?.latitude ?? null : null,
+                deliveryLongitude: orderType === 'Delivery' ? deliveryAddress?.longitude ?? null : null,
               });
               try {
                 window.sessionStorage.setItem('web2table:latest-order-tracking', result.trackingToken);
