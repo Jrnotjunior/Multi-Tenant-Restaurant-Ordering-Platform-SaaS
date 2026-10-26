@@ -7,6 +7,7 @@ import { branchSlugFromSearch, loadDefaultPublishedMenu, loadPublishedMenu, type
 import { isStorefrontCartPath, isStorefrontCheckoutPath, isStorefrontTrackingPath, normalizeAppBase, restaurantMenuHash, routePathFromLocation, storefrontCartHash, storefrontCheckoutHash } from '../../app/routes';
 import { CartPage } from './CartPage';
 import { CheckoutPage, type CheckoutSubmission } from './CheckoutPage';
+import { OrderTrackingPage } from './OrderTrackingPage';
 import { supabase } from '../../lib/supabase';
 import './storefront.css';
 
@@ -544,7 +545,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     </header>)}
 
     <main className={cartPage ? "sf-main sf-main-cart" : "sf-main"}>
-      {trackingPage ? <CheckoutPage trackingOnly restaurantSlug={resolvedSlug ?? requestedSlug ?? ''} itemCount={count} subtotalCentavos={subtotal} orderLines={[]} onBackToMenu={() => { setTrackingPage(false); navigateCheckout(false); }} onPlaceOrder={async () => { throw new Error('Order tracking is read-only.'); }} /> : cartPage ? <CartPage count={count} onBack={() => navigateCart(false)}>
+      {trackingPage ? <OrderTrackingPage restaurantSlug={resolvedSlug ?? requestedSlug ?? ''} onBackToMenu={() => { window.location.hash = restaurantMenuHash(resolvedSlug ?? requestedSlug ?? ''); setTrackingPage(false); setCartPage(false); setCheckoutPage(false); }} /> : cartPage ? <CartPage count={count} onBack={() => navigateCart(false)}>
         <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} close={() => navigateCart(false)} onCheckout={() => navigateCheckout(true)}/>
       </CartPage> : checkoutPage ? <CheckoutPage
         restaurantSlug={resolvedSlug ?? requestedSlug ?? ''}
