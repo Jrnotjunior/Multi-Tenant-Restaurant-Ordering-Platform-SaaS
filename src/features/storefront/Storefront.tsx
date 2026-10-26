@@ -250,6 +250,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     customerName:'',phone:'',deliveryAddress:'',deliveryNotes:'',
   });
   const [checkoutMessage,setCheckoutMessage]=useState('');
+  const [cartBarVisible, setCartBarVisible] = useState(false);
   const [availabilityMessage,setAvailabilityMessage]=useState('');
   useEffect(() => { if (!availabilityMessage) return; const timer=window.setTimeout(()=>setAvailabilityMessage(''),3500); return ()=>window.clearTimeout(timer); }, [availabilityMessage]);
 
@@ -397,6 +398,16 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   }, [menu, category, query, catalog?.categories]);
   const count = cartCount(cart, menu)+customCount(customized,menu);
   const subtotal = cartSubtotal(cart, menu)+customSubtotal(customized,menu);
+
+  useEffect(() => {
+    if (count <= 0) {
+      setCartBarVisible(false);
+      return;
+    }
+    setCartBarVisible(true);
+    const timeout = window.setTimeout(() => setCartBarVisible(false), 5000);
+    return () => window.clearTimeout(timeout);
+  }, [count]);
 
   const changeCustomized=(key:string,delta:number)=>setCustomized(previous=>changeCustom(previous,key,delta));
   const addCustomized=(item:MenuItem,selected:Selection)=>setCustomized(previous=>addCustom(previous,item,selected));
@@ -701,6 +712,11 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           <button type="button" className="sf-continue" onClick={() => setCheckoutOpen(false)}>Return to menu</button>
         </form>
       </section>
+    </div>}
+    {count > 0 && cartBarVisible && !trackingPage && !cartPage && !checkoutPage && <div className="sf-mobile-cart-bar">
+      <button type="button" onClick={() => navigateCart(true)} aria-label={'View cart, ' + count + ' items, ' + peso(subtotal)}>
+        <span className="sf-mobile-cart-count">{count}</span><span>View cart</span><strong>{peso(subtotal)}</strong><ArrowIcon/>
+      </button>
     </div>}
     <CustomizeDialog item={customizing} onAdd={addCustomized} onClose={()=>setCustomizing(null)}/>
     <span className="sf-visually-hidden" aria-live="polite" aria-atomic="true">{count} items in cart, subtotal {peso(subtotal)}</span>
