@@ -70,13 +70,17 @@ Deno.serve(async(request)=>{
         throw failureError;
       }
     }else{
-      const amount=resourceAttrs.amount;
-      if(typeof amount!=="number"||!Number.isSafeInteger(amount)||amount<=0){
-        await admin.from("tenant_paymongo_webhook_events").update({status:"failed",last_error:"Paid checkout event missing valid amount."}).eq("event_id",eventId);
-        return json({error:"Paid checkout event is missing a valid amount."},400);
-      }
       const payments=Array.isArray(resourceAttrs.payments)?resourceAttrs.payments:[];
-      const paymentId=String(payments[0]?.id??payments[0]?.data?.id??"").trim();
+      // A checkout session can contain multiple payment attempts. Only the paid
+      // payment is authoritative for amount and payment reference.
+      const paidPayment=payments.find((payment:any)=>String(payment?.attributes?.status??payment?.status??"").toLowerCase()==="paid");
+      const paidPaymentAttributes=paidPayment?.attributes??{};
+      const amount=paidPaymentAttributes.amount;
+      if(typeof amount!=="number"||!Number.isSafeInteger(amount)||amount<=0){
+        await admin.from("tenant_paymongo_webhook_events").update({status:"failed",last_error:"Paid checkout event missing a paid payment with a valid amount."}).eq("event_id",eventId);
+        return json({error:"Paid checkout event is missing a paid payment with a valid amount."},400);
+      }
+      const paymentId=String(paidPayment?.id??paidPayment?.data?.id??"").trim();
       const {error:referenceError}=await admin.from("customer_order_payment_sessions").update({
         ...(paymentId?{paymongo_payment_id:paymentId}:{}),updated_at:new Date().toISOString()
       }).eq("tenant_id",tenantId).eq("environment",environment).eq("checkout_session_id",checkoutSessionId);
