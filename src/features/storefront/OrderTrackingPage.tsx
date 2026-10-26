@@ -62,7 +62,7 @@ export function OrderTrackingPage({ onBackToMenu }: { onBackToMenu: () => void }
     : ['Your order has been received by the restaurant.', 'The restaurant has confirmed your order.', 'The kitchen is preparing your food.', 'Your order is being prepared for dispatch.', 'Your order is on its way to you.', 'Your order has been delivered. Thank you!'];
   const current = status ? stages.indexOf(status.order_status) : -1;
   const terminal = status ? ['rejected', 'cancelled'].includes(status.order_status) : false;
-  const currentStage = current < 0 ? (terminal ? status?.order_status.replaceAll('_', ' ') : 'Order Received') : labels[current];
+  const currentStage = current < 0 ? (terminal ? (status?.order_status ?? 'unknown').replaceAll('_', ' ') : 'Order Received') : labels[current];
   const orderNumText = orderNumber ? String(orderNumber).padStart(5, '0') : '…';
   const orderTypeLabel = dineIn ? 'Dine-in' : orderType.replaceAll('-', ' ').replace(/\\b\\w/g, x => x.toUpperCase());
 
