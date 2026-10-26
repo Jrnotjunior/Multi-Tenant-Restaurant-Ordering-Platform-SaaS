@@ -75,6 +75,7 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .onboarding-logo-only svg,.onboarding-logo-image{display:block;width:100%;height:auto;max-height:64px;object-fit:contain}
 .onboarding-welcome-title{position:relative;z-index:1;text-align:center;color:#fff}
 .onboarding-welcome-title h1{margin:0;color:#fff;font-size:clamp(17px,1.65vw,22px);line-height:1.15;letter-spacing:-.04em;white-space:normal}
+.onboarding-brand-red{color:#ff001b}
 .onboarding-welcome-title p{margin:6px 0 0;color:#d1d5db;font-size:11px;line-height:1.4}
 .onboarding-brand span{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--onboard-red);font-weight:850;font-size:var(--font-size-13)}
 .onboarding-brand strong{font-size:var(--font-size-18);letter-spacing:-.04em}
