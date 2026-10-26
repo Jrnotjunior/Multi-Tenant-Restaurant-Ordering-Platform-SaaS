@@ -301,7 +301,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
     </form>}
 
     {status === 'mfa' && flow && flow.kind !== 'ready' && <div>
-      {flow.kind === 'enroll' && <div><p>Set up an authenticator app, then enter a six-digit code. Scan this QR code once and use the code for this Web2Table entry.</p>
+      {flow.kind === 'enroll' && <div><p className="auth-qr-instructions">Set up an authenticator app, then enter a six-digit code. Scan this QR code once and use the code for this Web2Table entry.</p>
         <img className="auth-qr" src={flow.qrCode} alt="Authenticator enrollment QR code" />
       </div>}
       {flow.kind === 'challenge' && !isExistingAccountMfa && <p>Enter the current six-digit code from your authenticator app.</p>}
