@@ -110,15 +110,31 @@ Deno.serve(async (request) => {
         metadata: { tenant_id: order.tenant_id, order_id: order.id, payment_session_id: session.id },
       } },
     };
-    const response = await fetch("https://api.paymongo.com/v1/checkout_sessions", {
-      method: "POST",
-      headers: {
-        Authorization: basic(secret), "Content-Type": "application/json",
-        ...(platformTest ? {} : { "Account-ID": effectiveAccountId }),
-        "Idempotency-Key": "w2t-checkout-" + session.id,
-      },
-      body: JSON.stringify(payload),
-    });
+    let response: Response;
+    try {
+      response = await fetch("https://api.paymongo.com/v1/checkout_sessions", {
+        method: "POST",
+        headers: {
+          Authorization: basic(secret), "Content-Type": "application/json",
+          ...(platformTest ? {} : { "Account-ID": effectiveAccountId }),
+          "Idempotency-Key": "w2t-checkout-" + session.id,
+        },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(15000),
+      });
+    } catch (paymentApiError) {
+      console.error("PayMongo checkout API request failed", {
+        name: paymentApiError instanceof Error ? paymentApiError.name : "UnknownError",
+        message: paymentApiError instanceof Error ? paymentApiError.message : String(paymentApiError),
+        environment,
+        orderId: order.id,
+        paymentSessionId: session.id,
+      });
+      await admin.from("customer_order_payment_sessions").update({
+        status: "failed", updated_at: new Date().toISOString(),
+      }).eq("id", session.id);
+      return json({ error: "Could not reach PayMongo to start checkout. Please retry; no payment was confirmed." }, 502);
+    }
     const result = await response.json().catch(() => null);
     const checkoutSessionId = String(result?.data?.id ?? "");
     const checkoutUrl = String(result?.data?.attributes?.checkout_url ?? "");
@@ -134,7 +150,10 @@ Deno.serve(async (request) => {
     if (updateError) throw updateError;
     return json({ success: true, checkoutUrl, status: "active" });
   } catch (error) {
-    console.error("create-customer-order-checkout", error);
-    return json({ error: "Unable to create online checkout. No payment was confirmed." }, 500);
+    console.error("create-customer-order-checkout failed", {
+      name: error instanceof Error ? error.name : "UnknownError",
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return json({ error: "Unable to create online checkout. No payment was confirmed. Please retry; if it continues, check the Supabase Edge Function logs." }, 500);
   }
 });
