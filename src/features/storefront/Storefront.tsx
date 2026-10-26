@@ -545,7 +545,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     </header>)}
 
     <main className={cartPage ? "sf-main sf-main-cart" : "sf-main"}>
-      {trackingPage ? <OrderTrackingPage restaurantSlug={resolvedSlug ?? requestedSlug ?? ''} onBackToMenu={() => { window.location.hash = restaurantMenuHash(resolvedSlug ?? requestedSlug ?? ''); setTrackingPage(false); setCartPage(false); setCheckoutPage(false); }} /> : cartPage ? <CartPage count={count} onBack={() => navigateCart(false)}>
+      {trackingPage ? <OrderTrackingPage onBackToMenu={() => { window.location.hash = restaurantMenuHash(resolvedSlug ?? requestedSlug ?? ''); setTrackingPage(false); setCartPage(false); setCheckoutPage(false); }} /> : cartPage ? <CartPage count={count} onBack={() => navigateCart(false)}>
         <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} close={() => navigateCart(false)} onCheckout={() => navigateCheckout(true)}/>
       </CartPage> : checkoutPage ? <CheckoutPage
         restaurantSlug={resolvedSlug ?? requestedSlug ?? ''}
