@@ -79,7 +79,7 @@ export function OrderTrackingPage({ onBackToMenu }: { onBackToMenu: () => void }
     : current === 1 ? 'Your order is confirmed.'
     : current === 2 ? 'Preparing your order…'
     : current === stages.length - 1 ? (dineIn ? 'Your order has been served!' : 'Your order has been delivered!')
-    : labels[current] + ' your order…';
+    : current >= 0 ? labels[current] + ' your order…' : 'Waiting for restaurant confirmation';
   const stageIcons = dineIn ? ['🧾', '✓', '🍲', '🍽️', '✓'] : ['🧾', '✓', '🍲', '🛍️', '🛵', '✓'];
   const firstItem = status.items?.[0];
 
