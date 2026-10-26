@@ -151,7 +151,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
 
     {itemCount === 0 && !trackingToken && <p className="sf-checkout-page-notice" role="status">Your cart is empty. Add items from the menu before checkout.</p>}
 
-    {trackingToken && <section className={"sf-order-tracking" + (paymentComplete ? ' sf-order-tracking-paid' : '')}" aria-live="polite" aria-label="Live order tracking">
+    {trackingToken && <section className={"sf-order-tracking" + (paymentComplete ? ' sf-order-tracking-paid' : '')} aria-live="polite" aria-label="Live order tracking">
       <span className="sf-section-kicker">LIVE ORDER TRACKING</span>
       <h2>Order #{trackedOrderNumber ?? '…'}</h2>
       {trackedStatus ? <>
