@@ -253,6 +253,20 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   useEffect(() => { if (!availabilityMessage) return; const timer=window.setTimeout(()=>setAvailabilityMessage(''),3500); return ()=>window.clearTimeout(timer); }, [availabilityMessage]);
 
   useEffect(() => {
+    const syncTrackingAvailability = () => {
+      try { setHasTrackedOrder(Boolean(window.sessionStorage.getItem('web2table:latest-order-tracking'))); }
+      catch { setHasTrackedOrder(false); }
+    };
+    window.addEventListener('web2table:tracking-order-saved', syncTrackingAvailability);
+    window.addEventListener('storage', syncTrackingAvailability);
+    syncTrackingAvailability();
+    return () => {
+      window.removeEventListener('web2table:tracking-order-saved', syncTrackingAvailability);
+      window.removeEventListener('storage', syncTrackingAvailability);
+    };
+  }, []);
+
+  useEffect(() => {
     // Rehydrate when a root storefront resolves to its tenant/branch-specific cart key.
     setCart(readSessionValue<Cart>(cartStorageKey + ':items', {}));
     setCustomized(readSessionValue<CustomCart>(cartStorageKey + ':custom', {}));
