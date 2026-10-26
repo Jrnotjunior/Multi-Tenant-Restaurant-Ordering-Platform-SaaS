@@ -367,7 +367,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         </div>}
       </div>
     </div>
-    {!['cashier', 'kitchen'].includes(role) && <header className="staff-header"><div><p className="staff-eyebrow">{copy.eyebrow}</p><h1>{copy.title}</h1><p className="staff-intro">{copy.intro}</p>{restaurantName && <p className="staff-restaurant-name">{restaurantName}</p>}</div>
+    {!['cashier', 'kitchen', 'dispatcher'].includes(role) && <header className="staff-header"><div><p className="staff-eyebrow">{copy.eyebrow}</p><h1>{copy.title}</h1><p className="staff-intro">{copy.intro}</p>{restaurantName && <p className="staff-restaurant-name">{restaurantName}</p>}</div>
       <div className="staff-header-actions"><span className="staff-live-indicator"><i aria-hidden="true" /> Live queue</span><button className="staff-button staff-button-secondary" type="button" onClick={() => void load()} disabled={loading}>Refresh</button></div>
     </header>}
     {role === 'cashier' && <nav className="staff-workspace-tabs" aria-label="Cashier workspace">
@@ -390,7 +390,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         <div className="staff-sales-table-wrap"><table className="staff-sales-table"><thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Payment</th><th>Total</th></tr></thead><tbody>{salesOrders.slice().sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map(order => <tr key={order.id}><td>#{order.order_number}</td><td>{new Intl.DateTimeFormat('en-PH',{dateStyle:'medium',timeStyle:'short'}).format(new Date(order.created_at))}</td><td>{order.customer_name}</td><td><span className="staff-payment-badge payment-paid">{label(order.payment_status)}</span></td><td>{money(order.total_centavos)}</td></tr>)}</tbody></table></div>}
       <p className="staff-footnote">Sales figures reflect the orders returned by the staff order service; they are not a substitute for a reconciled accounting report.</p>
     </section> : <>
-    {!['cashier', 'kitchen'].includes(role) && <section className="staff-metrics" aria-label="Order summary">
+    {!['cashier', 'kitchen', 'dispatcher'].includes(role) && <section className="staff-metrics" aria-label="Order summary">
       <article><span>New orders</span><strong>{stats.incoming}</strong><small>Awaiting cashier review</small></article>
       <article><span>Preparing</span><strong>{stats.preparing}</strong><small>Confirmed / in kitchen</small></article>
       <article><span>Ready for handoff</span><strong>{stats.ready}</strong><small>Awaiting rider or customer handoff</small></article>
