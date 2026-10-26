@@ -5,6 +5,8 @@ import { Storefront } from '../features/storefront/Storefront';
 import { AccountAuthPage } from '../features/storefront/AccountAuthPage';
 import { CustomerOrderHistoryPage } from '../features/storefront/CustomerOrderHistoryPage';
 import { CustomerAccountPage } from '../features/storefront/CustomerAccountPage';
+import { CustomerSavedAddressesPage } from '../features/storefront/CustomerSavedAddressesPage';
+import { CustomerLoyaltyPage } from '../features/storefront/CustomerLoyaltyPage';
 import { LegalPoliciesPage } from '../features/storefront/LegalPoliciesPage';
 import { RestaurantWorkspace } from '../features/operations/RestaurantWorkspace';
 
@@ -43,6 +45,8 @@ export function App() {
 
   if (authMode) return <AccountAuthPage mode={authMode} baseUrl={baseUrl} restaurantSlug={new URLSearchParams(window.location.search).get('restaurant')} />;
   if (cleanPath === cleanBase + '/account') return <CustomerAccountPage baseUrl={baseUrl} />;
+  if (cleanPath === cleanBase + '/account/addresses') return <CustomerSavedAddressesPage baseUrl={baseUrl} />;
+  if (cleanPath === cleanBase + '/account/loyalty') return <CustomerLoyaltyPage baseUrl={baseUrl} />;
   if (cleanPath === cleanBase + '/account/orders') return <CustomerOrderHistoryPage baseUrl={baseUrl} />;
 
   const legalRoute = ['#legal', '#privacy', '#terms', '#refunds'].includes(window.location.hash) ? window.location.hash : null;
