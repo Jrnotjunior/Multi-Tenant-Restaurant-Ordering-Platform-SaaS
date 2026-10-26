@@ -554,12 +554,19 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
             </button>
             {accountMenuOpen && <div className="sf-account-menu" role="menu" aria-label="Your account">
               <div className="sf-account-menu-heading">
-                <strong>Your account</strong>
-                <span>Sign in or review our policies.</span>
+                <strong>{customerSignedIn ? 'Your account' : 'Your account'}</strong>
+                <span>{customerSignedIn ? 'You are signed in.' : 'Sign in or review our policies.'}</span>
               </div>
               <a role="menuitem" href={baseUrl + '#legal'} onClick={() => setAccountMenuOpen(false)}>Legal &amp; Policies</a>
-              <a role="menuitem" href={baseUrl + 'account/sign-in' + (resolvedSlug ? '?restaurant=' + encodeURIComponent(resolvedSlug) : '')} onClick={() => { if (resolvedSlug) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', resolvedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign in</a>
-              <a role="menuitem" href={baseUrl + 'account/sign-up' + (resolvedSlug ? '?restaurant=' + encodeURIComponent(resolvedSlug) : '')} onClick={() => { if (resolvedSlug) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', resolvedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign up</a>
+              {customerSignedIn ? <button type="button" role="menuitem" className="sf-account-menu-action" onClick={async () => {
+                setAccountMenuOpen(false);
+                if (!supabase) return;
+                const { error } = await supabase.auth.signOut();
+                if (error) setAvailabilityMessage('Could not sign out. Please try again.');
+              }}>Sign out</button> : <>
+                <a role="menuitem" href={baseUrl + 'account/sign-in' + (resolvedSlug ? '?restaurant=' + encodeURIComponent(resolvedSlug) : '')} onClick={() => { if (resolvedSlug) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', resolvedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign in</a>
+                <a role="menuitem" href={baseUrl + 'account/sign-up' + (resolvedSlug ? '?restaurant=' + encodeURIComponent(resolvedSlug) : '')} onClick={() => { if (resolvedSlug) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', resolvedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign up</a>
+              </>}
             </div>}
           </div>
         </nav>
