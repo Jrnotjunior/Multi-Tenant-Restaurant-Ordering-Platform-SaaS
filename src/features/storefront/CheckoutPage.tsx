@@ -150,28 +150,9 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
       <p>{paymentComplete ? 'Your cashier has confirmed payment. Follow your order status here; updates appear automatically.' : 'Choose how you will receive your food, then provide the details we need.'}</p>
     </div>
 
-    {itemCount === 0 && !trackingToken && <p className="sf-checkout-page-notice" role="status">Your cart is empty. Add items from the menu before checkout.</p>}
+    {itemCount === 0 && <p className="sf-checkout-page-notice" role="status">Your cart is empty. Add items from the menu before checkout.</p>}
 
-    {trackingToken && <section className={"sf-order-tracking" + (paymentComplete ? ' sf-order-tracking-paid' : '')} aria-live="polite" aria-label="Live order tracking">
-      <span className="sf-section-kicker">LIVE ORDER TRACKING</span>
-      <h2>Order #{trackedOrderNumber ?? '…'}</h2>
-      {trackedStatus ? <>
-        <p className="sf-order-tracking-status">{trackedStatus.order_status.replaceAll('_', ' ')}</p>
-        <p className="sf-order-tracking-payment">Payment: {trackedStatus.payment_status.replaceAll('_', ' ')}</p>
-        <ol className="sf-order-tracking-steps">
-          {['pending_confirmation','confirmed','preparing','ready_for_dispatch','out_for_delivery','delivered'].map((status, index) => {
-            const sequence = ['pending_confirmation','confirmed','preparing','ready_for_dispatch','out_for_delivery','delivered'];
-            const current = sequence.indexOf(trackedStatus.order_status);
-            const terminal = ['rejected','cancelled'].includes(trackedStatus.order_status);
-            const done = current >= index && !terminal;
-            return <li key={status} className={done ? 'is-complete' : ''}><span>{index + 1}</span><small>{status.replaceAll('_', ' ')}</small></li>;
-          })}
-        </ol>
-        <p className="sf-order-tracking-updated">Last updated {new Date(trackedStatus.updated_at).toLocaleTimeString()}</p>
-      </> : <p>Connecting to live order updates…</p>}
-      {trackingError && <p className="sf-checkout-page-message" role="status">{trackingError}</p>}
-      <p className="sf-order-tracking-note">Keep this page open to see updates. Your order status refreshes automatically.</p>
-    </section>}
+
 
     {!paymentComplete && <form className="sf-checkout-page-form" onSubmit={handleSubmit}>
       <OrderTypeSection value={orderType} onChange={type => { setOrderType(type); setMessage(''); setReviewed(false); }} />
