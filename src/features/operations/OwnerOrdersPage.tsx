@@ -59,13 +59,13 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
   const [message, setMessage] = useState('');
   const [deliveryFees, setDeliveryFees] = useState<Record<string, string>>({});
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (quiet = false) => {
     if (!supabase) {
       setError('Restaurant order services are not configured.');
       setLoading(false);
       return;
     }
-    setLoading(true);
+    if (!quiet) setLoading(true);
     setError('');
     try {
       const [ordersResponse, storefrontResponse] = await Promise.all([
@@ -79,11 +79,33 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Unable to load restaurant orders.');
     } finally {
-      setLoading(false);
+      if (!quiet) setLoading(false);
     }
   }, [tenantId, filter]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+    if (!supabase) return;
+
+    let refreshTimer: number | undefined;
+    const channel = supabase
+      .channel('tenant:' + tenantId, { config: { private: true } })
+      .on('broadcast', { event: 'db_change' }, () => {
+        if (refreshTimer !== undefined) window.clearTimeout(refreshTimer);
+        refreshTimer = window.setTimeout(() => { void load(true); }, 100);
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') void load(true);
+      });
+
+    // Periodic reconciliation is a safety net, not the primary update mechanism.
+    const reconciliationTimer = window.setInterval(() => { void load(true); }, 60000);
+    return () => {
+      if (refreshTimer !== undefined) window.clearTimeout(refreshTimer);
+      window.clearInterval(reconciliationTimer);
+      void supabase?.removeChannel(channel);
+    };
+  }, [load, tenantId]);
 
   async function transition(order: CustomerOrder, action: string, label: string) {
     if (!supabase) return;
