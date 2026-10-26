@@ -548,6 +548,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
             : <span className="sf-logo-mark">{restaurant.initials}</span>}
         </a>
         <nav className="sf-header-actions" aria-label="Store navigation">
+          {!trackingPage && <button type="button" className="sf-track-order-button" onClick={navigateTracking}>Track Order</button>}
           <span className="sf-header-divider" aria-hidden="true"/>
           <button type="button" className="sf-bag-button" onClick={() => navigateCart(true)} aria-label={'Open cart with ' + count + ' items'}>
             <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
