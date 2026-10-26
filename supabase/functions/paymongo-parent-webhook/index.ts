@@ -117,9 +117,11 @@ Deno.serve(async (request) => {
     const identity = String(resource?.person?.identity_verification_status ?? resource?.identity_verification_status ?? "").toLowerCase();
     const update: Record<string, unknown> = { updated_at: new Date().toISOString(), last_error: null };
     if (["account.activated", "merchant.activated", "consumer.activated"].includes(eventType)) {
-      update.connection_status = "active";
+      // Activation alone is not enough to enable checkout: sync-tenant-paymongo-account
+      // must first configure and persist the child account's payment webhook secret.
+      update.connection_status = "pending";
       update.activation_status = activation || "activated";
-      update.onboarding_step = "active";
+      update.onboarding_step = "webhook_configuration";
     } else if (["account.declined", "merchant.declined", "consumer.declined"].includes(eventType)) {
       update.connection_status = "pending";
       update.activation_status = activation || "declined";
