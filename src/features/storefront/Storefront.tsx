@@ -4,7 +4,7 @@ import {addCustom,changeCustom,customCount,customLines,customSubtotal,type Custo
 import {CustomizeDialog} from './CustomizeDialog';
 import { filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
 import { branchSlugFromSearch, loadDefaultPublishedMenu, loadPublishedMenu, type StorefrontCatalog } from './publishedMenu';
-import { isStorefrontCartPath, isStorefrontCheckoutPath, isStorefrontTrackingPath, normalizeAppBase, restaurantMenuHash, routePathFromLocation, storefrontCartHash, storefrontCheckoutHash } from '../../app/routes';
+import { isStorefrontCartPath, isStorefrontCheckoutPath, isStorefrontTrackingPath, normalizeAppBase, restaurantMenuHash, routePathFromLocation, storefrontCartHash, storefrontCheckoutHash, storefrontTrackingHash } from '../../app/routes';
 import { CartPage } from './CartPage';
 import { CheckoutPage, type CheckoutSubmission } from './CheckoutPage';
 import { OrderTrackingPage } from './OrderTrackingPage';
@@ -243,6 +243,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const [cartPage, setCartPage] = useState(() => initialCartPage || isStorefrontCartPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
   const [checkoutPage, setCheckoutPage] = useState(() => isStorefrontCheckoutPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
   const [trackingPage, setTrackingPage] = useState(() => isStorefrontTrackingPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
+  const [hasTrackedOrder, setHasTrackedOrder] = useState(() => { try { return Boolean(window.sessionStorage.getItem('web2table:latest-order-tracking')); } catch { return false; } });
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutDetails,setCheckoutDetails]=useState<CheckoutDetails>({
     customerName:'',phone:'',deliveryAddress:'',deliveryNotes:'',
@@ -402,6 +403,16 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     window.scrollTo({ top: 0, behavior: 'auto' });
   }
 
+  function navigateTracking() {
+    if (!resolvedSlug) return;
+    navigateHashRoute(storefrontTrackingHash(resolvedSlug));
+    setTrackingPage(true);
+    setCartPage(false);
+    setCheckoutPage(false);
+    setAccountMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
   function navigateCheckout(open: boolean) {
     if (!resolvedSlug) { setCheckoutPage(open); setCartPage(false); return; }
     const nextHash = open ? storefrontCheckoutHash(resolvedSlug) : restaurantMenuHash(resolvedSlug);
@@ -462,6 +473,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           <span className="sf-logo-mark">W2T</span><span>Web2Table</span>
         </a>
         <nav className="sf-header-actions" aria-label="Store navigation">
+          {hasTrackedOrder && !trackingPage && <button type="button" className="sf-track-order-button" onClick={navigateTracking}>Track Order</button>}
           <span className="sf-header-divider" aria-hidden="true"/>
           <button type="button" className="sf-bag-button" onClick={() => navigateCart(true)} aria-label={'Open cart with ' + count + ' items'}>
             <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
