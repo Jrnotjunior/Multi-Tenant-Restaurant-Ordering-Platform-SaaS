@@ -296,3 +296,36 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
   .privileged-onboarding .onboarding-brand.onboarding-logo-only{width:min(100%,230px)}
   .privileged-onboarding .onboarding-logo-only svg{max-height:130px}
 }
+
+
+/* Keep the complete onboarding composition within a centered 1060px desktop canvas. */
+@media(min-width:1101px){
+  .app:has(.privileged-onboarding) .workspace,
+  .app:has(.privileged-onboarding) .content{
+    width:100%;
+    max-width:none;
+    margin-inline:0;
+  }
+  .app:has(.privileged-onboarding) .privileged-onboarding{
+    display:grid;
+    width:min(1060px,100%);
+    max-width:1060px;
+    min-height:100vh;
+    margin-inline:auto;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    justify-items:stretch;
+    align-items:stretch;
+  }
+  .app:has(.privileged-onboarding) .onboarding-story{
+    width:100%;
+    min-width:0;
+    height:304px;
+    min-height:0 !important;
+  }
+  .app:has(.privileged-onboarding) .onboarding-card{
+    width:calc(100% - 40px);
+    max-width:480px;
+    margin:24px 20px;
+    justify-self:center;
+  }
+}
