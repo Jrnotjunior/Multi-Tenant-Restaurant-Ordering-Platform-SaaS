@@ -17,39 +17,14 @@ type InitMessage = {
   initialLongitude: number | null;
 };
 
-function mapServiceUrl(): { href: string; origin: string; configurationError: string } {
-  const fallback = 'https://app.web2table.io/maps.html';
-  const fallbackUrl = new URL(fallback);
-  const configured = String(import.meta.env.VITE_MAP_SERVICE_URL ?? '').trim();
-  if (!configured) return { href: fallbackUrl.href, origin: fallbackUrl.origin, configurationError: '' };
+const CENTRAL_MAP_SERVICE_URL = 'https://app.web2table.io/maps.html';
 
-  // Never throw from render because the delivery tab mounts this component lazily.
-  // A bad deployment URL must produce a local warning, not unmount the owner workspace.
-  try {
-    const url = new URL(configured, window.location.origin);
-    const isLocal = ['localhost', '127.0.0.1', '::1'].includes(url.hostname);
-    if (url.protocol !== 'https:' && !isLocal) {
-      return {
-        href: fallbackUrl.href,
-        origin: fallbackUrl.origin,
-        configurationError: 'The configured map service does not use HTTPS. The secure central map service will be used instead.',
-      };
-    }
-    if (url.username || url.password) {
-      return {
-        href: fallbackUrl.href,
-        origin: fallbackUrl.origin,
-        configurationError: 'The configured map service URL is invalid. The secure central map service will be used instead.',
-      };
-    }
-    return { href: url.href, origin: url.origin, configurationError: '' };
-  } catch {
-    return {
-      href: fallbackUrl.href,
-      origin: fallbackUrl.origin,
-      configurationError: 'The configured map service URL is invalid. The secure central map service will be used instead.',
-    };
-  }
+function mapServiceUrl(): { href: string; origin: string; configurationError: string } {
+  // All tenants must use the same centrally managed Mapbox service. Do not
+  // permit tenant-specific VITE_MAP_SERVICE_URL values to redirect the iframe
+  // to another origin or bypass central token and domain controls.
+  const url = new URL(CENTRAL_MAP_SERVICE_URL);
+  return { href: url.href, origin: url.origin, configurationError: '' };
 }
 
 export function MapboxDeliveryLocationPicker({
