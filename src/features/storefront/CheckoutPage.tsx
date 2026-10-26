@@ -62,7 +62,7 @@ function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onS
 }
 
 /** Standalone checkout screen. It prepares details only; it does not place or charge an order. */
-export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orderLines, onBackToMenu, onPlaceOrder }: CheckoutPageProps) {
+export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orderLines, onBackToMenu, onPlaceOrder, trackingOnly = false }: CheckoutPageProps) {
   const [orderType, setOrderType] = useState<OrderType>('Delivery');
   const [deliveryAddress, setDeliveryAddress] = useState<MapboxDeliveryAddress | null>(null);
   const [streetAddress, setStreetAddress] = useState('');
@@ -130,6 +130,17 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
     setPaymentModalOpen(true);
   }
 
+  if (trackingOnly) return <main className="sf-checkout-page sf-order-tracking-page">
+    <div className="sf-checkout-page-intro"><span className="sf-section-kicker">ORDER TRACKING</span><h1>Track your order</h1><p>Follow your order progress and payment status. Updates refresh automatically.</p></div>
+    {trackingToken ? <section className="sf-order-tracking sf-order-tracking-dedicated" aria-live="polite" aria-label="Live order tracking">
+      <span className="sf-section-kicker">LIVE ORDER TRACKING</span><h2>Order #{trackedOrderNumber ?? "…"}</h2>
+      {trackedStatus ? <><p className="sf-order-tracking-status">{trackedStatus.order_status.replaceAll("_", " ")}</p><p className="sf-order-tracking-payment">Payment: {trackedStatus.payment_status.replaceAll("_", " ")}</p>
+      <ol className="sf-order-tracking-steps">{["pending_confirmation","confirmed","preparing","ready_for_dispatch","out_for_delivery","delivered"].map((status,index)=>{const sequence=["pending_confirmation","confirmed","preparing","ready_for_dispatch","out_for_delivery","delivered"];const current=sequence.indexOf(trackedStatus.order_status);const terminal=["rejected","cancelled"].includes(trackedStatus.order_status);return <li key={status} className={current>=index&&!terminal?"is-complete":""}><span>{index+1}</span><small>{status.replaceAll("_"," ")}</small></li>;})}</ol>
+      <p className="sf-order-tracking-updated">Last updated {new Date(trackedStatus.updated_at).toLocaleTimeString()}</p></> : <p>Connecting to live order updates…</p>}
+      {trackingError && <p className="sf-checkout-page-message" role="status">{trackingError}</p>}<p className="sf-order-tracking-note">This page refreshes order status automatically.</p>
+      <button type="button" className="sf-continue" onClick={onBackToMenu}>Back to restaurant</button>
+    </section> : <p className="sf-checkout-page-notice">No recent order was found on this browser. Open the tracking link saved when your order was placed.</p>}
+  </main>;
   return <main className="sf-checkout-page">
     <div className="sf-checkout-page-intro">
       <span className="sf-section-kicker">{paymentComplete ? 'ORDER TRACKING' : 'CHECKOUT'}</span>
