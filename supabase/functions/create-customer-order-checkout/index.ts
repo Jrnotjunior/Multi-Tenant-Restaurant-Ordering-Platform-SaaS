@@ -36,9 +36,11 @@ Deno.serve(async (request) => {
     const body = await request.json().catch(() => ({}));
     const orderId = String(body.orderId ?? "").trim();
     const trackingToken = String(body.trackingToken ?? "").trim();
+    const restaurantSlug = String(body.restaurantSlug ?? "").trim();
     const environment = body.environment === "live" ? "live" : "test";
     if (!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(orderId)) return json({ error: "A valid order is required." }, 400);
     if (!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(trackingToken)) return json({ error: "A valid order tracking token is required." }, 400);
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(restaurantSlug)) return json({ error: "A valid restaurant tracking route is required." }, 400);
     const secret = paymongoKey(environment);
     if (!secret) return json({ error: "PayMongo " + environment + " mode is not configured." }, 409);
 
@@ -105,8 +107,11 @@ Deno.serve(async (request) => {
         line_items: [{ currency: order.currency || "PHP", amount, name: "Restaurant order #" + order.order_number, quantity: 1 }],
         payment_method_types: ["gcash", "card", "paymaya"],
         description: "Web2Table order #" + order.order_number,
-        success_url: baseUrl + "/payment/success?order=" + encodeURIComponent(order.id) + "&tracking=" + encodeURIComponent(trackingToken),
-        cancel_url: baseUrl + "/payment/cancel?order=" + encodeURIComponent(order.id) + "&tracking=" + encodeURIComponent(trackingToken),
+        // Return to the established restaurant tracking route. The browser session retains
+        // the tracking token saved before redirecting to PayMongo; the signed webhook remains
+        // the only authority that can mark payment as paid.
+        success_url: baseUrl + "/#order/" + encodeURIComponent(restaurantSlug) + "/track",
+        cancel_url: baseUrl + "/#order/" + encodeURIComponent(restaurantSlug) + "/track",
         metadata: { tenant_id: order.tenant_id, order_id: order.id, payment_session_id: session.id },
       } },
     };
