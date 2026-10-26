@@ -487,7 +487,9 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           <span className="sf-logo-mark">W2T</span><span>Web2Table</span>
         </a>
         <nav className="sf-header-actions" aria-label="Store navigation">
-          {!trackingPage && <button type="button" className="sf-track-order-button" onClick={navigateTracking}>Track Order</button>}
+          {!trackingPage && <button type="button" className="sf-track-order-button" onClick={navigateTracking} aria-label="Track order" title="Track order">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/><path d="M8 2.8 5.8 5M16 2.8 18.2 5"/></svg>
+          </button>}
           <span className="sf-header-divider" aria-hidden="true"/>
           <button type="button" className="sf-bag-button" onClick={() => navigateCart(true)} aria-label={'Open cart with ' + count + ' items'}>
             <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
