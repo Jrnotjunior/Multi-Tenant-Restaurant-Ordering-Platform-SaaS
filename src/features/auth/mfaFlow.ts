@@ -98,7 +98,10 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
       const { data: refreshed, error: refreshError } = await client.auth.mfa.listFactors();
       if (refreshError) throw refreshError;
 
-      const refreshedFactors = refreshed.all ?? [...refreshed.totp, ...refreshed.phone];
+      // Treat the typed factor lists as the source of truth. The aggregate
+      // "all" field may be empty/stale in some responses while typed lists
+      // still contain factors.
+      const refreshedFactors = [...refreshed.totp, ...refreshed.phone];
       const refreshedVerified = refreshedFactors.filter((factor) => factor.status === 'verified');
       const refreshedTotp = refreshedVerified.find((factor) => factor.factor_type === 'totp');
       if (refreshedTotp) {
@@ -109,10 +112,28 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
         throw new Error('Supabase reports an existing verified security factor, but this screen cannot verify that factor type. Sign out and use the account recovery process or ask an administrator for help. No verified factor was changed.');
       }
 
-      // Keep the server's error code available for support without exposing
-      // tokens, QR secrets, or other authentication material.
-      const errorCode = enrollmentError.code ? ` (code: ${enrollmentError.code})` : '';
-      throw new Error(`Supabase rejected authenticator enrollment because of an existing-factor limit, but the refreshed factor list is empty${errorCode}. Sign out and sign in again; if it persists, inspect the user's MFA factors in the Supabase Auth dashboard. No verified factor was changed.`);
+      // This account has no verified factor, but abandoned TOTP enrollments
+      // can accumulate across interrupted setup attempts and exhaust the
+      // Auth API limit. Remove only unverified TOTP factors, then verify that
+      // the server has released the slots before retrying enrollment once.
+      for (const factor of refreshed.totp.filter((item) => item.status !== 'verified')) {
+        const { error: unenrollError } = await client.auth.mfa.unenroll({ factorId: factor.id });
+        if (unenrollError) throw unenrollError;
+      }
+      const { data: afterCleanup, error: cleanupReadError } = await client.auth.mfa.listFactors();
+      if (cleanupReadError) throw cleanupReadError;
+      const remainingVerified = [...afterCleanup.totp, ...afterCleanup.phone].filter((factor) => factor.status === 'verified');
+      const remainingTotp = afterCleanup.totp.filter((factor) => factor.status !== 'verified');
+      if (remainingVerified.length > 0) {
+        throw new Error('A verified security factor was found during recovery. No verified factor was changed. Please sign in again or contact your administrator.');
+      }
+      if (remainingTotp.length > 0) {
+        throw new Error('We found incomplete authenticator setups that could not be cleared automatically. Please contact your administrator for help. No verified factor was changed.');
+      }
+
+      // Retry enrollment on the next loop iteration only after cleanup is
+      // confirmed. Never repeatedly create factors when Supabase rejects it.
+      continue;
     }
     if (!/friendly name.*already exists|already exists.*friendly name/i.test(enrollmentError.message)) {
       throw enrollmentError;
