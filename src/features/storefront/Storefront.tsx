@@ -562,19 +562,17 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           const orderTypeMap = { Delivery: 'delivery', 'Take-out': 'take_out', Pickup: 'pickup', 'Dine-in': 'dine_in' } as const;
           const idempotencyKey = window.crypto?.randomUUID?.();
           if (!idempotencyKey) throw new Error('This browser cannot securely start checkout. Please update your browser and try again.');
-          const { data, error } = await supabase.rpc('create_customer_order', {
-            p_restaurant_slug: restaurant.slug,
-            p_branch_slug: restaurant.branchSlug,
-            p_customer_name: submission.customerName,
-            p_customer_phone: submission.phone,
-            p_delivery_address: submission.deliveryAddress,
-            p_delivery_notes: submission.deliveryNotes,
-            p_idempotency_key: idempotencyKey,
-            p_order_type: orderTypeMap[submission.orderType],
-            p_items: orderItems,
-          });
+          const { data, error } = await supabase.functions.invoke('delivery-pricing', { body: {
+            action: 'create_order', restaurantSlug: restaurant.slug, branchSlug: restaurant.branchSlug,
+            customerName: submission.customerName, customerPhone: submission.phone,
+            deliveryAddress: submission.deliveryAddress, deliveryNotes: submission.deliveryNotes,
+            idempotencyKey, orderType: orderTypeMap[submission.orderType], items: orderItems,
+            latitude: submission.deliveryLatitude, longitude: submission.deliveryLongitude,
+          } });
           if (error) throw new Error(error.message || 'Order could not be placed.');
-          const result = data as { success?: boolean; order_number?: number; order_id?: string } | null;
+          const result = data as { success?: boolean; order_number?: number; order_id?: string; error?: string; delivery_fee_confirmed?: boolean } | null;
+          if (result?.error) throw new Error(result.error);
+          if (submission.orderType === 'Delivery' && !result?.delivery_fee_confirmed) throw new Error('The server did not confirm the delivery fee. No payment was started. Please retry checkout.');
           if (!result?.success || !Number.isFinite(Number(result.order_number))) throw new Error('The server did not confirm this order. Please check with the restaurant before retrying.');
           let checkoutUrl: string | undefined;
           if (submission.paymentMethod === 'online') {
