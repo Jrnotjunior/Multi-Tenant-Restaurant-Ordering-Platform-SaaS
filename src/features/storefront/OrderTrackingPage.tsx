@@ -81,7 +81,7 @@ export function OrderTrackingPage({ onBackToMenu }: { onBackToMenu: () => void }
     : current === stages.length - 1 ? (dineIn ? 'Your order has been served!' : 'Your order has been delivered!')
     : current >= 0 ? labels[current] + ' your order…' : 'Waiting for restaurant confirmation';
   const stageIcons = dineIn ? ['🧾', '✓', '🍲', '🍽️', '✓'] : ['🧾', '✓', '🍲', '🛍️', '🛵', '✓'];
-  const firstItem = status.items?.[0];
+  const firstItem = status?.items?.[0];
 
   return <main className="sf-order-tracking-page">
     {trackingToken && status ? <section className="sf-tracking-receipt" aria-live="polite" aria-label="Live order tracking">
