@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '../../lib/supabase';
+import { storefrontTrackingHash } from '../../app/routes';
 import { peso } from './demoCatalog';
 import { MapboxDeliveryLocationPicker, type MapboxDeliveryAddress } from '../operations/MapboxDeliveryLocationPicker';
 
@@ -245,6 +246,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
               }
               setTrackedOrderNumber(result.orderNumber);
               setTrackingToken(result.trackingToken);
+              window.location.hash = storefrontTrackingHash(restaurantSlug).slice(1);
               setMessage('Order #' + result.orderNumber + ' placed successfully. Pay at the restaurant counter.');
               setPaymentModalOpen(false);
             } catch (error) {
