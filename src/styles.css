@@ -203,6 +203,9 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 @media(prefers-reduced-motion:reduce){.workspace-loading-indicator span{animation:none;width:100%}}
 @media(max-width:760px){
   .privileged-onboarding{position:relative;inset:auto;height:auto;max-height:none;overflow:visible;margin:16px auto}
+  .app:has(.privileged-onboarding){min-height:0}
+  .app:has(.privileged-onboarding) .workspace{height:auto;min-height:0;align-items:flex-start}
+  .app:has(.privileged-onboarding) .content{height:auto;min-height:0;align-items:flex-start;padding:16px}
   .privileged-onboarding,.existing-account-mfa{grid-template-columns:minmax(0,1fr);width:min(600px,calc(100% - 24px));max-width:600px;margin:16px auto}
   .onboarding-story{height:auto;min-height:0;padding:16px 18px;gap:8px}
   .onboarding-brand.onboarding-logo-only{width:min(100%,112px)}
