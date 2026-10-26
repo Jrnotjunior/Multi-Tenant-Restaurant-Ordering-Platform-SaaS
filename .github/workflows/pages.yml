@@ -32,6 +32,7 @@ jobs:
         env:
           VITE_SUPABASE_URL: https://wvibrchebfwirbgkcnbr.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_MILZBeZJeOw-bOeMo3Nukg_BKGWt_Qr
+          VITE_RESTAURANT_SLUG: ebable
         run: npm run build -- --base="/${GITHUB_REPOSITORY#*/}/"
       - name: GitHub Pages SPA fallback
         run: |
