@@ -353,7 +353,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
     {status === 'denied' && <p>This account has no active access or valid invitation for this workspace. Contact your platform or restaurant administrator.</p>}
     {status === 'error' && <div>
       <button type="button" onClick={() => { setMessage(''); setRevision((previous) => previous + 1); }}>Retry secure access check</button>
-      {message.includes('Incomplete authenticator enrollment') && client && <button className="auth-secondary" type="button" disabled={busy} onClick={() => {
+      {(message.includes('Incomplete authenticator enrollment') || message.includes('factor limit') || message.includes('too_many_enrolled_mfa_factors')) && client && <button className="auth-secondary" type="button" disabled={busy} onClick={() => {
         setBusy(true);
         void restartIncompleteMfa(client)
           .then(() => { setMessage(''); setRevision((previous) => previous + 1); })
