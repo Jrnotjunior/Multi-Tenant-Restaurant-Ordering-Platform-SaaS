@@ -38,10 +38,18 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
     return { kind: 'ready' };
   }
 
-  const verified = factors.totp.find((factor) => factor.status === 'verified');
-  if (verified) {
+  // Inspect every factor type before enrolling. Supabase can reject TOTP
+  // enrollment when another factor type (for example, phone MFA) is verified.
+  const allFactors = factors.all ?? [...factors.totp, ...factors.phone];
+  const verifiedFactors = allFactors.filter((factor) => factor.status === 'verified');
+  const verifiedTotp = verifiedFactors.find((factor) => factor.factor_type === 'totp');
+  if (verifiedTotp) {
     enrollments.delete(client);
-    return { kind: 'challenge', factorId: verified.id };
+    return { kind: 'challenge', factorId: verifiedTotp.id };
+  }
+  if (verifiedFactors.length > 0) {
+    enrollments.delete(client);
+    throw new Error('This account already has a verified security factor that this screen cannot verify. No verified factor was changed. Ask an administrator to review the account MFA setup.');
   }
 
   const pendingFactors = factors.totp.filter((factor) => factor.status !== 'verified');
@@ -78,29 +86,33 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
     enrollment = result.data;
     enrollmentError = result.error;
     if (!enrollmentError) break;
-    if (/maximum number of verified factors|max(imum)? number.*verified factors|verified factors reached/i.test(enrollmentError.message)) {
-      // Factor state can change between listFactors() and enroll(). Re-read it
-      // before surfacing an error; if a verified factor exists, challenge it
-      // instead of attempting another enrollment.
+    const factorLimitError = /mfa_verified_factor_exists|too_many_enrolled_mfa_factors/i.test(String(enrollmentError.code ?? ''))
+      || /maximum number of verified factors|max(imum)? number.*verified factors|verified factors reached|verified phone factor already exists|too many enrolled mfa factors/i.test(enrollmentError.message);
+    if (factorLimitError) {
+      // The Auth API can have newer factor state than the current access token.
+      // Refresh once, then re-read factors before deciding how the user can proceed.
+      const { error: sessionRefreshError } = await client.auth.refreshSession();
+      if (sessionRefreshError) {
+        throw new Error('Supabase rejected authenticator enrollment due to an existing-factor limit, and the session could not be refreshed. Sign out and sign in again. No verified factor was changed.');
+      }
       const { data: refreshed, error: refreshError } = await client.auth.mfa.listFactors();
       if (refreshError) throw refreshError;
 
-      // Supabase's verified-factor limit applies to the account's MFA factors,
-      // not just TOTP. Check all factor types before deciding enrollment is safe.
-      const allFactors = refreshed.all ?? [...refreshed.totp, ...refreshed.phone];
-      const verifiedFactors = allFactors.filter((factor) => factor.status === 'verified');
-      const verifiedTotp = verifiedFactors.find((factor) => factor.factor_type === 'totp');
-      if (verifiedTotp) {
+      const refreshedFactors = refreshed.all ?? [...refreshed.totp, ...refreshed.phone];
+      const refreshedVerified = refreshedFactors.filter((factor) => factor.status === 'verified');
+      const refreshedTotp = refreshedVerified.find((factor) => factor.factor_type === 'totp');
+      if (refreshedTotp) {
         enrollments.delete(client);
-        return { kind: 'challenge', factorId: verifiedTotp.id };
+        return { kind: 'challenge', factorId: refreshedTotp.id };
       }
-      if (verifiedFactors.length > 0) {
-        throw new Error('This account already has a verified security factor, so Supabase will not allow another enrollment. Sign in using the existing security method or ask an administrator to review the account. No verified factor was changed.');
+      if (refreshedVerified.length > 0) {
+        throw new Error('Supabase reports an existing verified security factor, but this screen cannot verify that factor type. Sign out and use the account recovery process or ask an administrator for help. No verified factor was changed.');
       }
 
-      // The factor list and enrollment API disagreed. Do not repeat enrollment
-      // indefinitely or report that the user definitely completed setup.
-      throw new Error('Supabase rejected authenticator enrollment because of its verified-factor limit, but no verified factor was returned for this account. Refresh the session and try again; if it persists, an administrator needs to inspect the account MFA state. No verified factor was changed.');
+      // Keep the server's error code available for support without exposing
+      // tokens, QR secrets, or other authentication material.
+      const errorCode = enrollmentError.code ? ` (code: ${enrollmentError.code})` : '';
+      throw new Error(`Supabase rejected authenticator enrollment because of an existing-factor limit, but the refreshed factor list is empty${errorCode}. Sign out and sign in again; if it persists, inspect the user's MFA factors in the Supabase Auth dashboard. No verified factor was changed.`);
     }
     if (!/friendly name.*already exists|already exists.*friendly name/i.test(enrollmentError.message)) {
       throw enrollmentError;
