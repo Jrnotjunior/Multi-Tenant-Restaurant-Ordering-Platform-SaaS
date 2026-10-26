@@ -50,9 +50,9 @@ function DeliveryAddressSection({ orderType, value, onSelect, restaurantSlug }: 
     <MapboxDeliveryLocationPicker restaurantSlug={restaurantSlug} variant="delivery" initialLatitude={value?.latitude ?? null} initialLongitude={value?.longitude ?? null} onSelect={onSelect} />
     {value && <p className="sf-checkout-address-confirmed" role="status">Selected address: {value.formattedAddress || value.address}</p>}
     <div className="sf-checkout-fields sf-checkout-locality-fields">
-      <label>Street address<input name="deliveryStreetAddress" autoComplete="street-address" value={value?.address ?? ''} readOnly placeholder="Automatically filled by Mapbox" aria-describedby="delivery-locality-hint" /></label>
-      <label>City / Municipality<input name="deliveryCity" autoComplete="address-level2" value={value?.city ?? ''} readOnly placeholder="Automatically filled by Mapbox" aria-describedby="delivery-locality-hint" /></label>
+      <label>Municipality / City<input name="deliveryCity" autoComplete="address-level2" value={value?.city ?? ''} readOnly placeholder="Automatically filled by Mapbox" aria-describedby="delivery-locality-hint" /></label>
       <label>Barangay<input name="deliveryBarangay" value={value?.barangay ?? ''} readOnly placeholder="Automatically filled by Mapbox" aria-describedby="delivery-locality-hint" /></label>
+      <label>Street address<input name="deliveryStreetAddress" autoComplete="street-address" value={value?.address ?? ''} readOnly placeholder="Automatically filled by Mapbox" aria-describedby="delivery-locality-hint" /></label>
       <p id="delivery-locality-hint" className="sf-checkout-optional">City and barangay are filled from the selected Mapbox location. If either is missing, adjust the pin or search for a more specific address.</p>
     </div>
     <div className="sf-checkout-fields">
