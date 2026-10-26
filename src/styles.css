@@ -153,20 +153,23 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
   grid-template-columns:minmax(0,1fr);
   align-content:center;
   place-items:center;
-  width:min(600px,calc(100% - 32px));
-  max-width:600px;
-  min-height:calc(100vh - 32px);
+  width:100%;
+  max-width:none;
+  min-height:100vh;
   height:auto;
-  margin:16px auto;
-  padding:0;
+  margin:0;
+  padding:16px;
+  overflow:visible;
+  border:0;
+  border-radius:0;
   background:transparent;
   box-shadow:none;
 }
 .privileged-auth-only .onboarding-card{
   box-sizing:border-box;
-  width:100%;
+  width:min(600px,100%);
   min-width:0;
-  max-width:none;
+  max-width:600px;
   height:auto;
   margin:0;
   padding:26px;
