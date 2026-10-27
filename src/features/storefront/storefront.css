@@ -621,9 +621,11 @@
 .sf-account-page .sf-account-legal-links a:hover{opacity:.8}
 @media(max-width:680px){.sf-account-page .sf-account-legal-links{gap:8px 14px;padding:10px 0 4px}}
 
-/* Legal policy card groups its heading and child links in one container. */
-.sf-account-page .sf-account-legal-main{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin:16px 0 6px;padding:16px 14px;background:var(--sf-card-bg,#fff);border:1px solid var(--sf-border,#e5e7eb);border-radius:14px;box-shadow:0 3px 12px rgba(15,23,42,.04)}
-.sf-account-page .sf-account-legal-main h2{margin:0;color:var(--sf-font-color);font-size:var(--sf-font-size-13);font-weight:750}
-.sf-account-page .sf-account-legal-main .sf-account-legal-links{display:flex;align-items:flex-start;justify-content:flex-start;flex-direction:column;gap:10px;padding:0 0 0 12px}
-.sf-account-page .sf-account-legal-main .sf-account-legal-links a{color:var(--sf-font-color);font-size:var(--sf-font-size-12);font-weight:600;text-decoration:underline;text-underline-offset:3px}
-.sf-account-page .sf-account-legal-main .sf-account-legal-links a:hover{color:var(--sf-muted)}
+/* Expandable Legal card: policy links stay hidden until the card is opened. */
+.sf-account-page .sf-account-legal-main{display:flex;flex-direction:column;align-items:stretch;gap:0;margin:16px 0 6px;padding:0;background:var(--sf-card-bg,#fff);border:1px solid var(--sf-border,#e5e7eb);border-radius:14px;box-shadow:0 3px 12px rgba(15,23,42,.04);overflow:hidden}
+.sf-account-page .sf-account-legal-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:64px;padding:16px 14px;border:0;background:transparent;color:var(--sf-font-color);font:inherit;font-size:var(--sf-font-size-14);font-weight:750;text-align:left;cursor:pointer}
+.sf-account-page .sf-account-legal-toggle:focus-visible{outline:2px solid var(--sf-accent,#dc2626);outline-offset:-3px}
+.sf-account-page .sf-account-legal-chevron{font-size:24px;line-height:1}
+.sf-account-page .sf-account-legal-main .sf-account-legal-links{display:flex;align-items:stretch;justify-content:flex-start;flex-direction:column;gap:0;padding:0 14px 12px}
+.sf-account-page .sf-account-legal-main .sf-account-legal-links a{padding:10px 0;color:var(--sf-font-color);font-size:var(--sf-font-size-12);font-weight:600;text-decoration:none;border-top:1px solid var(--sf-border,#e5e7eb)}
+.sf-account-page .sf-account-legal-main .sf-account-legal-links a:hover{text-decoration:underline;text-underline-offset:3px}
