@@ -568,10 +568,12 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
         {!trackingPage && <button type="button" className="sf-track-order-button" onClick={navigateTracking} aria-label="Track order" title="Track order">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 5.5h15v13h-15z"/><path d="M8 9h8M8 12h5"/></svg>
         </button>}
-        <span className="sf-header-divider" aria-hidden="true"/>
-        <button type="button" className="sf-bag-button" onClick={() => navigateCart(true)} aria-label={'Open cart with ' + count + ' items'}>
-          <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
-        </button>
+        {!cartPage && <>
+          <span className="sf-header-divider" aria-hidden="true"/>
+          <button type="button" className="sf-bag-button" onClick={() => navigateCart(true)} aria-label={'Open cart with ' + count + ' items'}>
+            <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
+          </button>
+        </>}
         <a href={baseUrl + 'account'} className="sf-account-button" aria-label="Open customer account" title="My account">
           <AccountIcon/>
         </a>
