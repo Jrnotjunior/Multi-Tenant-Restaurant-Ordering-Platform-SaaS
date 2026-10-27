@@ -702,7 +702,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       </section>
       <div className="sf-footer-bottom">
         <small>© {new Date().getFullYear()} All rights reserved.</small>
-        <a className="sf-footer-powered-by" href="https://web2table.io" target="_blank" rel="noreferrer">Powered by <strong>Web2Table</strong></a>
+        <a className="sf-footer-powered-by" href="https://web2table.io" target="_blank" rel="noreferrer" aria-label="Powered by Web2Table"><span>Powered by</span><img src="https://wvibrchebfwirbgkcnbr.supabase.co/storage/v1/object/public/web2table-assets/web2table1.png" alt="Web2Table" /></a>
       </div>
       </div>
     </footer>)}
