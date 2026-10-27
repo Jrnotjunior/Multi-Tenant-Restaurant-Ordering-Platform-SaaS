@@ -70,7 +70,7 @@ export async function syncAppFaviconForSlug(slug: string): Promise<void> {
   const row = (Array.isArray(data) ? data[0] : data) as { faviconPath?: unknown; favicon_path?: unknown } | null;
   const path = row?.faviconPath ?? row?.favicon_path;
   if (path == null || path === '') { clearAppFavicon(); return; }
-  if (typeof path !== 'string' || !/^[0-9a-f-]{36}\\/[0-9a-f-]{36}\\.(?:jpg|jpeg|png|webp|ico)$/.test(path)) throw new Error('Invalid published restaurant favicon path');
+  if (typeof path !== 'string' || !/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(?:jpg|jpeg|png|webp|ico)$/.test(path)) throw new Error('Invalid published restaurant favicon path');
   const url = supabase.storage.from('storefront-logos').getPublicUrl(path).data.publicUrl;
   applyAppFavicon(url);
 }
