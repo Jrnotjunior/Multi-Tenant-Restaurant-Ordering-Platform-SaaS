@@ -1,10 +1,11 @@
+import type { ReactNode } from 'react';
 import './storefront.css';
 import './LegalPoliciesPage.css';
 
 
 const WEB2TABLE_LOGO = 'https://wvibrchebfwirbgkcnbr.supabase.co/storage/v1/object/public/web2table-assets/web2table.png';
 
-function CustomerPageShell({ children }: { children: React.ReactNode }) {
+function CustomerPageShell({ children }: { children: ReactNode }) {
   const base = import.meta.env.BASE_URL;
   return <div className="sf-storefront sf-account-page sf-legal-shell">
     <a className="sf-skip-link" href="#customer-legal-title">Skip to page content</a>
