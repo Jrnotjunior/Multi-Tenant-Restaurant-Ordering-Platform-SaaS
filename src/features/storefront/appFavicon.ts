@@ -16,7 +16,7 @@ export function applyAppFavicon(url: string, persist = true): void {
   if (!url || typeof url !== 'string') return;
   const link = getManagedFaviconLink();
   link.href = url;
-  if (/\\.ico(?:$|[?#])/i.test(url)) link.type = 'image/x-icon';
+  if (/\.ico(?:$|[?#])/i.test(url)) link.type = 'image/x-icon';
   else link.removeAttribute('type');
   if (persist) {
     try {
