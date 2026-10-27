@@ -581,12 +581,8 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           </button>
           <div className="sf-account-wrap">
             <button type="button" className="sf-account-button" aria-label={customerSignedIn ? "Open customer account" : "Customer account options"} title={customerSignedIn ? "My account" : "Customer account"} aria-haspopup={customerSignedIn ? undefined : "menu"} aria-expanded={customerSignedIn ? undefined : accountMenuOpen} onClick={() => {
-              if (customerSignedIn) {
-                setAccountMenuOpen(false);
-                window.location.assign(baseUrl + 'account');
-                return;
-              }
-              setAccountMenuOpen(open => !open);
+              setAccountMenuOpen(false);
+              window.location.assign(baseUrl + 'account');
             }}>
               <AccountIcon/>
             </button>
