@@ -1,4 +1,7 @@
+import { supabase } from '../../lib/supabase';
+
 const FAVICON_STORAGE_KEY = 'web2table:active-favicon';
+const ACTIVE_STOREFRONT_SLUG_KEY = 'web2table:active-storefront-slug';
 
 function getManagedFaviconLink(): HTMLLinkElement {
   let link = document.querySelector<HTMLLinkElement>('link[data-web2table-favicon="true"]');
@@ -45,4 +48,29 @@ export function clearAppFavicon(): void {
   } catch {
     // Clearing the visible link is still useful if session storage is unavailable.
   }
+}
+
+export function rememberActiveStorefrontSlug(slug: string): void {
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return;
+  try { window.sessionStorage.setItem(ACTIVE_STOREFRONT_SLUG_KEY, slug); } catch { /* best effort */ }
+}
+
+export function getRememberedStorefrontSlug(): string | null {
+  try {
+    const slug = window.sessionStorage.getItem(ACTIVE_STOREFRONT_SLUG_KEY);
+    return slug && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ? slug : null;
+  } catch { return null; }
+}
+
+export async function syncAppFaviconForSlug(slug: string): Promise<void> {
+  rememberActiveStorefrontSlug(slug);
+  if (!supabase) return;
+  const { data, error } = await supabase.rpc('get_public_storefront_favicon', { p_slug: slug });
+  if (error) throw error;
+  const row = (Array.isArray(data) ? data[0] : data) as { faviconPath?: unknown; favicon_path?: unknown } | null;
+  const path = row?.faviconPath ?? row?.favicon_path;
+  if (path == null || path === '') { clearAppFavicon(); return; }
+  if (typeof path !== 'string' || !/^[0-9a-f-]{36}\\/[0-9a-f-]{36}\\.(?:jpg|jpeg|png|webp|ico)$/.test(path)) throw new Error('Invalid published restaurant favicon path');
+  const url = supabase.storage.from('storefront-logos').getPublicUrl(path).data.publicUrl;
+  applyAppFavicon(url);
 }
