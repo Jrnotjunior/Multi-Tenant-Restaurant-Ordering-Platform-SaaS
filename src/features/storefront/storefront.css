@@ -622,3 +622,8 @@
 @media(max-width:680px){.sf-account-page .sf-account-legal-links{gap:8px 14px;padding:10px 0 4px}}
 
 /* Legal card inherits the existing account dashboard card styling. */
+
+/* Shared guest and signed-in customer account actions. */
+.sf-account-auth-action{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 13px;border:1px solid var(--sf-primary-button);border-radius:9px;background:var(--sf-primary-button);color:var(--sf-primary-button-font);font:inherit;font-size:var(--sf-font-size-13);font-weight:750;text-decoration:none}
+.sf-account-auth-action:hover{opacity:.88}
+.sf-account-auth-action.sf-account-auth-secondary{background:var(--sf-product-card);color:var(--sf-font-color);border-color:var(--sf-border)}
