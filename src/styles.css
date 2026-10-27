@@ -149,8 +149,8 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .onboarding-card .onboarding-mfa-form{margin-top:8px}
 .onboarding-card .onboarding-mfa-verify{width:100%}
 .onboarding-card .onboarding-signout{width:100%;box-sizing:border-box;margin-top:6px}
-.existing-account-mfa{grid-template-columns:minmax(0,1fr);width:min(600px,calc(100% - 32px));max-width:600px}
-.existing-account-mfa .onboarding-card{padding:26px}
+.existing-account-mfa{grid-template-columns:minmax(0,1fr);width:min(460px,calc(100% - 32px));max-width:460px}
+.existing-account-mfa .onboarding-card{padding:24px}
 .privileged-auth-only{
   box-sizing:border-box;
   grid-template-columns:minmax(0,1fr);
