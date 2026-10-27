@@ -9,7 +9,8 @@ import { CustomerSavedAddressesPage } from '../features/storefront/CustomerSaved
 import { CustomerLoyaltyPage } from '../features/storefront/CustomerLoyaltyPage';
 import { LegalPoliciesPage } from '../features/storefront/LegalPoliciesPage';
 import { RestaurantWorkspace } from '../features/operations/RestaurantWorkspace';
-import { restoreAppFavicon } from '../features/storefront/appFavicon';
+import { applyAppFavicon, getRememberedStorefrontSlug, rememberActiveStorefrontSlug, restoreAppFavicon, syncAppFaviconForSlug } from '../features/storefront/appFavicon';
+import { loadDefaultPublishedMenu } from '../features/storefront/publishedMenu';
 
 const protectedViews = {
   restaurant: {
@@ -29,6 +30,27 @@ export function App() {
   const cleanPath = pathname.replace(/\/+$/, '');
   const cleanBase = baseUrl.replace(/\/+$/, '');
   const authMode = cleanPath === cleanBase + '/account/sign-up' ? 'sign-up' : cleanPath === cleanBase + '/account/sign-in' ? 'sign-in' : null;
+
+  useEffect(() => {
+    let active = true;
+    const syncRouteFavicon = async () => {
+      if (view === 'restaurant' || view === 'admin') return;
+      try {
+        let slug = storefrontSlugFromPath(pathname, baseUrl);
+        if (slug) rememberActiveStorefrontSlug(slug);
+        else slug = getRememberedStorefrontSlug();
+        if (slug) { await syncAppFaviconForSlug(slug); return; }
+        const defaultStorefront = await loadDefaultPublishedMenu();
+        if (!active || !defaultStorefront) return;
+        rememberActiveStorefrontSlug(defaultStorefront.slug);
+        if (defaultStorefront.catalog.restaurant.faviconUrl) applyAppFavicon(defaultStorefront.catalog.restaurant.faviconUrl);
+      } catch {
+        // Favicon resolution must never block the current route.
+      }
+    };
+    void syncRouteFavicon();
+    return () => { active = false; };
+  }, [pathname, view, baseUrl, locationKey]);
 
   useEffect(() => {
     const syncHistory = () => setLocationKey(window.location.pathname + window.location.hash);
