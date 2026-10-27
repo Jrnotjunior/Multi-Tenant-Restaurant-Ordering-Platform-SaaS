@@ -264,28 +264,7 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
           <strong>{peso(item.line_total_centavos)}</strong>
         </li>)}</ul>
 
-        {/* Cashiers review incoming orders and set delivery fees from their dedicated workspace. */}
-        {false && order.order_type === 'delivery' && order.order_status === 'pending_confirmation' && order.payment_status === 'not_started' ? <div className="owner-order-delivery-fee">
-          <label htmlFor={'delivery-fee-' + order.id}>Delivery fee (PHP)</label>
-          <div>
-            <input
-              id={'delivery-fee-' + order.id}
-              type="number"
-              min="0"
-              max="10000000"
-              step="0.01"
-              inputMode="decimal"
-              placeholder="e.g. 50.00"
-              value={deliveryFees[order.id] ?? (order.delivery_fee_centavos == null ? '' : (order.delivery_fee_centavos / 100).toFixed(2))}
-              onChange={event => setDeliveryFees(current => ({ ...current, [order.id]: event.target.value }))}
-              aria-label={'Delivery fee for order ' + order.order_number + ' in pesos'}
-            />
-            <button type="button" disabled={busyOrder === order.id} onClick={() => void saveDeliveryFee(order)}>
-              {busyOrder === order.id ? 'Saving…' : 'Save fee'}
-            </button>
-          </div>
-          <small>Set the final delivery fee before confirming this order.</small>
-        </div> : null}
+
         <div className="owner-order-totals">
           <span>Subtotal <strong>{peso(order.subtotal_centavos)}</strong></span>
           <span>{order.order_type === 'delivery' ? 'Delivery fee' : 'Fulfillment fee'} <strong>{peso(order.delivery_fee_centavos)}</strong></span>
