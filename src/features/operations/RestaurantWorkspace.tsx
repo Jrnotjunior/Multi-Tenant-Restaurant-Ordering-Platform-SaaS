@@ -9,6 +9,7 @@ import { OwnerOrdersPage } from './OwnerOrdersPage';
 import { OwnerMenuPage } from './OwnerMenuPage';
 import { OwnerStoreSettingsPage } from './OwnerStoreSettingsPage';
 import { OwnerSectionPage } from './OwnerSectionPage';
+import { OwnerReportingPage } from './OwnerReportingPage';
 import { OwnerLoyaltyPage } from './OwnerLoyaltyPage';
 import { OwnerEmployeesPage } from './OwnerEmployeesPage';
 import { ownerNavGroups, type OwnerPage } from './ownerWorkspaceConfig';
@@ -178,6 +179,7 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
     if (page === 'branding') return <OwnerBrandingPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
     if (page === 'employees') return <OwnerEmployeesPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
     if (page === 'loyalty') return <OwnerLoyaltyPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
+    if (page === 'sales' || page === 'reports') return <OwnerReportingPage tenantId={membership.tenant_id} page={page} />;
     return <OwnerSectionPage page={page} restaurantName={restaurantName} onNavigate={navigateOwnerPage} />;
   };
 
