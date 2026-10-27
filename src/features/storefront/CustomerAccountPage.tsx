@@ -16,6 +16,7 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const [legalExpanded, setLegalExpanded] = useState(false);
   const base = normalizeAppBase(baseUrl);
 
   useEffect(() => {
@@ -90,13 +91,24 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
           <span aria-hidden="true">›</span>
         </a>
       </div>
-      <section className="sf-account-legal-main" aria-labelledby="sf-account-legal-heading">
-        <h2 id="sf-account-legal-heading">Legal</h2>
-        <nav className="sf-account-legal-links" aria-label="Legal policies">
-          <a href={base + '#privacy'}>Privacy</a>
-          <a href={base + '#terms'}>Terms</a>
-          <a href={base + '#refunds'}>Refunds</a>
-        </nav>
+      <section className="sf-account-legal-main">
+        <button
+          type="button"
+          className="sf-account-legal-toggle"
+          aria-expanded={legalExpanded}
+          aria-controls="sf-account-legal-options"
+          onClick={() => setLegalExpanded((expanded) => !expanded)}
+        >
+          <span>Legal</span>
+          <span className="sf-account-legal-chevron" aria-hidden="true">{legalExpanded ? '⌄' : '›'}</span>
+        </button>
+        {legalExpanded && (
+          <nav id="sf-account-legal-options" className="sf-account-legal-links" aria-label="Legal policies">
+            <a href={base + '#privacy'}>Privacy</a>
+            <a href={base + '#terms'}>Terms</a>
+            <a href={base + '#refunds'}>Refunds</a>
+          </nav>
+        )}
       </section>
     </main>
     <footer className="sf-footer">
