@@ -274,7 +274,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
   // they are not in the new-account onboarding flow.
   const isExistingAccountMfa = isMfa && flow?.kind === 'challenge';
   const isOnboarding = isSetup || (isMfa && flow?.kind === 'enroll');
-  return <main className={isExistingAccountMfa ? 'privileged-onboarding existing-account-mfa' : isOnboarding ? 'privileged-onboarding' : 'privileged-onboarding privileged-auth-only'} aria-live="polite">
+  return <main className={isExistingAccountMfa ? 'privileged-onboarding existing-account-mfa privileged-auth-only' : isOnboarding ? 'privileged-onboarding' : 'privileged-onboarding privileged-auth-only'} aria-live="polite">
     {isOnboarding && <aside className="onboarding-story">
       <a className="onboarding-brand onboarding-logo-only" href="/" aria-label="Web2Table home">
         <img
