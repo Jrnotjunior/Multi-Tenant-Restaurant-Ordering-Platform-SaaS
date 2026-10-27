@@ -20,7 +20,7 @@ Deno.serve(async(req:Request)=>{if(req.method==="OPTIONS")return new Response("o
  const loyaltyPointsToRedeem=Number(b.loyaltyPointsToRedeem??0);
  if(!Number.isSafeInteger(loyaltyPointsToRedeem)||loyaltyPointsToRedeem<0||loyaltyPointsToRedeem>2147483647)return json({error:"Choose a valid loyalty points amount."},400);
  const authorization=req.headers.get("Authorization")??"";
- const bearer=authorization.match(/^Bearer\\s+(.+)$/i)?.[1]??"";
+ const bearer=authorization.match(/^Bearer\s+(.+)$/i)?.[1]??"";
  let customerUserId:string|null=null;
  if(bearer){const {data:authData,error:authError}=await admin.auth.getUser(bearer);if(!authError&&authData.user)customerUserId=authData.user.id;}
  if(loyaltyPointsToRedeem>0&&!customerUserId)return json({error:"Sign in to redeem loyalty points. No order was placed."},401);
