@@ -6,7 +6,7 @@ import { MapboxDeliveryLocationPicker, type MapboxDeliveryAddress } from '../ope
 
 type OrderType = 'Delivery' | 'Take-out' | 'Pickup' | 'Dine-in';
 type PaymentMethod = 'cash' | 'online';
-export type CheckoutSubmission = { orderType: OrderType; customerName: string; phone: string; deliveryAddress: string; deliveryNotes: string; paymentMethod: PaymentMethod; deliveryLatitude: number | null; deliveryLongitude: number | null };
+export type CheckoutSubmission = { orderType: OrderType; customerName: string; phone: string; deliveryAddress: string; deliveryNotes: string; paymentMethod: PaymentMethod; deliveryLatitude: number | null; deliveryLongitude: number | null; loyaltyPointsToRedeem: number };
 
 type CheckoutPageProps = {
   restaurantSlug: string;
@@ -79,6 +79,9 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
   const [trackingError, setTrackingError] = useState('');
   const [deliveryQuote, setDeliveryQuote] = useState<{ feeCentavos: number; distanceMeters: number } | null>(null);
   const [quotingDelivery, setQuotingDelivery] = useState(false);
+  const [loyalty, setLoyalty] = useState<{ enabled: boolean; pointsBalance: number; rewardPoints: number; rewardAmountCentavos: number } | null>(null);
+  const [loyaltyPointsToRedeem, setLoyaltyPointsToRedeem] = useState(0);
+  const [loyaltyLoading, setLoyaltyLoading] = useState(false);
 
   useEffect(() => {
     if (!trackingToken || !supabase) return;
@@ -124,6 +127,39 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
       .finally(() => { if (active) setQuotingDelivery(false); });
     return () => { active = false; };
   }, [orderType, deliveryAddress?.latitude, deliveryAddress?.longitude, restaurantSlug]);
+  useEffect(() => {
+    let active = true;
+    setLoyalty(null);
+    setLoyaltyPointsToRedeem(0);
+    if (!supabase || !restaurantSlug) return;
+    setLoyaltyLoading(true);
+    void (async () => {
+      try {
+        const { data: sessionData } = await supabase!.auth.getSession();
+        const user = sessionData.session?.user;
+        if (!user) return;
+        const { data: tenant, error: tenantError } = await supabase!.from('tenants').select('id').eq('slug', restaurantSlug).maybeSingle();
+        if (tenantError || !tenant?.id) return;
+        const [{ data: settings, error: settingsError }, { data: account, error: accountError }] = await Promise.all([
+          supabase!.from('tenant_loyalty_settings').select('enabled,redemption_enabled,redemption_points,redemption_amount').eq('tenant_id', tenant.id).maybeSingle(),
+          supabase!.from('tenant_customer_loyalty_accounts').select('points_balance').eq('tenant_id', tenant.id).eq('customer_user_id', user.id).maybeSingle(),
+        ]);
+        if (!active || settingsError || accountError || !settings?.redemption_enabled || !Number(settings.redemption_points) || !Number(settings.redemption_amount)) return;
+        setLoyalty({
+          enabled: Boolean(settings.enabled),
+          pointsBalance: Math.max(0, Number(account?.points_balance ?? 0)),
+          rewardPoints: Number(settings.redemption_points),
+          rewardAmountCentavos: Math.round(Number(settings.redemption_amount) * 100),
+        });
+      } catch {
+        // Loyalty is optional at checkout; the server remains authoritative.
+      } finally {
+        if (active) setLoyaltyLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, [restaurantSlug]);
+
   const paymentComplete = ['paid', 'succeeded', 'completed'].includes((trackedStatus?.payment_status ?? '').toLowerCase());
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -165,8 +201,25 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
           <span>{line.quantity} × {line.name}</span><strong>{peso(line.totalCentavos)}</strong>
         </div>)}
         <div className="sf-checkout-summary-subtotal"><span>Subtotal</span><strong>{peso(subtotalCentavos)}</strong></div>
+        {loyaltyLoading && <p className="sf-checkout-optional">Checking available restaurant rewards…</p>}
+        {loyalty && <section className="sf-checkout-loyalty" aria-label="Redeem loyalty points">
+          <div><strong>Use loyalty points</strong><p className="sf-checkout-optional">Available balance: {loyalty.pointsBalance.toLocaleString()} points. This restaurant offers {loyalty.rewardPoints.toLocaleString()} points for {peso(loyalty.rewardAmountCentavos)} off.</p></div>
+          {(() => {
+            const maxAffordableBlocks = Math.floor(subtotalCentavos / loyalty.rewardAmountCentavos);
+            const maxBlocks = Math.min(Math.floor(loyalty.pointsBalance / loyalty.rewardPoints), maxAffordableBlocks);
+            const maxPoints = maxBlocks * loyalty.rewardPoints;
+            return <label className="sf-checkout-loyalty-control">Points to redeem
+              <select value={loyaltyPointsToRedeem} onChange={event => setLoyaltyPointsToRedeem(Number(event.target.value))}>
+                <option value={0}>Do not redeem</option>
+                {Array.from({ length: maxBlocks }, (_, index) => (index + 1) * loyalty.rewardPoints).map(points => <option key={points} value={points}>{points.toLocaleString()} points — {peso((points / loyalty.rewardPoints) * loyalty.rewardAmountCentavos)} off</option>)}
+              </select>
+              {maxPoints === 0 && <small>Earn more points or increase your order subtotal to use a reward.</small>}
+            </label>;
+          })()}
+        </section>}
+        {loyaltyPointsToRedeem > 0 && loyalty && <div className="sf-checkout-summary-delivery"><span>Loyalty discount</span><strong>−{peso((loyaltyPointsToRedeem / loyalty.rewardPoints) * loyalty.rewardAmountCentavos)}</strong></div>}
         {orderType === 'Delivery' && <div className="sf-checkout-summary-delivery"><span>Delivery fee</span><strong>{quotingDelivery ? 'Calculating…' : deliveryQuote ? peso(deliveryQuote.feeCentavos) : 'Select a delivery location'}</strong></div>}
-        <div className="sf-checkout-summary-grand-total"><span>Total</span><strong>{peso(orderType === 'Delivery' ? subtotalCentavos + (deliveryQuote?.feeCentavos ?? 0) : subtotalCentavos)}</strong></div>{orderType === 'Delivery' && deliveryQuote && <p className="sf-checkout-optional">Driving distance: {(deliveryQuote.distanceMeters / 1000).toFixed(1)} km. The server validates the fee again when placing the order.</p>}
+        <div className="sf-checkout-summary-grand-total"><span>Total</span><strong>{peso(Math.max(0, (orderType === 'Delivery' ? subtotalCentavos + (deliveryQuote?.feeCentavos ?? 0) : subtotalCentavos) - (loyalty && loyaltyPointsToRedeem > 0 ? (loyaltyPointsToRedeem / loyalty.rewardPoints) * loyalty.rewardAmountCentavos : 0))}</strong></div>{orderType === 'Delivery' && deliveryQuote && <p className="sf-checkout-optional">Driving distance: {(deliveryQuote.distanceMeters / 1000).toFixed(1)} km. The server validates the fee again when placing the order.</p>}
       </section>
 
       {message && <p className="sf-checkout-page-message" role="status">{message}</p>}
@@ -216,6 +269,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
                 paymentMethod: paymentMethod === 'online' ? 'online' : 'cash',
                 deliveryLatitude: orderType === 'Delivery' ? deliveryAddress?.latitude ?? null : null,
                 deliveryLongitude: orderType === 'Delivery' ? deliveryAddress?.longitude ?? null : null,
+                loyaltyPointsToRedeem,
               });
               try {
                 window.sessionStorage.setItem('web2table:latest-order-tracking', result.trackingToken);
