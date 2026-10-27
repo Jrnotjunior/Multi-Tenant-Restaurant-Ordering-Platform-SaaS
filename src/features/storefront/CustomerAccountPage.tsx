@@ -90,25 +90,23 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
           <span aria-hidden="true">›</span>
         </a>
       </div>
+      <nav className="sf-account-legal-links sf-account-legal-main" aria-label="Legal policies">
+        <a href={base + '#legal'}>Legal</a>
+        <a href={base + '#privacy'}>Privacy</a>
+        <a href={base + '#terms'}>Terms</a>
+        <a href={base + '#refunds'}>Refunds</a>
+      </nav>
     </main>
     <footer className="sf-footer">
       <div className="sf-footer-inner">
-        <div className="sf-account-footer-top">
-          <section className="sf-footer-social-section" aria-label="Follow the restaurant">
-            <h2 className="sf-footer-heading">Follow Us</h2>
-            <nav className="sf-footer-socials" aria-label="Social media links">
-              <span className="sf-footer-social-link is-disabled" aria-label="Facebook not configured" aria-disabled="true"><span aria-hidden="true">f</span></span>
-              <span className="sf-footer-social-link is-disabled" aria-label="Instagram not configured" aria-disabled="true"><span aria-hidden="true">◎</span></span>
-              <span className="sf-footer-social-link is-disabled" aria-label="TikTok not configured" aria-disabled="true"><span aria-hidden="true">♪</span></span>
-            </nav>
-          </section>
-          <nav className="sf-account-legal-links" aria-label="Legal policies">
-            <a href={base + '#legal'}>Legal</a>
-            <a href={base + '#privacy'}>Privacy</a>
-            <a href={base + '#terms'}>Terms</a>
-            <a href={base + '#refunds'}>Refunds</a>
+        <section className="sf-footer-social-section" aria-label="Follow the restaurant">
+          <h2 className="sf-footer-heading">Follow Us</h2>
+          <nav className="sf-footer-socials" aria-label="Social media links">
+            <span className="sf-footer-social-link is-disabled" aria-label="Facebook not configured" aria-disabled="true"><span aria-hidden="true">f</span></span>
+            <span className="sf-footer-social-link is-disabled" aria-label="Instagram not configured" aria-disabled="true"><span aria-hidden="true">◎</span></span>
+            <span className="sf-footer-social-link is-disabled" aria-label="TikTok not configured" aria-disabled="true"><span aria-hidden="true">♪</span></span>
           </nav>
-        </div>
+        </section>
         <div className="sf-footer-bottom">
           <small>© {new Date().getFullYear()} All rights reserved.</small>
           <a className="sf-footer-powered-by" href="https://web2table.io" target="_blank" rel="noreferrer">Powered by <strong>Web2Table</strong></a>
