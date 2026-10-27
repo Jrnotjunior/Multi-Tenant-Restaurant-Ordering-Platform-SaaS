@@ -479,3 +479,7 @@
 .owner-loyalty-table td:first-child strong,.owner-loyalty-table td:first-child small{display:block;overflow-wrap:anywhere}
 .owner-loyalty-table td:first-child small{margin-top:4px;color:#64748b;font-size:10px}
 @media(max-width:650px){.owner-loyalty-customer-heading{align-items:flex-start;flex-direction:column}.owner-loyalty-table th,.owner-loyalty-table td{padding:11px}}
+
+/* Keep loyalty values numeric while removing browser spinner controls. */
+.owner-loyalty-rule input[type="number"]{-moz-appearance:textfield;appearance:textfield}
+.owner-loyalty-rule input[type="number"]::-webkit-inner-spin-button,.owner-loyalty-rule input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
