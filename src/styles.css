@@ -149,10 +149,10 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 .onboarding-card .onboarding-mfa-form{margin-top:8px}
 .onboarding-card .onboarding-mfa-verify{width:100%}
 .onboarding-card .onboarding-signout{width:100%;box-sizing:border-box;margin-top:6px}
-.existing-account-mfa{grid-template-columns:minmax(0,1fr);width:min(400px,calc(100% - 32px));max-width:400px}
-.existing-account-mfa .onboarding-card{width:100%;min-height:360px;padding:32px 24px}
-.existing-account-mfa.privileged-auth-only{width:100%;max-width:none;height:100vh;height:100dvh;min-height:0;margin:0;padding:16px;place-items:center;border:0;border-radius:0;background:var(--color-page);box-shadow:none}
-.existing-account-mfa.privileged-auth-only .onboarding-card{width:min(400px,100%);max-width:400px}
+.existing-account-mfa{box-sizing:border-box;grid-template-columns:minmax(0,1fr);width:min(400px,calc(100% - 32px));max-width:400px}
+.existing-account-mfa .onboarding-card{box-sizing:border-box;width:100%;height:auto;min-height:0;padding:24px}
+.existing-account-mfa.privileged-auth-only{position:fixed;inset:0;z-index:1000;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;box-sizing:border-box;width:100%;max-width:none;height:100vh;height:100dvh;min-height:0;margin:0;padding:16px;overflow-x:hidden;overflow-y:auto;border:0;border-radius:0;background:var(--color-page);box-shadow:none}
+.existing-account-mfa.privileged-auth-only .onboarding-card{width:min(400px,100%);max-width:400px;height:auto;min-height:0;align-self:center;justify-self:center;padding:24px}
 .privileged-auth-only{
   box-sizing:border-box;
   grid-template-columns:minmax(0,1fr);
@@ -211,8 +211,9 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
   .privileged-onboarding:not(.privileged-auth-only){position:relative;inset:auto;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);width:100%;max-width:600px;height:100dvh;max-height:none;min-height:0;align-self:stretch;justify-self:center;overflow:hidden;margin:0;padding:0;background:transparent;border:0;border-radius:0}
   .privileged-onboarding:not(.privileged-auth-only) .onboarding-story{border-radius:14px 14px 0 0}
   .privileged-onboarding:not(.privileged-auth-only) .onboarding-card{height:100%;min-height:0;align-self:stretch;border-radius:0 0 14px 14px}
-  .existing-account-mfa{grid-template-columns:minmax(0,1fr);width:min(400px,calc(100% - 32px));max-width:400px;height:auto;min-height:360px;max-height:calc(100dvh - 32px);align-self:center;justify-self:center;margin:0;overflow-y:auto}
+  .existing-account-mfa{grid-template-columns:minmax(0,1fr);width:min(400px,calc(100% - 32px));max-width:400px;height:auto;min-height:0;max-height:calc(100dvh - 32px);align-self:center;justify-self:center;margin:0;overflow-y:visible}
   .existing-account-mfa.privileged-auth-only{position:fixed;inset:0;width:100%;max-width:none;height:100vh;height:100dvh;min-height:0;margin:0;padding:16px;place-items:center;overflow-x:hidden;overflow-y:auto}
+  .existing-account-mfa.privileged-auth-only .onboarding-card{width:min(400px,100%);min-height:0;padding:24px 20px}
   .privileged-auth-only{position:fixed;inset:0;width:100%;height:100vh;height:100dvh;min-height:0;margin:0;padding:16px;border:0;border-radius:0;display:grid;place-items:center;overflow-x:hidden;overflow-y:auto;background:var(--color-page)}
   .onboarding-story{height:auto;min-height:0;padding:16px 18px;gap:8px}
   .onboarding-brand.onboarding-logo-only{width:min(100%,112px)}
@@ -230,8 +231,9 @@ button,input,select,textarea{font-family:inherit}*{box-sizing:border-box}body{ma
 }
 @media(max-width:430px){
   .privileged-onboarding:not(.privileged-auth-only){width:100%;height:100dvh;margin:0;padding:0;border:0;border-radius:0}
-  .existing-account-mfa{width:min(400px,calc(100% - 32px));max-width:400px;min-height:360px;height:auto;margin:0;align-self:center;justify-self:center;border-radius:14px}
+  .existing-account-mfa{width:min(400px,calc(100% - 32px));max-width:400px;min-height:0;height:auto;margin:0;align-self:center;justify-self:center;border-radius:14px}
   .existing-account-mfa.privileged-auth-only{width:100%;max-width:none;height:100vh;height:100dvh;min-height:0;margin:0;padding:16px;border:0;border-radius:0}
+  .existing-account-mfa.privileged-auth-only .onboarding-card{min-height:0;padding:24px 20px}
   .privileged-auth-only{width:100%;margin:0;padding:16px;border:0;border-radius:0}
   .onboarding-story{padding:14px 14px;gap:6px}
   .onboarding-brand.onboarding-logo-only{width:100px}
