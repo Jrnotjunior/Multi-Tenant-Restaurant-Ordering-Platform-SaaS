@@ -1,4 +1,45 @@
+import './storefront.css';
 import './LegalPoliciesPage.css';
+
+
+const WEB2TABLE_LOGO = 'https://wvibrchebfwirbgkcnbr.supabase.co/storage/v1/object/public/web2table-assets/web2table.png';
+
+function CustomerPageShell({ children }: { children: React.ReactNode }) {
+  const base = import.meta.env.BASE_URL;
+  return <div className="sf-storefront sf-account-page sf-legal-shell">
+    <a className="sf-skip-link" href="#customer-legal-title">Skip to page content</a>
+    <header className="sf-header">
+      <div className="sf-header-inner">
+        <a href={base} className="sf-logo" aria-label="Web2Table storefront">
+          <img className="sf-logo-image" src={WEB2TABLE_LOGO} alt="Web2Table" width={46} height={46} />
+        </a>
+        <nav className="sf-header-actions" aria-label="Store navigation">
+          <a href={base} className="sf-track-order-button sf-account-storefront-link" aria-label="Back to storefront" title="Storefront">Storefront</a>
+          <a href={base + 'account'} className="sf-account-button" aria-label="Open customer account" title="My account">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.5-3.8 3.1-5.7 7-5.7s6.5 1.9 7 5.7"/></svg>
+          </a>
+        </nav>
+      </div>
+    </header>
+    <main className="sf-main sf-account-main sf-legal-main">{children}</main>
+    <footer className="sf-footer">
+      <div className="sf-footer-inner">
+        <section className="sf-footer-social-section" aria-label="Follow Web2Table">
+          <h2 className="sf-footer-heading">Follow Us</h2>
+          <nav className="sf-footer-socials" aria-label="Social media links">
+            <span className="sf-footer-social-link is-disabled" aria-label="Facebook not configured" aria-disabled="true"><span aria-hidden="true">f</span></span>
+            <span className="sf-footer-social-link is-disabled" aria-label="Instagram not configured" aria-disabled="true"><span aria-hidden="true">◎</span></span>
+            <span className="sf-footer-social-link is-disabled" aria-label="TikTok not configured" aria-disabled="true"><span aria-hidden="true">♪</span></span>
+          </nav>
+        </section>
+        <div className="sf-footer-bottom">
+          <small>© {new Date().getFullYear()} All rights reserved.</small>
+          <a className="sf-footer-powered-by" href="https://web2table.io" target="_blank" rel="noreferrer">Powered by <strong>Web2Table</strong></a>
+        </div>
+      </div>
+    </footer>
+  </div>;
+}
 
 const policies = [
   { href: '#privacy', title: 'Privacy Notice', description: 'Learn how personal information is collected, used, and protected.', icon: 'shield' },
@@ -50,13 +91,13 @@ export function LegalPoliciesPage({ route = '#legal' }: { route?: string }) {
     },
   } as const;
   const detail = details[route as keyof typeof details];
-  if (detail) return <main className="customer-legal-page customer-legal-detail" aria-labelledby="customer-legal-title">
+  if (detail) return <CustomerPageShell><article className="customer-legal-page customer-legal-detail" aria-labelledby="customer-legal-title">
     <p className="customer-legal-eyebrow">{detail.eyebrow}</p>
     <h1 id="customer-legal-title">{detail.title}</h1>
     <p className="customer-legal-intro-copy">{detail.intro}</p>
     {detail.sections.map(([heading, body], index) => <section className="customer-legal-section" key={heading}><h2>{heading}</h2><p>{body}</p></section>)}
-  </main>;
-  return <section className="customer-legal-page" aria-labelledby="customer-legal-title">
+  </article></CustomerPageShell>;
+  return <CustomerPageShell><section className="customer-legal-page" aria-labelledby="customer-legal-title">
     <section className="customer-legal-intro"><h1 id="customer-legal-title">Legal &amp; Policies</h1></section>
     <nav className="customer-legal-list" aria-label="Legal documents">
       {policies.map((policy) => <a className="customer-legal-link" href={policy.href} key={policy.href}>
@@ -65,5 +106,5 @@ export function LegalPoliciesPage({ route = '#legal' }: { route?: string }) {
         <span className="customer-legal-arrow" aria-hidden="true">›</span>
       </a>)}
     </nav>
-  </section>;
+  </section></CustomerPageShell>;
 }
