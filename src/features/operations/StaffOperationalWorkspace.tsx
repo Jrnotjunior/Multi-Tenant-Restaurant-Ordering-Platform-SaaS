@@ -467,7 +467,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           const canAssign = role === 'dispatcher' && order.order_status === 'ready_for_dispatch';
           const needsFee = role === 'cashier' && order.order_type === 'delivery' && order.order_status === 'pending_confirmation' && order.total_centavos == null;
           const needsAttention = (role === 'cashier' && order.order_status === 'pending_confirmation') || (role === 'kitchen' && ['confirmed', 'preparing'].includes(order.order_status)) || (role === 'dispatcher' && order.order_status === 'ready_for_dispatch');
-          if (role === 'cashier') return <button type="button" className="staff-cashier-order-summary" key={order.id} onClick={() => setSelectedCashierOrderId(order.id)} aria-label={`Open order ${order.order_number} details`}>
+          if (role !== 'rider') return <button type="button" className="staff-cashier-order-summary" key={order.id} onClick={() => setSelectedCashierOrderId(order.id)} aria-label={`Open order ${order.order_number} details`}>
             <span className="staff-cashier-summary-main"><strong>ORD-{String(order.order_number).padStart(5, '0')}</strong><span>{typeLabel(order.order_type)}</span></span>
             <span className="staff-cashier-summary-payment"><span>{order.payment_channel === 'online' ? 'Online' : 'Cash'} · {['paid','succeeded','completed'].includes(order.payment_status.toLowerCase()) ? 'Paid' : 'Unpaid'}</span><strong>{money(order.total_centavos)}</strong></span>
           </button>;
@@ -486,7 +486,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         })}</div>}
     </div>}
     </section>
-    {role === 'cashier' && selectedCashierOrderId && (() => {
+    {role !== 'rider' && selectedCashierOrderId && (() => {
       const order = orders.find(item => item.id === selectedCashierOrderId);
       if (!order) return null;
       const buttons = actions(order);
@@ -505,7 +505,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
             {order.order_type === 'delivery' && <div><span>Delivery fee</span><strong>{order.delivery_fee_centavos == null ? 'Pending' : money(order.delivery_fee_centavos)}</strong></div>}
           </div>
           <div className="staff-cashier-modal-total"><strong>Total</strong><strong>{money(order.total_centavos)}</strong></div>
-          {needsFee && <div className="staff-inline-control"><label htmlFor={'staff-fee-modal-' + order.id}>Delivery fee (PHP)</label><input id={'staff-fee-modal-' + order.id} type="number" min="0" max="10000000" step="0.01" inputMode="decimal" value={fees[order.id] ?? ''} onChange={event => setFees(current => ({ ...current, [order.id]: event.target.value }))} placeholder="e.g. 50.00" /><button className="staff-button staff-button-secondary" type="button" disabled={busy === order.id} onClick={() => void saveFee(order)}>Save fee</button></div>}
+          {role === 'dispatcher' && order.order_status === 'ready_for_dispatch' && <div className="staff-inline-control"><label htmlFor={'staff-rider-modal-' + order.id}>Assign branch rider</label><select id={'staff-rider-modal-' + order.id} value={selectedRiders[order.id] ?? order.assigned_rider_user_id ?? ''} onChange={event => setSelectedRiders(current => ({ ...current, [order.id]: event.target.value }))}><option value="">Choose a rider</option>{(riders[order.branch_id] ?? []).map(rider => <option key={rider.user_id} value={rider.user_id}>{rider.display_name || 'Rider'}</option>)}</select><button className="staff-button staff-button-secondary" type="button" disabled={busy === order.id || !(riders[order.branch_id] ?? []).length} onClick={() => void assign(order)}>Assign rider</button>{!(riders[order.branch_id] ?? []).length && <small>No active rider is assigned to this branch yet.</small>}</div>}{needsFee && <div className="staff-inline-control"><label htmlFor={'staff-fee-modal-' + order.id}>Delivery fee (PHP)</label><input id={'staff-fee-modal-' + order.id} type="number" min="0" max="10000000" step="0.01" inputMode="decimal" value={fees[order.id] ?? ''} onChange={event => setFees(current => ({ ...current, [order.id]: event.target.value }))} placeholder="e.g. 50.00" /><button className="staff-button staff-button-secondary" type="button" disabled={busy === order.id} onClick={() => void saveFee(order)}>Save fee</button></div>}
           {buttons.length > 0 && <footer className="staff-cashier-modal-actions">{buttons.map(button => <button key={button.action} type="button" disabled={busy === order.id} className={'staff-button ' + (button.primary ? 'staff-button-primary' : 'staff-button-secondary')} onClick={() => void act(order, button.action, button.label.toLowerCase())}>{busy === order.id ? 'Saving…' : button.label}</button>)}</footer>}
         </section>
       </div>;
