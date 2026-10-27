@@ -579,47 +579,9 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           <button type="button" className="sf-bag-button" onClick={() => navigateCart(true)} aria-label={'Open cart with ' + count + ' items'}>
             <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
           </button>
-          <div className="sf-account-wrap">
-            <button type="button" className="sf-account-button" aria-label={customerSignedIn ? "Open customer account" : "Customer account options"} title={customerSignedIn ? "My account" : "Customer account"} aria-haspopup={customerSignedIn ? undefined : "menu"} aria-expanded={customerSignedIn ? undefined : accountMenuOpen} onClick={() => {
-              setAccountMenuOpen(false);
-              window.location.assign(baseUrl + 'account');
-            }}>
-              <AccountIcon/>
-            </button>
-            {accountMenuOpen && <div className="sf-account-menu" role="menu" aria-label="Your account">
-              <div className="sf-account-menu-heading">
-                {customerSignedIn
-                  ? <a href={baseUrl + 'account'} onClick={() => setAccountMenuOpen(false)}><strong>{customerDisplayName || 'Your account'}</strong></a>
-                  : <strong>Your account</strong>}
-                <span>{customerSignedIn ? 'You are signed in.' : 'Sign in or review our policies.'}</span>
-              </div>
-              {customerSignedIn ? <>
-                <a role="menuitem" href={baseUrl + 'account/loyalty'} onClick={() => setAccountMenuOpen(false)}>Loyalty Points</a>
-                <a role="menuitem" href={baseUrl + '#legal'} onClick={() => setAccountMenuOpen(false)}>Legal &amp; Policies</a>
-                <a role="menuitem" href={baseUrl + 'account/orders'} onClick={() => setAccountMenuOpen(false)}>Order History</a>
-                <a role="menuitem" href={baseUrl + 'account/addresses'} onClick={() => setAccountMenuOpen(false)}>Saved Addresses</a>
-              </> : <a role="menuitem" href={baseUrl + '#legal'} onClick={() => setAccountMenuOpen(false)}>Legal &amp; Policies</a>}
-              {customerSignedIn ? <button type="button" role="menuitem" className="sf-account-menu-action" onClick={async () => {
-                setAccountMenuOpen(false);
-                if (!supabase) return;
-                const { error } = await supabase.auth.signOut();
-                if (error) {
-                  setAvailabilityMessage('Could not sign out. Please try again.');
-                  return;
-                }
-                const slug = resolvedSlug ?? requestedSlug;
-                if (slug) {
-                  try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', slug); } catch { /* Query parameter still carries context. */ }
-                }
-                const signInUrl = baseUrl + 'account/sign-in' + (slug ? '?restaurant=' + encodeURIComponent(slug) : '');
-                window.location.assign(signInUrl);
-              }}>Sign out</button> : <>
-                <a role="menuitem" href={baseUrl + 'account/sign-in' + (resolvedSlug ? '?restaurant=' + encodeURIComponent(resolvedSlug) : '')} onClick={() => { if (resolvedSlug) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', resolvedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign in</a>
-                <a role="menuitem" href={baseUrl + 'account/sign-up' + (resolvedSlug ? '?restaurant=' + encodeURIComponent(resolvedSlug) : '')} onClick={() => { if (resolvedSlug) { try { window.sessionStorage.setItem('web2table:customer-auth-restaurant', resolvedSlug); } catch { /* Query parameter still carries context. */ } } setAccountMenuOpen(false); }}>Sign up</a>
-              </>}
-            </div>}
-          </div>
-        </nav>
+          <a href={baseUrl + 'account'} className="sf-account-button" aria-label="Open customer account" title="My account">
+            <AccountIcon/>
+          </a>        </nav>
       </div>
     </header>)}
 
