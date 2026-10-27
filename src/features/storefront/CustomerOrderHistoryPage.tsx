@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { normalizeAppBase } from '../../app/routes';
+import { StorefrontFooter } from './StorefrontChrome';
 import './storefront.css';
 
 type HistoryItem = { name: string; quantity: number; total_centavos: number };
@@ -73,13 +74,6 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
       <a className="sf-tracking-back" href={base}>Back to storefront</a>
     </section>
     </main>
-    <footer className="sf-footer">
-      <div className="sf-footer-inner">
-        <div className="sf-footer-bottom">
-          <small>© {new Date().getFullYear()} All rights reserved.</small>
-          <a className="sf-footer-powered-by" href="https://web2table.io" target="_blank" rel="noreferrer">Powered by <strong>Web2Table</strong></a>
-        </div>
-      </div>
-    </footer>
+    <StorefrontFooter />
   </div>;
 }
