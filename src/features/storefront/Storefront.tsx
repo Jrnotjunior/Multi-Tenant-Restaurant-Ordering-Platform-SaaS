@@ -10,7 +10,7 @@ import { CheckoutPage, type CheckoutSubmission } from './CheckoutPage';
 import { OrderTrackingPage } from './OrderTrackingPage';
 import { StorefrontFooter, StorefrontHeader } from './StorefrontChrome';
 import { supabase } from '../../lib/supabase';
-import { applyAppFavicon } from './appFavicon';
+import { applyAppFavicon, clearAppFavicon } from './appFavicon';
 import './storefront.css';
 
 function readSessionValue<T>(key: string, fallback: T): T {
@@ -381,7 +381,8 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   useEffect(() => {
     const faviconUrl = remoteCatalog?.restaurant.faviconUrl;
     if (faviconUrl) applyAppFavicon(faviconUrl);
-  }, [remoteCatalog?.restaurant.faviconUrl]);
+    else if (remoteCatalog) clearAppFavicon();
+  }, [remoteCatalog?.restaurant.faviconUrl, remoteCatalog]);
 
   const catalog = remoteCatalog;
   const menu = catalog?.menu ?? [];
