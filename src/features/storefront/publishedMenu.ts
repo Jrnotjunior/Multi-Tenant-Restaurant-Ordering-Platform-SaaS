@@ -93,7 +93,7 @@ function getLogoUrl(path:unknown):string|null {
 
 function getFaviconUrl(path:unknown):string|null {
   if(path==null)return null;
-  if(typeof path!=='string' || !/^[0-9a-f-]{36}\\/[0-9a-f-]{36}\\.(?:jpg|jpeg|png|webp|ico)$/.test(path))
+  if(typeof path!=='string' || !/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(?:jpg|jpeg|png|webp|ico)$/.test(path))
     throw new Error('Invalid published restaurant favicon path');
   if(!supabase)return null;
   return supabase.storage.from('storefront-logos').getPublicUrl(path).data.publicUrl;
