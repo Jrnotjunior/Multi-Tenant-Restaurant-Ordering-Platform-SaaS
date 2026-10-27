@@ -101,6 +101,12 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
             <span className="sf-footer-social-link is-disabled" aria-label="TikTok not configured" aria-disabled="true"><span aria-hidden="true">♪</span></span>
           </nav>
         </section>
+        <nav className="sf-account-legal-links" aria-label="Legal policies">
+          <a href={base + '#legal'}>Legal</a>
+          <a href={base + '#privacy'}>Privacy</a>
+          <a href={base + '#terms'}>Terms</a>
+          <a href={base + '#refunds'}>Refunds</a>
+        </nav>
         <div className="sf-footer-bottom">
           <small>© {new Date().getFullYear()} All rights reserved.</small>
           <a className="sf-footer-powered-by" href="https://web2table.io" target="_blank" rel="noreferrer">Powered by <strong>Web2Table</strong></a>
