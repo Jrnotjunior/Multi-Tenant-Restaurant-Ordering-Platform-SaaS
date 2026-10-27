@@ -8,6 +8,7 @@ import { isStorefrontCartPath, isStorefrontCheckoutPath, isStorefrontTrackingPat
 import { CartPage } from './CartPage';
 import { CheckoutPage, type CheckoutSubmission } from './CheckoutPage';
 import { OrderTrackingPage } from './OrderTrackingPage';
+import { StorefrontFooter, StorefrontHeader } from './StorefrontChrome';
 import { supabase } from '../../lib/supabase';
 import './storefront.css';
 
@@ -564,26 +565,25 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     '--sf-red-dark': websiteColors.secondaryButton,
   } as CSSProperties;
   return <div className={'sf-storefront' + tenantFontClass} style={storefrontTheme}>
-    {(<header className="sf-header">
-      <div className="sf-header-inner">
-        <a href={menuUrl} className="sf-logo" aria-label={restaurant.name + " menu"}>
-          {restaurant.logoUrl
-            ? <img className="sf-logo-image" src={restaurant.logoUrl} alt={restaurant.name + " logo"} width={46} height={46} />
-            : <span className="sf-logo-mark">{restaurant.initials}</span>}
+    <StorefrontHeader
+      logo={<a href={menuUrl} className="sf-logo" aria-label={restaurant.name + " menu"}>
+        {restaurant.logoUrl
+          ? <img className="sf-logo-image" src={restaurant.logoUrl} alt={restaurant.name + " logo"} width={46} height={46} />
+          : <span className="sf-logo-mark">{restaurant.initials}</span>}
+      </a>}
+      actions={<>
+        {!trackingPage && <button type="button" className="sf-track-order-button" onClick={navigateTracking} aria-label="Track order" title="Track order">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 5.5h15v13h-15z"/><path d="M8 9h8M8 12h5"/></svg>
+        </button>}
+        <span className="sf-header-divider" aria-hidden="true"/>
+        <button type="button" className="sf-bag-button" onClick={() => navigateCart(true)} aria-label={'Open cart with ' + count + ' items'}>
+          <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
+        </button>
+        <a href={baseUrl + 'account'} className="sf-account-button" aria-label="Open customer account" title="My account">
+          <AccountIcon/>
         </a>
-        <nav className="sf-header-actions" aria-label="Store navigation">
-          {!trackingPage && <button type="button" className="sf-track-order-button" onClick={navigateTracking} aria-label="Track order" title="Track order">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 5.5h15v13h-15z"/><path d="M8 9h8M8 12h5"/></svg>
-          </button>}
-          <span className="sf-header-divider" aria-hidden="true"/>
-          <button type="button" className="sf-bag-button" onClick={() => navigateCart(true)} aria-label={'Open cart with ' + count + ' items'}>
-            <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
-          </button>
-          <a href={baseUrl + 'account'} className="sf-account-button" aria-label="Open customer account" title="My account">
-            <AccountIcon/>
-          </a>        </nav>
-      </div>
-    </header>)}
+      </>}
+    />
 
     <main className={cartPage ? "sf-main sf-main-cart" : "sf-main"}>
       {trackingPage ? <OrderTrackingPage onBackToMenu={() => { window.location.hash = restaurantMenuHash(resolvedSlug ?? requestedSlug ?? ''); setTrackingPage(false); setCartPage(false); setCheckoutPage(false); }} /> : cartPage ? <CartPage count={count} onBack={() => navigateCart(false)}>
@@ -690,22 +690,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       </>}
     </main>
 
-    {(<footer className="sf-footer">
-      <div className="sf-footer-inner">
-      <section className="sf-footer-social-section" aria-label="Follow the restaurant">
-        <h2 className="sf-footer-heading">Follow Us</h2>
-        <nav className="sf-footer-socials" aria-label="Social media links">
-          <span className="sf-footer-social-link is-disabled" aria-label="Facebook not configured" aria-disabled="true"><img className="sf-footer-social-logo" src={`${import.meta.env.BASE_URL}social-facebook.svg`} alt="" /></span>
-          <span className="sf-footer-social-link is-disabled" aria-label="Instagram not configured" aria-disabled="true"><img className="sf-footer-social-logo" src={`${import.meta.env.BASE_URL}social-instagram.svg`} alt="" /></span>
-          <span className="sf-footer-social-link is-disabled" aria-label="TikTok not configured" aria-disabled="true"><img className="sf-footer-social-logo" src={`${import.meta.env.BASE_URL}social-tiktok.svg`} alt="" /></span>
-        </nav>
-      </section>
-      <div className="sf-footer-bottom">
-        <small>© {new Date().getFullYear()} All rights reserved.</small>
-        <div className="sf-footer-powered-by-wrap"><a className="sf-footer-powered-by" href="https://web2table.io" target="_blank" rel="noreferrer" aria-label="Powered by Web2Table"><span>Powered by</span><img src="https://wvibrchebfwirbgkcnbr.supabase.co/storage/v1/object/public/web2table-assets/web2table1.png" alt="Web2Table" /></a></div>
-      </div>
-      </div>
-    </footer>)}
+    <StorefrontFooter />
 
     {checkoutOpen && <div className="sf-checkout-backdrop" role="presentation" onMouseDown={event => {if(event.target===event.currentTarget)setCheckoutOpen(false);}}>
       <section className="sf-checkout-panel" role="dialog" aria-modal="true" aria-labelledby="sf-checkout-heading">
