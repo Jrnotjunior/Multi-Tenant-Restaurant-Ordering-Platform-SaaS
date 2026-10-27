@@ -36,3 +36,13 @@ export function restoreAppFavicon(): void {
     // Favicon restoration is best-effort and must not block app startup.
   }
 }
+
+/** Clear a previous tenant icon when the newly loaded tenant has no favicon. */
+export function clearAppFavicon(): void {
+  document.querySelector<HTMLLinkElement>('link[data-web2table-favicon="true"]')?.remove();
+  try {
+    window.sessionStorage.removeItem(FAVICON_STORAGE_KEY);
+  } catch {
+    // Clearing the visible link is still useful if session storage is unavailable.
+  }
+}
