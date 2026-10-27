@@ -90,12 +90,14 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
           <span aria-hidden="true">›</span>
         </a>
       </div>
-      <nav className="sf-account-legal-links sf-account-legal-main" aria-label="Legal policies">
-        <a href={base + '#legal'}>Legal</a>
-        <a href={base + '#privacy'}>Privacy</a>
-        <a href={base + '#terms'}>Terms</a>
-        <a href={base + '#refunds'}>Refunds</a>
-      </nav>
+      <section className="sf-account-legal-main" aria-labelledby="sf-account-legal-heading">
+        <h2 id="sf-account-legal-heading">Legal</h2>
+        <nav className="sf-account-legal-links" aria-label="Legal policies">
+          <a href={base + '#privacy'}>Privacy</a>
+          <a href={base + '#terms'}>Terms</a>
+          <a href={base + '#refunds'}>Refunds</a>
+        </nav>
+      </section>
     </main>
     <footer className="sf-footer">
       <div className="sf-footer-inner">
