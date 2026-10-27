@@ -572,3 +572,12 @@
 /* Customer account uses the same storefront header/footer components and sizing. */
 .sf-account-storefront-link{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 10px;color:var(--sf-header-icon);font:inherit;font-size:var(--sf-font-size-12);font-weight:750;text-decoration:none;white-space:nowrap}
 .sf-account-storefront-link:hover{opacity:.82}
+
+/* Checkout loyalty redemption */
+
+.sf-checkout-loyalty{display:flex;flex-direction:column;gap:12px;margin:14px 0;padding:15px;border:1px solid var(--sf-border);border-radius:12px;background:var(--sf-product-card);color:var(--sf-font-color)}
+.sf-checkout-loyalty>div>strong{font-size:var(--sf-font-size-14)}
+.sf-checkout-loyalty .sf-checkout-optional{margin:5px 0 0;line-height:1.5}
+.sf-checkout-loyalty-control{display:flex;flex-direction:column;gap:7px;font-size:var(--sf-font-size-13);font-weight:700}
+.sf-checkout-loyalty-control select{width:100%;min-height:42px;padding:9px 11px;border:1px solid var(--sf-border);border-radius:9px;background:var(--sf-page-background);color:var(--sf-font-color);font:inherit;font-weight:500}
+.sf-checkout-loyalty-control small{color:var(--sf-muted);font-size:var(--sf-font-size-12);font-weight:400}
