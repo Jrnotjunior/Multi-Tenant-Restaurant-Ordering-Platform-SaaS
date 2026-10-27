@@ -695,9 +695,9 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       <section className="sf-footer-social-section" aria-label="Follow the restaurant">
         <h2 className="sf-footer-heading">Follow Us</h2>
         <nav className="sf-footer-socials" aria-label="Social media links">
-          <span className="sf-footer-social-link is-disabled" aria-label="Facebook not configured" aria-disabled="true"><span aria-hidden="true">f</span></span>
-          <span className="sf-footer-social-link is-disabled" aria-label="Instagram not configured" aria-disabled="true"><span aria-hidden="true">◎</span></span>
-          <span className="sf-footer-social-link is-disabled" aria-label="TikTok not configured" aria-disabled="true"><span aria-hidden="true">♪</span></span>
+          <span className="sf-footer-social-link is-disabled" aria-label="Facebook not configured" aria-disabled="true"><img className="sf-footer-social-logo" src={`${import.meta.env.BASE_URL}social-facebook.svg`} alt="" /></span>
+          <span className="sf-footer-social-link is-disabled" aria-label="Instagram not configured" aria-disabled="true"><img className="sf-footer-social-logo" src={`${import.meta.env.BASE_URL}social-instagram.svg`} alt="" /></span>
+          <span className="sf-footer-social-link is-disabled" aria-label="TikTok not configured" aria-disabled="true"><img className="sf-footer-social-logo" src={`${import.meta.env.BASE_URL}social-tiktok.svg`} alt="" /></span>
         </nav>
       </section>
       <div className="sf-footer-bottom">
