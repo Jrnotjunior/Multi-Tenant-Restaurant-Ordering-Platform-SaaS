@@ -118,7 +118,7 @@ export function OwnerBrandingPage({tenantId,restaurantName}:Props) {
       {tab==='identity'&&<section className="owner-branding-panel">
         <div className="owner-branding-field"><h2>Browser tab icon</h2><p>Choose the small icon customers see in their browser tab.</p>
           <div className="owner-branding-upload">{favicon?<img src={favicon} alt="Current browser tab icon"/>:<span className="owner-branding-placeholder">W2T</span>}
-            <button type="button" onClick={()=>faviconInput.current?.click()}>Choose favicon</button><input ref={faviconInput} hidden type="file" accept="image/png,image/jpeg,image/webp,image/x-icon,image/vnd.microsoft.icon,.ico" onChange={e=>void uploadImage(e,'favicon')}/></div>
+            <button type="button" onClick={()=>faviconInput.current?.click()}>Choose favicon</button><input ref={faviconInput} hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>void uploadImage(e,'favicon')}/></div>
         </div>
         <div className="owner-branding-field"><h2>Restaurant logo</h2><p>Choose the logo customers see on your restaurant website.</p>
           <div className="owner-branding-upload">{logo?<img src={logo} alt="Current restaurant logo"/>:<span className="owner-branding-placeholder">{displayName.slice(0,3)||'LOGO'}</span>}
