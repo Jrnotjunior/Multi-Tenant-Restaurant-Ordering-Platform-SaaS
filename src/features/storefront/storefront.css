@@ -621,7 +621,9 @@
 .sf-account-page .sf-account-legal-links a:hover{opacity:.8}
 @media(max-width:680px){.sf-account-page .sf-account-legal-links{gap:8px 14px;padding:10px 0 4px}}
 
-/* Legal policy links belong to the customer account content area, not its footer. */
-.sf-account-page .sf-account-legal-main{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px 18px;padding:18px 0 6px}
-.sf-account-page .sf-account-legal-main a{color:var(--sf-font-color);font-size:var(--sf-font-size-12);font-weight:650;text-decoration:underline;text-underline-offset:3px}
-.sf-account-page .sf-account-legal-main a:hover{color:var(--sf-muted)}
+/* Legal is the parent heading; its policy links are grouped beneath it. */
+.sf-account-page .sf-account-legal-main{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:18px 0 6px}
+.sf-account-page .sf-account-legal-main h2{margin:0;color:var(--sf-font-color);font-size:var(--sf-font-size-13);font-weight:750}
+.sf-account-page .sf-account-legal-main .sf-account-legal-links{display:flex;align-items:flex-start;justify-content:flex-start;flex-direction:column;gap:7px;padding:0 0 0 12px}
+.sf-account-page .sf-account-legal-main .sf-account-legal-links a{color:var(--sf-font-color);font-size:var(--sf-font-size-12);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.sf-account-page .sf-account-legal-main .sf-account-legal-links a:hover{color:var(--sf-muted)}
