@@ -39,6 +39,8 @@ DECLARE
   v_enabled boolean := false;
   v_previous_spend bigint := 0;
   v_next_spend bigint := 0;
+  v_current_balance integer := 0;
+  v_lifetime_earned integer := 0;
   v_points_delta bigint := 0;
 BEGIN
   -- Only act on the transition into the eligible state. The marker protects against
@@ -81,6 +83,17 @@ BEGIN
     RETURN NEW;
   END IF;
 
+  -- Protect against legacy/manual ledger entries as well as normal trigger retries.
+  IF EXISTS (
+    SELECT 1
+    FROM public.tenant_customer_loyalty_transactions t
+    WHERE t.tenant_id = NEW.tenant_id
+      AND t.order_id = NEW.id
+      AND t.transaction_type = 'earned'
+  ) THEN
+    RETURN NEW;
+  END IF;
+
   INSERT INTO public.tenant_customer_loyalty_accounts (
     tenant_id, customer_user_id, points_balance,
     lifetime_points_earned, lifetime_points_redeemed,
@@ -91,20 +104,24 @@ BEGIN
   ON CONFLICT (tenant_id, customer_user_id) DO NOTHING;
 
   -- Serialize concurrent orders for the same customer and tenant.
-  SELECT a.eligible_spend_centavos
-    INTO v_previous_spend
+  SELECT a.eligible_spend_centavos, a.points_balance, a.lifetime_points_earned
+    INTO v_previous_spend, v_current_balance, v_lifetime_earned
   FROM public.tenant_customer_loyalty_accounts a
   WHERE a.tenant_id = NEW.tenant_id
     AND a.customer_user_id = NEW.customer_user_id
   FOR UPDATE;
 
   v_previous_spend := coalesce(v_previous_spend, 0);
+  v_current_balance := coalesce(v_current_balance, 0);
+  v_lifetime_earned := coalesce(v_lifetime_earned, 0);
   v_next_spend := v_previous_spend + NEW.subtotal_centavos;
   v_points_delta :=
     ((v_next_spend / v_threshold_centavos) -
      (v_previous_spend / v_threshold_centavos)) * v_points_awarded;
 
-  IF v_points_delta > 2147483647 THEN
+  IF v_points_delta > 2147483647
+     OR v_points_delta > 2147483647 - v_current_balance
+     OR v_points_delta > 2147483647 - v_lifetime_earned THEN
     RAISE EXCEPTION 'Configured loyalty award exceeds the supported points limit'
       USING ERRCODE = '22003';
   END IF;
