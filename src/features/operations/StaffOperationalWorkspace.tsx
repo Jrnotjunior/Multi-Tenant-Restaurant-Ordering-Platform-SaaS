@@ -455,7 +455,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         const canToggle=item.status==='published';
         return <article className={'staff-kitchen-menu-card'+(!item.is_available?' is-unavailable':'')} key={item.id}>{publicMenuPhoto(item.image_path) ? <img src={publicMenuPhoto(item.image_path) ?? ''} alt="" loading="lazy" /> : <div className="staff-kitchen-menu-placeholder" aria-hidden="true">Menu item</div>}<div className="staff-kitchen-menu-details">{category && <span className="staff-kitchen-menu-category">{category.name}</span>}<h3>{item.name}</h3>{item.description && <p>{item.description}</p>}<strong>{money(item.price_centavos)}</strong><span className={'staff-kitchen-menu-status is-' + item.status}>{item.status === 'published' ? 'Published' : item.status === 'draft' ? 'Draft' : 'Archived'}</span><span className={'staff-kitchen-availability '+(item.is_available?'is-available':'is-unavailable')}>{item.is_available?'Available to order':'Unavailable to order'}</span>{canToggle && <button type="button" className={'staff-button '+(item.is_available?'staff-button-secondary':'staff-button-primary')} disabled={kitchenAvailabilityBusy===item.id||kitchenMenuLoading} onClick={()=>void changeKitchenAvailability(item.id,!item.is_available)}>{kitchenAvailabilityBusy===item.id?'Updating…':item.is_available?'Mark unavailable':'Mark available'}</button>}</div></article>;
       })}</div>}
-    </div> : <div className="staff-kitchen-order-content">{role !== 'rider' && <div className="staff-queue-toolbar">
+    </div> : <div className="staff-kitchen-order-content"><div className="staff-queue-toolbar">
         <label className="staff-order-search"><span className="staff-search-icon" aria-hidden="true">⌕</span><input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search order number, customer, phone…" aria-label="Search orders" /></label>
         <div className="staff-queue-toolbar-end staff-payment-toolbar">{role === 'cashier' && <div className="staff-payment-tabs" role="tablist" aria-label="Payment category"><button type="button" role="tab" aria-selected={paymentTab === 'all'} className={paymentTab === 'all' ? 'is-selected' : ''} onClick={() => setPaymentTab('all')}>All</button><button type="button" role="tab" aria-selected={paymentTab === 'online_paid'} className={paymentTab === 'online_paid' ? 'is-selected' : ''} onClick={() => setPaymentTab('online_paid')}>Online Paid <span className="staff-payment-count">{paymentCounts.onlinePaid}</span></button><button type="button" role="tab" aria-selected={paymentTab === 'unpaid'} className={paymentTab === 'unpaid' ? 'is-selected' : ''} onClick={() => setPaymentTab('unpaid')}>Unpaid <span className="staff-payment-count">{paymentCounts.unpaid}</span></button></div>}<span className="staff-result-count">{visibleOrders.length} {visibleOrders.length === 1 ? 'order' : 'orders'}</span></div>
       </div>}
@@ -467,7 +467,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           const canAssign = role === 'dispatcher' && order.order_status === 'ready_for_dispatch';
           const needsFee = role === 'cashier' && order.order_type === 'delivery' && order.order_status === 'pending_confirmation' && order.total_centavos == null;
           const needsAttention = (role === 'cashier' && order.order_status === 'pending_confirmation') || (role === 'kitchen' && ['confirmed', 'preparing'].includes(order.order_status)) || (role === 'dispatcher' && order.order_status === 'ready_for_dispatch');
-          if (role !== 'rider') return <button type="button" className="staff-cashier-order-summary" key={order.id} onClick={() => setSelectedCashierOrderId(order.id)} aria-label={`Open order ${order.order_number} details`}>
+          return <button type="button" className="staff-cashier-order-summary" key={order.id} onClick={() => setSelectedCashierOrderId(order.id)} aria-label={`Open order ${order.order_number} details`}>
             <span className="staff-cashier-summary-main"><strong>ORD-{String(order.order_number).padStart(5, '0')}</strong><span>{typeLabel(order.order_type)}</span></span>
             <span className="staff-cashier-summary-payment"><span>{order.payment_channel === 'online' ? 'Online' : 'Cash'} · {['paid','succeeded','completed'].includes(order.payment_status.toLowerCase()) ? 'Paid' : 'Unpaid'}</span><strong>{money(order.total_centavos)}</strong></span>
           </button>;
@@ -486,7 +486,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         })}</div>}
     </div>}
     </section>
-    {role !== 'rider' && selectedCashierOrderId && (() => {
+    {selectedCashierOrderId && (() => {
       const order = orders.find(item => item.id === selectedCashierOrderId);
       if (!order) return null;
       const buttons = actions(order);
