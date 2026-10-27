@@ -136,20 +136,16 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
     void (async () => {
       try {
         const { data: sessionData } = await supabase!.auth.getSession();
-        const user = sessionData.session?.user;
-        if (!user) return;
-        const { data: tenant, error: tenantError } = await supabase!.from('tenants').select('id').eq('slug', restaurantSlug).maybeSingle();
-        if (tenantError || !tenant?.id) return;
-        const [{ data: settings, error: settingsError }, { data: account, error: accountError }] = await Promise.all([
-          supabase!.from('tenant_loyalty_settings').select('enabled,redemption_enabled,redemption_points,redemption_amount').eq('tenant_id', tenant.id).maybeSingle(),
-          supabase!.from('tenant_customer_loyalty_accounts').select('points_balance').eq('tenant_id', tenant.id).eq('customer_user_id', user.id).maybeSingle(),
-        ]);
-        if (!active || settingsError || accountError || !settings?.redemption_enabled || !Number(settings.redemption_points) || !Number(settings.redemption_amount)) return;
+        if (!sessionData.session?.user) return;
+        const { data, error } = await supabase!.functions.invoke('customer-loyalty-quote', { body: { restaurantSlug } });
+        if (error) return;
+        const quote = data as { success?: boolean; enabled?: boolean; pointsBalance?: number; rewardPoints?: number; rewardAmountCentavos?: number; error?: string } | null;
+        if (!active || !quote?.success || !quote.enabled || !Number(quote.rewardPoints) || !Number(quote.rewardAmountCentavos)) return;
         setLoyalty({
-          enabled: Boolean(settings.enabled),
-          pointsBalance: Math.max(0, Number(account?.points_balance ?? 0)),
-          rewardPoints: Number(settings.redemption_points),
-          rewardAmountCentavos: Math.round(Number(settings.redemption_amount) * 100),
+          enabled: true,
+          pointsBalance: Math.max(0, Number(quote.pointsBalance ?? 0)),
+          rewardPoints: Number(quote.rewardPoints),
+          rewardAmountCentavos: Number(quote.rewardAmountCentavos),
         });
       } catch {
         // Loyalty is optional at checkout; the server remains authoritative.
