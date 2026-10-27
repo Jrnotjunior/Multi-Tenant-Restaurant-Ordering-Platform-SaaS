@@ -9,6 +9,7 @@ import { CustomerSavedAddressesPage } from '../features/storefront/CustomerSaved
 import { CustomerLoyaltyPage } from '../features/storefront/CustomerLoyaltyPage';
 import { LegalPoliciesPage } from '../features/storefront/LegalPoliciesPage';
 import { RestaurantWorkspace } from '../features/operations/RestaurantWorkspace';
+import { restoreAppFavicon } from '../features/storefront/appFavicon';
 
 const protectedViews = {
   restaurant: {
@@ -20,6 +21,8 @@ const protectedViews = {
 
 export function App() {
   const baseUrl = import.meta.env.BASE_URL;
+
+  useEffect(() => { restoreAppFavicon(); }, []);
   const [locationKey, setLocationKey] = useState(window.location.pathname + window.location.hash);
   const pathname = routePathFromLocation(window.location.pathname, window.location.hash, baseUrl);
   const view = viewForPath(pathname, baseUrl);
