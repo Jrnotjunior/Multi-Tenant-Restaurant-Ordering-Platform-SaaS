@@ -36,7 +36,20 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
     return () => { active = false; };
   }, []);
   const base = normalizeAppBase(baseUrl);
-  return <main className="sf-order-tracking-page">
+  return <div className="sf-storefront sf-account-shell">
+    <header className="sf-header">
+      <div className="sf-header-inner">
+        <a href={base} className="sf-logo sf-account-brand" aria-label="Web2Table storefront">
+          <img className="sf-logo-image" src="https://wvibrchebfwirbgkcnbr.supabase.co/storage/v1/object/public/web2table-assets/web2table.png" alt="Web2Table" width={46} height={46} />
+          <span>Web2Table</span>
+        </a>
+        <nav className="sf-header-actions" aria-label="Account navigation">
+          <a className="sf-account-nav-link" href={base + 'account'}>My account</a>
+          <a className="sf-account-nav-link" href={base}>Storefront</a>
+        </nav>
+      </div>
+    </header>
+    <main className="sf-order-tracking-page">
     <section className="sf-tracking-receipt" aria-live="polite">
       <span className="sf-tracking-eyebrow">YOUR ACCOUNT</span>
       <h1>Order history</h1>
@@ -59,5 +72,14 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
       </article>)}
       <a className="sf-tracking-back" href={base}>Back to storefront</a>
     </section>
-  </main>;
+    </main>
+    <footer className="sf-footer">
+      <div className="sf-footer-inner">
+        <div className="sf-footer-bottom">
+          <small>© {new Date().getFullYear()} All rights reserved.</small>
+          <a className="sf-footer-powered-by" href="https://web2table.io" target="_blank" rel="noreferrer">Powered by <strong>Web2Table</strong></a>
+        </div>
+      </div>
+    </footer>
+  </div>;
 }
