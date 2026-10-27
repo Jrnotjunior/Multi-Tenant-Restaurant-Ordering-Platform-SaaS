@@ -43,7 +43,8 @@ const dateTime = (value: string) => new Intl.DateTimeFormat('en-PH', {
 }).format(new Date(value));
 const statusLabel = (value: string) => value.replaceAll('_', ' ');
 const nextActions: Record<string, { action: string; label: string }[]> = {
-  pending_confirmation: [{ action: 'confirm', label: 'Confirm order' }, { action: 'reject', label: 'Reject' }],
+  // Incoming order decisions belong to the cashier workspace, not the owner dashboard.
+  pending_confirmation: [],
   confirmed: [{ action: 'start_preparing', label: 'Start preparing' }, { action: 'cancel', label: 'Cancel' }],
   preparing: [{ action: 'mark_ready', label: 'Mark ready' }],
   ready_for_dispatch: [{ action: 'dispatch', label: 'Dispatch' }],
@@ -263,7 +264,8 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
           <strong>{peso(item.line_total_centavos)}</strong>
         </li>)}</ul>
 
-        {order.order_type === 'delivery' && order.order_status === 'pending_confirmation' && order.payment_status === 'not_started' ? <div className="owner-order-delivery-fee">
+        {/* Cashiers review incoming orders and set delivery fees from their dedicated workspace. */}
+        {false && order.order_type === 'delivery' && order.order_status === 'pending_confirmation' && order.payment_status === 'not_started' ? <div className="owner-order-delivery-fee">
           <label htmlFor={'delivery-fee-' + order.id}>Delivery fee (PHP)</label>
           <div>
             <input
