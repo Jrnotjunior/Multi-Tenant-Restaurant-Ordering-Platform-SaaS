@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { StorefrontFooter } from './StorefrontChrome';
 import './storefront.css';
 import './LegalPoliciesPage.css';
 
@@ -25,22 +26,7 @@ function CustomerPageShell({ children }: { children: ReactNode }) {
       </div>
     </header>
     <main className="sf-main sf-account-main sf-legal-main">{children}</main>
-    <footer className="sf-footer">
-      <div className="sf-footer-inner">
-        <section className="sf-footer-social-section" aria-label="Follow Web2Table">
-          <h2 className="sf-footer-heading">Follow Us</h2>
-          <nav className="sf-footer-socials" aria-label="Social media links">
-            <span className="sf-footer-social-link is-disabled" aria-label="Facebook not configured" aria-disabled="true"><span aria-hidden="true">f</span></span>
-            <span className="sf-footer-social-link is-disabled" aria-label="Instagram not configured" aria-disabled="true"><span aria-hidden="true">◎</span></span>
-            <span className="sf-footer-social-link is-disabled" aria-label="TikTok not configured" aria-disabled="true"><span aria-hidden="true">♪</span></span>
-          </nav>
-        </section>
-        <div className="sf-footer-bottom">
-          <small>© {new Date().getFullYear()} All rights reserved.</small>
-          <a className="sf-footer-powered-by" href="https://web2table.io" target="_blank" rel="noreferrer">Powered by <strong>Web2Table</strong></a>
-        </div>
-      </div>
-    </footer>
+    <StorefrontFooter />
   </div>;
 }
 const policies = [
