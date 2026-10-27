@@ -67,7 +67,7 @@ export function OwnerReportingPage({ tenantId, page }: Props) {
   }, [orders, branchId, period]);
 
   const metrics = useMemo(() => {
-    const paid = filtered.filter(order => order.payment_status === 'paid' && !excludedStatuses.has(order.order_status));
+    const paid = filtered.filter(order => (order.payment_status === 'paid' || order.payment_status === 'refunded') && !excludedStatuses.has(order.order_status));
     const refunded = filtered.filter(order => order.payment_status === 'refunded');
     const completed = filtered.filter(order => completedStatuses.has(order.order_status));
     const paidSubtotal = paid.reduce((sum, order) => sum + Number(order.subtotal_centavos || 0), 0);
@@ -89,7 +89,7 @@ export function OwnerReportingPage({ tenantId, page }: Props) {
     return {
       paid, refunded, completed, paidSubtotal, refundSubtotal,
       netSubtotal: paidSubtotal - refundSubtotal,
-      paidOrderCount: paid.length,
+      paidOrderCount: filtered.filter(order => order.payment_status === 'paid' && !excludedStatuses.has(order.order_status)).length,
       byStatus: [...byStatus.entries()].sort((a, b) => b[1] - a[1]),
       topItems: [...byItem.entries()].sort((a, b) => b[1].quantity - a[1].quantity).slice(0, 8),
       daily: (() => {
@@ -127,7 +127,7 @@ export function OwnerReportingPage({ tenantId, page }: Props) {
       <p className="owner-reporting-note">Based on the latest {orders.length === 100 ? '100 orders returned by the order service' : orders.length + ' orders returned by the order service'}. Revenue includes paid orders only; refunded orders are shown separately. Totals use order item subtotal and exclude delivery fees.</p>
       {page === 'sales' ? <>
         <section className="owner-reporting-metrics" aria-label="Sales summary">
-          <article><span>Paid order subtotal</span><strong>{money(metrics.paidSubtotal)}</strong><small>{metrics.paidOrderCount} paid orders</small></article>
+          <article><span>Gross paid/refunded subtotal</span><strong>{money(metrics.paidSubtotal)}</strong><small>{metrics.paidOrderCount} currently paid orders</small></article>
           <article><span>Refunded subtotal</span><strong>{money(metrics.refundSubtotal)}</strong><small>{metrics.refunded.length} refunded orders</small></article>
           <article><span>Net after refunds</span><strong>{money(metrics.netSubtotal)}</strong><small>Excludes delivery fees</small></article>
           <article><span>Completed orders</span><strong>{metrics.completed.length}</strong><small>Delivered or completed</small></article>
