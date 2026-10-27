@@ -21,7 +21,7 @@ type CachedWorkspace = { userId: string; membership: Membership | null; restaura
 let cachedWorkspace: CachedWorkspace | null = null;
 
 const ownerPages = new Set<OwnerPage>([
-  'dashboard', 'orders', 'menu', 'inventory', 'recipes', 'employees',
+  'dashboard', 'orders', 'menu', 'employees',
   'sales', 'reports', 'loyalty', 'settings', 'branding',
 ]);
 
