@@ -44,13 +44,16 @@ export function App() {
   void locationKey;
 
   if (authMode) return <AccountAuthPage mode={authMode} baseUrl={baseUrl} restaurantSlug={new URLSearchParams(window.location.search).get('restaurant')} />;
+
+  // Legal hashes must take precedence over account routes so footer/content policy
+  // links actually open the policy page instead of rendering the account dashboard again.
+  const legalRoute = ['#legal', '#privacy', '#terms', '#refunds'].includes(window.location.hash) ? window.location.hash : null;
+  if (legalRoute) return <LegalPoliciesPage route={legalRoute} />;
+
   if (cleanPath === cleanBase + '/account') return <CustomerAccountPage baseUrl={baseUrl} />;
   if (cleanPath === cleanBase + '/account/addresses') return <CustomerSavedAddressesPage baseUrl={baseUrl} />;
   if (cleanPath === cleanBase + '/account/loyalty') return <CustomerLoyaltyPage baseUrl={baseUrl} />;
   if (cleanPath === cleanBase + '/account/orders') return <CustomerOrderHistoryPage baseUrl={baseUrl} />;
-
-  const legalRoute = ['#legal', '#privacy', '#terms', '#refunds'].includes(window.location.hash) ? window.location.hash : null;
-  if (legalRoute) return <LegalPoliciesPage route={legalRoute} />;
 
   // PayMongo returns directly to the existing restaurant tracking route. Do not render a duplicate payment tracking page here.
 
