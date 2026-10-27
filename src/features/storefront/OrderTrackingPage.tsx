@@ -7,7 +7,7 @@ const peso = (centavos: number) => new Intl.NumberFormat('en-PH', { style: 'curr
 type TrackedItem = { name: string; quantity: number; total_centavos: number; unit_price_centavos?: number; options?: unknown[] };
 type TrackedStatus = { order_status: string; payment_status: string; order_type?: string; updated_at: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null };
 
-export function OrderTrackingPage({ onBackToMenu }: { onBackToMenu: () => void }) {
+export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
   const [trackingToken] = useState<string | null>(() => {
     try { return window.sessionStorage.getItem('web2table:latest-order-tracking'); } catch { return null; }
   });
@@ -99,6 +99,6 @@ export function OrderTrackingPage({ onBackToMenu }: { onBackToMenu: () => void }
       {terminal && <p className="sf-tracking-error" role="status">This order was {currentStage.toLowerCase()}. Please contact the restaurant if you need assistance.</p>}
       {error && <p className="sf-tracking-error" role="status">{error}</p>}
       <footer className="sf-tracking-footer"><span>{orderTypeLabel}</span><span>{paymentLabel}</span></footer>
-    </section> : trackingToken ? <section className="sf-tracking-receipt"><p>{error || 'Connecting to your order…'}</p></section> : <section className="sf-tracking-receipt"><p>No recent order was found in this browser. Place an order first, then use Track Order.</p><button type="button" className="sf-tracking-back" onClick={onBackToMenu}>Back to restaurant</button></section>}
+    </section> : trackingToken ? <section className="sf-tracking-receipt"><p>{error || 'Connecting to your order…'}</p></section> : <section className="sf-tracking-receipt"><p>There’s no order to track in this browser yet. Once you place an order, you can follow its progress here.</p></section>}
   </main>;
 }
