@@ -1,4 +1,4 @@
-export type OwnerPage = 'dashboard' | 'orders' | 'menu' | 'inventory' | 'recipes' | 'employees' | 'sales' | 'reports' | 'loyalty' | 'settings' | 'branding';
+export type OwnerPage = 'dashboard' | 'orders' | 'menu' | 'employees' | 'sales' | 'reports' | 'loyalty' | 'settings' | 'branding';
 
 export type OwnerNavItem = { key: OwnerPage; label: string; icon: string };
 export type OwnerNavGroup = { label: string; items: OwnerNavItem[] };
@@ -7,7 +7,6 @@ export const ownerNavGroups: OwnerNavGroup[] = [
   { label: 'OVERVIEW', items: [{ key: 'dashboard', label: 'Dashboard', icon: '▦' }] },
   { label: 'OPERATIONS', items: [
     { key: 'orders', label: 'Orders', icon: '▤' }, { key: 'menu', label: 'Menu', icon: '⚒' },
-    { key: 'inventory', label: 'Inventory', icon: '⬡' }, { key: 'recipes', label: 'Recipes', icon: '▣' },
   ] },
   { label: 'PEOPLE', items: [{ key: 'employees', label: 'Employees', icon: '♙' }] },
   { label: 'BUSINESS', items: [
@@ -20,7 +19,7 @@ export const ownerNavGroups: OwnerNavGroup[] = [
 ];
 
 export const ownerPageTitles: Record<OwnerPage, string> = {
-  dashboard: 'Dashboard', orders: 'Orders', menu: 'Menu', inventory: 'Inventory', recipes: 'Recipes',
+  dashboard: 'Dashboard', orders: 'Orders', menu: 'Menu',
   employees: 'Employees', sales: 'Sales', reports: 'Business Reports', loyalty: 'Loyalty',
   settings: 'Store Settings', branding: 'Website & Branding',
 };
