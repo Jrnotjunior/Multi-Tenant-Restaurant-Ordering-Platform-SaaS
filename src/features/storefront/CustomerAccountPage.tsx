@@ -15,6 +15,7 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
   const [name, setName] = useState('Your account');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
+  const [signedIn, setSignedIn] = useState(false);
   const [message, setMessage] = useState('');
   const base = normalizeAppBase(baseUrl);
 
@@ -28,21 +29,31 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
     void (async () => {
       const { data, error } = await supabase.auth.getSession();
       if (!active) return;
+      if (error) {
+        setMessage('We could not check your sign-in status. Please refresh or sign in again.');
+        setLoading(false);
+        return;
+      }
       const user = data.session?.user;
-      if (error || !user) {
-        window.location.assign(base + 'account/sign-in');
+      if (!user) {
+        setName('Your account');
+        setEmail('');
+        setSignedIn(false);
+        setLoading(false);
         return;
       }
       const metadata = (user.user_metadata ?? {}) as CustomerProfile;
       const fullName = [metadata.first_name?.trim(), metadata.last_name?.trim()].filter(Boolean).join(' ')
         || metadata.full_name?.trim()
+        || user.email
         || 'Your account';
       setName(fullName);
       setEmail(user.email ?? '');
+      setSignedIn(true);
       setLoading(false);
     })();
     return () => { active = false; };
-  }, [base]);
+  }, []);
 
   const signOut = async () => {
     if (!supabase) return;
@@ -51,8 +62,14 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
       setMessage('Could not sign out. Please try again.');
       return;
     }
-    window.location.assign(base + 'account/sign-in');
+    setSignedIn(false);
+    setName('Your account');
+    setEmail('');
+    window.location.assign(base + 'account');
   };
+
+  const authHref = (mode: 'sign-in' | 'sign-up') => base + 'account/' + mode;
+  const protectedHref = (path: string) => signedIn ? base + path : authHref('sign-in');
 
   return <div className="sf-storefront sf-account-page">
     <a className="sf-skip-link" href="#customer-account-main">Skip to account content</a>
@@ -63,39 +80,41 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
         </a>
         <nav className="sf-header-actions" aria-label="Store navigation">
           <a href={base} className="sf-track-order-button sf-account-storefront-link" aria-label="Back to storefront" title="Storefront">Storefront</a>
-          <button type="button" className="sf-account-button" aria-label="Sign out" title="Sign out" onClick={() => void signOut()}>
-            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 4H5v16h5M14 8l4 4-4 4M8 12h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          </button>
+          {signedIn
+            ? <button type="button" className="sf-account-button" aria-label="Sign out" title="Sign out" onClick={() => void signOut()}>
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 4H5v16h5M14 8l4 4-4 4M8 12h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+            : <a className="sf-account-storefront-link" href={authHref('sign-in')}>Sign in</a>}
         </nav>
       </div>
     </header>
     <main id="customer-account-main" className="sf-main sf-account-main">
       <section className="sf-account-hero" aria-live="polite">
         <span className="sf-tracking-eyebrow">WEB2TABLE CUSTOMER ACCOUNT</span>
-        <h1>{name}</h1>
-        <p className="sf-account-email">{loading ? 'Loading your account…' : email}</p>
+        <h1>{loading ? 'Loading your account…' : name}</h1>
+        <p className="sf-account-email">{loading ? 'Checking your account…' : signedIn ? email : 'Sign in or create an account to manage your restaurant orders and rewards.'}</p>
+        {!loading && !signedIn && <div className="sf-address-form-actions">
+          <a className="sf-account-auth-action" href={authHref('sign-in')}>Sign in</a>
+          <a className="sf-account-auth-action sf-account-auth-secondary" href={authHref('sign-up')}>Create account</a>
+        </div>}
         {message && <p className="sf-account-message" role="status">{message}</p>}
       </section>
       <div className="sf-account-dashboard-grid">
-        <a className="sf-tracking-details sf-account-dashboard-card" href={base + 'account/loyalty'}>
-          <div><span className="sf-tracking-eyebrow">REWARDS</span><h2>Loyalty Points</h2><p>View your rewards balance and points activity.</p></div>
+        <a className="sf-tracking-details sf-account-dashboard-card" href={protectedHref('account/loyalty')}>
+          <div><span className="sf-tracking-eyebrow">REWARDS</span><h2>Loyalty Points</h2><p>{signedIn ? 'View your restaurant rewards balance and points activity.' : 'Sign in to earn points and view rewards where loyalty is available.'}</p></div>
           <span aria-hidden="true">›</span>
         </a>
-        <a className="sf-tracking-details sf-account-dashboard-card" href={base + 'account/orders'}>
+        <a className="sf-tracking-details sf-account-dashboard-card" href={protectedHref('account/orders')}>
           <div><span className="sf-tracking-eyebrow">PURCHASES</span><h2>Order History</h2><p>Review orders placed with your Web2Table account.</p></div>
           <span aria-hidden="true">›</span>
         </a>
-        <a className="sf-tracking-details sf-account-dashboard-card" href={base + 'account/addresses'}>
+        <a className="sf-tracking-details sf-account-dashboard-card" href={protectedHref('account/addresses')}>
           <div><span className="sf-tracking-eyebrow">DELIVERY</span><h2>Saved Addresses</h2><p>Manage addresses for faster checkout.</p></div>
           <span aria-hidden="true">›</span>
         </a>
       </div>
       <a className="sf-tracking-details sf-account-dashboard-card sf-account-legal-card" href={base + '#legal'}>
-        <div>
-          <span className="sf-tracking-eyebrow">INFORMATION</span>
-          <h2>Legal</h2>
-          <p>View privacy, terms, and refund policies.</p>
-        </div>
+        <div><span className="sf-tracking-eyebrow">INFORMATION</span><h2>Legal</h2><p>View privacy, terms, and refund policies.</p></div>
         <span aria-hidden="true">›</span>
       </a>
     </main>
