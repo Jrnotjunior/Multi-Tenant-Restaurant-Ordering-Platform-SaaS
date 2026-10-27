@@ -248,7 +248,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const [cartPage, setCartPage] = useState(() => initialCartPage || isStorefrontCartPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
   const [checkoutPage, setCheckoutPage] = useState(() => isStorefrontCheckoutPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
   const [trackingPage, setTrackingPage] = useState(() => isStorefrontTrackingPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
-  const [hasTrackedOrder, setHasTrackedOrder] = useState(() => { try { return Boolean(window.sessionStorage.getItem('web2table:latest-order-tracking')); } catch { return false; } });
+  const [hasTrackedOrder, setHasTrackedOrder] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutDetails,setCheckoutDetails]=useState<CheckoutDetails>({
     customerName:'',phone:'',deliveryAddress:'',deliveryNotes:'',
@@ -275,16 +275,40 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   }, []);
 
   useEffect(() => {
-    const syncTrackingAvailability = () => {
-      try { setHasTrackedOrder(Boolean(window.sessionStorage.getItem('web2table:latest-order-tracking'))); }
-      catch { setHasTrackedOrder(false); }
+    let cancelled = false;
+    const syncTrackingAvailability = async () => {
+      let trackingToken: string | null = null;
+      try {
+        trackingToken = window.sessionStorage.getItem('web2table:latest-order-tracking');
+      } catch {
+        if (!cancelled) setHasTrackedOrder(false);
+        return;
+      }
+      if (!trackingToken || !supabase) {
+        if (!cancelled) setHasTrackedOrder(false);
+        return;
+      }
+      const { data, error } = await supabase.rpc('track_customer_order', {
+        p_tracking_token: trackingToken,
+      });
+      if (cancelled) return;
+      if (error) {
+        setHasTrackedOrder(false);
+        return;
+      }
+      const result = data as { found?: boolean; order_status?: string } | null;
+      const status = result?.order_status?.toLowerCase();
+      const terminalStatuses = new Set(['delivered', 'completed', 'rejected', 'cancelled', 'canceled']);
+      setHasTrackedOrder(Boolean(result?.found && status && !terminalStatuses.has(status)));
     };
-    window.addEventListener('web2table:tracking-order-saved', syncTrackingAvailability);
-    window.addEventListener('storage', syncTrackingAvailability);
-    syncTrackingAvailability();
+    const handleSavedOrder = () => { void syncTrackingAvailability(); };
+    window.addEventListener('web2table:tracking-order-saved', handleSavedOrder);
+    window.addEventListener('storage', handleSavedOrder);
+    void syncTrackingAvailability();
     return () => {
-      window.removeEventListener('web2table:tracking-order-saved', syncTrackingAvailability);
-      window.removeEventListener('storage', syncTrackingAvailability);
+      cancelled = true;
+      window.removeEventListener('web2table:tracking-order-saved', handleSavedOrder);
+      window.removeEventListener('storage', handleSavedOrder);
     };
   }, []);
 
@@ -565,7 +589,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           : <span className="sf-logo-mark">{restaurant.initials}</span>}
       </a>}
       actions={<>
-        {!trackingPage && <button type="button" className="sf-track-order-button" onClick={navigateTracking} aria-label="Track order" title="Track order">
+        {!trackingPage && hasTrackedOrder && <button type="button" className="sf-track-order-button" onClick={navigateTracking} aria-label="Track order" title="Track order">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 5.5h15v13h-15z"/><path d="M8 9h8M8 12h5"/></svg>
         </button>}
         {!cartPage && <>
