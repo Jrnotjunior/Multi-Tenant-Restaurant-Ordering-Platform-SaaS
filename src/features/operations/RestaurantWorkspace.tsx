@@ -14,7 +14,7 @@ import { OwnerLoyaltyPage } from './OwnerLoyaltyPage';
 import { OwnerEmployeesPage } from './OwnerEmployeesPage';
 import { ownerNavGroups, type OwnerPage } from './ownerWorkspaceConfig';
 import { supabase } from '../../lib/supabase';
-import { applyAppFavicon } from '../storefront/appFavicon';
+import { applyAppFavicon, clearAppFavicon } from '../storefront/appFavicon';
 import './operations.css';
 
 type WorkspaceRole = 'restaurant_owner' | StaffWorkspaceRole;
@@ -70,8 +70,9 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
       const { data, error } = await client.from('tenant_storefronts')
         .select('favicon_path').eq('tenant_id', membership.tenant_id).maybeSingle();
       if (error) throw error;
-      if (!active || !data?.favicon_path) return;
-      applyFavicon(client.storage.from('storefront-logos').getPublicUrl(data.favicon_path).data.publicUrl);
+      if (!active || !data) return;
+      if (data.favicon_path) applyFavicon(client.storage.from('storefront-logos').getPublicUrl(data.favicon_path).data.publicUrl);
+      else clearAppFavicon();
     };
     const handleFaviconUpdate = (event: Event) => {
       const detail = (event as CustomEvent<{ tenantId?: string; url?: string }>).detail;
