@@ -296,10 +296,31 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
         setHasTrackedOrder(false);
         return;
       }
-      const result = data as { found?: boolean; order_status?: string } | null;
-      const status = result?.order_status?.toLowerCase();
-      const terminalStatuses = new Set(['delivered', 'completed', 'rejected', 'cancelled', 'canceled']);
-      setHasTrackedOrder(Boolean(result?.found && status && !terminalStatuses.has(status)));
+      const rawResult = Array.isArray(data) ? data[0] : data;
+      const result = rawResult as { found?: boolean; order_status?: string } | null;
+      const status = result?.order_status?.trim().toLowerCase().replaceAll('-', '_').replaceAll(' ', '_');
+      const activeStatuses = new Set([
+        'pending_confirmation',
+        'pending',
+        'confirmed',
+        'preparing',
+        'ready_for_dispatch',
+        'ready_for_delivery',
+        'out_for_delivery',
+        'ready_for_pickup',
+        'ready_for_pick_up',
+        'ready_for_serve',
+        'ready_to_serve',
+      ]);
+      const hasActiveOrder = Boolean(result?.found && status && activeStatuses.has(status));
+      setHasTrackedOrder(hasActiveOrder);
+      if (result?.found && status && !hasActiveOrder) {
+        try {
+          window.sessionStorage.removeItem('web2table:latest-order-tracking');
+        } catch {
+          // The header remains hidden even when browser storage cannot be cleared.
+        }
+      }
     };
     const handleSavedOrder = () => { void syncTrackingAvailability(); };
     window.addEventListener('web2table:tracking-order-saved', handleSavedOrder);
