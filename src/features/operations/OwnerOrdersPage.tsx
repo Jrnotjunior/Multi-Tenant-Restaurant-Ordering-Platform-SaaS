@@ -243,51 +243,8 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
 
     {(error || message) && <p className={'owner-orders-notice ' + (error ? 'is-error' : 'is-success')} role={error ? 'alert' : 'status'}>{error || message}</p>}
 
-    <section className="owner-orders-list" aria-live="polite">
-      <div className="owner-orders-list-heading"><h2>{filter === 'active' ? 'Active orders' : 'All orders'}</h2><span>{orders.length} shown</span></div>
-      {loading ? <p className="owner-orders-empty">Loading orders…</p> : orders.length === 0 ? (
-        <div className="owner-orders-empty"><h3>{filter === 'active' ? 'No active orders yet' : 'No orders yet'}</h3>
-          <p>New order requests will appear here after checkout is connected and the restaurant is accepting orders.</p>
-        </div>
-      ) : orders.map(order => <article className="owner-order-card" key={order.id}>
-        <header className="owner-order-card-header">
-          <div><h3>Order #{order.order_number}</h3><p>{dateTime(order.created_at)} · {order.branch_name} · {({delivery:'Delivery',take_out:'Take-out',pickup:'Pickup',dine_in:'Dine-in'} as const)[order.order_type] ?? 'Delivery'}</p></div>
-          <span className={'owner-order-status status-' + order.order_status}>{statusLabel(order.order_status)}</span>
-        </header>
-        <div className="owner-order-customer">
-          <strong>{order.customer_name}</strong><span>{order.customer_phone}</span>
-          {order.order_type === 'delivery' && order.delivery_address && <p>{order.delivery_address}</p>}
-          {order.delivery_notes && <p className="owner-order-notes">Note: {order.delivery_notes}</p>}
-        </div>
-        <ul className="owner-order-items">{(order.items ?? []).map(item => <li key={item.id}>
-          <span>{item.quantity} × {item.item_name}{item.options?.length ? <small>{item.options.map(option => option.name).filter(Boolean).join(', ')}</small> : null}</span>
-          <strong>{peso(item.line_total_centavos)}</strong>
-        </li>)}</ul>
-
-
-        <div className="owner-order-totals">
-          <span>Subtotal <strong>{peso(order.subtotal_centavos)}</strong></span>
-          <span>{order.order_type === 'delivery' ? 'Delivery fee' : 'Fulfillment fee'} <strong>{peso(order.delivery_fee_centavos)}</strong></span>
-          <span>Total <strong>{peso(order.total_centavos)}</strong></span>
-          <span className={'owner-order-payment-status payment-' + order.payment_status}>
-            Payment <strong>{order.payment_status === 'paid' ? 'Payment successful' : order.payment_status === 'failed' ? 'Payment failed' : order.payment_status === 'refunded' ? 'Refund successful' : statusLabel(order.payment_status)}</strong>
-          </span>
-        </div>
-        {order.payment_status === 'paid' ? <div className="owner-order-actions">
-          <button type="button" className="is-danger" disabled={busyOrder === order.id}
-            onClick={() => void refundOrder(order)}>
-            {busyOrder === order.id ? 'Processing…' : 'Issue full refund'}
-          </button>
-        </div> : null}
-        {nextActions[order.order_status]?.length ? <footer className="owner-order-actions">
-          {(order.order_status === 'out_for_delivery' && order.order_type === 'delivery' && (order.payment_method === 'cash' || (order.payment_channel === 'other' && order.order_type === 'delivery')) && order.payment_status !== 'paid' ? [{ action: 'confirm_cash_collected', label: 'Confirm cash collected' }] : nextActions[order.order_status]).map(action => <button type="button" key={action.action}
-            className={action.action === 'reject' || action.action === 'cancel' ? 'is-danger' : ''}
-            disabled={busyOrder === order.id}
-            onClick={() => void transition(order, action.action, action.label)}>
-            {busyOrder === order.id ? 'Saving…' : action.label}
-          </button>)}
-        </footer> : null}
-      </article>)}
+    <section className="owner-orders-list owner-orders-monitoring-note">
+      <p>Order processing is managed in the cashier workspace. Use the summary above to monitor order status.</p>
     </section>
   </main>;
 }
