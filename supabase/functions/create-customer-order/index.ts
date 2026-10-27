@@ -16,7 +16,15 @@ async function quote(admin:any,slug:string,lat:number,lon:number){
 }
 
 Deno.serve(async(req:Request)=>{if(req.method==="OPTIONS")return new Response("ok",{headers:corsHeaders});if(req.method!=="POST")return json({error:"Method not allowed."},405);try{const url=Deno.env.get("SUPABASE_URL")??"",key=serviceKey();if(!url||!key)return json({error:"Ordering service is not configured."},500);const admin=createClient(url,key,{auth:{autoRefreshToken:false,persistSession:false}}),b=await req.json(),slug=String(b.restaurantSlug??"").trim().toLowerCase();if(!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)||slug.length<3||slug.length>64)return json({error:"Choose a valid restaurant."},400);
- const paymentMethod=String(b.paymentMethod??"");if(!["cash","online"].includes(paymentMethod))return json({error:"Choose a valid payment method."},400);const type=String(b.orderType??"");if(!["delivery","take_out","pickup","dine_in"].includes(type))return json({error:"Choose a valid order type."},400);const id=String(b.idempotencyKey??"");if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))return json({error:"A valid checkout key is required."},400);
+ const paymentMethod=String(b.paymentMethod??"");if(!["cash","online"].includes(paymentMethod))return json({error:"Choose a valid payment method."},400);
+ const loyaltyPointsToRedeem=Number(b.loyaltyPointsToRedeem??0);
+ if(!Number.isSafeInteger(loyaltyPointsToRedeem)||loyaltyPointsToRedeem<0||loyaltyPointsToRedeem>2147483647)return json({error:"Choose a valid loyalty points amount."},400);
+ const authorization=req.headers.get("Authorization")??"";
+ const bearer=authorization.match(/^Bearer\\s+(.+)$/i)?.[1]??"";
+ let customerUserId:string|null=null;
+ if(bearer){const {data:authData,error:authError}=await admin.auth.getUser(bearer);if(!authError&&authData.user)customerUserId=authData.user.id;}
+ if(loyaltyPointsToRedeem>0&&!customerUserId)return json({error:"Sign in to redeem loyalty points. No order was placed."},401);
+ const type=String(b.orderType??"");if(!["delivery","take_out","pickup","dine_in"].includes(type))return json({error:"Choose a valid order type."},400);const id=String(b.idempotencyKey??"");if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))return json({error:"A valid checkout key is required."},400);
  const q=type==="delivery"?await quote(admin,slug,Number(b.latitude),Number(b.longitude)):null;
  const {data:result,error}=await admin.rpc("create_customer_order",{p_restaurant_slug:slug,p_branch_slug:String(b.branchSlug??""),p_customer_name:String(b.customerName??""),p_customer_phone:String(b.customerPhone??""),p_delivery_address:String(b.deliveryAddress??""),p_delivery_notes:String(b.deliveryNotes??""),p_idempotency_key:id,p_order_type:type,p_items:b.items,p_payment_method:String(b.paymentMethod??"cash")});if(error)return json({error:error.message||"Order could not be placed."},400);if(!result?.success||!result.order_id)return json({error:"The server did not confirm this order."},500);
  // Persist the customer's explicit selection by the returned order ID, then verify it.
@@ -28,6 +36,13 @@ Deno.serve(async(req:Request)=>{if(req.method==="OPTIONS")return new Response("o
  const {data:savedOrder,error:savedMethodError}=await admin.from("customer_orders")
    .select("payment_method").eq("id",result.order_id).maybeSingle();
  if(savedMethodError||savedOrder?.payment_method!==paymentMethod)return json({error:"Order was created, but its selected payment method could not be verified. Please contact the restaurant before retrying."},500);
+ if(customerUserId){
+   const {data:loyaltyResult,error:loyaltyError}=await admin.rpc("apply_customer_loyalty_redemption",{
+     p_order_id:result.order_id,p_tracking_token:id,p_customer_user_id:customerUserId,p_points_to_redeem:loyaltyPointsToRedeem
+   });
+   if(loyaltyError){console.error("customer loyalty redemption failed",{orderId:result.order_id,code:loyaltyError.code,message:loyaltyError.message});return json({error:loyaltyPointsToRedeem>0?"Order was created but loyalty redemption could not be finalized. Contact the restaurant before retrying.":"Order was created but customer loyalty could not be linked. Contact the restaurant if you need points credited."},409);}
+   if(!loyaltyResult?.success)return json({error:"Order was created but loyalty redemption could not be confirmed. Contact the restaurant before retrying."},409);
+ }
  if(q){const subtotal=Number(result.subtotal_centavos);if(!Number.isSafeInteger(subtotal)||subtotal<=0)return json({error:"Invalid order subtotal."},500);const {data:existingOrder,error:readError}=await admin.from("customer_orders").select("delivery_fee_centavos,total_centavos").eq("id",result.order_id).eq("tenant_id",q.tenantId).maybeSingle();if(readError||!existingOrder)return json({error:"Unable to verify the saved delivery fee. Contact the restaurant before retrying."},500);let fee=existingOrder.delivery_fee_centavos===null?q.feeCentavos:Number(existingOrder.delivery_fee_centavos);let total=existingOrder.total_centavos===null?subtotal+fee:Number(existingOrder.total_centavos);if(existingOrder.delivery_fee_centavos===null){const {error:ue}=await admin.from("customer_orders").update({delivery_fee_centavos:fee,total_centavos:total,updated_at:new Date().toISOString()}).eq("id",result.order_id).eq("tenant_id",q.tenantId).is("delivery_fee_centavos",null);if(ue){console.error("delivery fee persistence failed",ue);return json({error:"Order created but delivery fee could not be finalized. Contact the restaurant before retrying."},500);}const {data:saved}=await admin.from("customer_orders").select("delivery_fee_centavos,total_centavos").eq("id",result.order_id).eq("tenant_id",q.tenantId).maybeSingle();if(saved){fee=Number(saved.delivery_fee_centavos);total=Number(saved.total_centavos);}}return json({...result,delivery_fee_confirmed:fee!==null,delivery_fee_centavos:fee,distance_meters:q.distanceMeters,total_centavos:total});}
  return json({...result,delivery_fee_confirmed:true,delivery_fee_centavos:0,total_centavos:Number(result.subtotal_centavos)});
 
