@@ -53,10 +53,8 @@ const nextActions: Record<string, { action: string; label: string }[]> = {
 
 export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
   const [orders, setOrders] = useState<CustomerOrder[]>([]);
-  const [acceptingOrders, setAcceptingOrders] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busyOrder, setBusyOrder] = useState('');
-  const [busyAcceptance, setBusyAcceptance] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [deliveryFees, setDeliveryFees] = useState<Record<string, string>>({});
@@ -70,14 +68,9 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
     if (!quiet) setLoading(true);
     setError('');
     try {
-      const [ordersResponse, storefrontResponse] = await Promise.all([
-        supabase.rpc('list_customer_orders', { p_tenant_id: tenantId, p_filter: filter, p_limit: 100 }),
-        supabase.from('tenant_storefronts').select('accepting_orders').eq('tenant_id', tenantId).maybeSingle(),
-      ]);
+      const ordersResponse = await supabase.rpc('list_customer_orders', { p_tenant_id: tenantId, p_filter: filter, p_limit: 100 });
       if (ordersResponse.error) throw ordersResponse.error;
-      if (storefrontResponse.error) throw storefrontResponse.error;
       setOrders(((ordersResponse.data as OrdersResult | null)?.orders ?? []) as CustomerOrder[]);
-      setAcceptingOrders(Boolean(storefrontResponse.data?.accepting_orders));
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Unable to load restaurant orders.');
     } finally {
@@ -189,27 +182,6 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
     }
   }
 
-  async function toggleAcceptance() {
-    if (!supabase) return;
-    setBusyAcceptance(true);
-    setError('');
-    setMessage('');
-    try {
-      const nextValue = !acceptingOrders;
-      const { data, error: actionError } = await supabase.rpc('set_tenant_order_acceptance', {
-        p_tenant_id: tenantId,
-        p_accepting: nextValue,
-      });
-      if (actionError) throw actionError;
-      setAcceptingOrders(Boolean((data as { accepting_orders?: boolean } | null)?.accepting_orders ?? nextValue));
-      setMessage(nextValue ? 'New order requests are enabled.' : 'New order requests are paused.');
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Unable to update order acceptance.');
-    } finally {
-      setBusyAcceptance(false);
-    }
-  }
-
   const count = (statuses: string[]) => orders.filter(order => statuses.includes(order.order_status)).length;
 
   return <main className="owner-content owner-orders-page">
@@ -217,15 +189,6 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
       <div>
         <h1>Orders</h1>
         <p>Review incoming requests and move accepted orders through fulfillment.</p>
-      </div>
-      <div className="owner-orders-toolbar-actions">
-        <span className={'owner-orders-acceptance ' + (acceptingOrders ? 'is-open' : 'is-paused')}>
-          {acceptingOrders ? 'Accepting orders' : 'Orders paused'}
-        </span>
-        <button type="button" disabled={busyAcceptance} onClick={() => void toggleAcceptance()}>
-          {busyAcceptance ? 'Saving…' : acceptingOrders ? 'Pause orders' : 'Accept orders'}
-        </button>
-        <button type="button" className="owner-orders-refresh" disabled={loading} onClick={() => void load()}>Refresh</button>
       </div>
     </div>
 
