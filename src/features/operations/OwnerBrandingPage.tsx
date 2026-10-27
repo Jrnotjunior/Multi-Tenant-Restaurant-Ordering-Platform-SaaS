@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { publicStorefrontLogo, type Brand } from '../management/menuService';
 import { supabase } from '../../lib/supabase';
+import { applyAppFavicon } from '../storefront/appFavicon';
 
 type Tab = 'identity' | 'social' | 'colors';
 type SocialLinks = { facebook: string; instagram: string; tiktok: string };
@@ -83,6 +84,7 @@ export function OwnerBrandingPage({tenantId,restaurantName}:Props) {
       const url=supabase.storage.from('storefront-logos').getPublicUrl(path).data.publicUrl;
       if(kind==='logo')setLogo(url);else {
         setFavicon(url);
+        applyAppFavicon(url);
         window.dispatchEvent(new CustomEvent('web2table:owner-favicon-updated',{detail:{tenantId,url}}));
       }
       setMessage(kind==='logo'?'Restaurant logo uploaded.':'Browser tab icon uploaded.');
@@ -116,7 +118,7 @@ export function OwnerBrandingPage({tenantId,restaurantName}:Props) {
       {tab==='identity'&&<section className="owner-branding-panel">
         <div className="owner-branding-field"><h2>Browser tab icon</h2><p>Choose the small icon customers see in their browser tab.</p>
           <div className="owner-branding-upload">{favicon?<img src={favicon} alt="Current browser tab icon"/>:<span className="owner-branding-placeholder">W2T</span>}
-            <button type="button" onClick={()=>faviconInput.current?.click()}>Choose favicon</button><input ref={faviconInput} hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>void uploadImage(e,'favicon')}/></div>
+            <button type="button" onClick={()=>faviconInput.current?.click()}>Choose favicon</button><input ref={faviconInput} hidden type="file" accept="image/png,image/jpeg,image/webp,image/x-icon,image/vnd.microsoft.icon,.ico" onChange={e=>void uploadImage(e,'favicon')}/></div>
         </div>
         <div className="owner-branding-field"><h2>Restaurant logo</h2><p>Choose the logo customers see on your restaurant website.</p>
           <div className="owner-branding-upload">{logo?<img src={logo} alt="Current restaurant logo"/>:<span className="owner-branding-placeholder">{displayName.slice(0,3)||'LOGO'}</span>}
