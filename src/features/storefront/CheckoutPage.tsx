@@ -209,11 +209,13 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
             const maxBlocks = Math.min(Math.floor(loyalty.pointsBalance / loyalty.rewardPoints), maxAffordableBlocks);
             const maxPoints = maxBlocks * loyalty.rewardPoints;
             return <label className="sf-checkout-loyalty-control">Points to redeem
-              <select value={loyaltyPointsToRedeem} onChange={event => setLoyaltyPointsToRedeem(Number(event.target.value))}>
-                <option value={0}>Do not redeem</option>
-                {Array.from({ length: maxBlocks }, (_, index) => (index + 1) * loyalty.rewardPoints).map(points => <option key={points} value={points}>{points.toLocaleString()} points — {peso((points / loyalty.rewardPoints) * loyalty.rewardAmountCentavos)} off</option>)}
-              </select>
-              {maxPoints === 0 && <small>Earn more points or increase your order subtotal to use a reward.</small>}
+              <input type="number" inputMode="numeric" min={0} max={maxPoints} step={loyalty.rewardPoints}
+                value={loyaltyPointsToRedeem}
+                onChange={event => {
+                  const requested = Number(event.target.value);
+                  setLoyaltyPointsToRedeem(Number.isSafeInteger(requested) && requested >= 0 && requested <= maxPoints && requested % loyalty.rewardPoints === 0 ? requested : 0);
+                }} />
+              <small>Choose a multiple of {loyalty.rewardPoints.toLocaleString()} points. Maximum for this order: {maxPoints.toLocaleString()}.</small>
             </label>;
           })()}
         </section>}
