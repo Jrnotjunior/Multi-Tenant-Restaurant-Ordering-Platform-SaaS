@@ -16,7 +16,6 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
-  const [legalExpanded, setLegalExpanded] = useState(false);
   const base = normalizeAppBase(baseUrl);
 
   useEffect(() => {
@@ -91,25 +90,14 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
           <span aria-hidden="true">›</span>
         </a>
       </div>
-      <section className="sf-account-legal-main">
-        <button
-          type="button"
-          className="sf-account-legal-toggle"
-          aria-expanded={legalExpanded}
-          aria-controls="sf-account-legal-options"
-          onClick={() => setLegalExpanded((expanded) => !expanded)}
-        >
-          <span>Legal</span>
-          <span className="sf-account-legal-chevron" aria-hidden="true">{legalExpanded ? '⌄' : '›'}</span>
-        </button>
-        {legalExpanded && (
-          <nav id="sf-account-legal-options" className="sf-account-legal-links" aria-label="Legal policies">
-            <a href={base + '#privacy'}>Privacy</a>
-            <a href={base + '#terms'}>Terms</a>
-            <a href={base + '#refunds'}>Refunds</a>
-          </nav>
-        )}
-      </section>
+      <a className="sf-tracking-details sf-account-dashboard-card sf-account-legal-card" href={base + '#legal'}>
+        <div>
+          <span className="sf-tracking-eyebrow">INFORMATION</span>
+          <h2>Legal</h2>
+          <p>View privacy, terms, and refund policies.</p>
+        </div>
+        <span aria-hidden="true">›</span>
+      </a>
     </main>
     <footer className="sf-footer">
       <div className="sf-footer-inner">
