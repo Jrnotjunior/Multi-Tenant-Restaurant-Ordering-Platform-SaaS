@@ -14,6 +14,7 @@ import { OwnerLoyaltyPage } from './OwnerLoyaltyPage';
 import { OwnerEmployeesPage } from './OwnerEmployeesPage';
 import { ownerNavGroups, type OwnerPage } from './ownerWorkspaceConfig';
 import { supabase } from '../../lib/supabase';
+import { applyAppFavicon } from '../storefront/appFavicon';
 import './operations.css';
 
 type WorkspaceRole = 'restaurant_owner' | StaffWorkspaceRole;
@@ -64,19 +65,7 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
     if (!supabase || !membership || membership.role !== 'restaurant_owner') return;
     const client = supabase;
     let active = true;
-    let managedLink: HTMLLinkElement | null = null;
-    const applyFavicon = (url: string | null) => {
-      if (!url) return;
-      let link = document.querySelector<HTMLLinkElement>('link[data-owner-storefront-favicon="true"]');
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        link.dataset.ownerStorefrontFavicon = 'true';
-        document.head.appendChild(link);
-      }
-      link.href = url;
-      managedLink = link;
-    };
+    const applyFavicon = (url: string | null) => { if (url) applyAppFavicon(url); };
     const loadFavicon = async () => {
       const { data, error } = await client.from('tenant_storefronts')
         .select('favicon_path').eq('tenant_id', membership.tenant_id).maybeSingle();
