@@ -14,30 +14,33 @@ const config = readPublicConfig(import.meta.env);
  * Do not use this as an authorization boundary: server-side policies and RLS
  * must still enforce user and tenant permissions.
  */
-function getTabAuthStorage() {
+function getTabAuthStorage(): { storage: Storage | { getItem(key: string): string | null; setItem(key: string, value: string): void; removeItem(key: string): void }; storageKey: string } | undefined {
   if (typeof window === 'undefined') return undefined;
 
-  let tabId: string | null = null;
   try {
-    tabId = window.sessionStorage.getItem('web2table.auth.tab-id');
+    const storage = window.sessionStorage;
+    let tabId = storage.getItem('web2table.auth.tab-id');
     if (!tabId) {
       tabId = typeof window.crypto?.randomUUID === 'function'
         ? window.crypto.randomUUID()
         : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-      window.sessionStorage.setItem('web2table.auth.tab-id', tabId);
+      storage.setItem('web2table.auth.tab-id', tabId);
     }
+    return { storage, storageKey: `web2table.auth.${tabId}` };
   } catch {
-    // If browser storage is unavailable, use an isolated in-memory key. Do not
-    // fall back to localStorage, which would reintroduce cross-tab session leaks.
-    tabId = typeof window.crypto?.randomUUID === 'function'
+    // If browser storage is blocked, use memory only. Never fall back to
+    // localStorage, which would reintroduce cross-tab session sharing.
+    const values = new Map<string, string>();
+    const storage = {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => { values.set(key, value); },
+      removeItem: (key: string) => { values.delete(key); },
+    };
+    const tabId = typeof window.crypto?.randomUUID === 'function'
       ? window.crypto.randomUUID()
       : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+    return { storage, storageKey: `web2table.auth.${tabId}` };
   }
-
-  return {
-    storage: window.sessionStorage,
-    storageKey: `web2table.auth.${tabId}`,
-  };
 }
 
 const tabAuth = getTabAuthStorage();
