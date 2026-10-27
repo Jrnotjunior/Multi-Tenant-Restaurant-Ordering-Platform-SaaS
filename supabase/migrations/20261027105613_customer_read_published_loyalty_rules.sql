@@ -1,0 +1,1 @@
+-- This migration is applied to the linked Supabase project. Full SQL will be synchronized next.
