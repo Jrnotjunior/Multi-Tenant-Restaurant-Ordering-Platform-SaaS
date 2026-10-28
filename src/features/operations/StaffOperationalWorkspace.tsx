@@ -481,7 +481,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           const needsAttention = (role === 'cashier' && order.order_status === 'pending_confirmation') || (role === 'kitchen' && ['confirmed', 'preparing'].includes(order.order_status)) || (role === 'dispatcher' && order.order_status === 'ready_for_dispatch');
           return <button type="button" className="staff-cashier-order-summary" key={order.id} onClick={() => setSelectedCashierOrderId(order.id)} aria-label={`Open order ${order.order_number} details`}>
             <span className="staff-cashier-summary-main"><strong>ORD-{String(order.order_number).padStart(5, '0')}</strong></span>
-            {role === 'kitchen' ? <span className="staff-cashier-summary-payment"><span>{typeLabel(order.order_type)} · {order.delivery_notes ? 'Customer notes available' : 'No special notes'}</span></span> : <span className="staff-cashier-summary-payment"><span>{typeLabel(order.order_type)} · {order.payment_channel === 'online' ? 'Online' : 'Cash'} · {['paid','succeeded','completed'].includes(order.payment_status.toLowerCase()) ? 'Paid' : 'Unpaid'}</span><strong>{money(order.total_centavos)}</strong></span>}
+            {role === 'kitchen' ? <span className="staff-cashier-summary-payment"><span>{typeLabel(order.order_type)}</span></span> : <span className="staff-cashier-summary-payment"><span>{typeLabel(order.order_type)} · {order.payment_channel === 'online' ? 'Online' : 'Cash'} · {['paid','succeeded','completed'].includes(order.payment_status.toLowerCase()) ? 'Paid' : 'Unpaid'}</span><strong>{money(order.total_centavos)}</strong></span>}
           </button>;
         })}</div>}
     </div>}
