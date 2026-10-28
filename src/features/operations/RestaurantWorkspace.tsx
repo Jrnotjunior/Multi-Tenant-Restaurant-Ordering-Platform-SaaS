@@ -62,25 +62,30 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
   }, []);
 
   useEffect(() => {
-    if (!supabase || !membership || membership.role !== 'restaurant_owner') return;
+    // Every tenant workspace (owner and staff) must use the favicon configured
+    // for that tenant, not the last customer storefront visited in this browser.
+    if (!supabase || !membership) return;
     const client = supabase;
     let active = true;
-    const applyFavicon = (url: string | null) => { if (url) applyAppFavicon(url); };
     const loadFavicon = async () => {
       const { data, error } = await client.from('tenant_storefronts')
         .select('favicon_path').eq('tenant_id', membership.tenant_id).maybeSingle();
       if (error) throw error;
       if (!active || !data) return;
-      if (data.favicon_path) applyFavicon(client.storage.from('storefront-logos').getPublicUrl(data.favicon_path).data.publicUrl);
-      else clearAppFavicon();
+      if (data.favicon_path) {
+        const url = client.storage.from('storefront-logos').getPublicUrl(data.favicon_path).data.publicUrl;
+        applyAppFavicon(url);
+      } else {
+        clearAppFavicon();
+      }
     };
     const handleFaviconUpdate = (event: Event) => {
       const detail = (event as CustomEvent<{ tenantId?: string; url?: string }>).detail;
-      if (detail?.tenantId === membership.tenant_id && detail.url) applyFavicon(detail.url);
+      if (detail?.tenantId === membership.tenant_id && detail.url) applyAppFavicon(detail.url);
     };
     window.addEventListener('web2table:owner-favicon-updated', handleFaviconUpdate);
     void loadFavicon().catch(() => {
-      // A missing favicon should not prevent the owner workspace from rendering.
+      // A missing favicon should not prevent the workspace from rendering.
     });
     return () => {
       active = false;
