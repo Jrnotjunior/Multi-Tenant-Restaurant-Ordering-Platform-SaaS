@@ -89,3 +89,18 @@
 .rider-history-filter input{font-size:.72rem}
 .rider-history-filter button{font-size:.68rem}
 @media(max-width:560px){.rider-dashboard-page{width:100%;padding:12px 12px 24px}.rider-dashboard-header{padding-right:2.6rem}.rider-dashboard-section{padding:.75rem}.rider-dashboard-tabs{margin-left:0;margin-right:0}.rider-dashboard-delivery-card{align-items:flex-start}.rider-dashboard-delivery-side{flex-direction:column;gap:.3rem}.rider-dashboard-card-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.rider-dashboard-card-actions>*{width:100%}}
+
+
+/* Rider order list and dedicated order detail view */
+.rider-dashboard-delivery-card-clickable{display:block;padding:0;overflow:hidden}
+.rider-dashboard-card-open{display:flex;flex-direction:column;gap:.45rem;width:100%;padding:.85rem;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;font:inherit}
+.rider-dashboard-card-open:focus-visible{outline:2px solid currentColor;outline-offset:-3px}
+.rider-dashboard-card-open .rider-dashboard-delivery-top{display:flex;justify-content:space-between;align-items:center;gap:.75rem;width:100%}
+.rider-dashboard-card-customer{font-size:.9rem}
+.rider-dashboard-card-address{font-size:.82rem;color:var(--muted,#64748b);overflow-wrap:anywhere}
+.rider-dashboard-card-open-hint{font-size:.75rem;color:var(--muted,#64748b);margin-top:.15rem}
+.rider-order-detail h2{margin:1.15rem 0 .45rem;font-size:.95rem}
+.rider-order-detail p{margin:.35rem 0;overflow-wrap:anywhere}
+.rider-order-detail-items{display:flex;flex-direction:column;gap:.6rem;margin-top:.7rem}
+.rider-order-detail-items>div,.rider-order-detail-total{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start}
+.rider-order-detail-total{border-top:1px solid var(--border,#e2e8f0);margin-top:1rem;padding-top:1rem;font-size:1.05rem}
