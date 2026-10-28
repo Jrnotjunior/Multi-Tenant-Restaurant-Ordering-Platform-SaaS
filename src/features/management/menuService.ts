@@ -165,8 +165,12 @@ export async function getOrCreateMenuCategory(tenantId:string,name:string):Promi
     }
     return existing.id as string;
   }
+  const {data:orderedCategories,error:orderError}=await db.from('menu_categories')
+    .select('sort_order').eq('tenant_id',tenantId).order('sort_order',{ascending:false}).limit(1);
+  check(orderError);
+  const nextSortOrder=(Number(orderedCategories?.[0]?.sort_order ?? -1)+1);
   const {data,error}=await db.from('menu_categories')
-    .insert({tenant_id:tenantId,name:cleanName,is_published:true})
+    .insert({tenant_id:tenantId,name:cleanName,is_published:true,sort_order:nextSortOrder})
     .select('id').single();
   check(error);
   if(!data) throw new Error('Category was not saved.');
@@ -182,8 +186,13 @@ export async function deleteMenuItem(tenantId:string,itemId:string):Promise<void
 
 export async function createCategory(tenantId:string,name:string) {
   const db=requireClient();
+  const db=requireClient();
+  const {data:orderedCategories,error:orderError}=await db.from('menu_categories')
+    .select('sort_order').eq('tenant_id',tenantId).order('sort_order',{ascending:false}).limit(1);
+  check(orderError);
+  const nextSortOrder=Number(orderedCategories?.[0]?.sort_order ?? -1)+1;
   const {data,error}=await db.from('menu_categories')
-    .insert({tenant_id:tenantId,name:name.trim(),is_published:false})
+    .insert({tenant_id:tenantId,name:name.trim(),is_published:false,sort_order:nextSortOrder})
     .select('id').single();
   check(error);
   if(!data) throw new Error('Category was not saved.');
@@ -218,7 +227,12 @@ export async function saveItem(
     if(!data) throw new Error('Item change was not applied.');
     return data.id;
   }
-  const {data,error}=await db.from('menu_items').insert({...value,tenant_id:tenantId})
+  const {data:orderedItems,error:orderError}=await db.from('menu_items')
+    .select('sort_order').eq('tenant_id',tenantId).eq('category_id',value.category_id)
+    .order('sort_order',{ascending:false}).limit(1);
+  check(orderError);
+  const nextSortOrder=Number(orderedItems?.[0]?.sort_order ?? -1)+1;
+  const {data,error}=await db.from('menu_items').insert({...value,tenant_id:tenantId,sort_order:nextSortOrder})
     .select('id').single();
   check(error);
   if(!data) throw new Error('Item could not be created.');
