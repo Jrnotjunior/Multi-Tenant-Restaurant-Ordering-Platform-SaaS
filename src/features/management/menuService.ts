@@ -77,10 +77,10 @@ export async function loadOwnerData(tenant:Tenant):Promise<OwnerData> {
     db.from('branches').select('id,tenant_id,slug,name,is_active').eq('tenant_id',tenant.id),
     db.from('tenant_storefronts').select('tenant_id,default_branch_id,display_name,tagline,hero_heading,hero_emphasis,primary_color,logo_path,font_family,status')
       .eq('tenant_id',tenant.id).single(),
-    db.from('menu_categories').select('id,tenant_id,name,is_published,sort_order').eq('tenant_id',tenant.id)
-      .order('sort_order').order('name'),
-    db.from('menu_items').select('id,tenant_id,category_id,name,description,image_path,price_centavos,status,is_popular,sort_order')
-      .eq('tenant_id',tenant.id).order('sort_order').order('name'),
+    db.from('menu_categories').select('id,tenant_id,name,is_published,sort_order,created_at').eq('tenant_id',tenant.id)
+      .order('sort_order').order('created_at').order('id'),
+    db.from('menu_items').select('id,tenant_id,category_id,name,description,image_path,price_centavos,status,is_popular,sort_order,created_at')
+      .eq('tenant_id',tenant.id).order('sort_order').order('created_at').order('id'),
     db.from('branch_menu_items').select('tenant_id,branch_id,item_id,is_available,price_override_centavos')
       .eq('tenant_id',tenant.id),
     db.from('menu_modifier_groups').select('id,tenant_id,item_id,name,min_select,max_select,is_active,sort_order')
