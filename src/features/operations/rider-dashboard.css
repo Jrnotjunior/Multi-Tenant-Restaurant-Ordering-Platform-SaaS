@@ -113,3 +113,27 @@
 .rider-dashboard-card-address{display:block;font-size:.8rem;color:var(--color-muted);white-space:normal;overflow-wrap:anywhere}
 .rider-dashboard-card-bottom .rider-dashboard-delivery-side{display:flex;align-items:center;gap:.65rem}
 .rider-dashboard-card-bottom .rider-dashboard-delivery-side>span{display:grid;place-items:center;width:30px;height:30px;border-radius:999px;background:var(--color-secondary);color:var(--color-muted);font-size:1.2rem}
+
+
+/* Rider order detail: restore the designed layout language from the original platform. */
+.rider-dashboard-page{width:min(1040px,calc(100% - 2rem));padding:2rem 0 4rem;color:var(--color-text,#172033)}
+.rider-dashboard-page .rider-dashboard-header{align-items:flex-end;margin-bottom:1.5rem;padding-right:3.5rem}
+.rider-dashboard-page .rider-dashboard-header h1{font-family:var(--font-heading,inherit);font-size:clamp(2rem,6vw,3.5rem);line-height:1;letter-spacing:-.04em}
+.rider-dashboard-page .rider-dashboard-header>button{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:.55rem .9rem;border:1px solid var(--color-border,#dbe1ea);border-radius:.7rem;background:var(--color-background,#fff);color:var(--color-text,#172033);font:inherit;font-size:.85rem;font-weight:750;cursor:pointer}
+.rider-dashboard-page .rider-order-detail{display:grid;gap:1rem;padding:1.25rem;border:1px solid var(--color-border,#e1e5ec);border-radius:1rem;background:var(--color-background,#fff);box-shadow:0 8px 24px rgba(15,23,42,.04)}
+.rider-dashboard-page .rider-order-detail h2{margin:0 0 .65rem;font-size:.78rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--color-muted,#64748b)}
+.rider-dashboard-page .rider-order-detail>p{margin:0;font-size:.9rem;line-height:1.55;overflow-wrap:anywhere}
+.rider-dashboard-page .rider-order-detail>p strong{font-size:1rem;color:var(--color-text,#172033)}
+.rider-dashboard-page .rider-order-detail>h2:not(:first-child){margin-top:.5rem}
+.rider-dashboard-page .rider-order-detail a{color:var(--color-primary,#b91c1c);font-weight:750;text-decoration:none}
+.rider-dashboard-page .rider-order-detail a:hover{text-decoration:underline}
+.rider-dashboard-page .rider-order-detail .rider-dashboard-secondary-action{display:inline-flex;align-items:center;justify-content:center;width:fit-content;min-height:40px;padding:.55rem .85rem;border:1px solid var(--color-border,#dbe1ea);border-radius:.7rem;background:var(--color-background,#fff);color:var(--color-text,#172033);font-size:.82rem}
+.rider-dashboard-page .rider-order-detail-items{display:grid;gap:0;border-top:1px solid var(--color-border,#e1e5ec)}
+.rider-dashboard-page .rider-order-detail-items>div{display:flex;justify-content:space-between;gap:1rem;padding:.85rem 0;border-bottom:1px solid var(--color-border,#e1e5ec);font-size:.88rem}
+.rider-dashboard-page .rider-order-detail-items>div span:first-child{min-width:0}
+.rider-dashboard-page .rider-order-detail-total{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-top:.25rem;padding-top:1rem;border-top:1px solid var(--color-border,#e1e5ec);font-size:1rem}
+.rider-dashboard-page .rider-order-detail-total strong{font-size:1.35rem}
+.rider-dashboard-page .rider-order-detail .rider-dashboard-primary-action{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:.7rem 1rem;border:0;border-radius:.7rem;background:var(--color-primary,#111827);color:#fff;font:inherit;font-size:.88rem;font-weight:800;cursor:pointer}
+.rider-dashboard-page .rider-order-detail .rider-dashboard-primary-action:disabled{opacity:.55;cursor:not-allowed}
+@media(min-width:760px){.rider-dashboard-page .rider-order-detail{padding:1.5rem;gap:1.15rem}}
+@media(max-width:520px){.rider-dashboard-page{width:calc(100% - 1.25rem);padding:1.25rem 0 2rem}.rider-dashboard-page .rider-dashboard-header{align-items:flex-start;gap:.75rem;padding-right:0}.rider-dashboard-page .rider-dashboard-header h1{font-size:2rem}.rider-dashboard-page .rider-dashboard-header>button{min-height:36px;padding:.45rem .6rem;font-size:.78rem}.rider-dashboard-page .rider-order-detail{padding:1rem}.rider-dashboard-page .rider-order-detail-items>div{font-size:.82rem}}
