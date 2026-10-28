@@ -71,7 +71,8 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
   const currentStage = current < 0 ? (terminal ? (status?.order_status ?? 'unknown').replaceAll('_', ' ') : 'Order Received') : labels[current];
   const orderNumText = orderNumber ? String(orderNumber).padStart(5, '0') : '…';
   const orderTypeLabel = dineIn ? 'Dine-in' : orderType.replaceAll('-', ' ').replace(/\\b\\w/g, x => x.toUpperCase());
-  const paymentLabel = orderMeta.paymentMethod === 'online' ? 'Online payment' : orderType === 'delivery' ? 'Cash on delivery' : orderMeta.paymentMethod === 'cash' ? 'Cash' : status?.payment_status?.replaceAll('_', ' ') ?? 'Cash';
+  const isPaymentPaid = ['paid', 'succeeded', 'completed'].includes((status?.payment_status ?? '').toLowerCase());
+  const paymentLabel = isPaymentPaid ? 'Paid' : orderMeta.paymentMethod === 'online' ? 'Online payment' : orderType === 'delivery' ? 'Cash on delivery' : orderMeta.paymentMethod === 'cash' ? 'Cash' : status?.payment_status?.replaceAll('_', ' ') ?? 'Cash';
 
   return <main className="sf-order-tracking-page">
     {trackingToken && status ? <section className="sf-tracking-receipt" aria-live="polite" aria-label="Live order tracking">
