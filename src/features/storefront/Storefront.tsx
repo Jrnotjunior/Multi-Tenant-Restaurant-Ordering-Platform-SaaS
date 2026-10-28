@@ -22,13 +22,15 @@ function readSessionValue<T>(key: string, fallback: T): T {
   }
 }
 
-function writeCustomerCartValue<T>(key: string, value: T, customerId: string | null): void {
-  if (!customerId) return; // Guest carts are intentionally memory-only and reset on refresh.
+function writeCartValue<T>(key: string, value: T, customerId: string | null): void {
   try {
     const serialized = JSON.stringify(value);
-    window.localStorage.setItem(key, serialized);
+    // Persist guest carts for this tab so route-backed pages and refreshes do not
+    // lose items. Signed-in carts remain durable and isolated by customer ID.
+    if (customerId) window.localStorage.setItem(key, serialized);
+    else window.sessionStorage.setItem(key, serialized);
   } catch {
-    // The cart remains usable for the current page if storage is unavailable.
+    // The cart remains usable in memory if browser storage is unavailable.
   }
 }
 
@@ -334,9 +336,10 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   }, []);
 
   useEffect(() => {
-    // Guest carts intentionally start empty after refresh; signed-in carts are isolated by customer ID.
-    setCart(customerUserId ? readSessionValue<Cart>(activeCartStorageKey + ':items', {}) : {});
-    setCustomized(customerUserId ? readSessionValue<CustomCart>(activeCartStorageKey + ':custom', {}) : {});
+    // Hydrate both guest and signed-in carts. Guest carts use sessionStorage;
+    // signed-in carts use localStorage and are isolated by customer ID.
+    setCart(readSessionValue<Cart>(activeCartStorageKey + ':items', {}));
+    setCustomized(readSessionValue<CustomCart>(activeCartStorageKey + ':custom', {}));
     setHydratedCartKey(activeCartStorageKey);
   }, [activeCartStorageKey, customerUserId]);
 
@@ -355,13 +358,13 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   }, [activeCartStorageKey, customerUserId]);
 
   useEffect(() => {
-    if (hydratedCartKey !== activeCartStorageKey || !customerUserId) return;
-    writeCustomerCartValue(activeCartStorageKey + ':items', cart, customerUserId);
+    if (hydratedCartKey !== activeCartStorageKey) return;
+    writeCartValue(activeCartStorageKey + ':items', cart, customerUserId);
   }, [activeCartStorageKey, cart, hydratedCartKey, customerUserId]);
 
   useEffect(() => {
-    if (hydratedCartKey !== activeCartStorageKey || !customerUserId) return;
-    writeCustomerCartValue(activeCartStorageKey + ':custom', customized, customerUserId);
+    if (hydratedCartKey !== activeCartStorageKey) return;
+    writeCartValue(activeCartStorageKey + ':custom', customized, customerUserId);
   }, [activeCartStorageKey, customized, hydratedCartKey, customerUserId]);
 
   useEffect(() => {
