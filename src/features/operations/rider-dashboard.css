@@ -104,3 +104,12 @@
 .rider-order-detail-items{display:flex;flex-direction:column;gap:.6rem;margin-top:.7rem}
 .rider-order-detail-items>div,.rider-order-detail-total{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start}
 .rider-order-detail-total{border-top:1px solid var(--border,#e2e8f0);margin-top:1rem;padding-top:1rem;font-size:1.05rem}
+
+/* Match the original platform's compact, clickable delivery card. */
+.rider-dashboard-card-open{gap:.5rem}
+.rider-dashboard-card-bottom{display:flex;align-items:center;justify-content:space-between;gap:1rem;width:100%}
+.rider-dashboard-card-copy{display:grid;gap:.25rem;min-width:0;text-align:left}
+.rider-dashboard-card-customer{font-size:.9rem}
+.rider-dashboard-card-address{display:block;font-size:.8rem;color:var(--color-muted);white-space:normal;overflow-wrap:anywhere}
+.rider-dashboard-card-bottom .rider-dashboard-delivery-side{display:flex;align-items:center;gap:.65rem}
+.rider-dashboard-card-bottom .rider-dashboard-delivery-side>span{display:grid;place-items:center;width:30px;height:30px;border-radius:999px;background:var(--color-secondary);color:var(--color-muted);font-size:1.2rem}
