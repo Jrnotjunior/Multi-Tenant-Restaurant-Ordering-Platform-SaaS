@@ -401,10 +401,14 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
               const status = order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : 'Assigned';
               return <article className="rider-dashboard-delivery-card rider-dashboard-delivery-card-clickable" key={order.id}>
                 <button className="rider-dashboard-card-open" type="button" onClick={() => setSelectedRiderOrderId(order.id)} aria-label={'Open order ' + order.order_number}>
-                  <span className="rider-dashboard-delivery-top"><strong>Order #{order.order_number}</strong><strong>{money(order.total_centavos)}</strong></span>
-                  <strong className="rider-dashboard-card-customer">{order.customer_name}</strong>
-                  <span className="rider-dashboard-card-address">{order.delivery_address || typeLabel(order.order_type)}</span>
-                  <span className="rider-dashboard-card-open-hint">View order details ›</span>
+                  <span className="rider-dashboard-delivery-top">
+                    <strong>Order #{order.order_number}</strong>
+                    <span className={'rider-dashboard-status ' + (order.assignment_status === 'out_for_delivery' ? 'is-delivering' : '')}>{status}</span>
+                  </span>
+                  <span className="rider-dashboard-card-bottom">
+                    <span className="rider-dashboard-card-copy"><strong className="rider-dashboard-card-customer">{order.customer_name}</strong><span className="rider-dashboard-card-address">{order.delivery_address || typeLabel(order.order_type)}</span></span>
+                    <span className="rider-dashboard-delivery-side"><strong>{money(order.total_centavos)}</strong><span aria-hidden="true">›</span></span>
+                  </span>
                 </button>
               </article>;
             })}</div>}
