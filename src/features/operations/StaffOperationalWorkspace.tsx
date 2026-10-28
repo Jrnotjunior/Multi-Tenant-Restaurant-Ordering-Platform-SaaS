@@ -325,7 +325,6 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     ];
     if (role === 'cashier' && order.order_status === 'confirmed') return [{ action: 'cancel', label: 'Cancel order', primary: false }];
     if (role === 'cashier' && order.order_status === 'ready_for_pickup') return [{ action: 'complete_handoff', label: 'Complete handoff', primary: true }];
-    if (role === 'kitchen' && order.order_status === 'confirmed') return [{ action: 'start_preparing', label: 'Start preparing', primary: true }];
     if (role === 'kitchen' && order.order_status === 'preparing') return [{ action: 'mark_ready', label: 'Mark ready', primary: true }];
     if (role === 'dispatcher' && order.order_status === 'ready_for_dispatch' && order.assigned_rider_user_id) return [{ action: 'dispatch', label: 'Dispatch order', primary: true }];
     if (role === 'rider' && order.assignment_status === 'assigned') return [{ action: 'accept_delivery', label: 'Accept delivery', primary: true }];
