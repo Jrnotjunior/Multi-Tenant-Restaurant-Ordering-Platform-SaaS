@@ -71,8 +71,19 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
   const currentStage = current < 0 ? (terminal ? (status?.order_status ?? 'unknown').replaceAll('_', ' ') : 'Order Received') : labels[current];
   const orderNumText = orderNumber ? String(orderNumber).padStart(5, '0') : '…';
   const orderTypeLabel = dineIn ? 'Dine-in' : orderType.replaceAll('-', ' ').replace(/\\b\\w/g, x => x.toUpperCase());
-  const isPaymentPaid = ['paid', 'succeeded', 'completed'].includes((status?.payment_status ?? '').toLowerCase());
-  const paymentLabel = isPaymentPaid ? 'Paid' : orderMeta.paymentMethod === 'online' ? 'Online payment' : orderType === 'delivery' ? 'Cash on delivery' : orderMeta.paymentMethod === 'cash' ? 'Cash' : status?.payment_status?.replaceAll('_', ' ') ?? 'Cash';
+  const normalizedPaymentStatus = (status?.payment_status ?? '').toLowerCase();
+  const isPaymentPaid = ['paid', 'succeeded', 'completed'].includes(normalizedPaymentStatus);
+  const paymentOptionLabel = orderMeta.paymentMethod === 'online'
+    ? 'Online payment'
+    : orderMeta.paymentMethod === 'cash'
+      ? (orderType === 'delivery' ? 'Cash on delivery' : 'Cash')
+      : orderType === 'delivery' ? 'Cash on delivery' : 'Cash';
+  const paymentStatusLabel = isPaymentPaid
+    ? 'Paid'
+    : ['failed', 'cancelled', 'canceled', 'expired'].includes(normalizedPaymentStatus)
+      ? normalizedPaymentStatus.charAt(0).toUpperCase() + normalizedPaymentStatus.slice(1)
+      : 'Unpaid';
+  const paymentLabel = isPaymentPaid ? 'Paid' : paymentOptionLabel;
 
   return <main className="sf-order-tracking-page">
     {trackingToken && status ? <section className="sf-tracking-receipt" aria-live="polite" aria-label="Live order tracking">
@@ -99,7 +110,7 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
       })}</ol>
       {terminal && <p className="sf-tracking-error" role="status">This order was {currentStage.toLowerCase()}. Please contact the restaurant if you need assistance.</p>}
       {error && <p className="sf-tracking-error" role="status">{error}</p>}
-      <footer className="sf-tracking-footer"><span>{orderTypeLabel}</span><span>{paymentLabel}</span></footer>
+      <footer className="sf-tracking-footer"><span>{orderTypeLabel}</span><span>{paymentOptionLabel}</span><span>{paymentStatusLabel}</span></footer>
     </section> : trackingToken ? <section className="sf-tracking-receipt"><p>{error || 'Connecting to your order…'}</p></section> : <section className="sf-tracking-receipt"><p>You don’t have an order to track yet. After placing an order, you can return here to follow its progress.</p></section>}
   </main>;
 }
