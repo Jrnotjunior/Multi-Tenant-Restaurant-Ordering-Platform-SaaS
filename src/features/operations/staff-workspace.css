@@ -308,6 +308,7 @@
 .staff-cashier-modal-items li>span{min-width:0}
 .staff-cashier-modal-items small{display:block;color:var(--color-muted,#526782);margin-top:3px}
 .staff-cashier-modal-items li>strong{white-space:nowrap;font-weight:600}
+.staff-cashier-modal-items li>.staff-cashier-item-quantity-price{display:flex;align-items:center;gap:16px;flex-shrink:0}
 .staff-cashier-modal-total{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:4px;font-size:1rem}
 .staff-cashier-modal-total strong:last-child{font-size:1.4rem;font-weight:850}
 .staff-cashier-modal-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:22px}
