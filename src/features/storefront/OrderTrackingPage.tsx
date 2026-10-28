@@ -110,7 +110,7 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
       })}</ol>
       {terminal && <p className="sf-tracking-error" role="status">This order was {currentStage.toLowerCase()}. Please contact the restaurant if you need assistance.</p>}
       {error && <p className="sf-tracking-error" role="status">{error}</p>}
-      <footer className="sf-tracking-footer"><span>{orderTypeLabel}</span><span>{paymentOptionLabel}</span><span>{paymentStatusLabel}</span></footer>
+      <footer className="sf-tracking-footer"><span>{orderTypeLabel.charAt(0).toUpperCase() + orderTypeLabel.slice(1)}</span><span>{paymentOptionLabel.charAt(0).toUpperCase() + paymentOptionLabel.slice(1)}</span><span>{paymentStatusLabel.charAt(0).toUpperCase() + paymentStatusLabel.slice(1)}</span></footer>
     </section> : trackingToken ? <section className="sf-tracking-receipt"><p>{error || 'Connecting to your order…'}</p></section> : <section className="sf-tracking-receipt"><p>You don’t have an order to track yet. After placing an order, you can return here to follow its progress.</p></section>}
   </main>;
 }
