@@ -262,7 +262,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       const { error: actionError } = await supabase.rpc('transition_staff_order', { p_tenant_id: tenantId, p_order_id: order.id, p_action: action });
       if (actionError) throw actionError;
       setNotice(`Order #${order.order_number}: ${description}.`);
-      if (role === 'kitchen' && action === 'mark_ready') setSelectedCashierOrderId(null);
+      if ((role === 'kitchen' && action === 'mark_ready') || (role === 'dispatcher' && action === 'dispatch')) setSelectedCashierOrderId(null);
       await load(true);
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to update this order.'); }
     finally { setBusy(''); }
