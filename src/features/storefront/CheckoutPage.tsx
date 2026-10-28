@@ -35,7 +35,7 @@ function OrderTypeSection({ value, onChange }: {
 }
 
 function normalizePhilippineMobile(value: string): string {
-  const digits = value.replace(/\\D/g, '');
+  const digits = value.replace(/\D/g, '');
   if (digits.startsWith('63') && digits.length === 12) return '0' + digits.slice(2);
   return digits;
 }
@@ -261,7 +261,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
             const firstName = String(values.get('firstName') ?? '').trim();
             const lastName = String(values.get('lastName') ?? '').trim();
             const phone = normalizePhilippineMobile(String(values.get('mobile') ?? '').trim());
-            if (!/^09\\d{9}$/.test(phone)) {
+            if (!/^09\d{9}$/.test(phone)) {
               setMessage('Enter a valid 11-digit Philippine mobile number starting with 09.');
               return;
             }
