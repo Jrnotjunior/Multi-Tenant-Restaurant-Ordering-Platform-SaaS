@@ -45,7 +45,7 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
       setStatus({ order_status: result.order_status, payment_status: result.payment_status, order_type: result.order_type, updated_at: result.updated_at, items: result.items ?? [], subtotal_centavos: result.subtotal_centavos, delivery_fee_centavos: result.delivery_fee_centavos, total_centavos: result.total_centavos });
     };
     void refresh();
-    const channel = supabase.channel('order-tracking-page:' + trackingToken)
+    const channel = supabase.channel('order-tracking:' + trackingToken)
       .on('broadcast', { event: 'order_changed' }, () => {
         if (refreshTimer !== undefined) window.clearTimeout(refreshTimer);
         refreshTimer = window.setTimeout(() => { void refresh(); }, 100);
