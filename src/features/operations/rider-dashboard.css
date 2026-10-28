@@ -182,3 +182,22 @@
 .rider-delivery-action:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:800px){.rider-delivery-layout{grid-template-columns:1fr}.rider-delivery-progress-card{position:static}}
 @media(max-width:560px){.rider-delivery-page{width:calc(100% - 1rem);padding:1rem 0 2rem}.rider-delivery-header{align-items:flex-start;flex-direction:column}.rider-delivery-header-actions{width:100%;justify-content:flex-start}.rider-delivery-card{padding:1rem;border-radius:.8rem}.rider-delivery-header h1{font-size:2.25rem}.rider-order-details-card{padding:.25rem 1rem .75rem}}
+
+
+/* Mobile rider delivery screen details based on the provided reference screenshot. */
+.rider-delivery-contact-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;margin-top:1rem}
+.rider-delivery-contact-button{display:flex;align-items:center;justify-content:center;gap:.65rem;min-height:54px;padding:.75rem;border:1px solid var(--border,#e2e8f0);border-radius:1rem;background:var(--surface,#fff);color:var(--text,#111827);font-size:1rem;font-weight:800;text-decoration:none}
+.rider-delivery-contact-button span{font-size:1.25rem;line-height:1}
+.rider-delivery-address-link{display:grid;grid-template-columns:52px minmax(0,1fr) 20px;align-items:center;gap:.8rem;margin-top:.45rem;padding:1rem;border:1px solid var(--border,#e2e8f0);border-radius:1rem;background:var(--surface,#fff);color:var(--text,#111827);text-decoration:none}
+.rider-delivery-address-pin{display:grid;place-items:center;width:52px;height:52px;border-radius:1rem;background:var(--surface-muted,#f1f5f9);font-size:1.65rem;color:var(--muted,#475569)}
+.rider-delivery-address-link>span:nth-child(2){display:grid;gap:.25rem;min-width:0}
+.rider-delivery-address-link>span:nth-child(2)>strong{font-size:.95rem}
+.rider-delivery-address-link .rider-delivery-address{margin:0;color:var(--muted,#64748b);font-size:1rem;line-height:1.45}
+.rider-delivery-address-chevron{font-size:2rem;color:var(--muted,#64748b);line-height:1}
+.rider-delivery-address-link:focus-visible,.rider-delivery-contact-button:focus-visible{outline:2px solid var(--primary,#2563eb);outline-offset:3px}
+@media(max-width:560px){
+ .rider-delivery-contact-button{min-height:56px;font-size:1rem}
+ .rider-delivery-address-link{grid-template-columns:48px minmax(0,1fr) 16px;gap:.65rem;padding:.85rem}
+ .rider-delivery-address-pin{width:48px;height:48px}
+ .rider-delivery-address-link .rider-delivery-address{font-size:.98rem}
+}
