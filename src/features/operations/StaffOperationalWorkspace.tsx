@@ -47,6 +47,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [filter, setFilter] = useState<'active' | 'all'>('active');
   const [riderTab, setRiderTab] = useState<'active' | 'history'>('active');
   const [selectedRiderOrderId, setSelectedRiderOrderId] = useState<string | null>(null);
+  const [orderDetailsOpen, setOrderDetailsOpen] = useState(false);
   const [riderHistoryDate, setRiderHistoryDate] = useState(() => new Date().toLocaleDateString('en-CA'));
   const [cashierTab, setCashierTab] = useState<'orders' | 'sales'>(() => staffPageFromHash(role) === 'sales' ? 'sales' : 'orders');
   const [kitchenTab, setKitchenTab] = useState<'orders' | 'menu'>(() => staffPageFromHash(role) === 'menu' ? 'menu' : 'orders');
@@ -449,7 +450,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
               const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'deliver');
               const status = order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : 'Assigned';
               return <article className="rider-dashboard-delivery-card rider-dashboard-delivery-card-clickable" key={order.id}>
-                <button className="rider-dashboard-card-open" type="button" onClick={() => setSelectedRiderOrderId(order.id)} aria-label={'Open order ' + order.order_number}>
+                <button className="rider-dashboard-card-open" type="button" onClick={() => { setSelectedRiderOrderId(order.id); setOrderDetailsOpen(false); }} aria-label={'Open order ' + order.order_number}>
                   <span className="rider-dashboard-delivery-top">
                     <strong>Order #{order.order_number}</strong>
                     <span className={'rider-dashboard-status ' + (order.assignment_status === 'out_for_delivery' ? 'is-delivering' : '')}>{status}</span>
