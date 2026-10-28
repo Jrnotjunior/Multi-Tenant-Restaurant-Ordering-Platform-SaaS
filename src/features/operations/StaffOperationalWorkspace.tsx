@@ -348,21 +348,70 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       const order = selectedRiderOrder;
       const status = order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : order.assignment_status === 'delivered' ? 'Delivered' : 'Assigned';
       const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'deliver');
-      return <main className="rider-dashboard-page">
-        <header className="rider-dashboard-header"><div><p className="eyebrow">My deliveries</p><h1>Order #{order.order_number}</h1><p>{status}</p></div><button className="rider-dashboard-secondary-action" type="button" onClick={() => setSelectedRiderOrderId(null)}>← Back to orders</button></header>
+      return <main className="rider-dashboard-page rider-delivery-page">
+        <header className="rider-delivery-header">
+          <div>
+            <a className="rider-delivery-back" href="#" onClick={(event) => { event.preventDefault(); setSelectedRiderOrderId(null); }}>← My deliveries</a>
+            <h1>{order.order_number}</h1>
+            <p>Deliver this order to the customer.</p>
+          </div>
+          <div className="rider-delivery-header-actions">
+            <span className="rider-delivery-status">{status}</span>
+          </div>
+        </header>
         {error && <div className="rider-dashboard-message" role="alert">{error}</div>}
         {notice && <div className="rider-dashboard-notice" role="status">{notice}</div>}
-        <section className="rider-dashboard-section rider-order-detail">
-          <h2>Customer</h2><p><strong>{order.customer_name}</strong></p>
-          {order.customer_phone && <p><a href={'tel:' + order.customer_phone}>{order.customer_phone}</a></p>}
-          <h2>Delivery address</h2><p>{order.delivery_address || 'No delivery address provided'}</p>
-          {order.delivery_address && <a className="rider-dashboard-secondary-action" href={'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(order.delivery_address)} target="_blank" rel="noreferrer">Get directions ↗</a>}
-          {order.delivery_notes && <><h2>Delivery notes</h2><p>{order.delivery_notes}</p></>}
-          <h2>Order items</h2><div className="rider-order-detail-items">{order.items.map(item => <div key={item.id}><span>{item.item_name} × {item.quantity}</span><strong>{money(item.line_total_centavos)}</strong></div>)}</div>
-          <div className="rider-order-detail-total"><span>Total</span><strong>{money(order.total_centavos)}</strong></div>
-          <p>Payment: {label(order.payment_status)}</p>
-          {button && <button className="rider-dashboard-primary-action" type="button" disabled={busy === order.id} onClick={() => void act(order, button.action, button.label.toLowerCase())}>{busy === order.id ? 'Saving…' : button.label}</button>}
-        </section>
+        <div className="rider-delivery-layout">
+          <main className="rider-delivery-main">
+            <section className="rider-delivery-card">
+              <div className="rider-delivery-card-heading">
+                <div><p className="rider-delivery-label">Customer</p><h2>{order.customer_name}</h2></div>
+                <span className="rider-delivery-customer-icon" aria-hidden="true">♙</span>
+              </div>
+              {order.customer_phone && <p className="rider-delivery-phone">{order.customer_phone}</p>}
+              {order.customer_phone && <div className="rider-dashboard-card-actions"><a className="rider-dashboard-secondary-action" href={'tel:' + order.customer_phone}>Call customer</a></div>}
+            </section>
+            <section className="rider-delivery-card">
+              <div className="rider-delivery-card-heading">
+                <div><p className="rider-delivery-label">Delivery destination</p><h2>Customer address</h2></div>
+                <span className="rider-delivery-location-icon" aria-hidden="true">⌖</span>
+              </div>
+              <p className="rider-delivery-address">{order.delivery_address || 'No delivery address provided'}</p>
+              {order.delivery_address && <a className="rider-dashboard-secondary-action" href={'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(order.delivery_address)} target="_blank" rel="noreferrer">Get directions ↗</a>}
+              {order.delivery_notes && <p className="rider-delivery-helper">Delivery notes: {order.delivery_notes}</p>}
+            </section>
+            <section className="rider-delivery-card rider-order-details-card">
+              <button className="rider-order-details-toggle" type="button" aria-expanded={orderDetailsOpen} onClick={() => setOrderDetailsOpen(open => !open)}>
+                <span><span className="rider-delivery-label">Order</span><strong>Order details</strong><small>View items and order total</small></span>
+                <span className="rider-order-details-chevron" aria-hidden="true">{orderDetailsOpen ? '⌃' : '⌄'}</span>
+              </button>
+              {orderDetailsOpen && <>
+                <div className="rider-delivery-items">{order.items.map(item => <div className="rider-delivery-item" key={item.id}><span><strong>{item.quantity}×</strong> {item.item_name}</span><span>{money(item.line_total_centavos)}</span></div>)}</div>
+                <div className="rider-delivery-total"><span>Order total</span><strong>{money(order.total_centavos)}</strong></div>
+                <p className="rider-delivery-helper">Payment: {label(order.payment_status)}</p>
+              </>}
+            </section>
+          </main>
+          <aside className="rider-delivery-sidebar">
+            <section className="rider-delivery-card rider-delivery-progress-card">
+              <p className="rider-delivery-label">Delivery status</p>
+              <h2>{status}</h2>
+              <div className="rider-delivery-steps">
+                {[
+                  { label: 'Assigned', detail: 'Dispatcher assigned this delivery to you.' },
+                  { label: 'Accepted', detail: 'You accepted this delivery.' },
+                  { label: 'Out for delivery', detail: 'The dispatcher has dispatched this order.' },
+                  { label: 'Delivered', detail: 'The order was delivered to the customer.' },
+                ].map((step, index) => {
+                  const current = order.assignment_status === 'delivered' ? 3 : order.assignment_status === 'out_for_delivery' ? 2 : order.assignment_status === 'accepted' ? 1 : 0;
+                  return <div className="rider-delivery-step" key={step.label}><span className={'rider-delivery-step-marker ' + (index <= current ? 'is-done' : '')}>{index <= current ? '✓' : index + 1}</span><div><strong>{step.label}</strong><p>{step.detail}</p></div></div>;
+                })}
+              </div>
+              {button && <button className="rider-dashboard-primary-action rider-delivery-action" type="button" disabled={busy === order.id} onClick={() => void act(order, button.action, button.label.toLowerCase())}>{busy === order.id ? 'Saving…' : button.label}</button>}
+              {order.assignment_status === 'assigned' && <p className="rider-delivery-helper">Wait for dispatch before heading to the customer.</p>}
+            </section>
+          </aside>
+        </div>
       </main>;
     }
     const shownHistory = deliveryHistory.filter(order => {
