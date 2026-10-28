@@ -186,7 +186,6 @@ export async function deleteMenuItem(tenantId:string,itemId:string):Promise<void
 
 export async function createCategory(tenantId:string,name:string) {
   const db=requireClient();
-  const db=requireClient();
   const {data:orderedCategories,error:orderError}=await db.from('menu_categories')
     .select('sort_order').eq('tenant_id',tenantId).order('sort_order',{ascending:false}).limit(1);
   check(orderError);
