@@ -105,6 +105,18 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   }, [role, kitchenTab, tenantId]);
 
   useEffect(() => {
+    if (role !== 'kitchen' || !kitchenMenu) return;
+    const configuredCategories = kitchenMenu.categories.filter(category =>
+      category.is_published && kitchenMenu.items.some(item =>
+        item.category_id === category.id && item.status === 'published'
+      )
+    );
+    if (kitchenMenuCategory !== 'all' && !configuredCategories.some(category => category.id === kitchenMenuCategory)) {
+      setKitchenMenuCategory('all');
+    }
+  }, [role, kitchenMenu, kitchenMenuCategory]);
+
+  useEffect(() => {
     let active = true;
     void supabase?.auth.getUser().then(({ data }) => {
       if (!active) return;
@@ -449,7 +461,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       
       {role === 'kitchen' && kitchenTab === 'menu' ? <div className="staff-kitchen-menu-panel">
       <div className="staff-kitchen-menu-toolbar"><div><h3>Menu availability</h3><p>Mark items unavailable when stock runs out. Changes apply to this branch’s storefront.</p></div></div>
-      {kitchenMenu?.items.length ? <><div className="staff-kitchen-menu-controls"><label className="staff-kitchen-menu-search"><span aria-hidden="true">⌕</span><input type="search" value={kitchenMenuSearch} onChange={event=>setKitchenMenuSearch(event.target.value)} placeholder="Search products" aria-label="Search menu items" /></label><nav className="staff-kitchen-category-tabs" aria-label="Menu categories"><button type="button" className={kitchenMenuCategory==='all'?'is-selected':''} onClick={()=>setKitchenMenuCategory('all')}>All</button>{(kitchenMenu?.categories ?? []).map(category=><button type="button" key={category.id} className={kitchenMenuCategory===category.id?'is-selected':''} onClick={()=>setKitchenMenuCategory(category.id)}>{category.name}</button>)}</nav></div></> : null}
+      {kitchenMenu?.items.length ? <><div className="staff-kitchen-menu-controls"><label className="staff-kitchen-menu-search"><span aria-hidden="true">⌕</span><input type="search" value={kitchenMenuSearch} onChange={event=>setKitchenMenuSearch(event.target.value)} placeholder="Search products" aria-label="Search menu items" /></label><nav className="staff-kitchen-category-tabs" aria-label="Menu categories"><button type="button" className={kitchenMenuCategory==='all'?'is-selected':''} onClick={()=>setKitchenMenuCategory('all')}>All</button>{(kitchenMenu?.categories ?? []).filter(category => category.is_published && (kitchenMenu?.items ?? []).some(item => item.category_id === category.id && item.status === 'published')).map(category=><button type="button" key={category.id} className={kitchenMenuCategory===category.id?'is-selected':''} onClick={()=>setKitchenMenuCategory(category.id)}>{category.name}</button>)}</nav></div></> : null}
       {kitchenMenuLoading ? <p className="staff-empty">Loading menu…</p> : kitchenMenuError ? <p className="staff-notice is-error" role="alert">{kitchenMenuError}</p> : !kitchenMenu?.items.length ? <div className="staff-empty"><h3>No menu items yet</h3><p>The restaurant owner can add products from menu management.</p></div> : !(kitchenMenu?.items ?? []).some(item => { const q=kitchenMenuSearch.trim().toLocaleLowerCase(); const category=kitchenMenu?.categories.find(entry=>entry.id===item.category_id); const matchesCategory=kitchenMenuCategory==='all'||item.category_id===kitchenMenuCategory; return matchesCategory && (!q || item.name.toLocaleLowerCase().includes(q) || (item.description ?? '').toLocaleLowerCase().includes(q) || (category?.name ?? '').toLocaleLowerCase().includes(q)); }) ? <div className="staff-empty"><h3>No matching menu items</h3><p>Try another product or category.</p></div> : <div className="staff-kitchen-menu-grid">{(kitchenMenu?.items ?? []).filter(item => { const q=kitchenMenuSearch.trim().toLocaleLowerCase(); const category=kitchenMenu?.categories.find(entry=>entry.id===item.category_id); const matchesCategory=kitchenMenuCategory==='all'||item.category_id===kitchenMenuCategory; return matchesCategory && (!q || item.name.toLocaleLowerCase().includes(q) || (item.description ?? '').toLocaleLowerCase().includes(q) || (category?.name ?? '').toLocaleLowerCase().includes(q)); }).map(item => {
         const category = kitchenMenu?.categories.find(entry => entry.id === item.category_id);
         const canToggle=item.status==='published';
