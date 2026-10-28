@@ -310,7 +310,7 @@
 .staff-cashier-modal-items li>strong{white-space:nowrap;font-weight:600}
 .staff-cashier-modal-total{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:4px;font-size:1rem}
 .staff-cashier-modal-total strong:last-child{font-size:1.4rem;font-weight:850}
-.staff-cashier-modal-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:10px;margin-top:22px}
+.staff-cashier-modal-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:22px}
 @media(max-width:520px){.staff-cashier-order-summary{align-items:flex-start;padding:13px;gap:10px}.staff-cashier-summary-main,.staff-cashier-summary-payment{align-items:flex-start;flex-direction:column;gap:5px}.staff-cashier-summary-payment{align-items:flex-end}.staff-cashier-modal-backdrop{padding:12px}.staff-cashier-modal{padding:20px 16px;border-radius:16px}.staff-cashier-modal-actions{flex-direction:column}.staff-cashier-modal-actions .staff-button{width:100%}}
 
 
