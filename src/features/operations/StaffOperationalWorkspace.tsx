@@ -370,15 +370,15 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
                 <span className="rider-delivery-customer-icon" aria-hidden="true">♙</span>
               </div>
               {order.customer_phone && <p className="rider-delivery-phone">{order.customer_phone}</p>}
-              {order.customer_phone && <div className="rider-dashboard-card-actions"><a className="rider-dashboard-secondary-action" href={'tel:' + order.customer_phone}>Call customer</a></div>}
+              {order.customer_phone && <div className="rider-delivery-contact-actions"><a className="rider-delivery-contact-button" href={'tel:' + order.customer_phone}><span aria-hidden="true">♧</span> Call</a><a className="rider-delivery-contact-button" href={'sms:' + order.customer_phone}><span aria-hidden="true">▤</span> Text</a></div>}
             </section>
             <section className="rider-delivery-card">
               <div className="rider-delivery-card-heading">
                 <div><p className="rider-delivery-label">Delivery destination</p><h2>Customer address</h2></div>
                 <span className="rider-delivery-location-icon" aria-hidden="true">⌖</span>
               </div>
-              <p className="rider-delivery-address">{order.delivery_address || 'No delivery address provided'}</p>
-              {order.delivery_address && <a className="rider-dashboard-secondary-action" href={'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(order.delivery_address)} target="_blank" rel="noreferrer">Get directions ↗</a>}
+              {order.delivery_address ? <a className="rider-delivery-address-link" href={'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(order.delivery_address)} target="_blank" rel="noreferrer"><span className="rider-delivery-address-pin" aria-hidden="true">⌖</span><span><strong>Delivery address</strong><span className="rider-delivery-address">{order.delivery_address}</span></span><span className="rider-delivery-address-chevron" aria-hidden="true">›</span></a> : <p className="rider-delivery-address">No delivery address provided</p>}
+              {order.delivery_address && <p className="rider-delivery-helper">Tap the address to open Google Maps or Waze.</p>}
               {order.delivery_notes && <p className="rider-delivery-helper">Delivery notes: {order.delivery_notes}</p>}
             </section>
             <section className="rider-delivery-card rider-order-details-card">
@@ -400,11 +400,11 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
               <div className="rider-delivery-steps">
                 {[
                   { label: 'Assigned', detail: 'Dispatcher assigned this delivery to you.' },
-                  { label: 'Accepted', detail: 'You accepted this delivery.' },
-                  { label: 'Out for delivery', detail: 'The dispatcher has dispatched this order.' },
+                  { label: 'Out for delivery', detail: 'You are heading to the customer.' },
+                  { label: 'Arrived at customer', detail: 'You have arrived at the delivery address.' },
                   { label: 'Delivered', detail: 'The order was delivered to the customer.' },
                 ].map((step, index) => {
-                  const current = order.assignment_status === 'delivered' ? 3 : order.assignment_status === 'out_for_delivery' ? 2 : order.assignment_status === 'accepted' ? 1 : 0;
+                  const current = order.assignment_status === 'delivered' ? 3 : order.assignment_status === 'arrived_at_customer' ? 2 : order.assignment_status === 'out_for_delivery' ? 1 : 0;
                   return <div className="rider-delivery-step" key={step.label}><span className={'rider-delivery-step-marker ' + (index <= current ? 'is-done' : '')}>{index <= current ? '✓' : index + 1}</span><div><strong>{step.label}</strong><p>{step.detail}</p></div></div>;
                 })}
               </div>
