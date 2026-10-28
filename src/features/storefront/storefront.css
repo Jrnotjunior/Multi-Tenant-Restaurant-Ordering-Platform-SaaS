@@ -499,7 +499,7 @@
 .sf-tracking-timeline h3{margin:5px 0 4px;font-size:var(--sf-font-size-14);font-weight:800}
 .sf-tracking-timeline p{margin:0;font-size:var(--sf-font-size-13);line-height:1.5;color:var(--sf-font-color)}
 .sf-tracking-current{display:inline-block;margin-top:5px;font-size:var(--sf-font-size-11);font-weight:800;color:var(--sf-muted)}
-.sf-tracking-footer{display:flex;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--sf-border)}
+.sf-tracking-footer{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--sf-border)}
 .sf-tracking-footer span{padding:5px 9px;border:1px solid var(--sf-border);border-radius:999px;font-size:var(--sf-font-size-12)}
 .sf-tracking-updated{margin:10px 0 0;color:var(--sf-muted);font-size:var(--sf-font-size-10)}
 .sf-tracking-back{margin-top:12px;min-height:40px;padding:0 14px;border:1px solid var(--sf-border);border-radius:9px;background:var(--sf-product-card);color:var(--sf-font-color);font-weight:800;cursor:pointer}
