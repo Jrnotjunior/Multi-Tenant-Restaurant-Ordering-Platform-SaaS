@@ -46,6 +46,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [fees, setFees] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<'active' | 'all'>('active');
   const [riderTab, setRiderTab] = useState<'active' | 'history'>('active');
+  const [selectedRiderOrderId, setSelectedRiderOrderId] = useState<string | null>(null);
   const [riderHistoryDate, setRiderHistoryDate] = useState(() => new Date().toLocaleDateString('en-CA'));
   const [cashierTab, setCashierTab] = useState<'orders' | 'sales'>(() => staffPageFromHash(role) === 'sales' ? 'sales' : 'orders');
   const [kitchenTab, setKitchenTab] = useState<'orders' | 'menu'>(() => staffPageFromHash(role) === 'menu' ? 'menu' : 'orders');
@@ -342,6 +343,28 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       order.assignment_status === 'delivered' || ['delivered', 'completed'].includes(order.order_status.toLowerCase()),
     );
     const hasOnRoad = activeDeliveries.some(order => order.assignment_status === 'out_for_delivery' || order.order_status === 'out_for_delivery');
+    const selectedRiderOrder = activeDeliveries.find(order => order.id === selectedRiderOrderId) ?? deliveryHistory.find(order => order.id === selectedRiderOrderId);
+    if (selectedRiderOrder) {
+      const order = selectedRiderOrder;
+      const status = order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : order.assignment_status === 'delivered' ? 'Delivered' : 'Assigned';
+      const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'deliver');
+      return <main className="rider-dashboard-page">
+        <header className="rider-dashboard-header"><div><p className="eyebrow">My deliveries</p><h1>Order #{order.order_number}</h1><p>{status}</p></div><button className="rider-dashboard-secondary-action" type="button" onClick={() => setSelectedRiderOrderId(null)}>← Back to orders</button></header>
+        {error && <div className="rider-dashboard-message" role="alert">{error}</div>}
+        {notice && <div className="rider-dashboard-notice" role="status">{notice}</div>}
+        <section className="rider-dashboard-section rider-order-detail">
+          <h2>Customer</h2><p><strong>{order.customer_name}</strong></p>
+          {order.customer_phone && <p><a href={'tel:' + order.customer_phone}>{order.customer_phone}</a></p>}
+          <h2>Delivery address</h2><p>{order.delivery_address || 'No delivery address provided'}</p>
+          {order.delivery_address && <a className="rider-dashboard-secondary-action" href={'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(order.delivery_address)} target="_blank" rel="noreferrer">Get directions ↗</a>}
+          {order.delivery_notes && <><h2>Delivery notes</h2><p>{order.delivery_notes}</p></>}
+          <h2>Order items</h2><div className="rider-order-detail-items">{order.items.map(item => <div key={item.id}><span>{item.item_name} × {item.quantity}</span><strong>{money(item.line_total_centavos)}</strong></div>)}</div>
+          <div className="rider-order-detail-total"><span>Total</span><strong>{money(order.total_centavos)}</strong></div>
+          <p>Payment: {label(order.payment_status)}</p>
+          {button && <button className="rider-dashboard-primary-action" type="button" disabled={busy === order.id} onClick={() => void act(order, button.action, button.label.toLowerCase())}>{busy === order.id ? 'Saving…' : button.label}</button>}
+        </section>
+      </main>;
+    }
     const shownHistory = deliveryHistory.filter(order => {
       if (!riderHistoryDate) return true;
       const date = new Date(order.created_at);
@@ -376,19 +399,13 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
             <div className="rider-dashboard-list">{activeDeliveries.map(order => {
               const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'deliver');
               const status = order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : 'Assigned';
-              return <article className="rider-dashboard-delivery-card" key={order.id}>
-                <div className="rider-dashboard-delivery-main">
-                  <div className="rider-dashboard-delivery-top"><strong>Order #{order.order_number}</strong><span className={'rider-dashboard-status ' + (order.assignment_status === 'out_for_delivery' ? 'is-delivering' : '')}>{status}</span></div>
-                  <h3>{order.customer_name}</h3><p>{order.delivery_address || typeLabel(order.order_type)}</p>
-                  {order.customer_phone && <a className="rider-customer-phone" href={'tel:' + order.customer_phone}>{order.customer_phone}</a>}
-                  {order.delivery_notes && <p className="rider-dashboard-notes">Note: {order.delivery_notes}</p>}
-                  <div className="rider-dashboard-card-actions">
-                    {order.customer_phone && <a className="rider-dashboard-secondary-action" href={'tel:' + order.customer_phone}>Call customer</a>}
-                    {order.delivery_address && <a className="rider-dashboard-secondary-action" href={'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(order.delivery_address)} target="_blank" rel="noreferrer">Get directions ↗</a>}
-                    {button && <button className="rider-dashboard-primary-action" type="button" disabled={busy === order.id} onClick={() => void act(order, button.action, button.label.toLowerCase())}>{busy === order.id ? 'Saving…' : button.label}</button>}
-                  </div>
-                </div>
-                <div className="rider-dashboard-delivery-side"><strong>{money(order.total_centavos)}</strong><span aria-hidden="true">›</span></div>
+              return <article className="rider-dashboard-delivery-card rider-dashboard-delivery-card-clickable" key={order.id}>
+                <button className="rider-dashboard-card-open" type="button" onClick={() => setSelectedRiderOrderId(order.id)} aria-label={'Open order ' + order.order_number}>
+                  <span className="rider-dashboard-delivery-top"><strong>Order #{order.order_number}</strong><strong>{money(order.total_centavos)}</strong></span>
+                  <strong className="rider-dashboard-card-customer">{order.customer_name}</strong>
+                  <span className="rider-dashboard-card-address">{order.delivery_address || typeLabel(order.order_type)}</span>
+                  <span className="rider-dashboard-card-open-hint">View order details ›</span>
+                </button>
               </article>;
             })}</div>}
         </> : <>
