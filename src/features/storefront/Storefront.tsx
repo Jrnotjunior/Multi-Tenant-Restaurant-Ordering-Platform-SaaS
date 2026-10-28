@@ -438,14 +438,10 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   // rather than the alphabetical order of the separate category metadata.
   const categories = ['All', ...Array.from(new Set(menu.map(item => item.category)))];
   const restaurant = catalog?.restaurant;
-  const results = useMemo(() => {
-    const categoryOrder = new Map((catalog?.categories ?? ['All']).map((name, index) => [name, index]));
-    return filterMenu(menu, category, query)
-      .map((item, index) => ({ item, index }))
-      .sort((a, b) => (categoryOrder.get(a.item.category) ?? Number.MAX_SAFE_INTEGER)
-        - (categoryOrder.get(b.item.category) ?? Number.MAX_SAFE_INTEGER) || a.index - b.index)
-      .map(({ item }) => item);
-  }, [menu, category, query, catalog?.categories]);
+  // The published catalog RPC already returns products ordered by the restaurant
+  // owner's configured category and item sort_order. Preserve that database order
+  // when filtering; sorting by the separate category-name list can scramble it.
+  const results = useMemo(() => filterMenu(menu, category, query), [menu, category, query]);
   const count = cartCount(cart, menu)+customCount(customized,menu);
   const subtotal = cartSubtotal(cart, menu)+customSubtotal(customized,menu);
 
