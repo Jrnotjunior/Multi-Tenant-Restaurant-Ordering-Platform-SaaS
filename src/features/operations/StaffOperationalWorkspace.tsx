@@ -355,7 +355,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           <div>
             <a className="rider-delivery-back" href="#" onClick={(event) => { event.preventDefault(); setSelectedRiderOrderId(null); }}>← My deliveries</a>
             <p className="rider-delivery-order-eyebrow">Delivery order</p>
-            <h1 className="rider-delivery-order-number">{/^ORD-/i.test(order.order_number) ? order.order_number : 'Order #' + order.order_number}</h1>
+            <h1 className="rider-delivery-order-number">{/^ORD-/i.test(String(order.order_number)) ? String(order.order_number) : `Order #${order.order_number}`}</h1>
             <p>Deliver this order to the customer.</p>
           </div>
           <div className="rider-delivery-header-actions">
