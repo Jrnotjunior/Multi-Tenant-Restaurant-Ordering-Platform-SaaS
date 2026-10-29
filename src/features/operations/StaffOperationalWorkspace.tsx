@@ -354,7 +354,8 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         <header className="rider-delivery-header">
           <div>
             <a className="rider-delivery-back" href="#" onClick={(event) => { event.preventDefault(); setSelectedRiderOrderId(null); }}>← My deliveries</a>
-            <h1>{order.order_number}</h1>
+            <p className="rider-delivery-order-eyebrow">Delivery order</p>
+            <h1 className="rider-delivery-order-number">{/^ORD-/i.test(order.order_number) ? order.order_number : 'Order #' + order.order_number}</h1>
             <p>Deliver this order to the customer.</p>
           </div>
           <div className="rider-delivery-header-actions">
@@ -371,7 +372,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
                 <span className="rider-delivery-customer-icon" aria-hidden="true">♙</span>
               </div>
               {order.customer_phone && <p className="rider-delivery-phone">{order.customer_phone}</p>}
-              {order.customer_phone && <div className="rider-delivery-contact-actions"><a className="rider-delivery-contact-button" href={'tel:' + order.customer_phone}><span aria-hidden="true">♧</span> Call</a><a className="rider-delivery-contact-button" href={'sms:' + order.customer_phone}><span aria-hidden="true">▤</span> Text</a></div>}
+              {order.customer_phone && <div className="rider-delivery-contact-actions"><a className="rider-delivery-contact-button" href={'tel:' + order.customer_phone}><svg className="rider-delivery-contact-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7.2 3.8 4.8 5.1c-.8.5-.9 1.6-.7 2.5 1.5 6.2 6.1 10.8 12.3 12.3.9.2 2 0 2.5-.7l1.3-2.4-4.1-2.8-2 2a14.3 14.3 0 0 1-5.8-5.8l2-2-3.1-4.4Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>Call</a><a className="rider-delivery-contact-button" href={'sms:' + order.customer_phone}><svg className="rider-delivery-contact-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11.2a7.8 7.8 0 0 1-8 7.6 8.7 8.7 0 0 1-3.6-.8L4 19l1.1-3.7A7.2 7.2 0 0 1 4 11.2a7.8 7.8 0 0 1 8-7.6 7.8 7.8 0 0 1 8 7.6Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M8 11.5h.01M12 11.5h.01M16 11.5h.01" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"/></svg>Text</a></div>}
             </section>
             <section className="rider-delivery-card">
               <div className="rider-delivery-card-heading">
