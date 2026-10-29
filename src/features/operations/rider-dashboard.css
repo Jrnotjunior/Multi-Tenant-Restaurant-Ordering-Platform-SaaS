@@ -201,3 +201,17 @@
  .rider-delivery-address-pin{width:48px;height:48px}
  .rider-delivery-address-link .rider-delivery-address{font-size:.98rem}
 }
+
+
+/* Swipe-right confirmation control used by the rider workflow. */
+.rider-delivery-swipe{position:relative;display:flex;align-items:center;min-height:58px;margin-top:1.15rem;overflow:hidden;border:1px solid var(--border,#dbe1ea);border-radius:999px;background:var(--surface-muted,#f1f5f9);touch-action:pan-y}
+.rider-delivery-swipe-track{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:0 1.1rem 0 4.5rem;color:var(--text,#172033);font-size:.82rem;font-weight:800;pointer-events:none}
+.rider-delivery-swipe-arrows{color:var(--muted,#64748b);font-size:1.2rem;letter-spacing:.1em}
+.rider-delivery-swipe-input{position:relative;z-index:1;display:block;width:100%;height:58px;margin:0;padding:0 0 0 2px;appearance:none;-webkit-appearance:none;background:transparent;cursor:ew-resize;touch-action:pan-y}
+.rider-delivery-swipe-input::-webkit-slider-runnable-track{height:58px;background:transparent;border:0}
+.rider-delivery-swipe-input::-moz-range-track{height:58px;background:transparent;border:0}
+.rider-delivery-swipe-input::-webkit-slider-thumb{width:52px;height:52px;appearance:none;-webkit-appearance:none;border:0;border-radius:50%;background:var(--text,#111827);box-shadow:0 2px 7px rgba(15,23,42,.2);background-image:linear-gradient(transparent,transparent);cursor:grab}
+.rider-delivery-swipe-input::-webkit-slider-thumb::after{content:'›'}
+.rider-delivery-swipe-input::-moz-range-thumb{width:52px;height:52px;border:0;border-radius:50%;background:var(--text,#111827);box-shadow:0 2px 7px rgba(15,23,42,.2);cursor:grab}
+.rider-delivery-swipe-input:disabled{opacity:.65;cursor:wait}
+.rider-delivery-swipe.is-busy .rider-delivery-swipe-track{justify-content:center;padding:0 1rem}
