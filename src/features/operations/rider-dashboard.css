@@ -247,3 +247,15 @@
 .rider-order-details-card .rider-delivery-total{display:flex;align-items:center;justify-content:space-between;gap:1rem;width:100%;box-sizing:border-box}
 .rider-order-details-card .rider-delivery-total>span{flex:1;min-width:0}
 .rider-order-details-card .rider-delivery-total>strong{flex:0 0 auto;margin-left:auto;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+
+
+/* Keep subtotal, delivery fee, and total amounts aligned with item prices. */
+.rider-order-details-card .rider-delivery-subtotal,
+.rider-order-details-card .rider-delivery-fee,
+.rider-order-details-card .rider-delivery-total{display:grid;grid-template-columns:minmax(0,1fr) max-content;align-items:center;column-gap:1rem;width:100%;box-sizing:border-box}
+.rider-order-details-card .rider-delivery-subtotal{padding:.55rem 0;color:var(--muted,#64748b);font-size:.86rem;line-height:1.4}
+.rider-order-details-card .rider-delivery-fee{padding:.55rem 0;border-top:1px solid var(--border,#e2e8f0);color:var(--muted,#64748b);font-size:.86rem;line-height:1.4}
+.rider-order-details-card .rider-delivery-subtotal>strong,
+.rider-order-details-card .rider-delivery-fee>strong,
+.rider-order-details-card .rider-delivery-total>strong{grid-column:2;justify-self:end;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.rider-order-details-card .rider-delivery-total{padding:.7rem 0;border-top:1px solid var(--border,#e2e8f0);font-size:1rem;line-height:1.4}
