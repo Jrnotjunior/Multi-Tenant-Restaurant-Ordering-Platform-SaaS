@@ -390,6 +390,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
               </button>
               {orderDetailsOpen && <>
                 <div className="rider-delivery-items">{order.items.map(item => <div className="rider-delivery-item" key={item.id}><span><strong>{item.quantity}×</strong> {item.item_name}</span><span>{money(item.line_total_centavos)}</span></div>)}</div>
+                <div className="rider-delivery-subtotal"><span>Subtotal</span><strong>{money(order.subtotal_centavos)}</strong></div>
                 <div className="rider-delivery-fee"><span>Delivery fee</span><strong>{order.delivery_fee_centavos == null ? 'Pending' : money(order.delivery_fee_centavos)}</strong></div>
                 <div className="rider-delivery-total"><span>Order total</span><strong>{money(order.total_centavos)}</strong></div>
                 <p className="rider-delivery-helper">Payment: {label(order.payment_status)}</p>
