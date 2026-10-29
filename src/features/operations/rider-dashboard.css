@@ -238,3 +238,12 @@
 .rider-delivery-contact-button:active{transform:translateY(1px)}
 .rider-delivery-contact-icon{display:block;width:20px;height:20px;flex:0 0 20px}
 @media(max-width:560px){.rider-delivery-header h1.rider-delivery-order-number{font-size:2rem}.rider-delivery-contact-button{min-height:48px}}
+
+
+/* Align delivery fee as a proper full-width row in the order breakdown. */
+.rider-order-details-card .rider-delivery-fee{display:flex;align-items:center;justify-content:space-between;gap:1rem;width:100%;box-sizing:border-box;padding:.55rem 0;border-top:1px solid var(--border,#e2e8f0);color:var(--text,#172033);font-size:.86rem;line-height:1.4}
+.rider-order-details-card .rider-delivery-fee>span{flex:1;min-width:0}
+.rider-order-details-card .rider-delivery-fee>strong{flex:0 0 auto;margin-left:auto;text-align:right;white-space:nowrap;font-weight:750;font-variant-numeric:tabular-nums}
+.rider-order-details-card .rider-delivery-total{display:flex;align-items:center;justify-content:space-between;gap:1rem;width:100%;box-sizing:border-box}
+.rider-order-details-card .rider-delivery-total>span{flex:1;min-width:0}
+.rider-order-details-card .rider-delivery-total>strong{flex:0 0 auto;margin-left:auto;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
