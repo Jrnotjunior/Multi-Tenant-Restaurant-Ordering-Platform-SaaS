@@ -393,7 +393,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
                 <div className="rider-delivery-subtotal"><span>Subtotal</span><strong>{money(order.subtotal_centavos)}</strong></div>
                 <div className="rider-delivery-fee"><span>Delivery fee</span><strong>{order.delivery_fee_centavos == null ? 'Pending' : money(order.delivery_fee_centavos)}</strong></div>
                 <div className="rider-delivery-total"><span>Order total</span><strong>{money(order.total_centavos)}</strong></div>
-                <p className="rider-delivery-helper">Payment: {label(order.payment_status)}</p>
+                <p className="rider-delivery-helper">Payment: {label(order.payment_status).toUpperCase()}</p>
               </>}
             </section>
           </main>
