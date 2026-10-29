@@ -331,7 +331,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     if (role === 'cashier' && order.order_status === 'ready_for_pickup') return [{ action: 'complete_handoff', label: 'Complete handoff', primary: true }];
     if (role === 'kitchen' && order.order_status === 'preparing') return [{ action: 'mark_ready', label: 'Mark ready', primary: true }];
     if (role === 'dispatcher' && order.order_status === 'ready_for_dispatch' && order.assigned_rider_user_id) return [{ action: 'dispatch', label: 'Dispatch order', primary: true }];
-    if (role === 'rider' && order.assignment_status === 'assigned') return [{ action: 'accept_delivery', label: 'Accept delivery', primary: true }];
+    if (role === 'rider' && order.assignment_status === 'assigned') return [{ action: 'accept_delivery', label: 'Start delivery', primary: true }];
     if (role === 'rider' && order.assignment_status === 'out_for_delivery' && order.order_status === 'out_for_delivery') return [{ action: 'deliver', label: 'Mark delivered', primary: true }];
     return [];
   }
@@ -413,7 +413,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
                 })}
               </div>
               {button && <div className="rider-delivery-slider" data-status={button.action === 'accept_delivery' ? 'start' : 'delivered'}>
-                <input className="rider-delivery-slider-input" type="range" min="0" max="100" step="1" value={swipeProgress} disabled={busy === order.id} aria-label={button.action === 'accept_delivery' ? 'Slide right to accept delivery' : 'Slide right to mark delivered'} onChange={(event) => {
+                <input className="rider-delivery-slider-input" type="range" min="0" max="100" step="1" value={swipeProgress} disabled={busy === order.id} aria-label={button.action === 'accept_delivery' ? 'Slide right to mark out for delivery' : 'Slide right to mark delivered'} onChange={(event) => {
                   const next = Number(event.target.value);
                   setSwipeProgress(next);
                   if (next >= 95 && busy !== order.id) {
@@ -421,10 +421,10 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
                     void act(order, button.action, button.label.toLowerCase());
                   }
                 }} onPointerUp={() => { if (swipeProgress < 95) setSwipeProgress(0); }} onTouchEnd={() => { if (swipeProgress < 95) setSwipeProgress(0); }} />
-                <span className="rider-delivery-slider-label" aria-hidden="true">{busy === order.id ? 'Updating…' : button.action === 'accept_delivery' ? 'Slide to accept delivery' : 'Slide to mark delivered'}</span>
+                <span className="rider-delivery-slider-label" aria-hidden="true">{busy === order.id ? 'Updating…' : button.action === 'accept_delivery' ? 'Swipe when leaving for delivery' : 'Swipe to mark delivered'}</span>
                 <span className="rider-delivery-slider-arrow" aria-hidden="true">›</span>
               </div>}
-              {order.assignment_status === 'assigned' && <p className="rider-delivery-helper">Wait for dispatch before heading to the customer.</p>}
+              {order.assignment_status === 'assigned' && <p className="rider-delivery-helper">Assigned by the dispatcher. Swipe only when you are actually leaving with the order; this marks it out for delivery.</p>}
             </section>
           </aside>
         </div>
