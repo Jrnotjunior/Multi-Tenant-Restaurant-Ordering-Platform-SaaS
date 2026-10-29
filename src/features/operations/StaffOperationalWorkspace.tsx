@@ -409,16 +409,17 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
                   return <div className="rider-delivery-step" key={step.label}><span className={'rider-delivery-step-marker ' + (index <= current ? 'is-done' : '')}>{index <= current ? '✓' : index + 1}</span><div><strong>{step.label}</strong><p>{step.detail}</p></div></div>;
                 })}
               </div>
-              {button && <div className={'rider-delivery-swipe ' + (busy === order.id ? 'is-busy' : '')}>
-                <div className="rider-delivery-swipe-track" aria-hidden="true"><span>{busy === order.id ? 'Updating delivery…' : 'Swipe right to ' + button.label.toLowerCase()}</span><span className="rider-delivery-swipe-arrows">» » »</span></div>
-                <input className="rider-delivery-swipe-input" type="range" min="0" max="100" step="1" value={swipeProgress} disabled={busy === order.id} aria-label={'Swipe right to ' + button.label.toLowerCase()} onChange={(event) => {
+              {button && <div className="rider-delivery-slider" data-status={button.action === 'accept_delivery' ? 'start' : 'delivered'}>
+                <input className="rider-delivery-slider-input" type="range" min="0" max="100" step="1" value={swipeProgress} disabled={busy === order.id} aria-label={button.action === 'accept_delivery' ? 'Slide right to accept delivery' : 'Slide right to mark delivered'} onChange={(event) => {
                   const next = Number(event.target.value);
                   setSwipeProgress(next);
                   if (next >= 95 && busy !== order.id) {
                     setSwipeProgress(0);
                     void act(order, button.action, button.label.toLowerCase());
                   }
-                }} onPointerUp={() => { if (swipeProgress < 95) setSwipeProgress(0); }} onKeyUp={(event) => { if (event.key === 'ArrowRight' && swipeProgress >= 95) setSwipeProgress(0); }} />
+                }} onPointerUp={() => { if (swipeProgress < 95) setSwipeProgress(0); }} onTouchEnd={() => { if (swipeProgress < 95) setSwipeProgress(0); }} />
+                <span className="rider-delivery-slider-label" aria-hidden="true">{busy === order.id ? 'Updating…' : button.action === 'accept_delivery' ? 'Slide to accept delivery' : 'Slide to mark delivered'}</span>
+                <span className="rider-delivery-slider-arrow" aria-hidden="true">›</span>
               </div>}
               {order.assignment_status === 'assigned' && <p className="rider-delivery-helper">Wait for dispatch before heading to the customer.</p>}
             </section>
