@@ -48,6 +48,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [riderTab, setRiderTab] = useState<'active' | 'history'>('active');
   const [selectedRiderOrderId, setSelectedRiderOrderId] = useState<string | null>(null);
   const [orderDetailsOpen, setOrderDetailsOpen] = useState(false);
+  const [swipeProgress, setSwipeProgress] = useState(0);
   const [riderHistoryDate, setRiderHistoryDate] = useState(() => new Date().toLocaleDateString('en-CA'));
   const [cashierTab, setCashierTab] = useState<'orders' | 'sales'>(() => staffPageFromHash(role) === 'sales' ? 'sales' : 'orders');
   const [kitchenTab, setKitchenTab] = useState<'orders' | 'menu'>(() => staffPageFromHash(role) === 'menu' ? 'menu' : 'orders');
@@ -408,7 +409,17 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
                   return <div className="rider-delivery-step" key={step.label}><span className={'rider-delivery-step-marker ' + (index <= current ? 'is-done' : '')}>{index <= current ? '✓' : index + 1}</span><div><strong>{step.label}</strong><p>{step.detail}</p></div></div>;
                 })}
               </div>
-              {button && <button className="rider-dashboard-primary-action rider-delivery-action" type="button" disabled={busy === order.id} onClick={() => void act(order, button.action, button.label.toLowerCase())}>{busy === order.id ? 'Saving…' : button.label}</button>}
+              {button && <div className={'rider-delivery-swipe ' + (busy === order.id ? 'is-busy' : '')}>
+                <div className="rider-delivery-swipe-track" aria-hidden="true"><span>{busy === order.id ? 'Updating delivery…' : 'Swipe right to ' + button.label.toLowerCase()}</span><span className="rider-delivery-swipe-arrows">» » »</span></div>
+                <input className="rider-delivery-swipe-input" type="range" min="0" max="100" step="1" value={swipeProgress} disabled={busy === order.id} aria-label={'Swipe right to ' + button.label.toLowerCase()} onChange={(event) => {
+                  const next = Number(event.target.value);
+                  setSwipeProgress(next);
+                  if (next >= 95 && busy !== order.id) {
+                    setSwipeProgress(0);
+                    void act(order, button.action, button.label.toLowerCase());
+                  }
+                }} onPointerUp={() => { if (swipeProgress < 95) setSwipeProgress(0); }} onKeyUp={(event) => { if (event.key === 'ArrowRight' && swipeProgress >= 95) setSwipeProgress(0); }} />
+              </div>}
               {order.assignment_status === 'assigned' && <p className="rider-delivery-helper">Wait for dispatch before heading to the customer.</p>}
             </section>
           </aside>
@@ -450,7 +461,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
               const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'deliver');
               const status = order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : 'Assigned';
               return <article className="rider-dashboard-delivery-card rider-dashboard-delivery-card-clickable" key={order.id}>
-                <button className="rider-dashboard-card-open" type="button" onClick={() => { setSelectedRiderOrderId(order.id); setOrderDetailsOpen(false); }} aria-label={'Open order ' + order.order_number}>
+                <button className="rider-dashboard-card-open" type="button" onClick={() => { setSelectedRiderOrderId(order.id); setOrderDetailsOpen(false); setSwipeProgress(0); }} aria-label={'Open order ' + order.order_number}>
                   <span className="rider-dashboard-delivery-top">
                     <strong>Order #{order.order_number}</strong>
                     <span className={'rider-dashboard-status ' + (order.assignment_status === 'out_for_delivery' ? 'is-delivering' : '')}>{status}</span>
