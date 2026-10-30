@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const allowedOrigins = new Set(["https://jrnotjunior.github.io","http://localhost:5173","http://127.0.0.1:5173"]);
+const allowedOrigins = new Set(["https://app.web2table.io","https://jrnotjunior.github.io","http://localhost:5173","http://127.0.0.1:5173"]);
 type Rec = Record<string, unknown>;
 
 function response(req: Request, body: unknown, status = 200, requestId = crypto.randomUUID()) {
@@ -57,10 +57,11 @@ Deno.serve(async(req:Request)=>{
     const match=path.match(/\/branches\/([^/]+)\/menu$/);
     const isMenu=Boolean(match)&&(path.includes("/api/pos/v1/")||path.includes("/pos-api/"));
     if(!isSession&&!isMenu)return response(req,err("NOT_FOUND","The requested POS endpoint was not found.",requestId),404,requestId);
-    // Until a dedicated cashier role is provisioned, only restaurant owners may use the register.
-    const {data:memberships,error:membershipError}=await admin.from("tenant_memberships").select("tenant_id").eq("user_id",auth.user.id).eq("status","active").eq("role","restaurant_owner").limit(50);
+    // Owners can access active branches in their tenant. Cashiers must have an
+    // explicit branch_memberships row; tenant membership alone is insufficient.
+    const {data:memberships,error:membershipError}=await admin.from("tenant_memberships").select("tenant_id,role").eq("user_id",auth.user.id).eq("status","active").in("role",["restaurant_owner","cashier"]).limit(50);
     if(membershipError)throw membershipError;
-    if(!memberships?.length)return response(req,err("FORBIDDEN","Your account does not have an active restaurant-owner POS permission.",requestId),403,requestId);
+    if(!memberships?.length)return response(req,err("FORBIDDEN","Your account does not have an active owner or cashier POS permission.",requestId),403,requestId);
     const requestedBranch=match?decodeURIComponent(match[1]):"";
     if(isMenu&&!uuid(requestedBranch))return response(req,err("VALIDATION_ERROR","A valid branch identifier is required.",requestId),400,requestId);
     let context:{tenantId:string;tenantName:string;branchId:string;branchName:string}|null=null;
@@ -69,12 +70,20 @@ Deno.serve(async(req:Request)=>{
       if(te)throw te;if(!t)continue;
       let q=admin.from("branches").select("id,tenant_id,name").eq("tenant_id",t.id).eq("is_active",true);
       if(isMenu)q=q.eq("id",requestedBranch);
+      if(m.role==="cashier") {
+        const {data:assigned,error:assignedError}=await admin.from("branch_memberships").select("branch_id").eq("tenant_id",t.id).eq("user_id",auth.user.id);
+        if(assignedError)throw assignedError;
+        const branchIds=(assigned??[]).map((row:Rec)=>row.branch_id).filter((id):id is string=>typeof id==="string");
+        if(!branchIds.length)continue;
+        q=q.in("id",branchIds);
+      }
       const {data:b,error:be}=await q.order("created_at",{ascending:true}).limit(1).maybeSingle();
       if(be)throw be;
       if(b){context={tenantId:t.id,tenantName:t.name,branchId:b.id,branchName:b.name};break;}
     }
     if(!context)return response(req,err(isMenu?"NOT_FOUND":"FORBIDDEN",isMenu?"The requested branch is unavailable or not authorized.":"No active branch is available for your restaurant account.",requestId),isMenu?404:403,requestId);
-    if(isSession)return response(req,{data:{userId:auth.user.id,displayName:displayName(auth.user),tenantId:context.tenantId,tenantName:context.tenantName,branchId:context.branchId,branchName:context.branchName,permissions:["pos.session.read","pos.menu.read"]},requestId},200,requestId);
+    const role=memberships.find((m:Rec)=>m.tenant_id===context!.tenantId)?.role;
+    if(isSession)return response(req,{data:{userId:auth.user.id,displayName:displayName(auth.user),tenantId:context.tenantId,tenantName:context.tenantName,branchId:context.branchId,branchName:context.branchName,role,permissions:["pos.session.read","pos.menu.read"]},requestId},200,requestId);
     const {data:rows,error:menuError}=await admin.from("menu_items")
       .select("id,category_id,name,description,price_centavos,menu_categories!inner(id,name,is_published),branch_menu_items!inner(is_available,price_override_centavos,tenant_id,branch_id)")
       .eq("tenant_id",context.tenantId).eq("status","published").eq("menu_categories.is_published",true)
