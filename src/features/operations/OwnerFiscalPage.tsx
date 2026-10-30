@@ -9,6 +9,7 @@ type FiscalProfile = {
   invoice_series_prefix: string; fiscal_status: 'draft' | 'pending_review' | 'authorized' | 'suspended';
   software_name: string; software_version: string; machine_or_terminal_identifier: string | null;
 };
+type AuthorizedBranch = { id: string; name: string; slug?: string; timezone?: string };
 type Draft = {
   branchId: string; taxpayerRegisteredName: string; tradeName: string; taxpayerTin: string;
   tinBranchCode: string; registeredAddress: string; taxRegime: TaxRegime; invoiceDocumentType: 'invoice';
@@ -32,6 +33,8 @@ export function OwnerFiscalPage() {
   const [draft, setDraft] = useState<Draft>(() => blankDraft());
   const [profile, setProfile] = useState<FiscalProfile | null>(null);
   const [branchName, setBranchName] = useState('');
+  const [branches, setBranches] = useState<AuthorizedBranch[]>([]);
+  const [selectedBranchId, setSelectedBranchId] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -57,15 +60,16 @@ export function OwnerFiscalPage() {
         if (!session || session.role !== 'restaurant_owner' || typeof session.branchId !== 'string' || !session.branchId) {
           throw new Error('Only an authorized restaurant owner with an active branch can manage fiscal settings.');
         }
-        const response = await fetch(`${config.url.replace(/\/+$/, '')}/functions/v1/pos-api/api/pos/v1/fiscal-profile?branchId=${encodeURIComponent(session.branchId)}`, { headers, credentials: 'omit' });
-        const payload: unknown = await response.json();
-        if (!response.ok) throw new Error(isRecord(payload) && isRecord(payload.error) && typeof payload.error.message === 'string' ? payload.error.message : 'Unable to load taxpayer configuration.');
-        const value = isRecord(payload) && 'data' in payload ? payload.data : null;
+        const authorized = Array.isArray(session.branches) ? session.branches.filter((item): item is AuthorizedBranch =>
+          isRecord(item) && typeof item.id === 'string' && typeof item.name === 'string') : [];
+        const safeBranches = [...authorized];
+        if (!safeBranches.some(item => item.id === session.branchId)) {
+          safeBranches.unshift({ id: session.branchId, name: typeof session.branchName === 'string' ? session.branchName : 'Authorized branch' });
+        }
         if (!active) return;
-        setBranchName(typeof session.branchName === 'string' ? session.branchName : 'Authorized branch');
-        if (isRecord(value) && typeof value.id === 'string') {
-          const saved = value as unknown as FiscalProfile; setProfile(saved); setDraft(fromProfile(saved));
-        } else { setProfile(null); setDraft(blankDraft(session.branchId)); }
+        setBranches(safeBranches);
+        setSelectedBranchId(current => safeBranches.some(item => item.id === current) ? current : session.branchId);
+        setBranchName(safeBranches.find(item => item.id === session.branchId)?.name ?? 'Authorized branch');
       } catch (reason) {
         if (active) setError(reason instanceof Error ? reason.message : 'Unable to load fiscal settings.');
       } finally { if (active) setLoading(false); }
@@ -73,6 +77,40 @@ export function OwnerFiscalPage() {
     void load();
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    if (!selectedBranchId) return;
+    let active = true;
+    async function loadBranchProfile() {
+      setLoading(true); setError(''); setNotice(''); setProfile(null); setDraft(blankDraft(selectedBranchId));
+      setBranchName(branches.find(branch => branch.id === selectedBranchId)?.name ?? 'Authorized branch');
+      try {
+        if (!supabase) throw new Error('Restaurant workspace services are not configured.');
+        const config = readPublicConfig(import.meta.env);
+        if (!config) throw new Error('POS service configuration is unavailable.');
+        const { data: authData, error: authError } = await supabase.auth.getSession();
+        if (authError) throw authError;
+        const token = authData.session?.access_token;
+        if (!token) throw new Error('Sign in again to manage fiscal settings.');
+        const response = await fetch(`${config.url.replace(/\\/+$/, '')}/functions/v1/pos-api/api/pos/v1/fiscal-profile?branchId=${encodeURIComponent(selectedBranchId)}`, {
+          headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }, credentials: 'omit',
+        });
+        const payload: unknown = await response.json();
+        if (!response.ok) throw new Error(isRecord(payload) && isRecord(payload.error) && typeof payload.error.message === 'string' ? payload.error.message : 'Unable to load taxpayer configuration.');
+        const value = isRecord(payload) && 'data' in payload ? payload.data : null;
+        if (!active) return;
+        if (isRecord(value) && typeof value.id === 'string') {
+          const saved = value as unknown as FiscalProfile;
+          if (saved.branch_id !== selectedBranchId) throw new Error('The POS service returned a profile for a different branch.');
+          setProfile(saved); setDraft(fromProfile(saved));
+        }
+      } catch (reason) {
+        if (active) setError(reason instanceof Error ? reason.message : 'Unable to load fiscal settings.');
+      } finally { if (active) setLoading(false); }
+    }
+    void loadBranchProfile();
+    return () => { active = false; };
+  }, [selectedBranchId, branches]);
 
   const update = <K extends keyof Draft>(key: K, value: Draft[K]) => setDraft(current => ({ ...current, [key]: value }));
   async function save(event: FormEvent<HTMLFormElement>) {
@@ -117,6 +155,11 @@ export function OwnerFiscalPage() {
     </section>
     {error && <div className="owner-fiscal-notice" role="alert"><strong>Could not load or save settings.</strong><p>{error}</p></div>}
     {notice && <div className="owner-fiscal-notice" role="status"><strong>Saved.</strong><p>{notice}</p></div>}
+    {branches.length > 1 && <section className="owner-fiscal-card owner-fiscal-branch-picker" aria-label="Branch selection">
+      <label>Configure branch<select value={selectedBranchId} onChange={event => setSelectedBranchId(event.target.value)} disabled={loading || saving}>
+        {branches.map(branch => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
+      </select></label>
+    </section>}
     {loading ? <p role="status">Loading authorized branch configuration…</p> : <section className="owner-fiscal-card" aria-labelledby="owner-taxpayer-title">
       <div className="owner-fiscal-card-heading"><div><h2 id="owner-taxpayer-title">Taxpayer configuration</h2><p>Branch: {branchName || 'Not available'}</p></div><span>{profile ? 'Profile saved' : 'Not set up'}</span></div>
       <form className="owner-fiscal-form" onSubmit={event => void save(event)}>
