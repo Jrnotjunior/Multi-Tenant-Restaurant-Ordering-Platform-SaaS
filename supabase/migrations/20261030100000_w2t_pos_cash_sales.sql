@@ -103,21 +103,19 @@ BEGIN
 
   PERFORM pg_advisory_xact_lock(hashtextextended(p_actor_user_id::text || ':' || p_idempotency_key::text, 0));
 
-  SELECT m.tenant_id, m.role INTO v_tenant_id, v_role
-  FROM public.tenant_memberships m
-  WHERE m.user_id = p_actor_user_id AND m.status = 'active'
-    AND m.role IN ('restaurant_owner','cashier')
-  ORDER BY CASE WHEN m.role = 'cashier' THEN 0 ELSE 1 END
-  LIMIT 1;
-
+  SELECT b.tenant_id INTO v_tenant_id
+  FROM public.branches b
+  WHERE b.id = p_branch_id AND b.is_active;
   IF v_tenant_id IS NULL THEN
-    RAISE EXCEPTION 'Active cashier or restaurant-owner access is required.' USING ERRCODE='42501';
-  END IF;
-  IF NOT EXISTS (
-    SELECT 1 FROM public.branches b
-    WHERE b.id = p_branch_id AND b.tenant_id = v_tenant_id AND b.is_active
-  ) THEN
     RAISE EXCEPTION 'This branch is unavailable.' USING ERRCODE='42501';
+  END IF;
+
+  SELECT m.role INTO v_role
+  FROM public.tenant_memberships m
+  WHERE m.tenant_id = v_tenant_id AND m.user_id = p_actor_user_id
+    AND m.status = 'active' AND m.role IN ('restaurant_owner','cashier');
+  IF v_role IS NULL THEN
+    RAISE EXCEPTION 'Active cashier or restaurant-owner access is required for this tenant.' USING ERRCODE='42501';
   END IF;
   IF v_role = 'cashier' AND NOT EXISTS (
     SELECT 1 FROM public.branch_memberships bm
