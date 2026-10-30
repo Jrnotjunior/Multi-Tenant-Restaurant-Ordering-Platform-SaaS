@@ -343,3 +343,10 @@
 .staff-cashier-modal-total{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:24px;padding-top:10px;line-height:1.4}
 .staff-cashier-modal-total>strong:first-child{min-width:0}
 .staff-cashier-modal-total>strong:last-child{min-width:104px;text-align:right;font-variant-numeric:tabular-nums}
+
+.staff-pos-sales-history{margin-top:24px;padding-top:22px;border-top:1px solid #e4eaf2}
+.staff-pos-sales-history .staff-sales-heading{margin-bottom:14px}
+.staff-pos-sales-history .staff-sales-heading h2{margin:0;font-size:17px;letter-spacing:-.025em}
+.staff-pos-sales-history .staff-sales-heading p:not(.staff-eyebrow){margin:6px 0 0;color:#657791;font-size:12px;line-height:1.55}
+.staff-pos-sales-history .staff-sales-table td:nth-child(3){min-width:180px;max-width:340px;white-space:normal;line-height:1.5}
+@media(max-width:760px){.staff-pos-sales-history .staff-sales-heading{align-items:flex-start;gap:12px;flex-direction:column}.staff-pos-sales-history .staff-sales-table-wrap{overflow-x:auto}}
