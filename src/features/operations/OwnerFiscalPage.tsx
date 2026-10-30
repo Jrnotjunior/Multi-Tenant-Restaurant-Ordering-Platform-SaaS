@@ -16,6 +16,11 @@ type Draft = {
   invoiceSeriesPrefix: string; softwareName: string; softwareVersion: string; machineOrTerminalIdentifier: string;
 };
 type ApiEnvelope<T> = { data: T; error?: { message?: string } };
+type TaxTreatment = 'taxable' | 'zero_rated' | 'exempt' | 'out_of_scope' | 'requires_review';
+type TaxRuleDraft = { code: string; label: string; treatment: TaxTreatment; ratePercent: string; priceIncludesTax: boolean };
+type TaxPolicy = { id: string; branch_id: string; policy_name: string; policy_version: number; status: string; effective_from: string; effective_until: string | null; currency_code: string; rounding_mode: string; rules: Array<{ code: string; label: string; treatment: TaxTreatment; rateBasisPoints: number; priceIncludesTax: boolean }> };
+const blankRule = (): TaxRuleDraft => ({ code: '', label: '', treatment: 'requires_review', ratePercent: '0', priceIncludesTax: false });
+
 const blankDraft = (branchId = ''): Draft => ({
   branchId, taxpayerRegisteredName: '', tradeName: '', taxpayerTin: '', tinBranchCode: '000',
   registeredAddress: '', taxRegime: 'other_requires_review', invoiceDocumentType: 'invoice',
@@ -112,6 +117,87 @@ export function OwnerFiscalPage() {
     return () => { active = false; };
   }, [selectedBranchId, branches]);
 
+
+  const [policies, setPolicies] = useState<TaxPolicy[]>([]);
+  const [policyName, setPolicyName] = useState('');
+  const [effectiveFrom, setEffectiveFrom] = useState('');
+  const [effectiveUntil, setEffectiveUntil] = useState('');
+  const [taxRules, setTaxRules] = useState<TaxRuleDraft[]>([blankRule()]);
+  const [policiesLoading, setPoliciesLoading] = useState(false);
+  const [policySaving, setPolicySaving] = useState(false);
+  const [policyError, setPolicyError] = useState('');
+  const [policyNotice, setPolicyNotice] = useState('');
+
+
+  useEffect(() => {
+    if (!selectedBranchId || !profile) { setPolicies([]); return; }
+    let active = true;
+    async function loadPolicies() {
+      setPoliciesLoading(true); setPolicyError('');
+      try {
+        if (!supabase) throw new Error('Restaurant workspace services are not configured.');
+        const config = readPublicConfig(import.meta.env);
+        if (!config) throw new Error('POS service configuration is unavailable.');
+        const { data, error: authError } = await supabase.auth.getSession();
+        if (authError) throw authError;
+        const token = data.session?.access_token;
+        if (!token) throw new Error('Sign in again to manage tax policies.');
+        const response = await fetch(`${config.url.replace(/\\/+$/, '')}/functions/v1/pos-api/api/pos/v1/fiscal-tax-policies?branchId=${encodeURIComponent(selectedBranchId)}`, {
+          headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }, credentials: 'omit',
+        });
+        const payload: unknown = await response.json();
+        if (!response.ok) throw new Error(isRecord(payload) && isRecord(payload.error) && typeof payload.error.message === 'string' ? payload.error.message : 'Unable to load tax policies.');
+        const rows = isRecord(payload) && Array.isArray(payload.data) ? payload.data as TaxPolicy[] : [];
+        if (!active) return;
+        if (rows.some(row => row.branch_id !== selectedBranchId)) throw new Error('The POS service returned a policy for a different branch.');
+        setPolicies(rows);
+      } catch (reason) { if (active) setPolicyError(reason instanceof Error ? reason.message : 'Unable to load tax policies.'); }
+      finally { if (active) setPoliciesLoading(false); }
+    }
+    void loadPolicies();
+    return () => { active = false; };
+  }, [selectedBranchId, profile]);
+
+  function updateTaxRule(index: number, key: keyof TaxRuleDraft, value: string | boolean) {
+    setTaxRules(current => current.map((rule, i) => i === index ? { ...rule, [key]: value } : rule));
+  }
+  async function saveTaxPolicy(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setPolicyError(''); setPolicyNotice('');
+    const normalized = taxRules.map(rule => ({ ...rule, code: rule.code.trim().toUpperCase(), label: rule.label.trim(), rate: Number(rule.ratePercent) }));
+    if (!selectedBranchId || policyName.trim().length < 2 || !effectiveFrom || normalized.length < 1
+      || normalized.some(rule => !/^[A-Z0-9_-]{2,40}$/.test(rule.code) || rule.label.length < 2 || !Number.isFinite(rule.rate) || rule.rate < 0 || rule.rate > 1000 || !/^\\d+(?:\\.\\d{1,2})?$/.test(rule.ratePercent.trim()))
+      || normalized.some(rule => rule.treatment !== 'taxable' && rule.rate !== 0)
+      || new Set(normalized.map(rule => rule.code)).size !== normalized.length
+      || (effectiveUntil && new Date(effectiveUntil).getTime() <= new Date(effectiveFrom).getTime())) {
+      setPolicyError('Check the policy name, effective dates, unique rule codes, labels, and explicit rates. Non-taxable treatments must use 0%.'); return;
+    }
+    const toIso = (value: string) => new Date(value).toISOString();
+    setPolicySaving(true);
+    try {
+      if (!supabase) throw new Error('Restaurant workspace services are not configured.');
+      const config = readPublicConfig(import.meta.env);
+      if (!config) throw new Error('POS service configuration is unavailable.');
+      const { data, error: authError } = await supabase.auth.getSession();
+      if (authError) throw authError;
+      const token = data.session?.access_token;
+      if (!token) throw new Error('Sign in again to save tax policies.');
+      const response = await fetch(`${config.url.replace(/\\/+$/, '')}/functions/v1/pos-api/api/pos/v1/fiscal-tax-policies`, {
+        method: 'POST', credentials: 'omit',
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ branchId: selectedBranchId, policyName: policyName.trim(), effectiveFrom: toIso(effectiveFrom), effectiveUntil: effectiveUntil ? toIso(effectiveUntil) : null,
+          rules: normalized.map(rule => ({ code: rule.code, label: rule.label, treatment: rule.treatment, rateBasisPoints: Math.round(rule.rate * 100), priceIncludesTax: rule.priceIncludesTax })) }),
+      });
+      const payload: unknown = await response.json();
+      if (!response.ok) throw new Error(isRecord(payload) && isRecord(payload.error) && typeof payload.error.message === 'string' ? payload.error.message : 'Unable to save tax policy.');
+      const value = isRecord(payload) && isRecord(payload.data) ? payload.data as unknown as TaxPolicy : null;
+      if (!value || value.branch_id !== selectedBranchId) throw new Error('POS service returned a policy for a different branch.');
+      setPolicies(current => [value, ...current.filter(item => item.id !== value.id)]);
+      setPolicyName(''); setEffectiveFrom(''); setEffectiveUntil(''); setTaxRules([blankRule()]);
+      setPolicyNotice('Tax policy saved as a draft. It is not approved and will not be applied to checkout.');
+    } catch (reason) { setPolicyError(reason instanceof Error ? reason.message : 'Unable to save tax policy.'); }
+    finally { setPolicySaving(false); }
+  }
+
   const update = <K extends keyof Draft>(key: K, value: Draft[K]) => setDraft(current => ({ ...current, [key]: value }));
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError(''); setNotice('');
@@ -177,6 +263,34 @@ export function OwnerFiscalPage() {
         </div>
         <div className="owner-fiscal-actions"><button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save taxpayer configuration'} <span aria-hidden="true">→</span></button></div>
       </form>
+    </section>}
+    {!loading && profile && <section className="owner-fiscal-card owner-tax-policy-card" aria-labelledby="owner-tax-policy-title">
+      <div className="owner-fiscal-card-heading"><div><h2 id="owner-tax-policy-title">Tax policy drafts</h2><p>Branch: {branchName || 'Not available'} · Currency PHP · Rounding to nearest centavo</p></div><span>Draft only</span></div>
+      <p className="owner-tax-policy-warning">Enter rates and classifications only after they are verified for this business. No statutory rate is preselected. Policies remain drafts until a formal review workflow is implemented.</p>
+      {policyError && <div className="owner-fiscal-notice owner-tax-policy-alert" role="alert"><strong>Tax policy not saved.</strong><p>{policyError}</p></div>}
+      {policyNotice && <div className="owner-fiscal-notice owner-tax-policy-alert" role="status"><strong>Draft saved.</strong><p>{policyNotice}</p></div>}
+      <form className="owner-tax-policy-form" onSubmit={event => void saveTaxPolicy(event)}>
+        <div className="owner-tax-policy-fields">
+          <label>Policy name<input required maxLength={120} value={policyName} onChange={e => setPolicyName(e.target.value)} placeholder="e.g. Reviewed branch tax configuration" /></label>
+          <label>Effective from<input required type="datetime-local" value={effectiveFrom} onChange={e => setEffectiveFrom(e.target.value)} /></label>
+          <label>Effective until (optional)<input type="datetime-local" value={effectiveUntil} onChange={e => setEffectiveUntil(e.target.value)} /></label>
+        </div>
+        <div className="owner-tax-policy-rules-heading"><h3>Tax rules</h3><button type="button" disabled={taxRules.length >= 50 || policySaving} onClick={() => setTaxRules(current => [...current, blankRule()])}>Add rule</button></div>
+        {taxRules.map((rule, index) => <div className="owner-tax-policy-rule" key={index}>
+          <label>Code<input required maxLength={40} value={rule.code} onChange={e => updateTaxRule(index, 'code', e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 40))} placeholder="RULE_CODE" /></label>
+          <label>Label<input required maxLength={120} value={rule.label} onChange={e => updateTaxRule(index, 'label', e.target.value)} /></label>
+          <label>Treatment<select value={rule.treatment} onChange={e => updateTaxRule(index, 'treatment', e.target.value as TaxTreatment)}><option value="requires_review">Requires review</option><option value="taxable">Taxable</option><option value="zero_rated">Zero-rated</option><option value="exempt">Exempt</option><option value="out_of_scope">Out of scope</option></select></label>
+          <label>Rate (%)<input required inputMode="decimal" value={rule.ratePercent} onChange={e => updateTaxRule(index, 'ratePercent', e.target.value)} aria-describedby={`tax-rule-rate-help-${index}`} /><small id={`tax-rule-rate-help-${index}`}>Enter an explicitly verified rate; non-taxable treatments require 0.</small></label>
+          <label className="owner-tax-policy-checkbox"><input type="checkbox" checked={rule.priceIncludesTax} onChange={e => updateTaxRule(index, 'priceIncludesTax', e.target.checked)} /> Price includes tax</label>
+          {taxRules.length > 1 && <button className="owner-tax-policy-remove" type="button" disabled={policySaving} onClick={() => setTaxRules(current => current.filter((_, i) => i !== index))}>Remove rule</button>}
+        </div>)}
+        <div className="owner-fiscal-actions"><button type="submit" disabled={policySaving || policiesLoading}>{policySaving ? 'Saving draft…' : 'Save tax policy draft'} <span aria-hidden="true">→</span></button></div>
+      </form>
+      <div className="owner-tax-policy-list"><div className="owner-tax-policy-list-heading"><h3>Saved policies</h3><span>{policiesLoading ? 'Loading…' : `${policies.length} saved`}</span></div>
+        {policies.length === 0 && !policiesLoading ? <p className="owner-tax-policy-empty">No policy drafts for this branch yet.</p> : policies.map(policy => <article key={policy.id} className="owner-tax-policy-item">
+          <div><strong>{policy.policy_name} · v{policy.policy_version}</strong><small>Effective {new Date(policy.effective_from).toLocaleString()} {policy.effective_until ? `through ${new Date(policy.effective_until).toLocaleString()}` : '· no end date'}</small><small>{policy.rules.length} rule(s): {policy.rules.map(rule => `${rule.code} (${rule.treatment}, ${(rule.rateBasisPoints / 100).toFixed(2)}%)`).join(' · ')}</small></div><span>{policy.status}</span>
+        </article>)}
+      </div>
     </section>}
   </main>;
 }
