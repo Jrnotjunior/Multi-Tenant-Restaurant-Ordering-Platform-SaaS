@@ -7,7 +7,7 @@ function response(req: Request, body: unknown, status = 200, requestId = crypto.
   const origin = req.headers.get("Origin") ?? "";
   const headers: Record<string,string> = {
     "Access-Control-Allow-Headers":"authorization, apikey, x-client-info, content-type",
-    "Access-Control-Allow-Methods":"GET, OPTIONS",
+    "Access-Control-Allow-Methods":"GET, POST, OPTIONS",
     "Access-Control-Max-Age":"600","Vary":"Origin",
     "Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store",
     "X-Content-Type-Options":"nosniff","X-Request-Id":requestId
@@ -40,7 +40,7 @@ const uuid=(v:string)=>/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]
 Deno.serve(async(req:Request)=>{
   const requestId=crypto.randomUUID();
   if(req.method==="OPTIONS")return response(req,{ok:true},200,requestId);
-  if(req.method!=="GET")return response(req,err("VALIDATION_ERROR","Only GET requests are supported.",requestId),405,requestId);
+  if(req.method!=="GET"&&req.method!=="POST")return response(req,err("VALIDATION_ERROR","Only GET and POST requests are supported.",requestId),405,requestId);
   const origin=req.headers.get("Origin");
   if(origin&&!allowedOrigins.has(origin))return response(req,err("FORBIDDEN","This origin is not allowed to access the POS API.",requestId),403,requestId);
   const token=(req.headers.get("Authorization")??"").match(/^Bearer\s+(.+)$/i)?.[1]??"";
@@ -53,10 +53,43 @@ Deno.serve(async(req:Request)=>{
     if(authError||!auth.user)return response(req,err("UNAUTHENTICATED","Your session is invalid or expired. Sign in again.",requestId),401,requestId);
     if(claims(token)?.aal!=="aal2")return response(req,err("FORBIDDEN","Complete multi-factor authentication before accessing the POS.",requestId),403,requestId);
     const path=new URL(req.url).pathname;
-    const isSession=path.endsWith("/api/pos/v1/session")||path.endsWith("/session");
+    const isSession=req.method==="GET"&&(path.endsWith("/api/pos/v1/session")||path.endsWith("/session"));
     const match=path.match(/\/branches\/([^/]+)\/menu$/);
-    const isMenu=Boolean(match)&&(path.includes("/api/pos/v1/")||path.includes("/pos-api/"));
-    if(!isSession&&!isMenu)return response(req,err("NOT_FOUND","The requested POS endpoint was not found.",requestId),404,requestId);
+    const isMenu=req.method==="GET"&&Boolean(match)&&(path.includes("/api/pos/v1/")||path.includes("/pos-api/"));
+    const isSale=req.method==="POST"&&path.endsWith("/api/pos/v1/sales");
+    if(!isSession&&!isMenu&&!isSale)return response(req,err("NOT_FOUND","The requested POS endpoint was not found.",requestId),404,requestId);
+    if(isSale){
+      const length=Number(req.headers.get("Content-Length")??"0");
+      if(length>50000)return response(req,err("VALIDATION_ERROR","The sale request is too large.",requestId),413,requestId);
+      let body:Rec;
+      try{const parsed:unknown=await req.json();if(typeof parsed!=="object"||parsed===null||Array.isArray(parsed))throw new Error("invalid");body=parsed as Rec;}
+      catch{return response(req,err("VALIDATION_ERROR","Provide a valid JSON sale request.",requestId),400,requestId);}
+      const branchId=typeof body.branchId==="string"?body.branchId:"";
+      const idempotencyKey=typeof body.idempotencyKey==="string"?body.idempotencyKey:"";
+      const cashTendered=body.cashTenderedCentavos;
+      if(!uuid(branchId)||!uuid(idempotencyKey)||!Number.isSafeInteger(cashTendered)||Number(cashTendered)<1||!Array.isArray(body.items)||body.items.length<1||body.items.length>50)
+        return response(req,err("VALIDATION_ERROR","Branch, request key, cash received, and sale items are required.",requestId),400,requestId);
+      const saleItems:Rec[]=[];
+      for(const value of body.items){
+        if(typeof value!=="object"||value===null||Array.isArray(value))return response(req,err("VALIDATION_ERROR","A sale item is invalid.",requestId),400,requestId);
+        const line=value as Rec;
+        if(typeof line.itemId!=="string"||!uuid(line.itemId)||!Number.isSafeInteger(line.quantity)||Number(line.quantity)<1||Number(line.quantity)>100)
+          return response(req,err("VALIDATION_ERROR","A sale item or quantity is invalid.",requestId),400,requestId);
+        saleItems.push({item_id:line.itemId,quantity:line.quantity});
+      }
+      const {data:sale,error:saleError}=await admin.rpc("create_pos_cash_sale",{
+        p_actor_user_id:auth.user.id,p_branch_id:branchId,p_idempotency_key:idempotencyKey,
+        p_items:saleItems,p_cash_tendered_centavos:Number(cashTendered)
+      });
+      if(saleError){
+        const code=(saleError as unknown as Rec).code;
+        if(code==="42501")return response(req,err("FORBIDDEN",saleError.message,requestId),403,requestId);
+        if(code==="22023")return response(req,err("VALIDATION_ERROR",saleError.message,requestId),400,requestId);
+        if(code==="P0002")return response(req,err("CONFLICT",saleError.message,requestId),409,requestId);
+        throw saleError;
+      }
+      return response(req,{data:sale,requestId},201,requestId);
+    }
     // Owners can access active branches in their tenant. Cashiers must have an
     // explicit branch_memberships row; tenant membership alone is insufficient.
     const {data:memberships,error:membershipError}=await admin.from("tenant_memberships").select("tenant_id,role").eq("user_id",auth.user.id).eq("status","active").in("role",["restaurant_owner","cashier"]).limit(50);
