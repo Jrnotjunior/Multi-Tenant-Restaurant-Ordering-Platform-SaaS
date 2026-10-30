@@ -12,6 +12,6 @@
 - **W2T-008 — Kitchen and realtime:** state machine, queues, event history and replay/recovery.
 - **W2T-009 — Dispatch and delivery:** Mapbox central location integration, rider assignments and external Google Maps/Waze navigation.
 - **W2T-010 — Operations:** branch inventory/recipes, restaurant-wide loyalty ledger and analytics.
-- **W2T-011 — Hardening:** integration/e2e/security testing, incident response, data privacy review, backup/restore, production deployment verification.\n- **W2T-POS-001 — POS integration contract (design/types added):** define tenant/branch-safe API contract, money/status types, idempotency expectations, ownership boundaries and contract tests. Production endpoints, persistence, RLS, durable events and BIR-compliant invoicing are not implemented; see `docs/POS_INTEGRATION_CONTRACT.md`.
+- **W2T-011 — Hardening:** integration/e2e/security testing, incident response, data privacy review, backup/restore, production deployment verification.
 
-Each NEXT delivers the smallest independently verifiable task. Avoid speculative abstractions and microservices. POS integration preparation is now documented, but no production POS API or official invoice issuance is enabled.
+Each NEXT delivers the smallest independently verifiable task. Avoid speculative abstractions and microservices. No POS, official invoices or other fulfillment methods are part of this plan.
