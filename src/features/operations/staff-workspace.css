@@ -343,34 +343,3 @@
 .staff-cashier-modal-total{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:24px;padding-top:10px;line-height:1.4}
 .staff-cashier-modal-total>strong:first-child{min-width:0}
 .staff-cashier-modal-total>strong:last-child{min-width:104px;text-align:right;font-variant-numeric:tabular-nums}
-
-.staff-pos-sales-history{margin-top:24px;padding-top:22px;border-top:1px solid #e4eaf2}
-.staff-pos-sales-history .staff-sales-heading{margin-bottom:14px}
-.staff-pos-sales-history .staff-sales-heading h2{margin:0;font-size:17px;letter-spacing:-.025em}
-.staff-pos-sales-history .staff-sales-heading p:not(.staff-eyebrow){margin:6px 0 0;color:#657791;font-size:12px;line-height:1.55}
-.staff-pos-sales-history .staff-sales-table td:nth-child(3){min-width:180px;max-width:340px;white-space:normal;line-height:1.5}
-@media(max-width:760px){.staff-pos-sales-history .staff-sales-heading{align-items:flex-start;gap:12px;flex-direction:column}.staff-pos-sales-history .staff-sales-table-wrap{overflow-x:auto}}
-
-.staff-receipt-action{padding:6px 9px;font-size:11px;white-space:nowrap}
-.staff-receipt-backdrop{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;overflow-y:auto;padding:24px;background:rgb(16 27 47 / 48%)}
-.staff-pos-receipt-print{width:min(100%,520px);max-height:calc(100vh - 48px);overflow-y:auto;padding:26px;border:1px solid #e2e8f0;border-radius:14px;background:#fff;box-shadow:0 24px 70px rgb(15 23 42 / 22%);color:#101b2f}
-.staff-receipt-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
-.staff-receipt-heading h3{margin:2px 0 5px;font-size:22px;letter-spacing:-.035em}
-.staff-receipt-heading p:not(.staff-eyebrow){margin:0;color:#64748b;font-size:12px}
-.staff-receipt-date{margin:18px 0;padding:11px 0;border-top:1px dashed #cbd5e1;border-bottom:1px dashed #cbd5e1;color:#64748b;font-size:12px}
-.staff-receipt-items{display:grid;gap:0}
-.staff-receipt-line{display:grid;grid-template-columns:minmax(0,1fr) 42px 100px;align-items:start;gap:12px;padding:11px 0;border-bottom:1px solid #edf1f5;font-size:12px}
-.staff-receipt-line>span:first-child{display:grid;gap:4px}
-.staff-receipt-line small{color:#64748b;font-size:10px}
-.staff-receipt-line>span:nth-child(2){text-align:center}
-.staff-receipt-line>strong:last-child{text-align:right;white-space:nowrap}
-.staff-receipt-line-head{color:#64748b;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
-.staff-receipt-line-head>span:last-child{text-align:right}
-.staff-receipt-totals{display:grid;gap:11px;margin-top:18px;padding-top:16px;border-top:1px dashed #cbd5e1}
-.staff-receipt-totals>div{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px}
-.staff-receipt-totals>div strong{font-weight:700;text-align:right}
-.staff-receipt-totals>div:nth-child(2){padding-bottom:12px;border-bottom:1px solid #e2e8f0;font-size:15px}
-.staff-receipt-thanks{margin:22px 0 0;color:#64748b;text-align:center;font-size:12px}
-.staff-receipt-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:22px}
-@media(max-width:600px){.staff-receipt-backdrop{place-items:start center;padding:12px}.staff-pos-receipt-print{max-height:calc(100vh - 24px);padding:18px}.staff-receipt-heading h3{font-size:19px}}
-@media print{body *{visibility:hidden!important}.staff-receipt-backdrop,.staff-receipt-backdrop *{visibility:visible!important}.staff-receipt-backdrop{position:absolute!important;inset:0!important;display:block!important;overflow:visible!important;padding:0!important;background:#fff!important}.staff-pos-receipt-print{position:absolute!important;inset:0 auto auto 0!important;width:80mm!important;max-height:none!important;overflow:visible!important;padding:5mm!important;border:0!important;border-radius:0!important;box-shadow:none!important;color:#000!important}.staff-receipt-close{display:none!important}.staff-receipt-heading h3{font-size:17px}.staff-receipt-line{grid-template-columns:minmax(0,1fr) 28px 75px;gap:5px;font-size:10px}.staff-receipt-totals>div{font-size:10px}.staff-receipt-thanks{font-size:10px}}
