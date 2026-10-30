@@ -500,3 +500,28 @@
 .owner-fiscal-card p{margin:0;color:#657791;font-size:12px;line-height:1.65}
 .owner-fiscal-card>span{align-self:flex-start;border-radius:6px;background:#f3f5f9;color:#526782;padding:6px 8px;font-size:10px;font-weight:750}
 @media(max-width:760px){.owner-page-heading{margin:22px 16px 18px;flex-direction:column}.owner-fiscal-notice{margin:0 16px 16px}.owner-fiscal-grid{grid-template-columns:1fr;margin:0 16px 24px}}
+
+
+/* Taxpayer form layout is isolated to the Fiscal & POS owner page. */
+.owner-fiscal-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin:28px 28px 22px}
+.owner-fiscal-heading h1{margin:0 0 8px;font-size:28px;letter-spacing:-.035em;color:#101b2f}
+.owner-fiscal-heading p:not(.owner-page-eyebrow){margin:0;color:#657791;line-height:1.6;font-size:13px}
+.owner-fiscal-card{display:block;margin:0 28px 28px;padding:24px 26px;border:1px solid #e2e8f1;border-radius:13px;background:#fff}
+.owner-fiscal-card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:0 0 24px}
+.owner-fiscal-card-heading h2{margin:0 0 6px;color:#101b2f;font-size:15px;font-weight:750}
+.owner-fiscal-card-heading p{margin:0;color:#657791;font-size:12px;line-height:1.5}
+.owner-fiscal-card-heading>span{flex:0 0 auto;color:#526782;font-size:12px;font-weight:650;text-transform:capitalize}
+.owner-fiscal-form{display:grid;gap:22px}
+.owner-fiscal-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 20px}
+.owner-fiscal-fields label{display:grid;align-content:start;gap:7px;min-width:0;color:#263754;font-size:12px;font-weight:700;line-height:1.4}
+.owner-fiscal-fields input,.owner-fiscal-fields select,.owner-fiscal-fields textarea{display:block;width:100%;min-width:0;box-sizing:border-box;min-height:42px;margin:0;border:1px solid #cbd6e5;border-radius:8px;padding:10px 12px;background:#fff;color:#101b2f;font:inherit;font-size:13px;font-weight:500;line-height:1.4}
+.owner-fiscal-fields textarea{min-height:96px;resize:vertical}
+.owner-fiscal-fields input:focus-visible,.owner-fiscal-fields select:focus-visible,.owner-fiscal-fields textarea:focus-visible{outline:2px solid #315b91;outline-offset:2px;border-color:#315b91}
+.owner-fiscal-fields .owner-fiscal-wide{grid-column:1/-1}
+.owner-fiscal-actions{display:flex;justify-content:flex-start;padding-top:2px;border-top:1px solid #edf1f6}
+.owner-fiscal-actions button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:42px;margin-top:18px;padding:0 18px;border:1px solid #101b2f;border-radius:8px;background:#101b2f;color:#fff;font:inherit;font-size:12px;font-weight:750;cursor:pointer}
+.owner-fiscal-actions button:hover:not(:disabled){background:#203653}
+.owner-fiscal-actions button:focus-visible{outline:2px solid #315b91;outline-offset:3px}
+.owner-fiscal-actions button:disabled{opacity:.6;cursor:wait}
+@media(max-width:760px){.owner-fiscal-heading{margin:22px 16px 18px;flex-direction:row}.owner-fiscal-card{margin:0 16px 24px;padding:18px}.owner-fiscal-fields{grid-template-columns:minmax(0,1fr);gap:15px}.owner-fiscal-fields .owner-fiscal-wide{grid-column:auto}}
+@media(max-width:420px){.owner-fiscal-heading{gap:12px}.owner-fiscal-heading h1{font-size:24px}.owner-fiscal-card-heading{flex-direction:column;gap:10px}}
