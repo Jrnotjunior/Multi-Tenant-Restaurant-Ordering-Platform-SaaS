@@ -1,6 +1,6 @@
 # POS integration contract (W2T-POS-001)
 
-**Status: contract design only.** This document and its TypeScript types prepare Web2table for a separate POS repository. They do not create a production POS API, grant database access, or certify BIR compliance.
+**Status: initial read API implemented; transaction API pending.** The `pos-api` Supabase Edge Function implements authenticated session and branch-menu reads. Initial access is restricted to active restaurant owners with an `aal2` (MFA-verified) session. It does not implement transaction writes, cashier provisioning, or BIR compliance.
 
 ## Product boundaries
 
@@ -12,7 +12,7 @@
 
 The POS must not directly read or write Web2table tables from a browser using a publishable key as a substitute for a contract. Integrate through versioned, trusted server-side endpoints/RPCs. The server resolves the authenticated user and authorized tenant/branch from verified membership; never trust a tenant ID supplied by the browser on its own.
 
-Proposed base path: `/api/pos/v1` (implementation pending).
+Client contract base path: `/api/pos/v1` (mapped by the POS client to the deployed `pos-api` Edge Function). Implemented reads: `GET /session` and `GET /branches/{branchId}/menu`. Transaction endpoints remain pending.
 
 Initial endpoints to design and secure:
 - `GET /branches/{branchId}/orders?status=...` — list orders visible to the authenticated POS user.
@@ -62,4 +62,4 @@ Before production use, implement and test:
 - API contract tests shared by both repositories.
 - Backup/restore and incident response procedures.
 
-**Not yet implemented:** These endpoints, POS transaction tables, integration credentials, production RLS policies for POS records, durable event delivery, and e-invoicing. Do not represent this repository as POS-ready for production until the gates above pass and the applicable BIR path is confirmed.
+**Not yet implemented:** POS transaction endpoints/tables, explicit cashier role and provisioning, idempotent transaction writes, transaction audit records, durable event delivery, and e-invoicing. The read API is not sufficient to process sales. Do not represent this repository as POS-ready for production until the gates above pass and the applicable BIR path is confirmed.
