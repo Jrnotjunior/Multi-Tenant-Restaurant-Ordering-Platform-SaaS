@@ -55,9 +55,11 @@ Deno.serve(async(req:Request)=>{
     const path=new URL(req.url).pathname;
     const isSession=req.method==="GET"&&(path.endsWith("/api/pos/v1/session")||path.endsWith("/session"));
     const match=path.match(/\/branches\/([^/]+)\/menu$/);
+    const salesMatch=path.match(/\/branches\/([^/]+)\/sales$/);
     const isMenu=req.method==="GET"&&Boolean(match)&&(path.includes("/api/pos/v1/")||path.includes("/pos-api/"));
+    const isSalesHistory=req.method==="GET"&&Boolean(salesMatch)&&(path.includes("/api/pos/v1/")||path.includes("/pos-api/"));
     const isSale=req.method==="POST"&&path.endsWith("/api/pos/v1/sales");
-    if(!isSession&&!isMenu&&!isSale)return response(req,err("NOT_FOUND","The requested POS endpoint was not found.",requestId),404,requestId);
+    if(!isSession&&!isMenu&&!isSalesHistory&&!isSale)return response(req,err("NOT_FOUND","The requested POS endpoint was not found.",requestId),404,requestId);
     if(isSale){
       const length=Number(req.headers.get("Content-Length")??"0");
       if(length>50000)return response(req,err("VALIDATION_ERROR","The sale request is too large.",requestId),413,requestId);
@@ -95,14 +97,14 @@ Deno.serve(async(req:Request)=>{
     const {data:memberships,error:membershipError}=await admin.from("tenant_memberships").select("tenant_id,role").eq("user_id",auth.user.id).eq("status","active").in("role",["restaurant_owner","cashier"]).limit(50);
     if(membershipError)throw membershipError;
     if(!memberships?.length)return response(req,err("FORBIDDEN","Your account does not have an active owner or cashier POS permission.",requestId),403,requestId);
-    const requestedBranch=match?decodeURIComponent(match[1]):"";
-    if(isMenu&&!uuid(requestedBranch))return response(req,err("VALIDATION_ERROR","A valid branch identifier is required.",requestId),400,requestId);
+    const requestedBranch=match?decodeURIComponent(match[1]):salesMatch?decodeURIComponent(salesMatch[1]):"";
+    if((isMenu||isSalesHistory)&&!uuid(requestedBranch))return response(req,err("VALIDATION_ERROR","A valid branch identifier is required.",requestId),400,requestId);
     let context:{tenantId:string;tenantName:string;branchId:string;branchName:string}|null=null;
     for(const m of memberships){
       const {data:t,error:te}=await admin.from("tenants").select("id,name").eq("id",m.tenant_id).eq("status","active").maybeSingle();
       if(te)throw te;if(!t)continue;
       let q=admin.from("branches").select("id,tenant_id,name").eq("tenant_id",t.id).eq("is_active",true);
-      if(isMenu)q=q.eq("id",requestedBranch);
+      if(isMenu||isSalesHistory)q=q.eq("id",requestedBranch);
       if(m.role==="cashier") {
         const {data:assigned,error:assignedError}=await admin.from("branch_memberships").select("branch_id").eq("tenant_id",t.id).eq("user_id",auth.user.id);
         if(assignedError)throw assignedError;
@@ -114,9 +116,24 @@ Deno.serve(async(req:Request)=>{
       if(be)throw be;
       if(b){context={tenantId:t.id,tenantName:t.name,branchId:b.id,branchName:b.name};break;}
     }
-    if(!context)return response(req,err(isMenu?"NOT_FOUND":"FORBIDDEN",isMenu?"The requested branch is unavailable or not authorized.":"No active branch is available for your restaurant account.",requestId),isMenu?404:403,requestId);
+    if(!context)return response(req,err(isMenu||isSalesHistory?"NOT_FOUND":"FORBIDDEN",isMenu||isSalesHistory?"The requested branch is unavailable or not authorized.":"No active branch is available for your restaurant account.",requestId),isMenu||isSalesHistory?404:403,requestId);
     const role=memberships.find((m:Rec)=>m.tenant_id===context!.tenantId)?.role;
-    if(isSession)return response(req,{data:{userId:auth.user.id,displayName:displayName(auth.user),tenantId:context.tenantId,tenantName:context.tenantName,branchId:context.branchId,branchName:context.branchName,role,permissions:["pos.session.read","pos.menu.read"]},requestId},200,requestId);
+    if(isSession)return response(req,{data:{userId:auth.user.id,displayName:displayName(auth.user),tenantId:context.tenantId,tenantName:context.tenantName,branchId:context.branchId,branchName:context.branchName,role,permissions:["pos.session.read","pos.menu.read","pos.sales.read","pos.sale.create"]},requestId},200,requestId);
+    if(isSalesHistory){
+      const rawLimit=Number(new URL(req.url).searchParams.get("limit")??"50");
+      const limit=Math.max(1,Math.min(100,Number.isFinite(rawLimit)?Math.trunc(rawLimit):50));
+      const {data:sales,error:salesError}=await admin.from("pos_sales").select("id,sale_number,cashier_user_id,subtotal_centavos,total_centavos,payment_method,payment_status,cash_tendered_centavos,change_centavos,created_at").eq("tenant_id",context.tenantId).eq("branch_id",context.branchId).order("created_at",{ascending:false}).limit(limit);
+      if(salesError)throw salesError;
+      const saleIds=(sales??[]).map((sale:Rec)=>sale.id).filter((id):id is string=>typeof id==="string");
+      let saleLines:Rec[]=[];
+      if(saleIds.length){
+        const {data:lines,error:linesError}=await admin.from("pos_sale_items").select("sale_id,line_number,item_name_snapshot,unit_price_centavos,quantity,line_total_centavos").eq("tenant_id",context.tenantId).in("sale_id",saleIds).order("line_number",{ascending:true});
+        if(linesError)throw linesError;
+        saleLines=(lines??[]) as Rec[];
+      }
+      const result=(sales??[]).map((sale:Rec)=>({...sale,items:saleLines.filter((line:Rec)=>line.sale_id===sale.id)}));
+      return response(req,{data:result,requestId},200,requestId);
+    }
     const {data:rows,error:menuError}=await admin.from("menu_items")
       .select("id,category_id,name,description,price_centavos,menu_categories!inner(id,name,is_published),branch_menu_items!inner(is_available,price_override_centavos,tenant_id,branch_id)")
       .eq("tenant_id",context.tenantId).eq("status","published").eq("menu_categories.is_published",true)
