@@ -212,7 +212,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         if (authError) throw authError;
         const token = authData.session?.access_token;
         if (!token) throw new Error('Your Web2table session expired. Sign in again.');
-        const apiBase = ((import.meta.env.VITE_POS_API_BASE_URL as string | undefined) ?? 'https://wvibrchebfwirbgkcnbr.supabase.co/functions/v1/pos-api').replace(/\\/$/, '');
+        const apiBase = ((import.meta.env.VITE_POS_API_BASE_URL as string | undefined) ?? 'https://wvibrchebfwirbgkcnbr.supabase.co/functions/v1/pos-api').replace(/\/$/, '');
         const get = async <T,>(path: string): Promise<T> => {
           const response = await fetch(apiBase + path, { headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' }, credentials: 'omit', cache: 'no-store' });
           const body = await response.json() as PosApiEnvelope<T>;
