@@ -57,6 +57,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [posSales, setPosSales] = useState<PosSaleHistory[]>([]);
   const [posSalesLoading, setPosSalesLoading] = useState(false);
   const [posSalesError, setPosSalesError] = useState('');
+  const [posSalesRefreshKey, setPosSalesRefreshKey] = useState(0);
   const [kitchenTab, setKitchenTab] = useState<'orders' | 'menu'>(() => staffPageFromHash(role) === 'menu' ? 'menu' : 'orders');
   const [kitchenMenu, setKitchenMenu] = useState<KitchenMenu | null>(null);
   const [kitchenMenuSearch, setKitchenMenuSearch] = useState('');
@@ -203,9 +204,10 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   useEffect(() => {
     if (role !== 'cashier' || cashierTab !== 'sales') return;
     let active = true;
-    const loadPosSales = async () => {
-      setPosSalesLoading(true);
-      setPosSalesError('');
+    let refreshTimer: number | undefined;
+    const loadPosSales = async (quiet = false) => {
+      if (!quiet) setPosSalesLoading(true);
+      if (!quiet) setPosSalesError('');
       try {
         if (!supabase) throw new Error('Web2table services are not configured.');
         const { data: authData, error: authError } = await supabase.auth.getSession();
@@ -221,16 +223,18 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         };
         const posSession = await get<{ branchId: string }>('/api/pos/v1/session');
         const sales = await get<PosSaleHistory[]>('/api/pos/v1/branches/' + encodeURIComponent(posSession.branchId) + '/sales?limit=100');
-        if (active) setPosSales(sales);
+        if (active) { setPosSales(sales); setPosSalesError(''); }
       } catch (reason) {
-        if (active) setPosSalesError(reason instanceof Error ? reason.message : 'Unable to load POS sales.');
+        if (active && !quiet) setPosSalesError(reason instanceof Error ? reason.message : 'Unable to load POS sales.');
       } finally {
-        if (active) setPosSalesLoading(false);
+        if (active && !quiet) setPosSalesLoading(false);
       }
     };
     void loadPosSales();
-    return () => { active = false; };
-  }, [role, cashierTab]);
+    // Reconcile periodically so completed sales appear even if a tab event is missed.
+    refreshTimer = window.setInterval(() => { void loadPosSales(true); }, 30000);
+    return () => { active = false; if (refreshTimer !== undefined) window.clearInterval(refreshTimer); };
+  }, [role, cashierTab, posSalesRefreshKey]);
 
   const paymentCounts = useMemo(() => {
     const eligibleOrders = orders.filter(order =>
@@ -573,7 +577,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       {loading ? <p className="staff-empty">Loading sales…</p> : salesOrders.length === 0 ? <div className="staff-empty"><h3>No paid sales found</h3><p>Paid orders will appear here once payment is recorded in the order history.</p></div> :
         <div className="staff-sales-table-wrap"><table className="staff-sales-table"><thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Payment</th><th>Total</th></tr></thead><tbody>{salesOrders.slice().sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map(order => <tr key={order.id}><td>#{order.order_number}</td><td>{new Intl.DateTimeFormat('en-PH',{dateStyle:'medium',timeStyle:'short'}).format(new Date(order.created_at))}</td><td>{order.customer_name}</td><td><span className="staff-payment-badge payment-paid">{label(order.payment_status)}</span></td><td>{money(order.total_centavos)}</td></tr>)}</tbody></table></div>}
       <section className="staff-pos-sales-history" aria-labelledby="staff-pos-sales-title">
-        <div className="staff-sales-heading"><div><p className="staff-eyebrow">REGISTER TRANSACTIONS</p><h2 id="staff-pos-sales-title">POS cash sales</h2><p>Completed cash transactions recorded by the POS register for your assigned branch.</p></div><button className="staff-button staff-button-secondary" type="button" onClick={() => { setCashierTab('sales'); window.location.hash = staffRouteFor(role, 'sales'); }} disabled={posSalesLoading}>Refresh register sales</button></div>
+        <div className="staff-sales-heading"><div><p className="staff-eyebrow">REGISTER TRANSACTIONS</p><h2 id="staff-pos-sales-title">POS cash sales</h2><p>Completed cash transactions recorded by the POS register for your assigned branch.</p></div><button className="staff-button staff-button-secondary" type="button" onClick={() => { setCashierTab('sales'); setPosSalesRefreshKey(value => value + 1); window.location.hash = staffRouteFor(role, 'sales'); }} disabled={posSalesLoading}>Refresh register sales</button></div>
         {posSalesError && <p className="staff-notice is-error" role="alert">{posSalesError}</p>}
         {posSalesLoading ? <p className="staff-empty">Loading POS transactions…</p> : posSales.length === 0 ? <div className="staff-empty"><h3>No POS cash sales yet</h3><p>Cash sales completed in the POS register will appear here.</p></div> :
           <div className="staff-sales-table-wrap"><table className="staff-sales-table"><thead><tr><th>Sale</th><th>Date</th><th>Items</th><th>Payment</th><th>Total</th><th>Cash</th><th>Change</th></tr></thead><tbody>{posSales.map(sale => <tr key={sale.id}><td>POS-{String(sale.sale_number).padStart(6, '0')}</td><td>{new Intl.DateTimeFormat('en-PH',{dateStyle:'medium',timeStyle:'short'}).format(new Date(sale.created_at))}</td><td>{sale.items.map(item => item.item_name_snapshot + ' × ' + item.quantity).join(', ')}</td><td><span className="staff-payment-badge payment-paid">Cash · {label(sale.payment_status)}</span></td><td>{money(sale.total_centavos)}</td><td>{money(sale.cash_tendered_centavos)}</td><td>{money(sale.change_centavos)}</td></tr>)}</tbody></table></div>}
