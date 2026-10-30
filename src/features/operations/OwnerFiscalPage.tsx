@@ -50,14 +50,14 @@ export function OwnerFiscalPage() {
         const token = sessionData.session?.access_token;
         if (!token) throw new Error('Sign in again to manage fiscal settings.');
         const headers = { Authorization: `Bearer ${token}`, Accept: 'application/json' };
-        const sessionResponse = await fetch(`${config.url.replace(/\\/+$/, '')}/functions/v1/pos-api/api/pos/v1/session`, { headers, credentials: 'omit' });
+        const sessionResponse = await fetch(`${config.url.replace(/\/+$/, '')}/functions/v1/pos-api/api/pos/v1/session`, { headers, credentials: 'omit' });
         const sessionPayload: unknown = await sessionResponse.json();
         if (!sessionResponse.ok) throw new Error(isRecord(sessionPayload) && isRecord(sessionPayload.error) && typeof sessionPayload.error.message === 'string' ? sessionPayload.error.message : 'Unable to verify your POS branch access.');
         const session = isRecord(sessionPayload) && isRecord(sessionPayload.data) ? sessionPayload.data : null;
         if (!session || session.role !== 'restaurant_owner' || typeof session.branchId !== 'string' || !session.branchId) {
           throw new Error('Only an authorized restaurant owner with an active branch can manage fiscal settings.');
         }
-        const response = await fetch(`${config.url.replace(/\\/+$/, '')}/functions/v1/pos-api/api/pos/v1/fiscal-profile?branchId=${encodeURIComponent(session.branchId)}`, { headers, credentials: 'omit' });
+        const response = await fetch(`${config.url.replace(/\/+$/, '')}/functions/v1/pos-api/api/pos/v1/fiscal-profile?branchId=${encodeURIComponent(session.branchId)}`, { headers, credentials: 'omit' });
         const payload: unknown = await response.json();
         if (!response.ok) throw new Error(isRecord(payload) && isRecord(payload.error) && typeof payload.error.message === 'string' ? payload.error.message : 'Unable to load taxpayer configuration.');
         const value = isRecord(payload) && 'data' in payload ? payload.data : null;
@@ -91,7 +91,7 @@ export function OwnerFiscalPage() {
       if (sessionError) throw sessionError;
       const token = data.session?.access_token;
       if (!token) throw new Error('Sign in again to save fiscal settings.');
-      const response = await fetch(`${config.url.replace(/\\/+$/, '')}/functions/v1/pos-api/api/pos/v1/fiscal-profile`, {
+      const response = await fetch(`${config.url.replace(/\/+$/, '')}/functions/v1/pos-api/api/pos/v1/fiscal-profile`, {
         method: 'POST', credentials: 'omit',
         headers: { Authorization: `Bearer ${token}`, Accept: 'application/json', 'Content-Type': 'application/json' },
         body: JSON.stringify(draft),
