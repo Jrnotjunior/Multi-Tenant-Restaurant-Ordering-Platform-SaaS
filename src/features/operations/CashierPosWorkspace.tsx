@@ -164,7 +164,7 @@ export function CashierPosWorkspace() {
       <form onSubmit={submitCashSale}>
         <div className="cashier-pos-payment-total"><span>Amount due</span><strong>{money(total)}</strong></div>
         <label className="cashier-pos-cash-input">Cash received (PHP)<input type="number" min={(total / 100).toFixed(2)} step="0.01" inputMode="decimal" required value={cashTendered} onChange={event => setCashTendered(event.target.value)} /></label>
-        <div className="cashier-pos-payment-total"><span>Change</span><strong>{money(Math.max(0, Math.round((Number(cashTendered) || 0) * 100) - total)}</strong></div>
+        <div className="cashier-pos-payment-total"><span>Change</span><strong>{money(Math.max(0, Math.round((Number(cashTendered) || 0) * 100) - total))}</strong></div>
         {notice && <p className="cashier-pos-dialog-error" role="alert">{notice}</p>}
         <button className="cashier-pos-checkout" type="submit" disabled={processing || cart.length === 0}>{processing ? 'Saving sale…' : 'Confirm cash sale'}</button>
         <p className="cashier-pos-footnote">Confirm only after you have received the cash. Prices are checked again by the server.</p>
