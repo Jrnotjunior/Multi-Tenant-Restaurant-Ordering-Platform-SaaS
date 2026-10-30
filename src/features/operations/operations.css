@@ -525,3 +525,8 @@
 .owner-fiscal-actions button:disabled{opacity:.6;cursor:wait}
 @media(max-width:760px){.owner-fiscal-heading{margin:22px 16px 18px;flex-direction:row}.owner-fiscal-card{margin:0 16px 24px;padding:18px}.owner-fiscal-fields{grid-template-columns:minmax(0,1fr);gap:15px}.owner-fiscal-fields .owner-fiscal-wide{grid-column:auto}}
 @media(max-width:420px){.owner-fiscal-heading{gap:12px}.owner-fiscal-heading h1{font-size:24px}.owner-fiscal-card-heading{flex-direction:column;gap:10px}}
+
+.owner-fiscal-branch-picker label{display:grid;gap:8px;max-width:420px;color:#263754;font-size:12px;font-weight:700}
+.owner-fiscal-branch-picker select{width:100%;min-height:42px;box-sizing:border-box;border:1px solid #cbd6e5;border-radius:8px;padding:10px 12px;background:#fff;color:#101b2f;font:inherit;font-size:13px}
+.owner-fiscal-branch-picker select:focus-visible{outline:2px solid #315b91;outline-offset:2px}
+.owner-fiscal-branch-picker select:disabled{opacity:.65;cursor:wait}
