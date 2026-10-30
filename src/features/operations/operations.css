@@ -530,3 +530,31 @@
 .owner-fiscal-branch-picker select{width:100%;min-height:42px;box-sizing:border-box;border:1px solid #cbd6e5;border-radius:8px;padding:10px 12px;background:#fff;color:#101b2f;font:inherit;font-size:13px}
 .owner-fiscal-branch-picker select:focus-visible{outline:2px solid #315b91;outline-offset:2px}
 .owner-fiscal-branch-picker select:disabled{opacity:.65;cursor:wait}
+
+/* Branch-scoped fiscal tax policy drafts; isolated component styles, no overrides. */
+.owner-tax-policy-card{margin-top:0}
+.owner-tax-policy-warning{margin:0 0 20px;padding:12px 14px;border:1px solid #f0d7a5;border-radius:9px;background:#fffaf0;color:#604b26;font-size:12px;line-height:1.6}
+.owner-tax-policy-alert{margin:0 0 14px;padding:12px 14px}
+.owner-tax-policy-form{display:grid;gap:18px}
+.owner-tax-policy-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.owner-tax-policy-fields label,.owner-tax-policy-rule label{display:grid;align-content:start;gap:7px;min-width:0;color:#263754;font-size:12px;font-weight:700;line-height:1.4}
+.owner-tax-policy-fields input,.owner-tax-policy-rule input:not([type="checkbox"]),.owner-tax-policy-rule select{width:100%;min-width:0;box-sizing:border-box;min-height:40px;border:1px solid #cbd6e5;border-radius:8px;padding:9px 11px;background:#fff;color:#101b2f;font:inherit;font-size:13px;font-weight:500}
+.owner-tax-policy-fields input:focus-visible,.owner-tax-policy-rule input:focus-visible,.owner-tax-policy-rule select:focus-visible{outline:2px solid #315b91;outline-offset:2px}
+.owner-tax-policy-rules-heading,.owner-tax-policy-list-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.owner-tax-policy-rules-heading h3,.owner-tax-policy-list-heading h3{margin:0;color:#101b2f;font-size:14px}
+.owner-tax-policy-rules-heading button,.owner-tax-policy-remove{min-height:34px;border:1px solid #cbd6e5;border-radius:7px;padding:7px 11px;background:#fff;color:#263754;font:inherit;font-size:11px;font-weight:750;cursor:pointer}
+.owner-tax-policy-rules-heading button:disabled,.owner-tax-policy-remove:disabled{opacity:.6;cursor:wait}
+.owner-tax-policy-rule{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:16px;border:1px solid #e2e8f1;border-radius:10px;background:#f8fafc}
+.owner-tax-policy-rule small{color:#657791;font-size:10px;line-height:1.5;font-weight:500}
+.owner-tax-policy-checkbox{display:flex!important;align-items:center;gap:9px!important}
+.owner-tax-policy-checkbox input{width:16px;height:16px;accent-color:#101b2f}
+.owner-tax-policy-remove{justify-self:start;color:#a72b2b;border-color:#edcaca}
+.owner-tax-policy-list{display:grid;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid #edf1f6}
+.owner-tax-policy-list-heading>span{font-size:11px;color:#657791}
+.owner-tax-policy-empty{padding:20px 0;color:#657791;font-size:12px}
+.owner-tax-policy-item{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:14px;border:1px solid #e2e8f1;border-radius:9px;background:#fff}
+.owner-tax-policy-item>div{display:grid;gap:6px;min-width:0}
+.owner-tax-policy-item strong{color:#101b2f;font-size:12px}
+.owner-tax-policy-item small{color:#657791;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+.owner-tax-policy-item>span{flex:0 0 auto;padding:5px 8px;border-radius:6px;background:#fff8e8;color:#875d13;font-size:10px;font-weight:800;text-transform:capitalize}
+@media(max-width:760px){.owner-tax-policy-fields,.owner-tax-policy-rule{grid-template-columns:minmax(0,1fr)}.owner-tax-policy-item{flex-direction:column}.owner-tax-policy-checkbox{align-items:flex-start!important}}
