@@ -4,7 +4,6 @@ import { userDisplayName } from '../../domain/userDisplayName';
 import { supabase } from '../../lib/supabase';
 import { loadKitchenMenuForTenant, publicMenuPhoto, type KitchenMenu } from '../management/menuService';
 import type { StaffWorkspaceRole } from './OperationalDashboard';
-import { CashierPosWorkspace } from './CashierPosWorkspace';
 import './staff-workspace.css';
 import './rider-dashboard.css';
 
@@ -17,15 +16,13 @@ type Order = {
   assigned_rider_user_id: string | null; assignment_status: string | null; items: Item[];
 };
 type Rider = { user_id: string; display_name: string | null };
-type PosSaleHistory = { id: string; sale_number: number; subtotal_centavos: number; total_centavos: number; payment_method: string; payment_status: string; cash_tendered_centavos: number; change_centavos: number; created_at: string; items: { line_number: number; item_name_snapshot: string; unit_price_centavos: number; quantity: number; line_total_centavos: number }[] };
-type PosApiEnvelope<T> = { data?: T; error?: { message?: string } };
 type Props = { tenantId: string; role: StaffWorkspaceRole; restaurantName: string | null };
 const money = (value: number | null) => value == null ? 'Total not finalized' : new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(value / 100);
 const staffPageFromHash = (role: StaffWorkspaceRole) => {
   const parts = window.location.hash.replace(/^#\/?restaurant\//, '').split('/');
   if (parts[0] !== role) return role === 'cashier' ? 'orders' : role === 'kitchen' ? 'orders' : 'overview';
   const page = parts[1];
-  if (role === 'cashier' && (page === 'sales' || page === 'pos')) return page;
+  if (role === 'cashier' && page === 'sales') return 'sales';
   if (role === 'kitchen' && page === 'menu') return 'menu';
   return role === 'cashier' || role === 'kitchen' ? 'orders' : page === 'history' ? 'history' : 'overview';
 };
@@ -53,12 +50,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [orderDetailsOpen, setOrderDetailsOpen] = useState(false);
   const [swipeProgress, setSwipeProgress] = useState(0);
   const [riderHistoryDate, setRiderHistoryDate] = useState(() => new Date().toLocaleDateString('en-CA'));
-  const [cashierTab, setCashierTab] = useState<'orders' | 'sales' | 'pos'>(() => { const page = staffPageFromHash(role); return page === 'sales' || page === 'pos' ? page : 'orders'; });
-  const [posSales, setPosSales] = useState<PosSaleHistory[]>([]);
-  const [posSalesLoading, setPosSalesLoading] = useState(false);
-  const [posSalesError, setPosSalesError] = useState('');
-  const [posSalesRefreshKey, setPosSalesRefreshKey] = useState(0);
-  const [receiptSale, setReceiptSale] = useState<PosSaleHistory | null>(null);
+  const [cashierTab, setCashierTab] = useState<'orders' | 'sales'>(() => staffPageFromHash(role) === 'sales' ? 'sales' : 'orders');
   const [kitchenTab, setKitchenTab] = useState<'orders' | 'menu'>(() => staffPageFromHash(role) === 'menu' ? 'menu' : 'orders');
   const [kitchenMenu, setKitchenMenu] = useState<KitchenMenu | null>(null);
   const [kitchenMenuSearch, setKitchenMenuSearch] = useState('');
@@ -83,7 +75,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   useEffect(() => {
     const syncStaffPage = () => {
       const page = staffPageFromHash(role);
-      if (role === 'cashier') setCashierTab(page === 'sales' || page === 'pos' ? page : 'orders');
+      if (role === 'cashier') setCashierTab(page === 'sales' ? 'sales' : 'orders');
       if (role === 'kitchen') setKitchenTab(page === 'menu' ? 'menu' : 'orders');
     };
     const expectedPrefix = '#restaurant/' + role;
@@ -201,41 +193,6 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     };
   }, [load, tenantId]);
 
-
-  useEffect(() => {
-    if (role !== 'cashier' || cashierTab !== 'sales') return;
-    let active = true;
-    let refreshTimer: number | undefined;
-    const loadPosSales = async (quiet = false) => {
-      if (!quiet) setPosSalesLoading(true);
-      if (!quiet) setPosSalesError('');
-      try {
-        if (!supabase) throw new Error('Web2table services are not configured.');
-        const { data: authData, error: authError } = await supabase.auth.getSession();
-        if (authError) throw authError;
-        const token = authData.session?.access_token;
-        if (!token) throw new Error('Your Web2table session expired. Sign in again.');
-        const apiBase = ((import.meta.env.VITE_POS_API_BASE_URL as string | undefined) ?? 'https://wvibrchebfwirbgkcnbr.supabase.co/functions/v1/pos-api').replace(/\/$/, '');
-        const get = async <T,>(path: string): Promise<T> => {
-          const response = await fetch(apiBase + path, { headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' }, credentials: 'omit', cache: 'no-store' });
-          const body = await response.json() as PosApiEnvelope<T>;
-          if (!response.ok || body.data === undefined) throw new Error(body.error?.message || 'Unable to load POS sales.');
-          return body.data;
-        };
-        const posSession = await get<{ branchId: string }>('/api/pos/v1/session');
-        const sales = await get<PosSaleHistory[]>('/api/pos/v1/branches/' + encodeURIComponent(posSession.branchId) + '/sales?limit=100');
-        if (active) { setPosSales(sales); setPosSalesError(''); }
-      } catch (reason) {
-        if (active && !quiet) setPosSalesError(reason instanceof Error ? reason.message : 'Unable to load POS sales.');
-      } finally {
-        if (active && !quiet) setPosSalesLoading(false);
-      }
-    };
-    void loadPosSales();
-    // Reconcile periodically so completed sales appear even if a tab event is missed.
-    refreshTimer = window.setInterval(() => { void loadPosSales(true); }, 30000);
-    return () => { active = false; if (refreshTimer !== undefined) window.clearInterval(refreshTimer); };
-  }, [role, cashierTab, posSalesRefreshKey]);
 
   const paymentCounts = useMemo(() => {
     const eligibleOrders = orders.filter(order =>
@@ -555,7 +512,6 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     {role === 'cashier' && <nav className="staff-workspace-tabs" aria-label="Cashier workspace">
       <button type="button" className={cashierTab === 'orders' ? 'is-active' : ''} aria-current={cashierTab === 'orders' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'orders'); setCashierTab('orders'); setFilter('active'); }}>Orders</button>
       <button type="button" className={cashierTab === 'sales' ? 'is-active' : ''} aria-current={cashierTab === 'sales' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'sales'); setCashierTab('sales'); setFilter('all'); }}>Sales</button>
-      <button type="button" className={cashierTab === 'pos' ? 'is-active' : ''} aria-current={cashierTab === 'pos' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'pos'); setCashierTab('pos'); }}>POS</button>
     </nav>}
     {role === 'kitchen' && <nav className="staff-workspace-tabs" aria-label="Kitchen workspace">
       <button type="button" className={kitchenTab === 'orders' ? 'is-active' : ''} aria-current={kitchenTab === 'orders' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'orders'); setKitchenTab('orders'); }}>Orders</button>
@@ -567,7 +523,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         <button type="button" role="tab" aria-selected={dispatcherTab === 'take_out'} className={dispatcherTab === 'take_out' ? 'is-active' : ''} onClick={() => setDispatcherTab('take_out')}>Take out</button>
         <button type="button" role="tab" aria-selected={dispatcherTab === 'dine_in'} className={dispatcherTab === 'dine_in' ? 'is-active' : ''} onClick={() => setDispatcherTab('dine_in')}>Dine in</button>
       </nav>}
-    {role === 'cashier' && cashierTab === 'pos' ? <CashierPosWorkspace /> : role === 'cashier' && cashierTab === 'sales' ? <section className="staff-sales-view">
+    {role === 'cashier' && cashierTab === 'sales' ? <section className="staff-sales-view">
       <div className="staff-sales-heading"><div><p className="staff-eyebrow">BUSINESS SUMMARY</p><h2>Sales</h2><p>Paid orders from the order history currently loaded.</p></div><button className="staff-button staff-button-secondary" type="button" onClick={() => void load()} disabled={loading}>Refresh sales</button></div>
       <div className="staff-sales-metrics">
         <article><span>Recorded paid sales</span><strong>{money(salesTotal)}</strong></article>
@@ -577,23 +533,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       {(error || notice) && <p className={'staff-notice ' + (error ? 'is-error' : 'is-success')} role={error ? 'alert' : 'status'}>{error || notice}</p>}
       {loading ? <p className="staff-empty">Loading sales…</p> : salesOrders.length === 0 ? <div className="staff-empty"><h3>No paid sales found</h3><p>Paid orders will appear here once payment is recorded in the order history.</p></div> :
         <div className="staff-sales-table-wrap"><table className="staff-sales-table"><thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Payment</th><th>Total</th></tr></thead><tbody>{salesOrders.slice().sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map(order => <tr key={order.id}><td>#{order.order_number}</td><td>{new Intl.DateTimeFormat('en-PH',{dateStyle:'medium',timeStyle:'short'}).format(new Date(order.created_at))}</td><td>{order.customer_name}</td><td><span className="staff-payment-badge payment-paid">{label(order.payment_status)}</span></td><td>{money(order.total_centavos)}</td></tr>)}</tbody></table></div>}
-      <section className="staff-pos-sales-history" aria-labelledby="staff-pos-sales-title">
-        <div className="staff-sales-heading"><div><p className="staff-eyebrow">REGISTER TRANSACTIONS</p><h2 id="staff-pos-sales-title">POS cash sales</h2><p>Completed cash transactions recorded by the POS register for your assigned branch.</p></div><button className="staff-button staff-button-secondary" type="button" onClick={() => { setCashierTab('sales'); setPosSalesRefreshKey(value => value + 1); window.location.hash = staffRouteFor(role, 'sales'); }} disabled={posSalesLoading}>Refresh register sales</button></div>
-        {posSalesError && <p className="staff-notice is-error" role="alert">{posSalesError}</p>}
-        {posSalesLoading ? <p className="staff-empty">Loading POS transactions…</p> : posSales.length === 0 ? <div className="staff-empty"><h3>No POS cash sales yet</h3><p>Cash sales completed in the POS register will appear here.</p></div> :
-          <div className="staff-sales-table-wrap"><table className="staff-sales-table"><thead><tr><th>Sale</th><th>Date</th><th>Items</th><th>Payment</th><th>Total</th><th>Cash</th><th>Change</th><th>Receipt</th></tr></thead><tbody>{posSales.map(sale => <tr key={sale.id}><td>POS-{String(sale.sale_number).padStart(6, '0')}</td><td>{new Intl.DateTimeFormat('en-PH',{dateStyle:'medium',timeStyle:'short'}).format(new Date(sale.created_at))}</td><td>{sale.items.map(item => item.item_name_snapshot + ' × ' + item.quantity).join(', ')}</td><td><span className="staff-payment-badge payment-paid">Cash · {label(sale.payment_status)}</span></td><td>{money(sale.total_centavos)}</td><td>{money(sale.cash_tendered_centavos)}</td><td>{money(sale.change_centavos)}</td><td><button className="staff-button staff-button-secondary staff-receipt-action" type="button" onClick={() => setReceiptSale(sale)}>View receipt</button></td></tr>)}</tbody></table></div>}
-        {receiptSale && <div className="staff-receipt-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setReceiptSale(null); }}>
-          <section className="staff-pos-receipt-print" role="dialog" aria-modal="true" aria-labelledby="staff-pos-receipt-title">
-            <div className="staff-receipt-heading"><div><p className="staff-eyebrow">WEB2TABLE · POS RECEIPT</p><h3 id="staff-pos-receipt-title">Sale #{String(receiptSale.sale_number).padStart(6, '0')}</h3><p>{restaurantName || 'Restaurant'} · {posSales.find(sale => sale.id === receiptSale.id) ? 'Authorized branch' : ''}</p></div><button className="staff-button staff-button-secondary staff-receipt-close" type="button" onClick={() => setReceiptSale(null)}>Close</button></div>
-            <p className="staff-receipt-date">{new Intl.DateTimeFormat('en-PH',{dateStyle:'medium',timeStyle:'short'}).format(new Date(receiptSale.created_at))}</p>
-            <div className="staff-receipt-items"><div className="staff-receipt-line staff-receipt-line-head"><span>Item</span><span>Qty</span><span>Amount</span></div>{receiptSale.items.map(item => <div className="staff-receipt-line" key={item.line_number}><span><strong>{item.item_name_snapshot}</strong><small>{money(item.unit_price_centavos)} each</small></span><span>{item.quantity}</span><strong>{money(item.line_total_centavos)}</strong></div>)}</div>
-            <div className="staff-receipt-totals"><div><span>Subtotal</span><strong>{money(receiptSale.subtotal_centavos)}</strong></div><div><span>Total</span><strong>{money(receiptSale.total_centavos)}</strong></div><div><span>Payment</span><strong>Cash · {label(receiptSale.payment_status)}</strong></div><div><span>Cash received</span><strong>{money(receiptSale.cash_tendered_centavos)}</strong></div><div><span>Change</span><strong>{money(receiptSale.change_centavos)}</strong></div></div>
-            <p className="staff-receipt-thanks">Thank you for your purchase.</p>
-            <div className="staff-receipt-actions"><button className="staff-button staff-button-secondary staff-receipt-close" type="button" onClick={() => setReceiptSale(null)}>Close</button><button className="staff-button staff-button-primary staff-receipt-close" type="button" onClick={() => window.print()}>Print receipt</button></div>
-          </section>
-        </div>}
-      </section>
-      <p className="staff-footnote">Online orders and POS cash transactions are shown separately. Reconcile both streams before using them for accounting or tax reporting.</p>
+      <p className="staff-footnote">Sales figures reflect the orders returned by the staff order service; they are not a substitute for a reconciled accounting report.</p>
     </section> : <>
     {!['cashier', 'kitchen', 'dispatcher'].includes(role) && <section className="staff-metrics" aria-label="Order summary">
       <article><span>New orders</span><strong>{stats.incoming}</strong><small>Awaiting cashier review</small></article>
