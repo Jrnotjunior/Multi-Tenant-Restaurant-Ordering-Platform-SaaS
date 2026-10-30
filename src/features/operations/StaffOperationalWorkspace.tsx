@@ -4,6 +4,7 @@ import { userDisplayName } from '../../domain/userDisplayName';
 import { supabase } from '../../lib/supabase';
 import { loadKitchenMenuForTenant, publicMenuPhoto, type KitchenMenu } from '../management/menuService';
 import type { StaffWorkspaceRole } from './OperationalDashboard';
+import { CashierPosWorkspace } from './CashierPosWorkspace';
 import './staff-workspace.css';
 import './rider-dashboard.css';
 
@@ -22,7 +23,7 @@ const staffPageFromHash = (role: StaffWorkspaceRole) => {
   const parts = window.location.hash.replace(/^#\/?restaurant\//, '').split('/');
   if (parts[0] !== role) return role === 'cashier' ? 'orders' : role === 'kitchen' ? 'orders' : 'overview';
   const page = parts[1];
-  if (role === 'cashier' && page === 'sales') return 'sales';
+  if (role === 'cashier' && (page === 'sales' || page === 'pos')) return page;
   if (role === 'kitchen' && page === 'menu') return 'menu';
   return role === 'cashier' || role === 'kitchen' ? 'orders' : page === 'history' ? 'history' : 'overview';
 };
@@ -50,7 +51,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [orderDetailsOpen, setOrderDetailsOpen] = useState(false);
   const [swipeProgress, setSwipeProgress] = useState(0);
   const [riderHistoryDate, setRiderHistoryDate] = useState(() => new Date().toLocaleDateString('en-CA'));
-  const [cashierTab, setCashierTab] = useState<'orders' | 'sales'>(() => staffPageFromHash(role) === 'sales' ? 'sales' : 'orders');
+  const [cashierTab, setCashierTab] = useState<'orders' | 'sales' | 'pos'>(() => { const page = staffPageFromHash(role); return page === 'sales' || page === 'pos' ? page : 'orders'; });
   const [kitchenTab, setKitchenTab] = useState<'orders' | 'menu'>(() => staffPageFromHash(role) === 'menu' ? 'menu' : 'orders');
   const [kitchenMenu, setKitchenMenu] = useState<KitchenMenu | null>(null);
   const [kitchenMenuSearch, setKitchenMenuSearch] = useState('');
@@ -75,7 +76,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   useEffect(() => {
     const syncStaffPage = () => {
       const page = staffPageFromHash(role);
-      if (role === 'cashier') setCashierTab(page === 'sales' ? 'sales' : 'orders');
+      if (role === 'cashier') setCashierTab(page === 'sales' || page === 'pos' ? page : 'orders');
       if (role === 'kitchen') setKitchenTab(page === 'menu' ? 'menu' : 'orders');
     };
     const expectedPrefix = '#restaurant/' + role;
@@ -512,6 +513,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     {role === 'cashier' && <nav className="staff-workspace-tabs" aria-label="Cashier workspace">
       <button type="button" className={cashierTab === 'orders' ? 'is-active' : ''} aria-current={cashierTab === 'orders' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'orders'); setCashierTab('orders'); setFilter('active'); }}>Orders</button>
       <button type="button" className={cashierTab === 'sales' ? 'is-active' : ''} aria-current={cashierTab === 'sales' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'sales'); setCashierTab('sales'); setFilter('all'); }}>Sales</button>
+      <button type="button" className={cashierTab === 'pos' ? 'is-active' : ''} aria-current={cashierTab === 'pos' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'pos'); setCashierTab('pos'); }}>POS</button>
     </nav>}
     {role === 'kitchen' && <nav className="staff-workspace-tabs" aria-label="Kitchen workspace">
       <button type="button" className={kitchenTab === 'orders' ? 'is-active' : ''} aria-current={kitchenTab === 'orders' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'orders'); setKitchenTab('orders'); }}>Orders</button>
@@ -523,7 +525,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         <button type="button" role="tab" aria-selected={dispatcherTab === 'take_out'} className={dispatcherTab === 'take_out' ? 'is-active' : ''} onClick={() => setDispatcherTab('take_out')}>Take out</button>
         <button type="button" role="tab" aria-selected={dispatcherTab === 'dine_in'} className={dispatcherTab === 'dine_in' ? 'is-active' : ''} onClick={() => setDispatcherTab('dine_in')}>Dine in</button>
       </nav>}
-    {role === 'cashier' && cashierTab === 'sales' ? <section className="staff-sales-view">
+    {role === 'cashier' && cashierTab === 'pos' ? <CashierPosWorkspace /> : role === 'cashier' && cashierTab === 'sales' ? <section className="staff-sales-view">
       <div className="staff-sales-heading"><div><p className="staff-eyebrow">BUSINESS SUMMARY</p><h2>Sales</h2><p>Paid orders from the order history currently loaded.</p></div><button className="staff-button staff-button-secondary" type="button" onClick={() => void load()} disabled={loading}>Refresh sales</button></div>
       <div className="staff-sales-metrics">
         <article><span>Recorded paid sales</span><strong>{money(salesTotal)}</strong></article>
