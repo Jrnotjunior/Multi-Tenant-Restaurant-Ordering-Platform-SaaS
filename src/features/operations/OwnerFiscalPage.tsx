@@ -1,5 +1,3 @@
-import type { ReactNode } from 'react';
-
 export function OwnerFiscalPage() {
   const items: Array<{ title: string; detail: string; status: string }> = [
     { title: 'Taxpayer profile', detail: 'Registered taxpayer identity, TIN, address, and branch details.', status: 'API integration required' },
