@@ -43,3 +43,21 @@
 @media(max-width:1050px){.cashier-pos-layout{grid-template-columns:minmax(0,1fr) 290px}.cashier-pos-products{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.cashier-pos-layout{grid-template-columns:1fr}.cashier-pos-cart{position:static;grid-row:1}.cashier-pos-tools{grid-template-columns:1fr}.cashier-pos-products{grid-template-columns:repeat(2,minmax(0,1fr))}.cashier-pos-heading{display:block}.cashier-pos-session{margin-top:12px}}
 @media(max-width:420px){.cashier-pos-products{grid-template-columns:1fr}.cashier-pos-product{min-height:125px}}
+
+.cashier-pos-dialog-backdrop{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:20px;background:rgb(16 27 47 / 45%)}
+.cashier-pos-dialog{width:min(100%,430px);box-sizing:border-box;border:1px solid #e0e7f0;border-radius:15px;background:#fff;padding:22px;box-shadow:0 24px 70px rgb(16 27 47 / 20%)}
+.cashier-pos-dialog>header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px}
+.cashier-pos-dialog h2{margin:0;color:#101b2f;font-size:20px;letter-spacing:-.03em}
+.cashier-pos-dialog>header button{width:32px;height:32px;border:1px solid #dce5f0;border-radius:8px;background:#fff;color:#101b2f;font-size:21px;cursor:pointer}
+.cashier-pos-payment-total{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;color:#526782;font-size:13px}
+.cashier-pos-payment-total strong{color:#101b2f;font-size:19px}
+.cashier-pos-cash-input{display:grid;gap:7px;margin:8px 0 4px;color:#101b2f;font-size:12px;font-weight:750}
+.cashier-pos-cash-input input{width:100%;box-sizing:border-box;min-height:45px;border:1px solid #cbd6e5;border-radius:9px;padding:10px 12px;color:#101b2f;background:#fff;font:inherit;font-size:16px}
+.cashier-pos-cash-input input:focus{outline:2px solid #8da6c9;outline-offset:2px}
+.cashier-pos-dialog .cashier-pos-checkout{margin-top:10px;background:#101b2f;color:#fff;border-color:#101b2f;cursor:pointer}
+.cashier-pos-dialog .cashier-pos-checkout:disabled{opacity:.65;cursor:wait}
+.cashier-pos-dialog-error{padding:10px 12px;border:1px solid #f2c7c7;border-radius:8px;background:#fff8f8;color:#8d2525;font-size:12px;line-height:1.5}
+.cashier-pos-receipt{position:fixed;right:20px;bottom:20px;z-index:1001;display:grid;gap:8px;min-width:240px;max-width:calc(100vw - 40px);padding:17px;border:1px solid #c9e7d4;border-radius:12px;background:#f4fff7;color:#175b35;box-shadow:0 12px 35px rgb(16 27 47 / 12%);font-size:12px}
+.cashier-pos-receipt strong{font-size:15px}
+.cashier-pos-receipt button{justify-self:start;border:1px solid #c9e7d4;border-radius:7px;background:#fff;color:#175b35;padding:7px 10px;font:inherit;cursor:pointer}
+@media(max-width:520px){.cashier-pos-dialog-backdrop{padding:12px}.cashier-pos-dialog{padding:18px}.cashier-pos-receipt{right:12px;bottom:12px}}
