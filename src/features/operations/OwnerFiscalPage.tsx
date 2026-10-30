@@ -107,7 +107,7 @@ export function OwnerFiscalPage() {
   }
 
   return <main className="owner-content">
-    <div className="owner-page-heading">
+    <div className="owner-fiscal-heading">
       <div><p className="owner-page-eyebrow">OWNER CONTROLS</p><h1>Fiscal &amp; POS</h1><p>Taxpayer configuration belongs here, separate from cashier workflows.</p></div>
       <span className="owner-page-status">{profile?.fiscal_status?.replaceAll('_', ' ') ?? (loading ? 'Loading' : 'Draft setup')}</span>
     </div>
@@ -118,21 +118,21 @@ export function OwnerFiscalPage() {
     {error && <div className="owner-fiscal-notice" role="alert"><strong>Could not load or save settings.</strong><p>{error}</p></div>}
     {notice && <div className="owner-fiscal-notice" role="status"><strong>Saved.</strong><p>{notice}</p></div>}
     {loading ? <p role="status">Loading authorized branch configuration…</p> : <section className="owner-fiscal-card" aria-labelledby="owner-taxpayer-title">
-      <div className="owner-page-heading"><div><h2 id="owner-taxpayer-title">Taxpayer configuration</h2><p>Branch: {branchName || 'Not available'}</p></div><span>{profile ? 'Profile saved' : 'Not set up'}</span></div>
-      <form className="fiscal-profile-form" onSubmit={event => void save(event)}>
-        <div className="fiscal-profile-grid">
+      <div className="owner-fiscal-card-heading"><div><h2 id="owner-taxpayer-title">Taxpayer configuration</h2><p>Branch: {branchName || 'Not available'}</p></div><span>{profile ? 'Profile saved' : 'Not set up'}</span></div>
+      <form className="owner-fiscal-form" onSubmit={event => void save(event)}>
+        <div className="owner-fiscal-fields">
           <label>Registered taxpayer name<input required maxLength={200} value={draft.taxpayerRegisteredName} onChange={e => update('taxpayerRegisteredName', e.target.value)} autoComplete="organization" /></label>
           <label>Trade name (optional)<input maxLength={200} value={draft.tradeName} onChange={e => update('tradeName', e.target.value)} /></label>
           <label>TIN (digits only)<input required inputMode="numeric" maxLength={12} value={draft.taxpayerTin} onChange={e => update('taxpayerTin', e.target.value.replace(/\D/g, '').slice(0, 12))} /></label>
           <label>TIN branch code<input required inputMode="numeric" maxLength={3} value={draft.tinBranchCode} onChange={e => update('tinBranchCode', e.target.value.replace(/\D/g, '').slice(0, 3))} /></label>
-          <label className="fiscal-profile-wide">Registered business address<textarea required maxLength={500} rows={3} value={draft.registeredAddress} onChange={e => update('registeredAddress', e.target.value)} /></label>
+          <label className="owner-fiscal-wide">Registered business address<textarea required maxLength={500} rows={3} value={draft.registeredAddress} onChange={e => update('registeredAddress', e.target.value)} /></label>
           <label>Tax regime<select value={draft.taxRegime} onChange={e => update('taxRegime', e.target.value as TaxRegime)}><option value="other_requires_review">Needs tax review</option><option value="vat_registered">VAT registered</option><option value="non_vat">Non-VAT</option></select></label>
           <label>Invoice series prefix<input required maxLength={20} value={draft.invoiceSeriesPrefix} onChange={e => update('invoiceSeriesPrefix', e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 20))} /></label>
           <label>Software name<input required maxLength={160} value={draft.softwareName} onChange={e => update('softwareName', e.target.value)} /></label>
           <label>Software version<input required maxLength={80} value={draft.softwareVersion} onChange={e => update('softwareVersion', e.target.value)} /></label>
-          <label className="fiscal-profile-wide">Machine / terminal identifier (if applicable)<input maxLength={160} value={draft.machineOrTerminalIdentifier} onChange={e => update('machineOrTerminalIdentifier', e.target.value)} /></label>
+          <label className="owner-fiscal-wide">Machine / terminal identifier (if applicable)<input maxLength={160} value={draft.machineOrTerminalIdentifier} onChange={e => update('machineOrTerminalIdentifier', e.target.value)} /></label>
         </div>
-        <div className="fiscal-profile-actions"><button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save taxpayer configuration'} <span aria-hidden="true">→</span></button></div>
+        <div className="owner-fiscal-actions"><button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save taxpayer configuration'} <span aria-hidden="true">→</span></button></div>
       </form>
     </section>}
   </main>;
