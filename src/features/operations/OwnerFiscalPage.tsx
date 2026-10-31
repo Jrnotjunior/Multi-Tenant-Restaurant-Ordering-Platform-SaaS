@@ -73,7 +73,7 @@ export function OwnerFiscalPage() {
         }
         if (!active) return;
         setBranches(safeBranches);
-        setSelectedBranchId(current => safeBranches.some(item => item.id === current) ? current : session.branchId);
+        setSelectedBranchId(session.branchId);
         setBranchName(safeBranches.find(item => item.id === session.branchId)?.name ?? 'Authorized branch');
       } catch (reason) {
         if (active) setError(reason instanceof Error ? reason.message : 'Unable to load fiscal settings.');
