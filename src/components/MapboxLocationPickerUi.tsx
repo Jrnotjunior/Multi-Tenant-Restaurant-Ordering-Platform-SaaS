@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import { Map as MapLibreMap, Marker, setWorkerUrl } from 'maplibre-gl';
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
+import 'maplibre-gl/dist/maplibre-gl.css';
+
+setWorkerUrl(workerUrl);
 import { getMapboxPublicToken, mapboxFeatureToAddress, reverseMapboxLocation, searchMapboxAddresses, type MapboxLocationFeature } from '../modules/location/locationService';
 import type { MapboxDeliveryAddress } from '../modules/location/mapServiceProtocol';
 export type { MapboxDeliveryAddress } from '../modules/location/mapServiceProtocol';
@@ -40,8 +43,8 @@ export function MapboxLocationPickerUi({
   initialLongitude?: number | null;
 }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const mapRef = useRef<MapLibreMap | null>(null);
+  const markerRef = useRef<Marker | null>(null);
   const selectedAddressRef = useRef<MapboxDeliveryAddress | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<MapboxLocationFeature[]>([]);
@@ -101,17 +104,16 @@ export function MapboxLocationPickerUi({
           ? [Number(initialLongitude), Number(initialLatitude)]
           : [120.9780, 14.6760];
 
-        const map = new mapboxgl.Map({
-          accessToken: token,
+        const map = new MapLibreMap({
           container: mapContainerRef.current,
-          style: 'mapbox://styles/mapbox/standard',
+          style: 'https://tiles.openfreemap.org/styles/liberty',
           center: defaultCenter,
           zoom: Number.isFinite(initialLatitude) && Number.isFinite(initialLongitude) ? 16 : 13,
           attributionControl: true,
           dragRotate: false,
         });
 
-        const marker = new mapboxgl.Marker({ draggable: true })
+        const marker = new Marker({ draggable: true })
           .setLngLat(defaultCenter)
           .addTo(map);
 
