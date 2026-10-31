@@ -8,10 +8,6 @@ export type MapboxDeliveryAddress = {
   longitude: number | null;
 };
 
-export function isPublicMapboxToken(value: unknown): value is string {
-  return typeof value === 'string' && value.trim().startsWith('pk.');
-}
-
 export function normalizeSecureOrigin(value: unknown, allowLocalhost = false): string | null {
   if (typeof value !== 'string' || !value || value === 'null') return null;
   try {
