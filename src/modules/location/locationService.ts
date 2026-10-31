@@ -8,6 +8,19 @@ export type MapboxLocationFeature = {
     address?: string;
     full_address?: string;
     place_formatted?: string;
+    street?: string;
+    housenumber?: string;
+    postcode?: string;
+    city?: string;
+    district?: string;
+    county?: string;
+    state?: string;
+    country?: string;
+    suburb?: string;
+    locality?: string;
+    osm_id?: number;
+    osm_type?: string;
+    type?: string;
     context?: {
       country?: { name?: string };
       region?: { name?: string };
@@ -29,27 +42,9 @@ export type MapboxLocationFeature = {
 
 type MapboxFeatureCollection = { features?: MapboxLocationFeature[] };
 
-let configuredPublicToken = '';
-
-/** Set only from the central map service's runtime configuration response. */
-export function configureMapboxPublicToken(token: string) {
-  const value = token.trim();
-  if (!value.startsWith('pk.')) {
-    throw new Error('The central map service returned an invalid public Mapbox token.');
-  }
-  configuredPublicToken = value;
-}
-
 export function getMapboxPublicToken() {
-  return configuredPublicToken;
-}
-
-function requireToken() {
-  const token = getMapboxPublicToken();
-  if (!token.startsWith('pk.')) {
-    throw new Error('The central map service is not configured. Please try again later.');
-  }
-  return token;
+  // Kept temporarily for compatibility with older map-service integrations.
+  return '';
 }
 
 type MapboxContext = Record<string, { name?: string } | undefined>;
@@ -72,52 +67,90 @@ export function mapboxFeatureToAddress(feature: MapboxLocationFeature) {
   const coordinates = toCoordinates(feature);
   if (!coordinates) return null;
 
-  const city = contextName(context, 'place') || contextName(context, 'locality') || contextName(context, 'district');
-  const barangay = contextName(context, 'locality') || contextName(context, 'neighborhood') || contextName(context, 'district');
+  const city = properties.city?.trim()
+    || contextName(context, 'place')
+    || contextName(context, 'locality')
+    || properties.county?.trim()
+    || contextName(context, 'district')
+    || properties.state?.trim();
+  const barangay = properties.suburb?.trim()
+    || properties.locality?.trim()
+    || contextName(context, 'neighborhood')
+    || contextName(context, 'locality')
+    || properties.district?.trim()
+    || contextName(context, 'district');
+  const street = [properties.housenumber, properties.street].filter(Boolean).join(' ').trim();
   const address = properties.address?.trim()
     || context?.address?.name?.trim()
-    || context?.street?.name?.trim()
+    || street
+    || properties.street?.trim()
+    || properties.name?.trim()
+    || '';
+  const formattedAddress = properties.full_address?.trim()
+    || [properties.name, street, properties.suburb, city, properties.state, properties.country].filter(Boolean).join(', ')
+    || [properties.address, properties.place_formatted].filter(Boolean).join(', ').trim()
     || properties.name?.trim()
     || '';
 
   return {
-    formattedAddress: properties.full_address?.trim() || [properties.address, properties.place_formatted].filter(Boolean).join(', ').trim() || properties.name?.trim() || '',
+    formattedAddress,
     city,
     barangay,
     address,
-    placeId: properties.mapbox_id?.trim() || feature.id?.trim() || '',
+    placeId: properties.mapbox_id?.trim() || (properties.osm_id ? `${properties.osm_type || 'osm'}:${properties.osm_id}` : feature.id?.trim()) || '',
     latitude: coordinates.latitude,
     longitude: coordinates.longitude,
   };
 }
 
 async function requestJson(url: string) {
-  const response = await fetch(url);
+  const response = await fetch(url, { headers: { Accept: 'application/geo+json, application/json' } });
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
-    console.error('Mapbox location request failed', { status: response.status, body });
+    console.error('Geocoding request failed', { status: response.status, body });
     throw new Error('We could not search that location right now. Please try again or move the pin manually.');
   }
-  return body as MapboxFeatureCollection;
+  const collection = body as { features?: Array<{ id?: string | number; geometry?: { coordinates?: [number, number] }; properties?: Record<string, unknown> }> };
+  return {
+    features: Array.isArray(collection.features) ? collection.features.map((feature) => ({
+      id: String(feature.id ?? ''),
+      geometry: feature.geometry,
+      properties: {
+        ...(feature.properties ?? {}),
+        mapbox_id: feature.properties?.osm_id ? `${String(feature.properties.osm_type ?? 'osm')}:${String(feature.properties.osm_id)}` : String(feature.id ?? ''),
+        name: String(feature.properties?.name ?? feature.properties?.street ?? feature.properties?.city ?? ''),
+        address: [feature.properties?.housenumber, feature.properties?.street].filter(Boolean).join(' '),
+        full_address: [feature.properties?.name, feature.properties?.housenumber, feature.properties?.street, feature.properties?.suburb, feature.properties?.city, feature.properties?.state, feature.properties?.country].filter(Boolean).join(', '),
+        place_formatted: [feature.properties?.city, feature.properties?.state, feature.properties?.country].filter(Boolean).join(', '),
+        coordinates: {
+          longitude: feature.geometry?.coordinates?.[0],
+          latitude: feature.geometry?.coordinates?.[1],
+        },
+      },
+    })) : [],
+  } as MapboxFeatureCollection;
 }
 
 export async function searchMapboxAddresses(query: string): Promise<MapboxLocationFeature[]> {
-  const token = requireToken();
+  const value = query.trim();
+  if (value.length < 3) return [];
   const params = new URLSearchParams({
-    q: query.trim(), access_token: token, language: 'en', country: 'PH', limit: '5',
-    types: 'address,street,place,locality,neighborhood',
+    q: value,
+    lang: 'en',
+    limit: '5',
+    lat: '14.5995',
+    lon: '120.9842',
   });
-  const data = await requestJson(`https://api.mapbox.com/search/geocode/v6/forward?${params.toString()}`);
+  const data = await requestJson(`https://photon.komoot.io/api/?${params.toString()}`);
   return Array.isArray(data.features) ? data.features : [];
 }
 
 export async function reverseMapboxLocation(latitude: number, longitude: number): Promise<MapboxLocationFeature | null> {
-  const token = requireToken();
   const params = new URLSearchParams({
-    longitude: String(longitude), latitude: String(latitude), access_token: token,
-    language: 'en', country: 'PH', limit: '1', types: 'address,street,place,locality',
+    lat: String(latitude),
+    lon: String(longitude),
+    lang: 'en',
   });
-  const data = await requestJson(`https://api.mapbox.com/search/geocode/v6/reverse?${params.toString()}`);
+  const data = await requestJson(`https://photon.komoot.io/reverse?${params.toString()}`);
   return data.features?.[0] ?? null;
 }
-
