@@ -42,11 +42,6 @@ export type MapboxLocationFeature = {
 
 type MapboxFeatureCollection = { features?: MapboxLocationFeature[] };
 
-export function getMapboxPublicToken() {
-  // Kept temporarily for compatibility with older map-service integrations.
-  return '';
-}
-
 type MapboxContext = Record<string, { name?: string } | undefined>;
 
 function contextName(context: MapboxContext | undefined, key: string) {
@@ -139,8 +134,6 @@ export async function searchMapboxAddresses(query: string): Promise<MapboxLocati
     q: value,
     lang: 'en',
     limit: '5',
-    lat: '14.5995',
-    lon: '120.9842',
   });
   const data = await requestJson(`https://photon.komoot.io/api/?${params.toString()}`);
   return Array.isArray(data.features) ? data.features : [];
