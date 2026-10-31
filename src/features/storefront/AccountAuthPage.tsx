@@ -169,7 +169,6 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
         {isSignUp && <label>
           Phone number
           <input autoComplete="tel" inputMode="tel" type="tel" name="phone" value={phone} onChange={event => setPhone(event.target.value.replace(/[^0-9+()\s-]/g, '').slice(0, 20))} required maxLength={20} placeholder="09XXXXXXXXX" aria-describedby="sf-signup-phone-hint" />
-          <small id="sf-signup-phone-hint">Use an 11-digit Philippine mobile number starting with 09.</small>
         </label>}
         <label>
           Email address
