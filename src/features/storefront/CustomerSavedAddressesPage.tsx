@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { normalizeAppBase } from '../../app/routes';
 import { StorefrontFooter } from './StorefrontChrome';
+import { getRememberedStorefrontSlug } from './appFavicon';
 import { MapboxDeliveryLocationPicker, type MapboxDeliveryAddress } from '../operations/MapboxDeliveryLocationPicker';
 import './storefront.css';
 
@@ -10,7 +11,7 @@ type Draft = Omit<Address,'id'>;
 const empty:Draft={label:'Home',address_line:'',city:'',barangay:'',latitude:null,longitude:null,mapbox_place_id:'',is_default:false};
 const logo='https://wvibrchebfwirbgkcnbr.supabase.co/storage/v1/object/public/web2table-assets/web2table.png';
 export function CustomerSavedAddressesPage({baseUrl}:{baseUrl:string}) {
- const base=normalizeAppBase(baseUrl),restaurantSlug=window.location.hash.match(/\/order\/([^/?#]+)/)?.[1]??'', [userId,setUserId]=useState(''),[rows,setRows]=useState<Address[]>([]),[draft,setDraft]=useState<Draft>(empty),[editId,setEditId]=useState(''),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[message,setMessage]=useState('');
+ const base=normalizeAppBase(baseUrl),restaurantSlug=window.location.hash.match(/\/order\/([^/?#]+)/)?.[1]??getRememberedStorefrontSlug()??'', [userId,setUserId]=useState(''),[rows,setRows]=useState<Address[]>([]),[draft,setDraft]=useState<Draft>(empty),[editId,setEditId]=useState(''),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[message,setMessage]=useState('');
  const load=async()=>{if(!supabase){setMessage('Account services are not configured.');setLoading(false);return;}const {data,error}=await supabase.auth.getSession();const user=data.session?.user;if(error||!user){window.location.assign(base+'account/sign-in');return;}setUserId(user.id);const result=await supabase.from('customer_saved_addresses').select('id,label,address_line,city,barangay,latitude,longitude,mapbox_place_id,is_default').eq('user_id',user.id).order('is_default',{ascending:false}).order('updated_at',{ascending:false});if(result.error)setMessage('Could not load addresses. Please try again.');else setRows((result.data??[]) as Address[]);setLoading(false);};
  useEffect(()=>{void load();},[base]);
  const selectMapboxAddress=(address:MapboxDeliveryAddress)=>{setDraft(current=>({...current,address_line:address.address||address.formattedAddress,city:address.city||current.city,barangay:address.barangay||current.barangay,latitude:address.latitude,longitude:address.longitude,mapbox_place_id:address.placeId}));setMessage('');};
