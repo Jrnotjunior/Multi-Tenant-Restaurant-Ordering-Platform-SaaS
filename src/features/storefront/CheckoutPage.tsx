@@ -40,16 +40,20 @@ function normalizePhilippineMobile(value: string): string {
   return digits;
 }
 
-function CustomerInformation({ orderType }: { orderType: OrderType }) {
+function CustomerInformation({ firstName, lastName, phone, onFirstNameChange, onLastNameChange, onPhoneChange }: {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  onFirstNameChange: (value: string) => void;
+  onLastNameChange: (value: string) => void;
+  onPhoneChange: (value: string) => void;
+}) {
   return <fieldset className="sf-checkout-section">
     <legend>Customer information</legend>
     <div className="sf-checkout-fields">
-      <label>First name<input name="firstName" autoComplete="given-name" required minLength={1} maxLength={80} /></label>
-      <label>Last name<input name="lastName" autoComplete="family-name" required minLength={1} maxLength={80} /></label>
-      <label>Mobile number<input name="mobile" autoComplete="tel" type="tel" inputMode="numeric" required minLength={11} maxLength={11} pattern="09[0-9]{9}" placeholder="09XXXXXXXXX" title="Enter an 11-digit Philippine mobile number starting with 09." onInput={event => {
-        const input = event.currentTarget;
-        input.value = normalizePhilippineMobile(input.value).slice(0, 11);
-      }} /></label>
+      <label>First name<input name="firstName" autoComplete="given-name" value={firstName} onChange={event => onFirstNameChange(event.target.value)} required minLength={1} maxLength={80} /></label>
+      <label>Last name<input name="lastName" autoComplete="family-name" value={lastName} onChange={event => onLastNameChange(event.target.value)} required minLength={1} maxLength={80} /></label>
+      <label>Mobile number<input name="mobile" autoComplete="tel" type="tel" inputMode="numeric" value={phone} onChange={event => onPhoneChange(normalizePhilippineMobile(event.target.value).slice(0, 11))} required minLength={11} maxLength={11} pattern="09[0-9]{9}" placeholder="09XXXXXXXXX" title="Enter an 11-digit Philippine mobile number starting with 09." /></label>
     </div>
   </fieldset>;
 }
@@ -75,6 +79,9 @@ function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onS
 /** Standalone checkout screen. It prepares details only; it does not place or charge an order. */
 export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orderLines, onBackToMenu, onPlaceOrder, trackingOnly = false }: CheckoutPageProps) {
   const [orderType, setOrderType] = useState<OrderType>('Delivery');
+  const [customerFirstName, setCustomerFirstName] = useState('');
+  const [customerLastName, setCustomerLastName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState<MapboxDeliveryAddress | null>(null);
   const [streetAddress, setStreetAddress] = useState('');
   const [message, setMessage] = useState('');
@@ -91,6 +98,44 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
   const [loyalty, setLoyalty] = useState<{ enabled: boolean; pointsBalance: number; rewardPoints: number; rewardAmountCentavos: number } | null>(null);
   const [loyaltyPointsToRedeem, setLoyaltyPointsToRedeem] = useState(0);
   const [loyaltyLoading, setLoyaltyLoading] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    if (!supabase) return;
+    void (async () => {
+      const { data, error } = await supabase!.auth.getSession();
+      if (!active || error || !data.session?.user) return;
+      const user = data.session.user;
+      const metadata = (user.user_metadata ?? {}) as { first_name?: unknown; last_name?: unknown; full_name?: unknown; phone?: unknown };
+      const firstName = typeof metadata.first_name === 'string' ? metadata.first_name.trim() : '';
+      const lastName = typeof metadata.last_name === 'string' ? metadata.last_name.trim() : '';
+      const fullName = typeof metadata.full_name === 'string' ? metadata.full_name.trim() : '';
+      if (firstName) setCustomerFirstName(firstName);
+      if (lastName) setCustomerLastName(lastName);
+      if (!firstName && !lastName && fullName) {
+        const parts = fullName.split(/\\s+/);
+        setCustomerFirstName(parts.shift() ?? '');
+        setCustomerLastName(parts.join(' '));
+      }
+      if (typeof metadata.phone === 'string') setCustomerPhone(normalizePhilippineMobile(metadata.phone).slice(0, 11));
+      // Legacy accounts may have their contact details on their default saved address.
+      const { data: savedAddress } = await supabase!.from('customer_saved_addresses')
+        .select('recipient_name,phone')
+        .eq('user_id', user.id)
+        .eq('is_default', true)
+        .maybeSingle();
+      if (!active || !savedAddress) return;
+      if (!firstName && !lastName && !fullName && typeof savedAddress.recipient_name === 'string') {
+        const parts = savedAddress.recipient_name.trim().split(/\\s+/);
+        setCustomerFirstName(parts.shift() ?? '');
+        setCustomerLastName(parts.join(' '));
+      }
+      if (!(typeof metadata.phone === 'string' && metadata.phone.trim()) && typeof savedAddress.phone === 'string') {
+        setCustomerPhone(normalizePhilippineMobile(savedAddress.phone).slice(0, 11));
+      }
+    })();
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     if (!trackingToken || !supabase) return;
@@ -197,7 +242,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
 
     {!paymentComplete && <form className="sf-checkout-page-form" onSubmit={handleSubmit}>
       <OrderTypeSection value={orderType} onChange={type => { setOrderType(type); setMessage(''); setReviewed(false); }} />
-      <CustomerInformation orderType={orderType} />
+      <CustomerInformation firstName={customerFirstName} lastName={customerLastName} phone={customerPhone} onFirstNameChange={setCustomerFirstName} onLastNameChange={setCustomerLastName} onPhoneChange={setCustomerPhone} />
       <DeliveryAddressSection orderType={orderType} value={deliveryAddress} onSelect={address => { setDeliveryAddress(address); setStreetAddress(address.address); }} streetAddress={streetAddress} onStreetAddressChange={setStreetAddress} restaurantSlug={restaurantSlug} />
 
       <section className="sf-checkout-total" aria-label="Order summary">
