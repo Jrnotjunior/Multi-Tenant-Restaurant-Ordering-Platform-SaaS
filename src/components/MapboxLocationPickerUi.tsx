@@ -4,13 +4,13 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 setWorkerUrl(workerUrl);
-import { mapboxFeatureToAddress, reverseMapboxLocation, searchMapboxAddresses, type MapboxLocationFeature } from '../modules/location/locationService';
-import type { MapboxDeliveryAddress } from '../modules/location/mapServiceProtocol';
-export type { MapboxDeliveryAddress } from '../modules/location/mapServiceProtocol';
+import { geocodingFeatureToAddress, reverseGeocodeLocation, searchAddresses, type GeocodingFeature } from '../modules/location/locationService';
+import type { DeliveryLocationAddress } from '../modules/location/mapServiceProtocol';
+export type { DeliveryLocationAddress } from '../modules/location/mapServiceProtocol';
 
 type LatLng = { lat: number; lng: number };
 
-function coordinatesToAddress(location: LatLng): MapboxDeliveryAddress {
+function coordinatesToAddress(location: LatLng): DeliveryLocationAddress {
   return {
     formattedAddress: '',
     city: '',
@@ -22,8 +22,8 @@ function coordinatesToAddress(location: LatLng): MapboxDeliveryAddress {
   };
 }
 
-function toAddress(feature: MapboxLocationFeature): MapboxDeliveryAddress | null {
-  const address = mapboxFeatureToAddress(feature);
+function toAddress(feature: GeocodingFeature): DeliveryLocationAddress | null {
+  const address = geocodingFeatureToAddress(feature);
   return address ? { ...address } : null;
 }
 
@@ -36,7 +36,7 @@ export function MapboxLocationPickerUi({
   initialLongitude = null,
 }: {
   disabled?: boolean;
-  onSelect: (address: MapboxDeliveryAddress) => void | Promise<void>;
+  onSelect: (address: DeliveryLocationAddress) => void | Promise<void>;
   onLocationChange?: () => void;
   variant?: 'delivery' | 'restaurant';
   initialLatitude?: number | null;
@@ -45,11 +45,11 @@ export function MapboxLocationPickerUi({
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markerRef = useRef<Marker | null>(null);
-  const selectedAddressRef = useRef<MapboxDeliveryAddress | null>(null);
+  const selectedAddressRef = useRef<DeliveryLocationAddress | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<MapboxLocationFeature[]>([]);
+  const [searchResults, setSearchResults] = useState<GeocodingFeature[]>([]);
   const [searching, setSearching] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState<MapboxDeliveryAddress | null>(null);
+  const [selectedAddress, setSelectedAddress] = useState<DeliveryLocationAddress | null>(null);
   const [locationConfirmed, setLocationConfirmed] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -60,7 +60,7 @@ export function MapboxLocationPickerUi({
     selectedAddressRef.current = selectedAddress;
   }, [selectedAddress]);
 
-  function setSelectedLocation(location: LatLng, address?: MapboxDeliveryAddress | null) {
+  function setSelectedLocation(location: LatLng, address?: DeliveryLocationAddress | null) {
     const map = mapRef.current;
     const marker = markerRef.current;
     marker?.setLngLat([location.lng, location.lat]);
@@ -157,7 +157,7 @@ export function MapboxLocationPickerUi({
     setSearchResults([]);
 
     try {
-      const results = await searchMapboxAddresses(query);
+      const results = await searchAddresses(query);
       setSearchResults(results);
       if (!results.length) setError('No matching address was found. Try a more complete address or move the pin manually.');
     } catch (searchError) {
@@ -168,7 +168,7 @@ export function MapboxLocationPickerUi({
     }
   }
 
-  function selectSearchResult(feature: MapboxLocationFeature) {
+  function selectSearchResult(feature: GeocodingFeature) {
     const address = toAddress(feature);
     if (!address || address.latitude === null || address.longitude === null) {
       setError('The address provider did not return an exact map location.');
@@ -221,7 +221,7 @@ export function MapboxLocationPickerUi({
       let nextAddress = current;
 
       if (!current.formattedAddress || !current.city || !current.barangay) {
-        const feature = await reverseMapboxLocation(current.latitude, current.longitude);
+        const feature = await reverseGeocodeLocation(current.latitude, current.longitude);
         const reversed = feature ? toAddress(feature) : null;
         if (reversed) {
           nextAddress = {
@@ -286,7 +286,7 @@ export function MapboxLocationPickerUi({
               const properties = result.properties ?? {};
               return (
                 <button
-                  key={properties.mapbox_id || result.id || `result-${index}`}
+                  key={properties.geocoding_id || result.id || `result-${index}`}
                   className="delivery-location-search-result"
                   type="button"
                   onClick={() => selectSearchResult(result)}
