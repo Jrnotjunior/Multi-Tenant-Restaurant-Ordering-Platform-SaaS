@@ -21,13 +21,19 @@ function serviceKey() {
 }
 
 function routingBaseUrl() {
-  // The public OSRM demo is a development fallback only. Configure ROUTING_BASE_URL
-  // to a self-hosted OSRM/compatible service before production; public demo servers
-  // have usage policies and no production SLA.
-  const configured = (Deno.env.get("ROUTING_BASE_URL") ?? "https://router.project-osrm.org").trim();
+  // Never send customer delivery coordinates to a public demo router by default.
+  // Production and preview environments must explicitly configure a trusted
+  // self-hosted OSRM-compatible endpoint with ROUTING_BASE_URL.
+  const configured = (Deno.env.get("ROUTING_BASE_URL") ?? "").trim();
+  if (!configured) {
+    throw new Error("Delivery routing is not configured. Please contact the restaurant.");
+  }
   const url = new URL(configured);
   if (url.protocol !== "https:" && url.hostname !== "localhost" && url.hostname !== "127.0.0.1") {
     throw new Error("The routing service must use HTTPS.");
+  }
+  if (url.username || url.password) {
+    throw new Error("The routing service URL must not contain credentials.");
   }
   return url.toString().replace(/\/$/, "");
 }
@@ -120,7 +126,7 @@ Deno.serve(async (request: Request) => {
     return json({ success: true, feeCentavos: result.feeCentavos, distanceMeters: result.distanceMeters });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to calculate delivery pricing.";
-    const status = message === "The routing service must use HTTPS." ? 500 : 400;
+    const status = message === "The routing service must use HTTPS." || message === "Delivery routing is not configured. Please contact the restaurant." || message === "The routing service URL must not contain credentials." ? 500 : 400;
     return json({ error: message }, status);
   }
 });
