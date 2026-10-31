@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '../../lib/supabase';
-import { MapboxDeliveryLocationPicker, type MapboxDeliveryAddress } from './MapboxDeliveryLocationPicker';
+import { MapboxDeliveryLocationPicker, type DeliveryLocationAddress } from './MapboxDeliveryLocationPicker';
 import { MapPickerErrorBoundary } from './MapPickerErrorBoundary';
 import { OwnerPayMongoOnboardingCard } from './OwnerPayMongoOnboardingCard';
 
@@ -345,7 +345,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
           <div className="w2t-delivery-location-header"><div><span className="w2t-delivery-location-kicker">Delivery setup</span><h2 id="w2t-delivery-location-heading">Store address</h2><p>Set the exact location delivery orders should route from. Distance and fees are calculated from this point.</p></div><span className="w2t-route-origin">Route origin</span></div>
           <MapPickerErrorBoundary>
             <MapboxDeliveryLocationPicker restaurantSlug={restaurantSlug} variant="restaurant" disabled={saving} initialLatitude={latitude} initialLongitude={longitude}
-              onSelect={(selected: MapboxDeliveryAddress) => {
+              onSelect={(selected: DeliveryLocationAddress) => {
                 if (selected.latitude === null || selected.longitude === null) throw new Error('The map did not return an exact store location.');
                 setLatitude(selected.latitude); setLongitude(selected.longitude);
                 if (selected.formattedAddress.trim()) setStoreAddress(selected.formattedAddress.trim());
