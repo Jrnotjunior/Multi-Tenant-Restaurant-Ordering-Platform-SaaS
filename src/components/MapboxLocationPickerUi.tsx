@@ -4,7 +4,7 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 setWorkerUrl(workerUrl);
-import { geocodingFeatureToAddress, reverseGeocodeLocation, searchAddresses, type GeocodingFeature } from '../modules/location/locationService';
+import { geocodingFeatureToAddress, reverseGeocodeLocation, searchAddresses as geocodeAddresses, type GeocodingFeature } from '../modules/location/locationService';
 import type { DeliveryLocationAddress } from '../modules/location/mapServiceProtocol';
 export type { DeliveryLocationAddress } from '../modules/location/mapServiceProtocol';
 
@@ -157,7 +157,7 @@ export function MapboxLocationPickerUi({
     setSearchResults([]);
 
     try {
-      const results = await searchAddresses(query);
+      const results = await geocodeAddresses(query);
       setSearchResults(results);
       if (!results.length) setError('No matching address was found. Try a more complete address or move the pin manually.');
     } catch (searchError) {
