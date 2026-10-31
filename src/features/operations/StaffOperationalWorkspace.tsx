@@ -95,6 +95,13 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   }, [role, tenantId]);
 
   useEffect(() => {
+    if (role !== 'cashier' || !posIntegrationActive) return;
+    // POS is a separate application and performs its own authenticated sign-in
+    // and server-side tenant/branch authorization. Do not pass credentials or tokens in the URL.
+    window.location.replace('https://jrnotjunior.github.io/POS/');
+  }, [role, posIntegrationActive]);
+
+  useEffect(() => {
     const syncStaffPage = () => {
       const page = staffPageFromHash(role);
       if (role === 'cashier') setCashierTab(page === 'sales' ? 'sales' : 'orders');
@@ -534,7 +541,6 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     {role === 'cashier' && <nav className="staff-workspace-tabs" aria-label="Cashier workspace">
       <button type="button" className={cashierTab === 'orders' ? 'is-active' : ''} aria-current={cashierTab === 'orders' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'orders'); setCashierTab('orders'); setFilter('active'); }}>Orders</button>
       <button type="button" className={cashierTab === 'sales' ? 'is-active' : ''} aria-current={cashierTab === 'sales' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'sales'); setCashierTab('sales'); setFilter('all'); }}>Sales</button>
-      {posIntegrationActive && <a className="staff-button staff-button-secondary" href="https://jrnotjunior.github.io/POS/" target="_blank" rel="noopener noreferrer">Open POS ↗</a>}
     </nav>}
     {role === 'kitchen' && <nav className="staff-workspace-tabs" aria-label="Kitchen workspace">
       <button type="button" className={kitchenTab === 'orders' ? 'is-active' : ''} aria-current={kitchenTab === 'orders' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'orders'); setKitchenTab('orders'); }}>Orders</button>
