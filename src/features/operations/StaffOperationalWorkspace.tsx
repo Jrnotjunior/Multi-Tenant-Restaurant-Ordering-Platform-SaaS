@@ -3,6 +3,7 @@ import { normalizeAppBase } from '../../app/routes';
 import { userDisplayName } from '../../domain/userDisplayName';
 import { supabase } from '../../lib/supabase';
 import { loadKitchenMenuForTenant, publicMenuPhoto, type KitchenMenu } from '../management/menuService';
+import { loadPosIntegration, type PosIntegrationStatus } from '../management/posIntegrationService';
 import type { StaffWorkspaceRole } from './OperationalDashboard';
 import './staff-workspace.css';
 import './rider-dashboard.css';
@@ -51,6 +52,8 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [swipeProgress, setSwipeProgress] = useState(0);
   const [riderHistoryDate, setRiderHistoryDate] = useState(() => new Date().toLocaleDateString('en-CA'));
   const [cashierTab, setCashierTab] = useState<'orders' | 'sales'>(() => staffPageFromHash(role) === 'sales' ? 'sales' : 'orders');
+  const [posIntegrationStatus, setPosIntegrationStatus] = useState<PosIntegrationStatus>('not_enabled');
+  const [posStatusLoaded, setPosStatusLoaded] = useState(false);
   const [kitchenTab, setKitchenTab] = useState<'orders' | 'menu'>(() => staffPageFromHash(role) === 'menu' ? 'menu' : 'orders');
   const [kitchenMenu, setKitchenMenu] = useState<KitchenMenu | null>(null);
   const [kitchenMenuSearch, setKitchenMenuSearch] = useState('');
@@ -71,6 +74,17 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const copy = roleCopy[role];
+
+  useEffect(() => {
+    if (role !== 'cashier') { setPosStatusLoaded(true); return; }
+    let active = true;
+    void loadPosIntegration(tenantId).then(status => {
+      if (active) setPosIntegrationStatus(status);
+    }).catch(reason => {
+      if (active) setError(reason instanceof Error ? reason.message : 'Unable to verify POS integration access.');
+    }).finally(() => { if (active) setPosStatusLoaded(true); });
+    return () => { active = false; };
+  }, [role, tenantId]);
 
   useEffect(() => {
     const syncStaffPage = () => {
