@@ -1,4 +1,4 @@
-export type MapboxDeliveryAddress = {
+export type DeliveryLocationAddress = {
   formattedAddress: string;
   city: string;
   barangay: string;
@@ -26,7 +26,7 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === 'object' ? value as Record<string, unknown> : null;
 }
 
-export function parseMapboxDeliveryAddress(value: unknown): MapboxDeliveryAddress | null {
+export function parseDeliveryLocationAddress(value: unknown): DeliveryLocationAddress | null {
   const item = asRecord(value);
   if (!item) return null;
   const textFields = ['formattedAddress', 'city', 'barangay', 'address', 'placeId'] as const;
