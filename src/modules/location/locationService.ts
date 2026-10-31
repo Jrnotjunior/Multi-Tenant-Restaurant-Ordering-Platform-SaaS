@@ -1,7 +1,7 @@
-export type MapboxLocationFeature = {
+export type GeocodingFeature = {
   id?: string;
   properties?: {
-    mapbox_id?: string;
+    geocoding_id?: string;
     feature_type?: string;
     name?: string;
     name_preferred?: string;
@@ -40,15 +40,15 @@ export type MapboxLocationFeature = {
   geometry?: { coordinates?: [number, number] };
 };
 
-type MapboxFeatureCollection = { features?: MapboxLocationFeature[] };
+type GeocodingFeatureCollection = { features?: GeocodingFeature[] };
 
-type MapboxContext = Record<string, { name?: string } | undefined>;
+type GeocodingContext = Record<string, { name?: string } | undefined>;
 
-function contextName(context: MapboxContext | undefined, key: string) {
+function contextName(context: GeocodingContext | undefined, key: string) {
   return context?.[key]?.name?.trim() ?? '';
 }
 
-function toCoordinates(feature: MapboxLocationFeature) {
+function toCoordinates(feature: GeocodingFeature) {
   const properties = feature.properties;
   const longitude = Number(properties?.coordinates?.longitude ?? feature.geometry?.coordinates?.[0]);
   const latitude = Number(properties?.coordinates?.latitude ?? feature.geometry?.coordinates?.[1]);
@@ -56,7 +56,7 @@ function toCoordinates(feature: MapboxLocationFeature) {
   return { latitude, longitude };
 }
 
-export function mapboxFeatureToAddress(feature: MapboxLocationFeature) {
+export function geocodingFeatureToAddress(feature: GeocodingFeature) {
   const properties = feature.properties ?? {};
   const context = properties.context;
   const coordinates = toCoordinates(feature);
@@ -93,7 +93,7 @@ export function mapboxFeatureToAddress(feature: MapboxLocationFeature) {
     city,
     barangay,
     address,
-    placeId: properties.mapbox_id?.trim() || (properties.osm_id ? `${properties.osm_type || 'osm'}:${properties.osm_id}` : feature.id?.trim()) || '',
+    placeId: properties.geocoding_id?.trim() || (properties.osm_id ? `${properties.osm_type || 'osm'}:${properties.osm_id}` : feature.id?.trim()) || '',
     latitude: coordinates.latitude,
     longitude: coordinates.longitude,
   };
@@ -113,7 +113,7 @@ async function requestJson(url: string) {
       geometry: feature.geometry,
       properties: {
         ...(feature.properties ?? {}),
-        mapbox_id: feature.properties?.osm_id ? `${String(feature.properties.osm_type ?? 'osm')}:${String(feature.properties.osm_id)}` : String(feature.id ?? ''),
+        geocoding_id: feature.properties?.osm_id ? `${String(feature.properties.osm_type ?? 'osm')}:${String(feature.properties.osm_id)}` : String(feature.id ?? ''),
         name: String(feature.properties?.name ?? feature.properties?.street ?? feature.properties?.city ?? ''),
         address: [feature.properties?.housenumber, feature.properties?.street].filter(Boolean).join(' '),
         full_address: [feature.properties?.name, feature.properties?.housenumber, feature.properties?.street, feature.properties?.suburb, feature.properties?.city, feature.properties?.state, feature.properties?.country].filter(Boolean).join(', '),
@@ -124,10 +124,10 @@ async function requestJson(url: string) {
         },
       },
     })) : [],
-  } as MapboxFeatureCollection;
+  } as GeocodingFeatureCollection;
 }
 
-export async function searchMapboxAddresses(query: string): Promise<MapboxLocationFeature[]> {
+export async function searchAddresses(query: string): Promise<GeocodingFeature[]> {
   const value = query.trim();
   if (value.length < 3) return [];
   const params = new URLSearchParams({
@@ -139,7 +139,7 @@ export async function searchMapboxAddresses(query: string): Promise<MapboxLocati
   return Array.isArray(data.features) ? data.features : [];
 }
 
-export async function reverseMapboxLocation(latitude: number, longitude: number): Promise<MapboxLocationFeature | null> {
+export async function reverseGeocodeLocation(latitude: number, longitude: number): Promise<GeocodingFeature | null> {
   const params = new URLSearchParams({
     lat: String(latitude),
     lon: String(longitude),
