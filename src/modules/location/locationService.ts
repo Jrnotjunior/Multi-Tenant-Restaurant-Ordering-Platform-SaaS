@@ -72,7 +72,8 @@ export function mapboxFeatureToAddress(feature: MapboxLocationFeature) {
     || contextName(context, 'locality')
     || properties.county?.trim()
     || contextName(context, 'district')
-    || properties.state?.trim();
+    || properties.state?.trim()
+    || '';
   const barangay = properties.suburb?.trim()
     || properties.locality?.trim()
     || contextName(context, 'neighborhood')
