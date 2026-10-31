@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { MapboxLocationPickerUi } from '../components/MapboxLocationPickerUi';
-import { configureMapboxPublicToken } from '../modules/location/locationService';
 import { isPublicMapboxToken, normalizeSecureOrigin, type MapboxDeliveryAddress } from '../modules/location/mapServiceProtocol';
 import { supabaseGet, supabaseRpc } from './mapServiceSupabase';
 
@@ -46,31 +45,6 @@ function parseInit(value: unknown): InitOptions | null {
 
 function postToParent(parentOrigin: string, message: Record<string, unknown>) {
   window.parent.postMessage({ source: MESSAGE_SOURCE, ...message }, parentOrigin);
-}
-
-function publicConfigUrl() {
-  const baseUrl = String(import.meta.env.VITE_SUPABASE_URL ?? '').trim().replace(/\/$/, '');
-  if (!baseUrl) throw new Error('Central map configuration is unavailable.');
-  return `${baseUrl}/functions/v1/mapbox-public-config`;
-}
-
-async function loadPublicToken(): Promise<string> {
-  const anonKey = String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? import.meta.env.VITE_SUPABASE_ANON_KEY ?? '').trim();
-  if (!anonKey) throw new Error('Central map configuration is unavailable.');
-  const response = await fetch(publicConfigUrl(), {
-    method: 'GET',
-    headers: {
-      apikey: anonKey,
-      Authorization: `Bearer ${anonKey}`,
-      Accept: 'application/json',
-    },
-    cache: 'no-store',
-  });
-  const body = await response.json().catch(() => ({})) as { token?: unknown; error?: unknown };
-  if (!response.ok || !isPublicMapboxToken(body.token)) {
-    throw new Error(typeof body.error === 'string' ? body.error : 'The central map service is not configured yet.');
-  }
-  return body.token;
 }
 
 async function verifyTenantOrigin(origin: string, restaurantSlug: string) {
@@ -131,11 +105,6 @@ export function MapServiceApp() {
         const isRegisteredTenant = await verifyTenantOrigin(trustedOrigin, options.restaurantSlug);
         if (disposed || generation !== setupGenerationRef.current) return;
         if (!isRegisteredTenant) throw new Error('This map is available only inside an active Web2Table restaurant website.');
-
-        setStatus('Connecting to the central map account…');
-        const token = await loadPublicToken();
-        if (disposed || generation !== setupGenerationRef.current) return;
-        configureMapboxPublicToken(token);
 
         const next: MapSession = { ...options, parentOrigin: trustedOrigin };
         validatedSessionRef.current = next;
