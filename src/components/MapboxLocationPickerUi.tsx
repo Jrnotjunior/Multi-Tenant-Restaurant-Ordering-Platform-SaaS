@@ -109,7 +109,7 @@ export function MapboxLocationPickerUi({
           style: 'https://tiles.openfreemap.org/styles/liberty',
           center: defaultCenter,
           zoom: Number.isFinite(initialLatitude) && Number.isFinite(initialLongitude) ? 16 : 13,
-          attributionControl: true,
+          attributionControl: { compact: true },
           dragRotate: false,
         });
 
