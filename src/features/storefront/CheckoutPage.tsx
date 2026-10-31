@@ -118,21 +118,6 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
         setCustomerLastName(parts.join(' '));
       }
       if (typeof metadata.phone === 'string') setCustomerPhone(normalizePhilippineMobile(metadata.phone).slice(0, 11));
-      // Legacy accounts may have their contact details on their default saved address.
-      const { data: savedAddress } = await supabase!.from('customer_saved_addresses')
-        .select('recipient_name,phone')
-        .eq('user_id', user.id)
-        .eq('is_default', true)
-        .maybeSingle();
-      if (!active || !savedAddress) return;
-      if (!firstName && !lastName && !fullName && typeof savedAddress.recipient_name === 'string') {
-        const parts = savedAddress.recipient_name.trim().split(/\\s+/);
-        setCustomerFirstName(parts.shift() ?? '');
-        setCustomerLastName(parts.join(' '));
-      }
-      if (!(typeof metadata.phone === 'string' && metadata.phone.trim()) && typeof savedAddress.phone === 'string') {
-        setCustomerPhone(normalizePhilippineMobile(savedAddress.phone).slice(0, 11));
-      }
     })();
     return () => { active = false; };
   }, []);
