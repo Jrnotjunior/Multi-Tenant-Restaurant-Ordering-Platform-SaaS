@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { MapboxLocationPickerUi } from '../components/MapboxLocationPickerUi';
-import { normalizeSecureOrigin, type MapboxDeliveryAddress } from '../modules/location/mapServiceProtocol';
+import { normalizeSecureOrigin, type DeliveryLocationAddress } from '../modules/location/mapServiceProtocol';
 import { supabaseGet, supabaseRpc } from './mapServiceSupabase';
 
 type PickerVariant = 'delivery' | 'restaurant';
@@ -177,7 +177,7 @@ export function MapServiceApp() {
     return () => observer.disconnect();
   }, [session?.parentOrigin]);
 
-  async function confirmLocation(address: MapboxDeliveryAddress) {
+  async function confirmLocation(address: DeliveryLocationAddress) {
     const current = validatedSessionRef.current;
     if (!current) throw new Error('The map service is not connected to the storefront.');
     const requestId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
