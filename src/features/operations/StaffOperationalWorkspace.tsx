@@ -80,16 +80,17 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     }
     let active = true;
     setPosIntegrationActive(false);
-    void supabase.rpc('get_my_pos_integration_status', { p_tenant_id: tenantId })
-      .then(({ data, error: statusError }) => {
+    void (async () => {
+      try {
+        const { data, error: statusError } = await supabase.rpc('get_my_pos_integration_status', { p_tenant_id: tenantId });
         if (!active || statusError) return;
         const status = (data as { status?: unknown } | null)?.status;
         setPosIntegrationActive(status === 'active');
-      })
-      .catch(() => {
+      } catch {
         // Fail closed: never show POS navigation unless entitlement is confirmed.
         if (active) setPosIntegrationActive(false);
-      });
+      }
+    })();
     return () => { active = false; };
   }, [role, tenantId]);
 
