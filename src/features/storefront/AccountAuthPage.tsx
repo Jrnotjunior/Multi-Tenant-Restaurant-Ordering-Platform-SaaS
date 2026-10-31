@@ -8,6 +8,7 @@ type AuthMode = 'sign-in' | 'sign-up';
 export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthMode; baseUrl: string; restaurantSlug: string | null }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -26,6 +27,7 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
     { label: 'One special character (!@#$…)', valid: /[^A-Za-z0-9]/.test(password) },
   ];
   const passwordMeetsStandard = passwordRules.every(rule => rule.valid);
+  const normalizedPhone = phone.replace(/\D/g, '').replace(/^63(?=9\d{9}$)/, '0');
   const base = normalizeAppBase(baseUrl);
   const backToMenu = resolvedRestaurantSlug ? restaurantMenuPath(resolvedRestaurantSlug, baseUrl) : base;
 
@@ -68,6 +70,10 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
       setMessage('Enter both your first name and last name.');
       return;
     }
+    if (isSignUp && !/^09\d{9}$/.test(normalizedPhone)) {
+      setMessage('Enter a valid 11-digit Philippine mobile number starting with 09.');
+      return;
+    }
 
     setBusy(true);
     try {
@@ -83,7 +89,7 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
           email: email.trim(),
           password,
           options: {
-            data: { first_name: firstName.trim(), last_name: lastName.trim(), full_name: `${firstName.trim()} ${lastName.trim()}` },
+            data: { first_name: firstName.trim(), last_name: lastName.trim(), full_name: `${firstName.trim()} ${lastName.trim()}`, phone: normalizedPhone },
             emailRedirectTo: new URL(base, window.location.origin).toString(),
           },
         });
@@ -160,6 +166,11 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
             <input autoComplete="family-name" name="lastName" value={lastName} onChange={event => setLastName(event.target.value)} required maxLength={60} placeholder="Last name" />
           </label>
         </>}
+        {isSignUp && <label>
+          Phone number
+          <input autoComplete="tel" inputMode="tel" type="tel" name="phone" value={phone} onChange={event => setPhone(event.target.value.replace(/[^0-9+()\s-]/g, '').slice(0, 20))} required maxLength={20} placeholder="09XXXXXXXXX" aria-describedby="sf-signup-phone-hint" />
+          <small id="sf-signup-phone-hint">Use an 11-digit Philippine mobile number starting with 09.</small>
+        </label>}
         <label>
           Email address
           <input autoComplete="email" inputMode="email" type="email" name="email" value={email} onChange={event => setEmail(event.target.value)} required maxLength={254} placeholder="you@example.com" />
