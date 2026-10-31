@@ -4,7 +4,7 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 setWorkerUrl(workerUrl);
-import { getMapboxPublicToken, mapboxFeatureToAddress, reverseMapboxLocation, searchMapboxAddresses, type MapboxLocationFeature } from '../modules/location/locationService';
+import { mapboxFeatureToAddress, reverseMapboxLocation, searchMapboxAddresses, type MapboxLocationFeature } from '../modules/location/locationService';
 import type { MapboxDeliveryAddress } from '../modules/location/mapServiceProtocol';
 export type { MapboxDeliveryAddress } from '../modules/location/mapServiceProtocol';
 
@@ -96,8 +96,6 @@ export function MapboxLocationPickerUi({
       setError('');
 
       try {
-        const token = getMapboxPublicToken();
-        if (!token.startsWith('pk.')) throw new Error('The central map service is not configured. Please try again later.');
         if (!mapContainerRef.current || cancelled) return;
 
         const defaultCenter: [number, number] = Number.isFinite(initialLatitude) && Number.isFinite(initialLongitude)
@@ -130,11 +128,11 @@ export function MapboxLocationPickerUi({
         });
 
         map.on('error', (event) => {
-          console.error('Mapbox map error', event.error);
+          console.error('MapLibre map error', event.error);
         });
       } catch (setupError) {
-        console.error('Unable to initialize Mapbox delivery map.', setupError);
-        setError(setupError instanceof Error ? setupError.message : 'Mapbox is unavailable.');
+        console.error('Unable to initialize delivery map.', setupError);
+        setError(setupError instanceof Error ? setupError.message : 'The map is unavailable.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -163,7 +161,7 @@ export function MapboxLocationPickerUi({
       setSearchResults(results);
       if (!results.length) setError('No matching address was found. Try a more complete address or move the pin manually.');
     } catch (searchError) {
-      console.error('Unable to search Mapbox addresses.', searchError);
+      console.error('Unable to search addresses.', searchError);
       setError(searchError instanceof Error ? searchError.message : 'We could not search that address right now.');
     } finally {
       setSearching(false);
@@ -173,7 +171,7 @@ export function MapboxLocationPickerUi({
   function selectSearchResult(feature: MapboxLocationFeature) {
     const address = toAddress(feature);
     if (!address || address.latitude === null || address.longitude === null) {
-      setError('Mapbox did not return an exact map location for that address.');
+      setError('The address provider did not return an exact map location.');
       return;
     }
 
@@ -239,7 +237,7 @@ export function MapboxLocationPickerUi({
       await onSelect(nextAddress);
       setLocationConfirmed(true);
     } catch (confirmationError) {
-      console.error('Unable to confirm Mapbox delivery location.', confirmationError);
+      console.error('Unable to confirm delivery location.', confirmationError);
       setError(confirmationError instanceof Error ? confirmationError.message : 'We could not confirm this location. Please try again.');
       setLocationConfirmed(false);
     } finally {
@@ -283,7 +281,7 @@ export function MapboxLocationPickerUi({
         </div>
 
         {searchResults.length > 0 && (
-          <div className="delivery-location-search-results" role="listbox" aria-label="Mapbox address results">
+          <div className="delivery-location-search-results" role="listbox" aria-label="Address search results">
             {searchResults.map((result, index) => {
               const properties = result.properties ?? {};
               return (
@@ -293,7 +291,7 @@ export function MapboxLocationPickerUi({
                   type="button"
                   onClick={() => selectSearchResult(result)}
                 >
-                  {properties.full_address || [properties.name, properties.place_formatted].filter(Boolean).join(', ') || 'Mapbox location'}
+                  {properties.full_address || [properties.name, properties.place_formatted].filter(Boolean).join(', ') || 'Map location'}
                 </button>
               );
             })}
