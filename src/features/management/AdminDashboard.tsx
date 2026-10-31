@@ -1,5 +1,6 @@
 import { useEffect,useState,type FormEvent } from 'react';
 import { adminTenants,provisionRestaurant,sendOwnerInvitation,type Tenant } from './menuService';
+import { loadPosIntegration,setPosIntegration,type PosIntegrationStatus,type PosIntegrationAction } from './posIntegrationService';
 import './management.css';
 
 export function AdminDashboard(){
@@ -13,16 +14,24 @@ export function AdminDashboard(){
   const [busy,setBusy]=useState(false);
   const [message,setMessage]=useState('');
   const [error,setError]=useState('');
+  const [posStatuses,setPosStatuses]=useState<Record<string,PosIntegrationStatus>>({});
+  const [posBusyTenant,setPosBusyTenant]=useState('');
+  const [posReason,setPosReason]=useState('');
 
   async function refresh(){
     const rows=await adminTenants();
     setTenants(rows);
     setInviteTenant((previous)=>rows.some(x=>x.id===previous)?previous:rows[0]?.id??'');
+    const statuses=await Promise.all(rows.map(async tenant=>[tenant.id,await loadPosIntegration(tenant.id)] as const));
+    setPosStatuses(Object.fromEntries(statuses));
   }
   useEffect(()=>{let live=true;void adminTenants().then(rows=>{
     if(!live)return;
     setTenants(rows);
     setInviteTenant(rows[0]?.id??'');
+    void Promise.all(rows.map(async tenant=>[tenant.id,await loadPosIntegration(tenant.id)] as const))
+      .then(statuses=>{if(live)setPosStatuses(Object.fromEntries(statuses));})
+      .catch(e=>{if(live)setError(e instanceof Error?e.message:'Could not load POS integration status');});
   }).catch(e=>{if(live)setError(e instanceof Error?e.message:'Could not load restaurants');});
     return()=>{live=false;};
   },[]);
@@ -33,6 +42,17 @@ export function AdminDashboard(){
     try{const result=await work();await refresh();setMessage(success(result));}
     catch(e){setError(e instanceof Error?e.message:'Request rejected');}
     finally{setBusy(false);}
+  }
+  async function changePosIntegration(tenantId:string,action:PosIntegrationAction){
+    if(posBusyTenant)return;
+    setPosBusyTenant(tenantId);setError('');setMessage('');
+    try{
+      const status=await setPosIntegration(tenantId,action,posReason);
+      setPosStatuses(current=>({...current,[tenantId]:status}));
+      setPosReason('');
+      setMessage('POS integration for '+(tenants.find(t=>t.id===tenantId)?.name??'the restaurant')+' is now '+status.replaceAll('_',' ')+'.');
+    }catch(e){setError(e instanceof Error?e.message:'POS integration change was rejected.');}
+    finally{setPosBusyTenant('');}
   }
   const submitRestaurant=(event:FormEvent)=>{
     event.preventDefault();
@@ -87,6 +107,25 @@ export function AdminDashboard(){
           onChange={e=>setInviteEmail(e.target.value)} placeholder="owner@restaurant.com"/></label>
         <button disabled={busy||!inviteTenant} type="submit">{busy?'Sending invitation…':'Send owner invitation'}</button>
       </form>
+    </section>
+    <section className="mg-card"><h2>POS integration access</h2>
+      <p className="mg-muted">POS is optional and disabled by default. Only a verified System Administrator can activate, suspend, or revoke it. Normal Web2table cashier order handling remains available independently.</p>
+      <label className="mg-field">Administrative reason (optional)<input maxLength={500} value={posReason} onChange={e=>setPosReason(e.target.value)} placeholder="Reason for this access change"/></label>
+      <div className="mg-list">
+        {tenants.map(t=>{
+          const status=posStatuses[t.id]??'not_enabled';
+          const busyForTenant=posBusyTenant===t.id;
+          return <div className="mg-list-row" key={t.id} style={{alignItems:'center',gap:'12px',flexWrap:'wrap'}}>
+            <strong>{t.name}</strong><span>POS: {status.replaceAll('_',' ')}</span>
+            <div style={{display:'flex',gap:'8px',marginLeft:'auto',flexWrap:'wrap'}}>
+              {status!=='active'&&<button type="button" disabled={busy||Boolean(posBusyTenant)} onClick={()=>void changePosIntegration(t.id,'enable')}>{busyForTenant?'Updating…':'Enable POS'}</button>}
+              {status==='active'&&<button type="button" disabled={busy||Boolean(posBusyTenant)} onClick={()=>void changePosIntegration(t.id,'suspend')}>{busyForTenant?'Updating…':'Suspend POS'}</button>}
+              {status!=='revoked'&&<button type="button" disabled={busy||Boolean(posBusyTenant)} onClick={()=>void changePosIntegration(t.id,'revoke')}>Revoke</button>}
+            </div>
+          </div>;
+        })}
+        {!tenants.length&&<p className="mg-muted">No restaurant records yet.</p>}
+      </div>
     </section>
     <section className="mg-card"><h2>Registered restaurants</h2>
       <div className="mg-list">
