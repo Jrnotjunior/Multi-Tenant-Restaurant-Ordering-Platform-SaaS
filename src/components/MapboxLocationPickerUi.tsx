@@ -148,7 +148,7 @@ export function MapboxLocationPickerUi({
     };
   }, []);
 
-  async function searchAddresses() {
+  async function runAddressSearch() {
     const query = searchQuery.trim();
     if (!query || searching || disabled) return;
 
@@ -263,7 +263,7 @@ export function MapboxLocationPickerUi({
             onKeyDown={(event) => {
               if (event.key === 'Enter') {
                 event.preventDefault();
-                void searchAddresses();
+                void runAddressSearch();
               }
             }}
             placeholder={variant === 'restaurant' ? 'Search the restaurant address' : 'Search your delivery address'}
