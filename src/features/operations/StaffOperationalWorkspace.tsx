@@ -51,6 +51,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [swipeProgress, setSwipeProgress] = useState(0);
   const [riderHistoryDate, setRiderHistoryDate] = useState(() => new Date().toLocaleDateString('en-CA'));
   const [cashierTab, setCashierTab] = useState<'orders' | 'sales'>(() => staffPageFromHash(role) === 'sales' ? 'sales' : 'orders');
+  const [posIntegrationActive, setPosIntegrationActive] = useState(false);
   const [kitchenTab, setKitchenTab] = useState<'orders' | 'menu'>(() => staffPageFromHash(role) === 'menu' ? 'menu' : 'orders');
   const [kitchenMenu, setKitchenMenu] = useState<KitchenMenu | null>(null);
   const [kitchenMenuSearch, setKitchenMenuSearch] = useState('');
@@ -71,6 +72,26 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const copy = roleCopy[role];
+
+  useEffect(() => {
+    if (role !== 'cashier' || !supabase) {
+      setPosIntegrationActive(false);
+      return;
+    }
+    let active = true;
+    setPosIntegrationActive(false);
+    void supabase.rpc('get_my_pos_integration_status', { p_tenant_id: tenantId })
+      .then(({ data, error: statusError }) => {
+        if (!active || statusError) return;
+        const status = (data as { status?: unknown } | null)?.status;
+        setPosIntegrationActive(status === 'active');
+      })
+      .catch(() => {
+        // Fail closed: never show POS navigation unless entitlement is confirmed.
+        if (active) setPosIntegrationActive(false);
+      });
+    return () => { active = false; };
+  }, [role, tenantId]);
 
   useEffect(() => {
     const syncStaffPage = () => {
@@ -512,6 +533,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     {role === 'cashier' && <nav className="staff-workspace-tabs" aria-label="Cashier workspace">
       <button type="button" className={cashierTab === 'orders' ? 'is-active' : ''} aria-current={cashierTab === 'orders' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'orders'); setCashierTab('orders'); setFilter('active'); }}>Orders</button>
       <button type="button" className={cashierTab === 'sales' ? 'is-active' : ''} aria-current={cashierTab === 'sales' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'sales'); setCashierTab('sales'); setFilter('all'); }}>Sales</button>
+      {posIntegrationActive && <a className="staff-button staff-button-secondary" href="https://jrnotjunior.github.io/POS/" target="_blank" rel="noopener noreferrer">Open POS ↗</a>}
     </nav>}
     {role === 'kitchen' && <nav className="staff-workspace-tabs" aria-label="Kitchen workspace">
       <button type="button" className={kitchenTab === 'orders' ? 'is-active' : ''} aria-current={kitchenTab === 'orders' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'orders'); setKitchenTab('orders'); }}>Orders</button>
