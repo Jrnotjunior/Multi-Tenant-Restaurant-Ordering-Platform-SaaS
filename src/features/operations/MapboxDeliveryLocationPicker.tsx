@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { parseMapboxDeliveryAddress, type MapboxDeliveryAddress } from '../../modules/location/mapServiceProtocol';
+import { parseDeliveryLocationAddress, type DeliveryLocationAddress } from '../../modules/location/mapServiceProtocol';
 
-export type { MapboxDeliveryAddress } from '../../modules/location/mapServiceProtocol';
+export type { DeliveryLocationAddress } from '../../modules/location/mapServiceProtocol';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === 'object' ? value as Record<string, unknown> : null;
@@ -21,9 +21,9 @@ type InitMessage = {
 const CENTRAL_MAP_SERVICE_URL = 'https://app.web2table.io/maps.html';
 
 function mapServiceUrl(): { href: string; origin: string; configurationError: string } {
-  // All tenants must use the same centrally managed Mapbox service. Do not
-  // permit tenant-specific VITE_MAP_SERVICE_URL values to redirect the iframe
-  // to another origin or bypass central token and domain controls.
+  // All tenants use the same centrally managed map service. Do not permit
+  // tenant-specific map service URLs to redirect the iframe or bypass
+  // centralized origin and tenant validation.
   const url = new URL(CENTRAL_MAP_SERVICE_URL);
   return { href: url.href, origin: url.origin, configurationError: '' };
 }
@@ -38,7 +38,7 @@ export function MapboxDeliveryLocationPicker({
   initialLongitude = null,
 }: {
   disabled?: boolean;
-  onSelect: (address: MapboxDeliveryAddress) => void | Promise<void>;
+  onSelect: (address: DeliveryLocationAddress) => void | Promise<void>;
   onLocationChange?: () => void;
   variant?: PickerVariant;
   restaurantSlug: string;
@@ -102,7 +102,7 @@ export function MapboxDeliveryLocationPicker({
       }
       if (message.type === 'location-selected') {
         const requestId = typeof message.requestId === 'string' ? message.requestId : '';
-        const address = parseMapboxDeliveryAddress(message.address);
+        const address = parseDeliveryLocationAddress(message.address);
         if (!requestId || !address) {
           iframeRef.current?.contentWindow?.postMessage({
             source: 'web2table-storefront',
