@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { MapboxLocationPickerUi } from '../components/MapboxLocationPickerUi';
-import { isPublicMapboxToken, normalizeSecureOrigin, type MapboxDeliveryAddress } from '../modules/location/mapServiceProtocol';
+import { normalizeSecureOrigin, type MapboxDeliveryAddress } from '../modules/location/mapServiceProtocol';
 import { supabaseGet, supabaseRpc } from './mapServiceSupabase';
 
 type PickerVariant = 'delivery' | 'restaurant';
