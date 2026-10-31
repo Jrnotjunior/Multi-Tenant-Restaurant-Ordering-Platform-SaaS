@@ -273,7 +273,7 @@ export function MapboxLocationPickerUi({
           <button
             className="button button-secondary restaurant-compact-action"
             type="button"
-            onClick={() => void searchAddresses()}
+            onClick={() => void runAddressSearch()}
             disabled={disabled || loading || searching || !searchQuery.trim()}
           >
             {searching ? 'Searching…' : 'Search'}
