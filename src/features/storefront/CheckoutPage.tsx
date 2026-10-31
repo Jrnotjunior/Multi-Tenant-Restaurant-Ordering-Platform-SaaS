@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import { storefrontTrackingHash } from '../../app/routes';
 import { peso } from './demoCatalog';
-import { MapboxDeliveryLocationPicker, type MapboxDeliveryAddress } from '../operations/MapboxDeliveryLocationPicker';
+import { MapboxDeliveryLocationPicker, type DeliveryLocationAddress } from '../operations/MapboxDeliveryLocationPicker';
 
 type OrderType = 'Delivery' | 'Take-out' | 'Pickup' | 'Dine-in';
 type PaymentMethod = 'cash' | 'online';
@@ -58,7 +58,7 @@ function CustomerInformation({ firstName, lastName, phone, onFirstNameChange, on
   </fieldset>;
 }
 
-function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onStreetAddressChange, restaurantSlug }: { orderType: OrderType; value: MapboxDeliveryAddress | null; onSelect: (address: MapboxDeliveryAddress) => void; streetAddress: string; onStreetAddressChange: (streetAddress: string) => void; restaurantSlug: string }) {
+function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onStreetAddressChange, restaurantSlug }: { orderType: OrderType; value: DeliveryLocationAddress | null; onSelect: (address: DeliveryLocationAddress) => void; streetAddress: string; onStreetAddressChange: (streetAddress: string) => void; restaurantSlug: string }) {
   if (orderType !== 'Delivery') return null;
   return <fieldset className="sf-checkout-section">
     <legend>Delivery address</legend>
@@ -82,7 +82,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
   const [customerFirstName, setCustomerFirstName] = useState('');
   const [customerLastName, setCustomerLastName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [deliveryAddress, setDeliveryAddress] = useState<MapboxDeliveryAddress | null>(null);
+  const [deliveryAddress, setDeliveryAddress] = useState<DeliveryLocationAddress | null>(null);
   const [streetAddress, setStreetAddress] = useState('');
   const [message, setMessage] = useState('');
   const [reviewed, setReviewed] = useState(false);
