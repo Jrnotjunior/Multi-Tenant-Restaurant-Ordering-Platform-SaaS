@@ -97,7 +97,7 @@ export function OwnerFiscalPage() {
         if (authError) throw authError;
         const token = authData.session?.access_token;
         if (!token) throw new Error('Sign in again to manage fiscal settings.');
-        const response = await fetch(`${config.url.replace(/\\/+$/, '')}/functions/v1/pos-api/api/pos/v1/fiscal-profile?branchId=${encodeURIComponent(selectedBranchId)}`, {
+        const response = await fetch(`${config.url.replace(/\/+$/, '')}/functions/v1/pos-api/api/pos/v1/fiscal-profile?branchId=${encodeURIComponent(selectedBranchId)}`, {
           headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }, credentials: 'omit',
         });
         const payload: unknown = await response.json();
@@ -142,7 +142,7 @@ export function OwnerFiscalPage() {
         if (authError) throw authError;
         const token = data.session?.access_token;
         if (!token) throw new Error('Sign in again to manage tax policies.');
-        const response = await fetch(`${config.url.replace(/\\/+$/, '')}/functions/v1/pos-api/api/pos/v1/fiscal-tax-policies?branchId=${encodeURIComponent(selectedBranchId)}`, {
+        const response = await fetch(`${config.url.replace(/\/+$/, '')}/functions/v1/pos-api/api/pos/v1/fiscal-tax-policies?branchId=${encodeURIComponent(selectedBranchId)}`, {
           headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }, credentials: 'omit',
         });
         const payload: unknown = await response.json();
@@ -181,7 +181,7 @@ export function OwnerFiscalPage() {
       if (authError) throw authError;
       const token = data.session?.access_token;
       if (!token) throw new Error('Sign in again to save tax policies.');
-      const response = await fetch(`${config.url.replace(/\\/+$/, '')}/functions/v1/pos-api/api/pos/v1/fiscal-tax-policies`, {
+      const response = await fetch(`${config.url.replace(/\/+$/, '')}/functions/v1/pos-api/api/pos/v1/fiscal-tax-policies`, {
         method: 'POST', credentials: 'omit',
         headers: { Authorization: `Bearer ${token}`, Accept: 'application/json', 'Content-Type': 'application/json' },
         body: JSON.stringify({ branchId: selectedBranchId, policyName: policyName.trim(), effectiveFrom: toIso(effectiveFrom), effectiveUntil: effectiveUntil ? toIso(effectiveUntil) : null,
