@@ -259,23 +259,43 @@ export async function reverseGeocodeLocation(latitude: number, longitude: number
     lon: String(longitude),
     lang: 'en',
   });
-  const data = await requestJson(`https://photon.komoot.io/reverse?${params.toString()}`);
-  const feature = data.features?.[0] ?? null;
-  if (!feature) return null;
+  // Reverse geocoding and barangay boundaries are independent services. A
+  // Photon outage must not prevent us from resolving the selected coordinates.
+  let feature: GeocodingFeature | null = null;
+  try {
+    const data = await requestJson(`https://photon.komoot.io/reverse?${params.toString()}`);
+    feature = data.features?.[0] ?? null;
+  } catch (error) {
+    console.warn('Photon reverse geocoding unavailable; trying barangay boundaries.', error);
+  }
 
   // Use a coordinate-in-polygon boundary lookup for barangay identity instead
   // of guessing it from Photon suburb/locality/district labels.
   try {
     const boundary = await resolveBarangayByCoordinates(latitude, longitude);
     if (boundary) {
-      feature.properties = {
-        ...(feature.properties ?? {}),
-        barangay: boundary.barangay,
-        context: {
-          ...(feature.properties?.context ?? {}),
-          barangay: { name: boundary.barangay },
-        },
-      };
+      if (!feature) {
+        feature = {
+          geometry: { coordinates: [longitude, latitude] },
+          properties: {
+            name: boundary.barangay,
+            address: boundary.barangay,
+            full_address: [boundary.barangay, boundary.city].filter(Boolean).join(', '),
+            city: boundary.city,
+            barangay: boundary.barangay,
+            coordinates: { latitude, longitude },
+          },
+        };
+      } else {
+        feature.properties = {
+          ...(feature.properties ?? {}),
+          barangay: boundary.barangay,
+          context: {
+            ...(feature.properties?.context ?? {}),
+            barangay: { name: boundary.barangay },
+          },
+        };
+      }
     }
   } catch (error) {
     console.warn('Unable to resolve barangay from boundaries.', error);
