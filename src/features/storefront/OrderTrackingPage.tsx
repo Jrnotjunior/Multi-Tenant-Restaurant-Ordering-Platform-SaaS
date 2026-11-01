@@ -122,7 +122,7 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
   return <main className="sf-order-tracking-page">
     {trackingToken && status ? <section className="sf-tracking-receipt" aria-live="polite" aria-label="Live order tracking">
       <header className="sf-tracking-order-heading">
-        <span className="sf-tracking-eyebrow">{dineInCashOrder ? 'DINE-IN · TELL THE CASHIER' : orderTypeLabel.toUpperCase()}</span>
+        {(!dineIn || dineInCashOrder) && <span className="sf-tracking-eyebrow">{dineInCashOrder ? 'DINE-IN · TELL THE CASHIER' : orderTypeLabel.toUpperCase()}</span>}
         <h1>ORD-{orderNumText}</h1>
         <p>{dineInCashOrder ? 'Give this order number to the cashier to help them find your order.' : 'Your order status updates automatically.'}</p>
       </header>
