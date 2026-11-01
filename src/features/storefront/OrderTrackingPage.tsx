@@ -32,6 +32,10 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
     let active = true;
     let refreshTimer: number | undefined;
     const refresh = async () => {
+      // Webhooks are authoritative, but reconcile from PayMongo as a fallback so
+      // a missed or rejected callback cannot leave a verified payment as unpaid.
+      await supabase!.functions.invoke('reconcile-customer-order-payment', { body: { trackingToken } }).catch(() => undefined);
+      if (!active) return;
       const { data, error: rpcError } = await supabase!.rpc('track_customer_order', { p_tracking_token: trackingToken });
       if (!active) return;
       if (rpcError) { setError('Live tracking is reconnecting. We will keep trying.'); return; }
