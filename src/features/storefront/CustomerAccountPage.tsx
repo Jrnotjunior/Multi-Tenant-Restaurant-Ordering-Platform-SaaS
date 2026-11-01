@@ -79,12 +79,11 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
         <img className="sf-logo-image" src={WEB2TABLE_LOGO} alt="Web2Table" width={46} height={46} />
       </a>}
       actions={<>
-        <a href={base} className="sf-track-order-button sf-account-storefront-link" aria-label="Back to storefront" title="Storefront">Storefront</a>
         {signedIn
           ? <button type="button" className="sf-account-button" aria-label="Sign out" title="Sign out" onClick={() => void signOut()}>
               <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 4H5v16h5M14 8l4 4-4 4M8 12h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
-          : <a className="sf-account-storefront-link" href={authHref('sign-in')}>Sign in</a>}
+          : <a className="sf-account-header-text-link" href={authHref('sign-in')}>Sign in</a>}
       </>}
     />
     <main id="customer-account-main" className="sf-main sf-account-main">

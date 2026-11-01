@@ -85,10 +85,6 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
           <img className="sf-logo-image" src="https://wvibrchebfwirbgkcnbr.supabase.co/storage/v1/object/public/web2table-assets/web2table.png" alt="Web2Table" width={46} height={46} />
           <span>Web2Table</span>
         </a>
-        <nav className="sf-header-actions" aria-label="Account navigation">
-          <a className="sf-account-nav-link" href={base + 'account'}>My account</a>
-          <a className="sf-account-nav-link" href={base}>Storefront</a>
-        </nav>
       </div>
     </header>
     <main className="sf-order-tracking-page">
