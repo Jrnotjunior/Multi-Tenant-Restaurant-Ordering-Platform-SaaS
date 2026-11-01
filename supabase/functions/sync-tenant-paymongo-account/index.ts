@@ -70,7 +70,7 @@ Deno.serve(async (request) => {
           headers: { Authorization: basic(key), "Content-Type": "application/json", "Account-ID": connection.paymongo_account_id, "Idempotency-Key": "web2table-tenant-paymongo-webhook-" + tenantId + "-live" },
           body: JSON.stringify({ data: { attributes: {
             url: url + "/functions/v1/tenant-paymongo-webhook",
-            events: ["checkout_session.payment.paid","checkout_session.payment.failed","checkout_session.expired","payment.failed","payment.refunded","refund.created","refund.updated","refund.succeeded","refund.failed"],
+            events: ["checkout_session.payment.paid","checkout_session.payment.failed","checkout_session.expired","payment.failed","payment.refunded","payment.refund.updated"],
           } } }),
         });
         const hook = await webhookResponse.json().catch(() => null);

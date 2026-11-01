@@ -29,7 +29,9 @@ type CustomerOrder = {
   total_centavos: number | null;
   order_status: string;
   payment_status: string;
-  payment_channel?: 'online' | 'other'; payment_method?: 'cash' | 'online';
+  payment_channel?: 'online' | 'other';
+  payment_method?: 'cash' | 'online';
+  payment_session_status?: string;
   created_at: string;
   items: OrderItem[];
 };
@@ -68,7 +70,7 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
     if (!quiet) setLoading(true);
     setError('');
     try {
-      const ordersResponse = await supabase.rpc('list_customer_orders', { p_tenant_id: tenantId, p_filter: filter, p_limit: 100 });
+      const ordersResponse = await supabase.rpc('list_staff_orders', { p_tenant_id: tenantId, p_filter: filter, p_limit: 100 });
       if (ordersResponse.error) throw ordersResponse.error;
       setOrders(((ordersResponse.data as OrdersResult | null)?.orders ?? []) as CustomerOrder[]);
     } catch (reason) {
@@ -156,8 +158,12 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
   }
 
   async function refundOrder(order: CustomerOrder) {
-    if (!supabase) return;
-    const confirmed = window.confirm(`Request a full refund for order #${order.order_number}? This contacts PayMongo and cannot be treated as a simple status change.`);
+    const canRequest = order.payment_status === 'paid' && order.payment_method === 'online';
+    const canResume = order.payment_session_status === 'refund_pending';
+    if (!supabase || (!canRequest && !canResume) || busyOrder) return;
+    const confirmed = window.confirm(canResume
+      ? `Check or resume the pending PayMongo refund for order #${order.order_number}?`
+      : `Request a full PayMongo refund for order #${order.order_number}? This sends a real refund request.`);
     if (!confirmed) return;
     setBusyOrder(order.id);
     setError('');
@@ -183,6 +189,9 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
   }
 
   const count = (statuses: string[]) => orders.filter(order => statuses.includes(order.order_status)).length;
+  const refundOrders = orders.filter(order => order.payment_method === 'online' && (
+    order.payment_status === 'paid' || order.payment_status === 'refunded' || order.payment_session_status === 'refund_pending'
+  ));
 
   return <main className="owner-content owner-orders-page">
     <div className="owner-orders-toolbar">
@@ -208,6 +217,37 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
 
     <section className="owner-orders-list owner-orders-monitoring-note">
       <p>Order processing is managed in the cashier workspace. Use the summary above to monitor order status.</p>
+    </section>
+
+    <section className="owner-orders-list owner-refunds-panel" aria-labelledby="owner-refunds-title">
+      <div className="owner-orders-list-heading">
+        <div>
+          <h2 id="owner-refunds-title">PayMongo refunds</h2>
+          <p>Request a full refund for a paid online order. Pending refunds can be checked safely.</p>
+        </div>
+      </div>
+      {refundOrders.length === 0 ? <div className="owner-orders-empty">
+        <p>No paid online orders are currently available for refund.</p>
+      </div> : <div className="owner-refund-list">
+        {refundOrders.map(order => {
+          const refundPending = order.payment_session_status === 'refund_pending';
+          const refunded = order.payment_status === 'refunded' || order.payment_session_status === 'refunded';
+          return <article className="owner-refund-card" key={order.id}>
+            <div>
+              <strong>Order #{order.order_number}</strong>
+              <span>{order.customer_name} · {dateTime(order.created_at)}</span>
+            </div>
+            <strong className="owner-refund-amount">{peso(order.total_centavos)}</strong>
+            {refunded ? <span className="owner-refund-status is-complete">Refunded</span> : refundPending
+              ? <button type="button" disabled={busyOrder === order.id} onClick={() => void refundOrder(order)}>
+                {busyOrder === order.id ? 'Checking…' : 'Check refund status'}
+              </button>
+              : <button type="button" disabled={Boolean(busyOrder)} onClick={() => void refundOrder(order)}>
+                {busyOrder === order.id ? 'Requesting…' : 'Refund order'}
+              </button>}
+          </article>;
+        })}
+      </div>}
     </section>
   </main>;
 }

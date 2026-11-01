@@ -88,7 +88,7 @@ Deno.serve(async (request) => {
           url: url + "/functions/v1/tenant-paymongo-webhook",
           events: [
             "checkout_session.payment.paid", "checkout_session.payment.failed", "checkout_session.expired",
-            "payment.failed", "payment.refunded", "refund.created", "refund.updated", "refund.succeeded", "refund.failed",
+            "payment.failed", "payment.refunded", "payment.refund.updated",
           ],
         } } }),
       });

@@ -399,6 +399,19 @@
 .owner-orders-empty{padding:32px 12px;text-align:center;color:#657791;font-size:12px;line-height:1.6}
 .owner-orders-empty h3{color:#101B2F;margin:0 0 6px;font-size:14px}
 .owner-orders-empty p{margin:0 auto;max-width:480px}
+.owner-refunds-panel{margin-top:16px}
+.owner-refunds-panel .owner-orders-list-heading{align-items:flex-start}
+.owner-refunds-panel .owner-orders-list-heading p{margin:6px 0 0;color:#657791;font-size:11px;line-height:1.55}
+.owner-refund-list{display:grid;gap:9px}
+.owner-refund-card{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:12px;border:1px solid #dce5f0;border-radius:10px;padding:12px}
+.owner-refund-card>div{display:grid;gap:4px;min-width:0}
+.owner-refund-card>div strong{font-size:12px;color:#101B2F}
+.owner-refund-card>div span{font-size:10px;color:#657791;overflow-wrap:anywhere}
+.owner-refund-amount{font-size:12px;color:#101B2F;white-space:nowrap}
+.owner-refund-card button{min-height:36px;border:1px solid #edcaca;border-radius:8px;background:#fff;color:#a72b2b;padding:8px 11px;font:inherit;font-size:11px;font-weight:750;cursor:pointer}
+.owner-refund-card button:disabled{opacity:.6;cursor:wait}
+.owner-refund-status{border-radius:999px;padding:7px 10px;font-size:10px;font-weight:800;white-space:nowrap}
+.owner-refund-status.is-complete{background:#e7f8ef;color:#117847}
 .owner-order-card{border:1px solid #dce5f0;border-radius:12px;padding:16px;margin-top:12px}
 .owner-order-card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-bottom:1px solid #e8edf4;padding-bottom:12px}
 .owner-order-card-header h3{font-size:14px;margin:0 0 4px}
@@ -420,7 +433,7 @@
 .owner-order-totals strong{color:#101B2F;text-align:right}
 .owner-order-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;border-top:1px solid #e8edf4;padding-top:12px}
 .owner-order-actions button.is-danger{background:#fff;color:#a72b2b;border-color:#edcaca}
-@media(max-width:760px){.owner-orders-toolbar{display:block}.owner-orders-toolbar-actions{justify-content:flex-start;margin-top:14px}.owner-orders-list{padding:13px}.owner-order-card{padding:12px}.owner-order-totals{grid-template-columns:1fr}}
+@media(max-width:760px){.owner-orders-toolbar{display:block}.owner-orders-toolbar-actions{justify-content:flex-start;margin-top:14px}.owner-orders-list{padding:13px}.owner-order-card{padding:12px}.owner-order-totals{grid-template-columns:1fr}.owner-refund-card{grid-template-columns:minmax(0,1fr) auto}.owner-refund-card button,.owner-refund-status{grid-column:1/-1;justify-self:start}}
 
 .owner-order-delivery-fee{display:grid;gap:7px;padding:12px;margin:2px 0 10px;border:1px solid #dce5f0;border-radius:9px;background:#f8fafc}
 .owner-order-delivery-fee>label{font-size:11px;font-weight:800;color:#263754}

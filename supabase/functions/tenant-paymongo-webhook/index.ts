@@ -94,32 +94,67 @@ Deno.serve(async(request)=>{
       }
     }
   }
-  if(["refund.updated","refund.succeeded","refund.failed"].includes(eventType)){
-    const refundResource=attrs.data??{};
-    const refundAttributes=refundResource.attributes??{};
-    const refundId=String(refundResource.id??"").trim();
-    // Some provider events carry the final state in the event type rather than attributes.status.
-    const eventStatus=eventType==="refund.succeeded"?"succeeded":eventType==="refund.failed"?"failed":"";
-    const refundStatus=String(refundAttributes.status??eventStatus).toLowerCase();
-    const refundAmount=refundAttributes.amount;
-    if(refundId){
-      const {data:refundSession,error:refundLookupError}=await admin.from("customer_order_payment_sessions")
-        .select("id,tenant_id,amount_centavos,status").eq("tenant_id",tenantId).eq("refund_id",refundId).maybeSingle();
+  if(["payment.refunded","payment.refund.updated","refund.updated","refund.succeeded","refund.failed"].includes(eventType)){
+    const resource=attrs.data??{};
+    const resourceAttributes=resource.attributes??{};
+    const paymentResource=resource.type==="payment"||String(resource.id??"").startsWith("pay_");
+    const paymentId=String(paymentResource?resource.id:resourceAttributes.payment_id??"").trim();
+    const refundResources=Array.isArray(resourceAttributes.refunds)
+      ? resourceAttributes.refunds
+      : (resource.type==="refund"||String(resource.id??"").startsWith("ref_")?[resource]:[]);
+    const eventStatus=eventType==="payment.refunded"||eventType==="refund.succeeded"
+      ? "succeeded"
+      : eventType==="refund.failed"?"failed":"";
+
+    for(const refundResource of refundResources){
+      const refundAttributes=refundResource?.attributes??{};
+      const refundId=String(refundResource?.id??"").trim();
+      const refundStatus=String(refundAttributes.status??eventStatus).toLowerCase();
+      const refundAmount=refundAttributes.amount;
+      const refundPaymentId=String(refundAttributes.payment_id??paymentId).trim();
+      if(!refundId)continue;
+
+      const {data:matchedSession,error:refundLookupError}=await admin.from("customer_order_payment_sessions")
+        .select("id,tenant_id,amount_centavos,status,refund_id,paymongo_payment_id")
+        .eq("tenant_id",tenantId).eq("refund_id",refundId).maybeSingle();
       if(refundLookupError)throw refundLookupError;
-      if(refundSession?.status==="refund_pending"&&refundStatus==="succeeded"){
-        if(typeof refundAmount!=="number"||!Number.isSafeInteger(refundAmount)||refundAmount!==Number(refundSession.amount_centavos)){
-          await admin.from("tenant_paymongo_webhook_events").update({status:"failed",last_error:"Refund amount did not match the requested full refund."}).eq("event_id",eventId);
-          return json({error:"Refund amount mismatch."},400);
-        }
+      let refundSession=matchedSession;
+
+      // Recover a refund accepted by PayMongo when the original HTTP response
+      // arrived before its refund ID could be saved locally.
+      if(!refundSession&&refundPaymentId){
+        const {data:pendingSession,error:pendingLookupError}=await admin.from("customer_order_payment_sessions")
+          .select("id,tenant_id,amount_centavos,status,refund_id,paymongo_payment_id")
+          .eq("tenant_id",tenantId).eq("paymongo_payment_id",refundPaymentId).eq("status","refund_pending").maybeSingle();
+        if(pendingLookupError)throw pendingLookupError;
+        if(pendingSession&&Number(pendingSession.amount_centavos)===refundAmount)refundSession=pendingSession;
+      }
+
+      if(!refundSession||refundSession.status!=="refund_pending")continue;
+      if(refundPaymentId&&refundSession.paymongo_payment_id!==refundPaymentId){
+        await admin.from("tenant_paymongo_webhook_events").update({status:"failed",last_error:"Refund payment did not match the pending order payment."}).eq("event_id",eventId);
+        return json({error:"Refund payment mismatch."},400);
+      }
+      if(typeof refundAmount!=="number"||!Number.isSafeInteger(refundAmount)||refundAmount!==Number(refundSession.amount_centavos)){
+        await admin.from("tenant_paymongo_webhook_events").update({status:"failed",last_error:"Refund amount did not match the requested full refund."}).eq("event_id",eventId);
+        return json({error:"Refund amount mismatch."},400);
+      }
+
+      if(refundStatus==="succeeded"){
         const {error:refundFinalizeError}=await admin.rpc("finalize_customer_order_refund",{
           p_tenant_id:tenantId,p_payment_session_id:refundSession.id,p_refund_id:refundId,p_refunded_amount_centavos:refundAmount
         });
         if(refundFinalizeError)throw refundFinalizeError;
-      }else if(refundSession?.status==="refund_pending"&&["failed","canceled","cancelled"].includes(refundStatus)){
+      }else if(["failed","canceled","cancelled"].includes(refundStatus)){
         const {error:refundResetError}=await admin.from("customer_order_payment_sessions").update({
-          status:"paid",refund_reason:null,updated_at:new Date().toISOString()
+          status:"paid",refund_reason:null,refund_id:null,refund_attempt_key:null,refund_attempt_started_at:null,updated_at:new Date().toISOString()
         }).eq("tenant_id",tenantId).eq("id",refundSession.id).eq("status","refund_pending");
         if(refundResetError)throw refundResetError;
+      }else if(refundSession.refund_id!==refundId){
+        const {error:refundReferenceError}=await admin.from("customer_order_payment_sessions").update({
+          refund_id:refundId,updated_at:new Date().toISOString()
+        }).eq("tenant_id",tenantId).eq("id",refundSession.id).eq("status","refund_pending");
+        if(refundReferenceError)throw refundReferenceError;
       }
     }
   }
