@@ -308,9 +308,10 @@
 .staff-cashier-modal-items li>span{min-width:0}
 .staff-cashier-modal-items small{display:block;color:var(--color-muted,#526782);margin-top:3px}
 .staff-cashier-modal-items li>strong{white-space:nowrap;font-weight:600}
-.staff-cashier-modal-items li>.staff-cashier-item-quantity-price{display:flex;align-items:center;justify-content:flex-end;gap:48px;flex-shrink:0;min-width:156px}
-.staff-cashier-modal-items li>.staff-cashier-item-quantity-price>span:first-child{min-width:32px;text-align:center}
-.staff-cashier-modal-items li>.staff-cashier-item-quantity-price>span:last-child{min-width:76px;text-align:right}
+.staff-cashier-order-items li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;column-gap:12px}
+.staff-cashier-order-items li>.staff-cashier-item-quantity{min-width:32px;text-align:left}
+.staff-cashier-order-items li>.staff-cashier-item-detail{min-width:0}
+.staff-cashier-order-items li>.staff-cashier-item-price{min-width:76px;text-align:right;font-variant-numeric:tabular-nums}
 .staff-cashier-modal-total{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:4px;font-size:1rem}
 .staff-cashier-modal-total strong:last-child{font-size:1.4rem;font-weight:850}
 .staff-cashier-modal-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:22px}
