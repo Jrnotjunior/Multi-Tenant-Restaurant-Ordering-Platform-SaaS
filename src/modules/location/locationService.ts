@@ -7,15 +7,20 @@ export type GeocodingFeature = {
     name_preferred?: string;
     address?: string;
     full_address?: string;
+    formatted?: string;
+    address_line1?: string;
+    address_line2?: string;
     place_formatted?: string;
     street?: string;
     housenumber?: string;
+    unit?: string;
     postcode?: string;
     city?: string;
     district?: string;
     county?: string;
     state?: string;
     country?: string;
+    country_code?: string;
     suburb?: string;
     locality?: string;
     barangay?: string;
@@ -24,6 +29,9 @@ export type GeocodingFeature = {
     type?: string;
     osm_key?: string;
     osm_value?: string;
+    result_type?: string;
+    place_id?: string;
+    rank?: { match_type?: string };
     context?: {
       country?: { name?: string };
       region?: { name?: string };
@@ -51,6 +59,21 @@ export function requestedHouseNumber(query: string) {
   return query.trim().match(/^(?:(?:#|no\.?)\s*)?(\d+[A-Za-z]?(?:[-/](?:\d+[A-Za-z]?|[A-Za-z]))?)(?=$|[\s,#])/i)?.[1] ?? '';
 }
 
+export function resultHouseNumber(properties: GeocodingFeature['properties'] | undefined) {
+  const resultType = (properties?.feature_type || properties?.result_type || properties?.type || '').toLowerCase();
+  const matchType = properties?.rank?.match_type?.toLowerCase();
+  if (resultType === 'street' || matchType && !['full_match', 'match_by_building'].includes(matchType)) return '';
+
+  const houseNumber = properties?.housenumber?.trim();
+  if (houseNumber) return houseNumber;
+
+  // Geoapify sometimes returns a number-like "unit" for a street-only result.
+  // It verifies the requested number only when the provider also identifies a
+  // building-level result; otherwise the customer must still adjust the pin.
+  if (resultType !== 'building') return '';
+  return properties?.unit?.trim().match(/^(?:(?:#|no\.?)\s*)?(\d+[A-Za-z]?(?:[-/](?:\d+[A-Za-z]?|[A-Za-z]))?)(?=$|[\s,#])/i)?.[1] ?? '';
+}
+
 export function matchesRequestedHouseNumber(query: string, result: string | undefined) {
   const requested = requestedHouseNumber(query);
   const matched = result?.trim() ?? '';
@@ -73,6 +96,12 @@ function toCoordinates(feature: GeocodingFeature) {
 
 function nonEmpty(...values: Array<string | undefined>) {
   return values.map((value) => value?.trim()).find((value) => Boolean(value)) ?? '';
+}
+
+function hasAddressNumber(value: string, houseNumber: string) {
+  if (!value || !houseNumber) return false;
+  const escaped = houseNumber.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(^|[^A-Z0-9])${escaped}($|[^A-Z0-9])`, 'i').test(value);
 }
 
 function normalizePhotonFeature(feature: {
@@ -167,7 +196,56 @@ export function geocodingFeatureToAddress(feature: GeocodingFeature) {
   };
 }
 
-async function requestJson(url: string) {
+function normalizeGeoapifyFeature(feature: {
+  id?: string | number;
+  geometry?: { coordinates?: [number, number] };
+  properties?: Record<string, unknown>;
+}): GeocodingFeature {
+  const p = feature.properties ?? {};
+  const stringValue = (key: string) => typeof p[key] === 'string' ? p[key] as string : '';
+  const coordinates = feature.geometry?.coordinates;
+  const unit = stringValue('unit');
+  const unitHouseNumber = unit.match(/^(?:(?:#|no\.?)\s*)?(\d+[A-Za-z]?(?:[-/](?:\d+[A-Za-z]?|[A-Za-z]))?)(?=$|[\s,#])/i)?.[1] ?? '';
+  const houseNumber = stringValue('housenumber');
+  const displayHouseNumber = nonEmpty(houseNumber, unitHouseNumber);
+  const street = stringValue('street');
+  const providerLine1 = stringValue('address_line1');
+  const line2 = stringValue('address_line2');
+  const addressLine1 = displayHouseNumber && street && !hasAddressNumber(providerLine1, displayHouseNumber)
+    ? `${displayHouseNumber} ${street}`
+    : nonEmpty(providerLine1, [displayHouseNumber, street].filter(Boolean).join(' '), street, stringValue('name'));
+  const formatted = stringValue('formatted');
+  const needsHouseNumberInFormattedAddress = Boolean(displayHouseNumber && street && !hasAddressNumber(formatted, displayHouseNumber));
+  const name = nonEmpty(stringValue('name'), providerLine1, street, stringValue('city'));
+  const includePlaceName = name && name !== providerLine1 && name !== street && stringValue('result_type') === 'amenity'
+    ? name
+    : '';
+  const fullAddress = needsHouseNumberInFormattedAddress
+    ? [includePlaceName, addressLine1, line2].filter(Boolean).join(', ')
+    : nonEmpty(formatted, [addressLine1, line2].filter(Boolean).join(', '), addressLine1);
+
+  return {
+    id: String(feature.id ?? stringValue('place_id')),
+    geometry: feature.geometry,
+    properties: {
+      ...(p as GeocodingFeature['properties']),
+      geocoding_id: nonEmpty(stringValue('place_id'), String(feature.id ?? '')),
+      feature_type: stringValue('result_type'),
+      type: nonEmpty(stringValue('result_type'), stringValue('type')),
+      name,
+      address: addressLine1,
+      full_address: fullAddress,
+      place_formatted: nonEmpty(line2, [stringValue('suburb'), stringValue('city'), stringValue('state'), stringValue('country')].filter(Boolean).join(', ')),
+      housenumber: houseNumber,
+      coordinates: {
+        longitude: coordinates?.[0],
+        latitude: coordinates?.[1],
+      },
+    },
+  };
+}
+
+async function requestJson(url: string, normalizeFeature = normalizePhotonFeature) {
   const response = await fetch(url, {
     headers: { Accept: 'application/geo+json, application/json' },
     signal: AbortSignal.timeout(8000),
@@ -187,39 +265,18 @@ async function requestJson(url: string) {
   };
   return {
     features: Array.isArray(collection.features)
-      ? collection.features.map(normalizePhotonFeature)
+      ? collection.features.map(normalizeFeature)
       : [],
   } as GeocodingFeatureCollection;
 }
 
-export async function searchAddresses(query: string): Promise<GeocodingFeature[]> {
+function prioritizeAddressResults(query: string, features: GeocodingFeature[]) {
   const value = query.trim().replace(/\s+/g, ' ');
-  if (value.length < 3) return [];
-
-  const params = new URLSearchParams({
-    q: value,
-    countrycode: 'PH',
-    lang: 'en',
-    limit: '10',
-  });
-
-  // Ask Photon for address-relevant feature classes explicitly. This improves
-  // street/house discovery without falsely claiming every result is a barangay.
-  for (const layer of ['house', 'street', 'locality', 'district', 'city', 'county', 'state', 'country', 'other']) {
-    params.append('layer', layer);
-  }
-
-  const data = await requestJson(`https://photon.komoot.io/api/?${params.toString()}`);
-  const features = Array.isArray(data.features) ? data.features : [];
-
-  // Keep the Philippines constraint at the provider as well as filtering any
-  // result that explicitly contradicts it. Missing country metadata can still
-  // occur on incomplete records, but Photon will only search PH results.
   const addressLikeQuery = /\d/.test(value) || /\b(street|st\.?|road|rd\.?|avenue|ave\.?|drive|dr\.?|lane|ln\.?|boulevard|blvd|highway|hwy)\b/i.test(value);
   const philippines = features.filter((feature) => {
     const properties = feature.properties ?? {};
     // Do not present a city-only hit as an address match for a house/street query.
-    if (addressLikeQuery && !properties.housenumber && !properties.street) {
+    if (addressLikeQuery && !properties.housenumber && !properties.street && !properties.address_line1) {
       const name = properties.name?.trim().toLowerCase() ?? '';
       const city = properties.city?.trim().toLowerCase() ?? '';
       const type = `${properties.type ?? ''} ${properties.osm_key ?? ''} ${properties.osm_value ?? ''}`.toLowerCase();
@@ -227,7 +284,9 @@ export async function searchAddresses(query: string): Promise<GeocodingFeature[]
       if (!hasStreetName && (name === city || !type.includes('street') && !type.includes('highway'))) return false;
     }
     const country = feature.properties?.country?.trim().toLowerCase();
-    return !country || country === 'philippines' || country === 'the philippines';
+    const countryCode = feature.properties?.country_code?.trim().toLowerCase();
+    return (!country || country === 'philippines' || country === 'the philippines')
+      && (!countryCode || countryCode === 'ph');
   });
 
   // Prefer house/street matches for address searches, then preserve provider
@@ -235,13 +294,51 @@ export async function searchAddresses(query: string): Promise<GeocodingFeature[]
   const priority = (feature: GeocodingFeature) => {
     const p = feature.properties ?? {};
     const value = `${p.type ?? ''} ${p.osm_key ?? ''} ${p.osm_value ?? ''}`.toLowerCase();
-    if (p.housenumber || value.includes('house')) return 0;
-    if (p.street || value.includes('street') || value.includes('highway')) return 1;
-    if (value.includes('amenity')) return 2;
-    return 3;
+    if (matchesRequestedHouseNumber(query, resultHouseNumber(p))) return 0;
+    if (p.housenumber || value.includes('house') || value.includes('building')) return 1;
+    if (p.street || value.includes('street') || value.includes('highway')) return 2;
+    if (value.includes('amenity')) return 3;
+    return 4;
   };
 
   return philippines.sort((a, b) => priority(a) - priority(b)).slice(0, 10);
+}
+
+export function isGeoapifyAddressSearchConfigured() {
+  return Boolean(import.meta.env.VITE_GEOAPIFY_API_KEY?.trim());
+}
+
+export async function searchAddresses(query: string): Promise<GeocodingFeature[]> {
+  const value = query.trim().replace(/\s+/g, ' ');
+  if (value.length < 3) return [];
+
+  const geoapifyApiKey = import.meta.env.VITE_GEOAPIFY_API_KEY?.trim();
+  if (geoapifyApiKey) {
+    const params = new URLSearchParams({
+      text: value,
+      filter: 'countrycode:ph',
+      lang: 'en',
+      limit: '10',
+      format: 'geojson',
+      apiKey: geoapifyApiKey,
+    });
+    const data = await requestJson(`https://api.geoapify.com/v1/geocode/autocomplete?${params.toString()}`, normalizeGeoapifyFeature);
+    return prioritizeAddressResults(value, data.features ?? []);
+  }
+
+  // Keep the existing open Photon search available for local/preview builds
+  // until a domain-restricted Geoapify browser key is configured.
+  const params = new URLSearchParams({
+    q: value,
+    countrycode: 'PH',
+    lang: 'en',
+    limit: '10',
+  });
+  for (const layer of ['house', 'street', 'locality', 'district', 'city', 'county', 'state', 'country', 'other']) {
+    params.append('layer', layer);
+  }
+  const data = await requestJson(`https://photon.komoot.io/api/?${params.toString()}`);
+  return prioritizeAddressResults(value, data.features ?? []);
 }
 
 async function resolveBarangayByCoordinates(latitude: number, longitude: number) {

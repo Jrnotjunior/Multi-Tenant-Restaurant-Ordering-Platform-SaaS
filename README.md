@@ -29,7 +29,9 @@ npm run dev
 
 The `.env.local` file is optional for UI scaffolding. Without Supabase settings, the application displays a **not connected** state instead of pretending backend functionality exists.
 
-Only put a Supabase *publishable* key in `VITE_` variables. **Never put database passwords, PayMongo secret keys, Supabase secret keys or service-role keys in frontend env files.**
+Only put public browser keys, such as a Supabase *publishable* key or a referrer-restricted Geoapify key, in `VITE_` variables. **Never put database passwords, PayMongo secret keys, Supabase secret keys or service-role keys in frontend env files.**
+
+Address search uses Geoapify when `VITE_GEOAPIFY_API_KEY` is configured; otherwise it keeps the existing Photon search available. The Geoapify key is a public browser key and is visible in the built app, so restrict it to the central map-service origin (`https://app.web2table.io`), any development/preview origins you explicitly use, and the Address Autocomplete API in Geoapify. Add it to the production build environment; for the GitHub Pages preview, use the `VITE_GEOAPIFY_API_KEY` Actions secret. The map continues to use MapLibre/OpenFreeMap, and Philippine barangay lookup remains handled by the existing coordinate-boundary service.
 
 ```sh
 npm run test

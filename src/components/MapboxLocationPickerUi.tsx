@@ -4,7 +4,7 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 setWorkerUrl(workerUrl);
-import { geocodingFeatureToAddress, matchesRequestedHouseNumber, requestedHouseNumber, reverseGeocodeLocation, searchAddresses as geocodeAddresses, type GeocodingFeature } from '../modules/location/locationService';
+import { geocodingFeatureToAddress, isGeoapifyAddressSearchConfigured, matchesRequestedHouseNumber, requestedHouseNumber, resultHouseNumber, reverseGeocodeLocation, searchAddresses as geocodeAddresses, type GeocodingFeature } from '../modules/location/locationService';
 import type { DeliveryLocationAddress } from '../modules/location/mapServiceProtocol';
 export type { DeliveryLocationAddress } from '../modules/location/mapServiceProtocol';
 
@@ -183,7 +183,7 @@ export function MapboxLocationPickerUi({
       false,
     );
     const requestedNumber = requestedHouseNumber(searchQuery);
-    setRequiresPinAdjustment(Boolean(requestedNumber && !matchesRequestedHouseNumber(searchQuery, feature.properties?.housenumber)));
+    setRequiresPinAdjustment(Boolean(requestedNumber && !matchesRequestedHouseNumber(searchQuery, resultHouseNumber(feature.properties))));
     mapRef.current?.setZoom(17);
     setSearchResults([]);
     setSearchQuery(address.formattedAddress || address.address);
@@ -231,6 +231,11 @@ export function MapboxLocationPickerUi({
         if (reversed) {
           nextAddress = {
             ...reversed,
+            formattedAddress: current.formattedAddress || reversed.formattedAddress,
+            city: current.city || reversed.city,
+            barangay: current.barangay || reversed.barangay,
+            address: current.address || reversed.address,
+            placeId: current.placeId || reversed.placeId,
             latitude: current.latitude,
             longitude: current.longitude,
           };
@@ -256,6 +261,12 @@ export function MapboxLocationPickerUi({
         {variant === 'restaurant'
           ? 'Search the restaurant address or move the pin to the exact restaurant location.'
           : ''}
+        {isGeoapifyAddressSearchConfigured() && (
+          <>
+            {' · '}Powered by <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer">Geoapify</a>
+          </>
+        )}
+        {' · '}<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a>
       </p>
 
       <div className="delivery-location-search">
@@ -299,7 +310,7 @@ export function MapboxLocationPickerUi({
                   {(() => {
                     const label = properties.full_address || [properties.name, properties.place_formatted].filter(Boolean).join(', ') || 'Map location';
                     const requestedNumber = requestedHouseNumber(searchQuery);
-                    const matchedNumber = properties.housenumber?.trim();
+                    const matchedNumber = resultHouseNumber(properties);
                     return requestedNumber && !matchesRequestedHouseNumber(searchQuery, matchedNumber)
                       ? `House number ${requestedNumber} not verified${matchedNumber ? ` (provider matched ${matchedNumber})` : ''}: ${label}`
                       : label;
