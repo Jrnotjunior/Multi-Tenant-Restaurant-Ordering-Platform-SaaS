@@ -103,13 +103,21 @@
 }
 
 .customer-legal-back {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
   margin: 0 0 22px;
-  color: var(--color-active);
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  background: var(--color-surface);
+  color: var(--color-text);
   font-size: var(--font-size-13);
-  font-weight: 650;
+  font-weight: 700;
   text-decoration: none;
 }
+
+.customer-legal-back:hover { background: var(--color-page); }
 
 .customer-legal-eyebrow {
   margin: 0 0 8px;

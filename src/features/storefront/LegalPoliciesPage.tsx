@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { normalizeAppBase } from '../../app/routes';
 import { StorefrontFooter } from './StorefrontChrome';
 import './storefront.css';
 import './LegalPoliciesPage.css';
@@ -18,9 +19,6 @@ function CustomerPageShell({ children }: { children: ReactNode }) {
         <nav className="sf-header-actions" aria-label="Store navigation">
           <a href={base + 'cart'} className="sf-bag-button" aria-label="Open cart" title="Cart">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.5 4.5h2l2.1 10.2a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 1.9-1.4L21 8H7"/><circle cx="10" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
-          </a>
-          <a href={base + 'account'} className="sf-account-button" aria-label="Open customer account" title="My account">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.5-3.8 3.1-5.7 7-5.7s6.5 1.9 7 5.7"/></svg>
           </a>
         </nav>
       </div>
@@ -42,6 +40,8 @@ function PolicyIcon({ type }: { type: (typeof policies)[number]['icon'] }) {
 }
 
 export function LegalPoliciesPage({ route = '#legal' }: { route?: string }) {
+  const accountUrl = normalizeAppBase(import.meta.env.BASE_URL) + 'account';
+  const accountBackLink = <a className="customer-legal-back" href={accountUrl}>← Back to account</a>;
   const details = {
     '#privacy': {
       eyebrow: 'Data Privacy', title: 'Privacy Notice',
@@ -80,12 +80,14 @@ export function LegalPoliciesPage({ route = '#legal' }: { route?: string }) {
   } as const;
   const detail = details[route as keyof typeof details];
   if (detail) return <CustomerPageShell><article className="customer-legal-page customer-legal-detail" aria-labelledby="customer-legal-title">
+    {accountBackLink}
     <p className="customer-legal-eyebrow">{detail.eyebrow}</p>
     <h1 id="customer-legal-title">{detail.title}</h1>
     <p className="customer-legal-intro-copy">{detail.intro}</p>
     {detail.sections.map(([heading, body], index) => <section className="customer-legal-section" key={heading}><h2>{heading}</h2><p>{body}</p></section>)}
   </article></CustomerPageShell>;
   return <CustomerPageShell><section className="customer-legal-page" aria-labelledby="customer-legal-title">
+    {accountBackLink}
     <section className="customer-legal-intro"><h1 id="customer-legal-title">Legal &amp; Policies</h1></section>
     <nav className="customer-legal-list" aria-label="Legal documents">
       {policies.map((policy) => <a className="customer-legal-link" href={policy.href} key={policy.href}>
