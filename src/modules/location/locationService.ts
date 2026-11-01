@@ -189,7 +189,7 @@ export async function searchAddresses(query: string): Promise<GeocodingFeature[]
 
   // Ask Photon for address-relevant feature classes explicitly. This improves
   // street/house discovery without falsely claiming every result is a barangay.
-  for (const layer of ['house', 'street', 'locality', 'district', 'city', 'postcode', 'amenity']) {
+  for (const layer of ['house', 'street', 'locality', 'district', 'city', 'county', 'state', 'country', 'other']) {
     params.append('layer', layer);
   }
 
