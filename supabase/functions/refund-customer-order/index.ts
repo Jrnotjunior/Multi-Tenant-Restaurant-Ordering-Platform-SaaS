@@ -136,7 +136,7 @@ Deno.serve(async (request: Request) => {
     let response: Response;
     try {
       if (refund.refund_id) {
-        response = await fetch("https://api.paymongo.com/refunds/" + encodeURIComponent(refund.refund_id), {
+        response = await fetch("https://api.paymongo.com/v1/refunds/" + encodeURIComponent(refund.refund_id), {
           headers: { Authorization: basic(secret), Accept: "application/json", ...(refund.paymongo_account_id === "platform_test" ? {} : { "Account-ID": refund.paymongo_account_id }) },
           signal: AbortSignal.timeout(10000),
         });
@@ -149,7 +149,7 @@ Deno.serve(async (request: Request) => {
             message: "The request may already have reached PayMongo. Check the PayMongo dashboard before retrying to avoid a duplicate refund.",
           }, 202);
         }
-        response = await fetch("https://api.paymongo.com/refunds", {
+        response = await fetch("https://api.paymongo.com/v1/refunds", {
           method: "POST",
           headers: {
             Authorization: basic(secret),
@@ -200,9 +200,7 @@ Deno.serve(async (request: Request) => {
       return json({ success: false, status: "refund_pending", message: "The provider returned a refund for a different payment. Contact support before retrying." }, 202);
     }
 
-    await saveRefundId(admin, tenantId, refund, refundId);
-
-    if (status === "failed") {
+    if (status === "failed" || ["canceled", "cancelled"].includes(status)) {
       await resetFailedRefund(admin, tenantId, refund);
       return json({ error: "PayMongo could not process this refund. The order remains paid and can be retried.", status: "paid" }, 409);
     }
@@ -220,6 +218,8 @@ Deno.serve(async (request: Request) => {
       if (finalizeError) throw finalizeError;
       return json({ success: true, status: "refunded", refundId });
     }
+
+    await saveRefundId(admin, tenantId, refund, refundId);
 
     return json({
       success: true,

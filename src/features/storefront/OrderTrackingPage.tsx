@@ -5,7 +5,7 @@ import './storefront.css';
 const peso = (centavos: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 2 }).format(centavos / 100);
 
 type TrackedItem = { name: string; quantity: number; total_centavos: number; unit_price_centavos?: number; options?: unknown[] };
-type TrackedStatus = { order_status: string; payment_status: string; order_type?: string; updated_at: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null };
+type TrackedStatus = { order_status: string; payment_status: string; payment_method?: string; refund_status?: 'pending' | 'refunded' | 'failed' | null; order_type?: string; updated_at: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null };
 
 export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
   const [trackingToken] = useState<string | null>(() => {
@@ -42,14 +42,14 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
       const { data, error: rpcError } = await supabase!.rpc('track_customer_order', { p_tracking_token: trackingToken });
       if (!active) return;
       if (rpcError) { setError('Live tracking is reconnecting. We will keep trying.'); return; }
-      const result = data as { found?: boolean; order_number?: number; order_status?: string; payment_status?: string; order_type?: string; updated_at?: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null } | null;
+      const result = data as { found?: boolean; order_number?: number; order_status?: string; payment_status?: string; payment_method?: string; refund_status?: TrackedStatus['refund_status']; order_type?: string; updated_at?: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null } | null;
       if (!result?.found || !result.order_status || !result.payment_status || !result.updated_at) {
         setError('We could not find this order. Keep your tracking link and contact the restaurant if needed.');
         return;
       }
       setError('');
       setOrderNumber(Number(result.order_number));
-      setStatus({ order_status: result.order_status, payment_status: result.payment_status, order_type: result.order_type, updated_at: result.updated_at, items: result.items ?? [], subtotal_centavos: result.subtotal_centavos, delivery_fee_centavos: result.delivery_fee_centavos, total_centavos: result.total_centavos });
+      setStatus({ order_status: result.order_status, payment_status: result.payment_status, payment_method: result.payment_method, refund_status: result.refund_status, order_type: result.order_type, updated_at: result.updated_at, items: result.items ?? [], subtotal_centavos: result.subtotal_centavos, delivery_fee_centavos: result.delivery_fee_centavos, total_centavos: result.total_centavos });
     };
     void refresh();
     const channel = supabase.channel('order-tracking:' + trackingToken)
@@ -79,7 +79,14 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
       if (!(data as { success?: boolean } | null)?.success) {
         throw new Error((data as { error?: string } | null)?.error || 'Unable to cancel this order.');
       }
-      setStatus(current => current ? { ...current, order_status: 'cancelled', updated_at: new Date().toISOString() } : current);
+      const result = data as { refundStatus?: TrackedStatus['refund_status'] } | null;
+      setStatus(current => current ? {
+        ...current,
+        order_status: 'cancelled',
+        refund_status: result?.refundStatus ?? null,
+        payment_status: result?.refundStatus === 'refunded' ? 'refunded' : current.payment_status,
+        updated_at: new Date().toISOString(),
+      } : current);
       setCancelConfirmationOpen(false);
     } catch (reason) {
       setCancelError(reason instanceof Error ? reason.message : 'Unable to cancel this order. Please try again.');
@@ -90,7 +97,7 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
 
   const orderType = status?.order_type?.toLowerCase().replaceAll('_', '-') ?? 'dine-in';
   const dineIn = ['dine-in', 'dinein'].includes(orderType);
-  const dineInCashOrder = dineIn && orderMeta.paymentMethod === 'cash';
+  const dineInCashOrder = dineIn && (status?.payment_method ?? orderMeta.paymentMethod) === 'cash';
   const stages = dineIn
     ? ['pending_confirmation', 'confirmed', 'preparing', 'ready_for_serve', 'served']
     : ['pending_confirmation', 'confirmed', 'preparing', 'ready_for_dispatch', 'out_for_delivery', 'delivered'];
@@ -107,17 +114,22 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
   const orderTypeLabel = dineIn ? 'Dine-in' : orderType.replaceAll('-', ' ').replace(/\\b\\w/g, x => x.toUpperCase());
   const normalizedPaymentStatus = (status?.payment_status ?? '').toLowerCase();
   const isPaymentPaid = ['paid', 'succeeded', 'completed'].includes(normalizedPaymentStatus);
-  const paymentOptionLabel = orderMeta.paymentMethod === 'online'
+  const isPaymentRefunded = normalizedPaymentStatus === 'refunded';
+  const paymentMethod = status?.payment_method ?? orderMeta.paymentMethod;
+  const paidOnline = paymentMethod === 'online' && isPaymentPaid;
+  const paymentOptionLabel = paymentMethod === 'online'
     ? 'Online payment'
     : orderMeta.paymentMethod === 'cash'
       ? (orderType === 'delivery' ? 'Cash on delivery' : 'Cash')
       : orderType === 'delivery' ? 'Cash on delivery' : 'Cash';
-  const paymentStatusLabel = isPaymentPaid
+  const paymentStatusLabel = isPaymentRefunded
+    ? 'Refunded'
+    : isPaymentPaid
     ? 'Paid'
     : ['failed', 'cancelled', 'canceled', 'expired'].includes(normalizedPaymentStatus)
       ? normalizedPaymentStatus.charAt(0).toUpperCase() + normalizedPaymentStatus.slice(1)
       : 'Unpaid';
-  const paymentLabel = isPaymentPaid ? 'Paid' : paymentOptionLabel;
+  const paymentLabel = isPaymentRefunded ? 'Refunded' : isPaymentPaid ? 'Paid' : paymentOptionLabel;
 
   return <main className="sf-order-tracking-page">
     {trackingToken && status ? <section className="sf-tracking-receipt" aria-live="polite" aria-label="Live order tracking">
@@ -138,7 +150,7 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
         <p><span>Payment</span><strong>{paymentLabel}</strong></p>
         {status.order_status === 'pending_confirmation' && <section className="sf-tracking-cancel" aria-label="Cancel order">
           {cancelConfirmationOpen ? <>
-            <p>Cancel this order before the restaurant confirms it?</p>
+            <p>{paidOnline ? 'Cancel this order? PayMongo will automatically process the refund.' : 'Cancel this order before the restaurant confirms it?'}</p>
             <div>
               <button type="button" className="sf-tracking-cancel-keep" disabled={cancelling} onClick={() => { setCancelConfirmationOpen(false); setCancelError(''); }}>Keep order</button>
               <button type="button" className="sf-tracking-cancel-confirm" disabled={cancelling} onClick={() => void cancelOrder()}>{cancelling ? 'Cancelling…' : 'Confirm cancellation'}</button>
@@ -155,7 +167,15 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
           <div><h3>{labels[index]}</h3><p>{descriptions[index]}</p>{active && <span className="sf-tracking-current">Current status</span>}</div>
         </li>;
       })}</ol>
-      {terminal && <p className="sf-tracking-error" role="status">This order was {currentStage.toLowerCase()}. Please contact the restaurant if you need assistance.</p>}
+      {terminal && <p className="sf-tracking-error" role="status">{status?.order_status === 'cancelled' && status.refund_status === 'pending'
+        ? 'Your order was cancelled. PayMongo is processing your refund.'
+        : status?.order_status === 'cancelled' && status.refund_status === 'refunded'
+          ? 'Your order was cancelled and the PayMongo refund is complete.'
+          : status?.order_status === 'cancelled' && status.refund_status === 'failed'
+            ? 'Your order was cancelled, but PayMongo could not process the refund automatically. Please contact the restaurant for help.'
+            : status?.order_status === 'cancelled'
+              ? 'Your order was cancelled.'
+              : `This order was ${currentStage.toLowerCase()}. Please contact the restaurant if you need assistance.`}</p>}
       {error && <p className="sf-tracking-error" role="status">{error}</p>}
       <footer className="sf-tracking-footer"><span>{orderTypeLabel.charAt(0).toUpperCase() + orderTypeLabel.slice(1)}</span><span>{paymentOptionLabel.charAt(0).toUpperCase() + paymentOptionLabel.slice(1)}</span><span>{paymentStatusLabel.charAt(0).toUpperCase() + paymentStatusLabel.slice(1)}</span></footer>
     </section> : trackingToken ? <section className="sf-tracking-receipt"><p>{error || 'Connecting to your order…'}</p></section> : <section className="sf-tracking-receipt"><p>You don’t have an order to track yet. After placing an order, you can return here to follow its progress.</p></section>}

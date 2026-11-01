@@ -7,7 +7,8 @@ import './storefront.css';
 type HistoryItem = { name: string; quantity: number; total_centavos: number };
 type HistoryOrder = {
   order_id: string; tracking_token: string; order_number: number; restaurant_name: string; restaurant_slug: string;
-  order_type: string; order_status: string; payment_status: string; created_at: string;
+  order_type: string; order_status: string; payment_status: string; payment_method?: string;
+  refund_status?: 'pending' | 'refunded' | 'failed' | null; created_at: string;
   subtotal_centavos: number; delivery_fee_centavos: number | null; total_centavos: number | null;
   items: HistoryItem[];
 };
@@ -56,8 +57,20 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
       if (!(data as { success?: boolean } | null)?.success) {
         throw new Error((data as { error?: string } | null)?.error || 'Unable to cancel this order.');
       }
-      setOrders(current => current.map(item => item.order_id === order.order_id ? { ...item, order_status: 'cancelled' } : item));
-      setMessage(`Order #${order.order_number} was cancelled.`);
+      const result = data as { refundStatus?: HistoryOrder['refund_status'] } | null;
+      setOrders(current => current.map(item => item.order_id === order.order_id ? {
+        ...item,
+        order_status: 'cancelled',
+        refund_status: result?.refundStatus ?? null,
+        payment_status: result?.refundStatus === 'refunded' ? 'refunded' : item.payment_status,
+      } : item));
+      setMessage(result?.refundStatus === 'pending'
+        ? `Order #${order.order_number} was cancelled. PayMongo is processing the refund.`
+        : result?.refundStatus === 'refunded'
+          ? `Order #${order.order_number} was cancelled and refunded.`
+          : result?.refundStatus === 'failed'
+            ? `Order #${order.order_number} was cancelled, but PayMongo could not process the refund automatically. Please contact the restaurant for help.`
+            : `Order #${order.order_number} was cancelled.`);
     } catch (reason) {
       setMessage(reason instanceof Error ? reason.message : 'Unable to cancel this order. Please try again.');
     } finally {
@@ -91,7 +104,7 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
           <span className="sf-tracking-eyebrow">{order.restaurant_name}</span>
           <h2>Order #{String(order.order_number).padStart(5, '0')}</h2>
           <p>{new Date(order.created_at).toLocaleString()} · {order.order_type.replaceAll('_', ' ')}</p>
-          <p>Status: <strong>{order.order_status.replaceAll('_', ' ')}</strong> · Payment: {order.payment_status.replaceAll('_', ' ')}</p>
+          <p>Status: <strong>{order.order_status.replaceAll('_', ' ')}</strong> · Payment: {order.payment_method === 'online' ? 'Online' : order.payment_method ?? 'Cash'} · {order.payment_status.replaceAll('_', ' ')}{order.refund_status && <> · Refund: {order.refund_status}</>}</p>
           {order.items?.map((item, index) => <p key={order.order_id + item.name + index}>{item.quantity} × {item.name} — {peso(item.total_centavos)}</p>)}
           <p>Subtotal: {peso(order.subtotal_centavos)}</p>
           {order.delivery_fee_centavos != null && <p>Delivery fee: {peso(order.delivery_fee_centavos)}</p>}
