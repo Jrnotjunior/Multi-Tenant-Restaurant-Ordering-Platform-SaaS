@@ -282,6 +282,9 @@
 
 .staff-payment-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--color-page,#F7F9FC);color:var(--color-muted,#526782);font-size:.7rem;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
 .staff-payment-tabs button.is-selected .staff-payment-count{background:#ffffff24;color:#fff}
+.staff-workspace-tabs button{display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.staff-tab-count{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:#b4232f;color:#fff;font-size:.7rem;font-weight:850;line-height:1;font-variant-numeric:tabular-nums}
+.staff-workspace-tabs button.is-active .staff-tab-count{background:#ffffff24;color:#fff}
 
 
 /* Cashier order desk: compact rows with details in a focused modal. */
