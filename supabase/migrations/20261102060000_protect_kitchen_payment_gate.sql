@@ -1,5 +1,5 @@
 -- Only paid online orders may enter the kitchen. Unpaid cash orders are
--- allowed for delivery and pickup/take-out, where payment is collected later.
+-- allowed for delivery and pickup, where payment is collected later.
 BEGIN;
 
 DO $migration$
@@ -23,7 +23,7 @@ $anchor$;
     lower(v_order.payment_status) IN ('paid','succeeded','completed')
     OR (
       lower(v_order.payment_method) = 'cash'
-      AND v_order.order_type IN ('delivery','pickup','take_out')
+      AND v_order.order_type IN ('delivery','pickup')
       AND lower(v_order.payment_status) IN ('not_started','pending')
     )
   ) THEN
@@ -44,7 +44,7 @@ $guard$;
      lower(v_order.payment_status) IN ('paid','succeeded','completed')
      OR (
        lower(v_order.payment_method) = 'cash'
-       AND v_order.order_type IN ('delivery','pickup','take_out')
+       AND v_order.order_type IN ('delivery','pickup')
        AND lower(v_order.payment_status) IN ('not_started','pending')
      )
    ) THEN
@@ -62,7 +62,7 @@ $guard$;
      lower(v_order.payment_status) IN ('paid','succeeded','completed')
      OR (
        lower(v_order.payment_method) = 'cash'
-       AND v_order.order_type IN ('delivery','pickup','take_out')
+       AND v_order.order_type IN ('delivery','pickup')
        AND lower(v_order.payment_status) IN ('not_started','pending')
      )
    ) THEN
@@ -80,7 +80,7 @@ $guard$;
      lower(v_order.payment_status) IN ('paid','succeeded','completed')
      OR (
        lower(v_order.payment_method) = 'cash'
-       AND v_order.order_type IN ('delivery','pickup','take_out')
+       AND v_order.order_type IN ('delivery','pickup')
        AND lower(v_order.payment_status) IN ('not_started','pending')
      )
    ) THEN
@@ -121,7 +121,7 @@ $guard$;
           lower(o.payment_status) in ('paid','succeeded','completed')
           or (
             lower(o.payment_method) = 'cash'
-            and o.order_type in ('delivery','pickup','take_out')
+            and o.order_type in ('delivery','pickup')
             and lower(o.payment_status) in ('not_started','pending')
           )
         )
@@ -136,7 +136,7 @@ $guard$;
         lower(o.payment_status) in ('paid','succeeded','completed')
         or (
           lower(o.payment_method) = 'cash'
-          and o.order_type in ('delivery','pickup','take_out')
+          and o.order_type in ('delivery','pickup')
           and lower(o.payment_status) in ('not_started','pending')
         )
       ))
