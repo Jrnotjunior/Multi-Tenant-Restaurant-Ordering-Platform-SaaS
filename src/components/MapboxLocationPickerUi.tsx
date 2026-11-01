@@ -51,6 +51,7 @@ export function MapboxLocationPickerUi({
   const [searching, setSearching] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<DeliveryLocationAddress | null>(null);
   const [locationConfirmed, setLocationConfirmed] = useState(false);
+  const [requiresPinAdjustment, setRequiresPinAdjustment] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [loading, setLoading] = useState(true);
   const [locating, setLocating] = useState(false);
@@ -60,7 +61,7 @@ export function MapboxLocationPickerUi({
     selectedAddressRef.current = selectedAddress;
   }, [selectedAddress]);
 
-  function setSelectedLocation(location: LatLng, address?: DeliveryLocationAddress | null) {
+  function setSelectedLocation(location: LatLng, address?: DeliveryLocationAddress | null, manualAdjustment = true) {
     const map = mapRef.current;
     const marker = markerRef.current;
     marker?.setLngLat([location.lng, location.lat]);
@@ -75,6 +76,7 @@ export function MapboxLocationPickerUi({
 
     setSelectedAddress(nextAddress);
     setLocationConfirmed(false);
+    if (manualAdjustment) setRequiresPinAdjustment(false);
     onLocationChange?.();
   }
 
@@ -178,7 +180,11 @@ export function MapboxLocationPickerUi({
     setSelectedLocation(
       { lat: address.latitude, lng: address.longitude },
       address,
+      false,
     );
+    const requestedNumber = searchQuery.trim().match(/^\s*(\d+[A-Za-z]?)\b/)?.[1];
+    const matchedNumber = feature.properties?.housenumber?.trim();
+    setRequiresPinAdjustment(Boolean(requestedNumber && !matchedNumber));
     mapRef.current?.setZoom(17);
     setSearchResults([]);
     setSearchQuery(address.formattedAddress || address.address);
@@ -309,6 +315,12 @@ export function MapboxLocationPickerUi({
 
       <div className="delivery-location-map" ref={mapContainerRef} aria-label="Delivery location map" />
 
+      {requiresPinAdjustment && (
+        <p className="checkout-error" role="alert">
+          This result identifies the street, not a verified house number. Drag the pin to your exact delivery entrance or tap the map before confirming.
+        </p>
+      )}
+
       <div className="delivery-location-map-actions">
         <button className="button button-secondary restaurant-compact-action" type="button" onClick={useCurrentLocation} disabled={disabled || loading || locating}>
           {locating ? 'Finding your location…' : 'Use my current location'}
@@ -331,7 +343,7 @@ export function MapboxLocationPickerUi({
             className="button button-primary"
             type="button"
             onClick={() => void confirmLocation()}
-            disabled={disabled || locationConfirmed || confirming}
+            disabled={disabled || locationConfirmed || confirming || requiresPinAdjustment}
           >
             {locationConfirmed
               ? (variant === 'restaurant' ? 'Restaurant Location Confirmed' : 'Location Confirmed')
