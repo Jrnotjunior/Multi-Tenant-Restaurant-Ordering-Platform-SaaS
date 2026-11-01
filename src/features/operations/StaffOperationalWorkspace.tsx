@@ -17,6 +17,8 @@ type Order = {
 };
 type Rider = { user_id: string; display_name: string | null };
 type Props = { tenantId: string; role: StaffWorkspaceRole; restaurantName: string | null };
+type StaffOrderAction = 'confirm' | 'cancel' | 'complete_handoff' | 'mark_ready' | 'dispatch' | 'accept_delivery' | 'deliver';
+type StaffOrderActionButton = { action: StaffOrderAction; label: string; primary: boolean };
 const money = (value: number | null) => value == null ? 'Total not finalized' : new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(value / 100);
 const staffPageFromHash = (role: StaffWorkspaceRole) => {
   const parts = window.location.hash.replace(/^#\/?restaurant\//, '').split('/');
@@ -284,10 +286,10 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     riderDelivered: orders.filter(o => o.assignment_status === 'delivered' || o.order_status === 'delivered').length,
   }), [orders]);
 
-  async function act(order: Order, action: string, description: string) {
+  async function act(order: Order, action: StaffOrderAction, description: string) {
     if (!supabase) return;
-    if (['reject', 'cancel', 'deliver'].includes(action) && !window.confirm(
-      action === 'deliver' ? `Confirm order #${order.order_number} has been delivered?` : action === 'cancel' ? `Cancel order #${order.order_number} before it enters the kitchen?` : `Reject order #${order.order_number}?`,
+    if ((action === 'cancel' || action === 'deliver') && !window.confirm(
+      action === 'deliver' ? `Confirm order #${order.order_number} has been delivered?` : `Cancel order #${order.order_number} before it enters the kitchen?`,
     )) return;
     setBusy(order.id); setError(''); setNotice('');
     try {
@@ -367,9 +369,9 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     }
   }
 
-  function actions(order: Order) {
+  function actions(order: Order): StaffOrderActionButton[] {
     if (role === 'cashier' && order.order_status === 'pending_confirmation') return [
-      { action: 'confirm', label: 'Confirm order', primary: true }, { action: 'reject', label: 'Reject', primary: false }, { action: 'cancel', label: 'Cancel order', primary: false },
+      { action: 'confirm', label: 'Confirm order', primary: true }, { action: 'cancel', label: 'Cancel order', primary: false },
     ];
     if (role === 'cashier' && order.order_status === 'ready_for_pickup') return [{ action: 'complete_handoff', label: 'Complete handoff', primary: true }];
     if (role === 'kitchen' && order.order_status === 'preparing') return [{ action: 'mark_ready', label: 'Mark ready', primary: true }];
