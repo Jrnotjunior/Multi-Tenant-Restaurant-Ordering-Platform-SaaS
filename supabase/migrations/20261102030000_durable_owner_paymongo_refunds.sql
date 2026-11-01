@@ -90,4 +90,7 @@ $fn$;
 REVOKE ALL ON FUNCTION public.request_customer_order_refund(uuid, uuid, text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.request_customer_order_refund(uuid, uuid, text) TO authenticated;
 
+INSERT INTO supabase_migrations.schema_migrations (version, name)
+VALUES ('20261102030000', 'durable_owner_paymongo_refunds');
+
 COMMIT;
