@@ -18,6 +18,10 @@ export function StorefrontHeader({ logo, actions }: StorefrontHeaderProps) {
   );
 }
 
+export function CustomerAccountBackLink({ href }: { href: string }) {
+  return <a className="sf-account-back-link" href={href}>&larr; Back to account</a>;
+}
+
 export function StorefrontFooter() {
   return (
     <footer className="sf-footer">

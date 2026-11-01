@@ -489,7 +489,6 @@
 .sf-tracking-footer{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--sf-border)}
 .sf-tracking-footer span{padding:5px 9px;border:1px solid var(--sf-border);border-radius:999px;font-size:var(--sf-font-size-12)}
 .sf-tracking-updated{margin:10px 0 0;color:var(--sf-muted);font-size:var(--sf-font-size-10)}
-.sf-tracking-back{margin-top:12px;min-height:40px;padding:0 14px;border:1px solid var(--sf-border);border-radius:9px;background:var(--sf-product-card);color:var(--sf-font-color);font-weight:800;cursor:pointer}
 .sf-tracking-error{padding:10px;border-radius:8px;background:var(--sf-muted-bg);font-size:var(--sf-font-size-12)}
 .sf-tracking-cancel{display:grid;gap:10px;margin-top:18px;padding:14px;border:1px solid var(--sf-border);border-radius:11px}
 .sf-tracking-cancel>p{margin:0;font-size:var(--sf-font-size-13);line-height:1.5}
@@ -535,7 +534,9 @@
 .sf-account-page .sf-account-dashboard-card>span{align-self:center;flex:0 0 auto;margin-left:10px}
 @media(max-width:760px){.sf-account-main{padding:18px 14px 30px}.sf-account-page .sf-account-dashboard-grid{grid-template-columns:1fr;gap:10px}.sf-account-page .sf-account-dashboard-card{min-height:100px;padding:17px}.sf-account-page .sf-account-hero{padding:22px 18px}.sf-account-page .sf-header-inner{width:100%;padding:10px 14px}}
 
-.sf-account-back-link{display:inline-flex;margin:0 0 14px;color:var(--sf-muted);font-size:var(--sf-font-size-13);font-weight:700;text-decoration:none}
+.sf-account-back-link{display:inline-flex;align-items:center;min-height:36px;margin:0 0 22px;padding:0 12px;border:1px solid var(--sf-border);border-radius:9px;background:var(--sf-product-card);color:var(--sf-font-color);font-size:var(--sf-font-size-13);font-weight:700;text-decoration:none}
+.sf-account-back-link:hover{background:var(--sf-page-background)}
+.sf-account-back-link:focus-visible{outline:2px solid var(--sf-primary-button);outline-offset:3px}
 .sf-address-form,.sf-address-list{margin-top:18px;padding:clamp(16px,3vw,24px);border:1px solid var(--sf-border);border-radius:16px;background:var(--sf-product-card)}
 .sf-address-form h2,.sf-address-list h2{margin:0 0 16px;font-size:var(--sf-font-size-18);color:var(--sf-font-color)}
 .sf-address-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}

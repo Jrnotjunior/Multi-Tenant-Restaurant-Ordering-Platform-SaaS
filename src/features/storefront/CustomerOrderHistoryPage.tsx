@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { normalizeAppBase } from '../../app/routes';
-import { StorefrontFooter } from './StorefrontChrome';
+import { CustomerAccountBackLink, StorefrontFooter } from './StorefrontChrome';
 import './storefront.css';
 
 type HistoryItem = { name: string; quantity: number; total_centavos: number };
@@ -89,6 +89,7 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
     </header>
     <main className="sf-order-tracking-page">
     <section className="sf-tracking-receipt" aria-live="polite">
+      <CustomerAccountBackLink href={base + 'account'} />
       <span className="sf-tracking-eyebrow">YOUR ACCOUNT</span>
       <h1>Order history</h1>
       <p>Your orders are saved to your Web2Table account and loaded from the database.</p>
@@ -111,7 +112,6 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
           {order.order_status === 'pending_confirmation' && <button type="button" className="sf-tracking-cancel-start" disabled={Boolean(cancellingOrderId)} onClick={() => void cancelOrder(order)}>{cancellingOrderId === order.order_id ? 'Cancelling…' : 'Cancel order'}</button>}
         </div>
       </article>)}
-      <a className="sf-tracking-back" href={base}>Back to storefront</a>
     </section>
     </main>
     <StorefrontFooter />
