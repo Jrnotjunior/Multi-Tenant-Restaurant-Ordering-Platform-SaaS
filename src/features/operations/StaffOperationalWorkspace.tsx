@@ -21,6 +21,14 @@ type Props = { tenantId: string; role: StaffWorkspaceRole; restaurantName: strin
 type StaffOrderAction = 'confirm' | 'cancel' | 'complete_handoff' | 'mark_ready' | 'dispatch' | 'accept_delivery' | 'deliver';
 type StaffOrderActionButton = { action: StaffOrderAction; label: string; primary: boolean };
 const money = (value: number | null) => value == null ? 'Total not finalized' : new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(value / 100);
+const maySendOrderToKitchen = (order: Order) => {
+  const paymentStatus = order.payment_status.toLowerCase();
+  const isPaid = ['paid', 'succeeded', 'completed'].includes(paymentStatus);
+  const allowedCashOrder = order.payment_channel === 'other' &&
+    ['delivery', 'pickup', 'take_out'].includes(order.order_type) &&
+    ['not_started', 'pending'].includes(paymentStatus);
+  return isPaid || allowedCashOrder;
+};
 const staffPageFromHash = (role: StaffWorkspaceRole) => {
   const parts = window.location.hash.replace(/^#\/?restaurant\//, '').split('/');
   if (parts[0] !== role) return role === 'cashier' ? 'orders' : role === 'kitchen' ? 'orders' : 'overview';
@@ -649,6 +657,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           <button type="button" className="staff-cashier-modal-close" aria-label="Close order details" onClick={() => setSelectedCashierOrderId(null)}>×</button>
           <header><h2 id="staff-cashier-modal-title">ORD-{String(order.order_number).padStart(5, '0')}</h2><p>{order.order_status === 'ready_for_dispatch' ? null : <>{label(order.order_status)} · </>}{new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(order.created_at))}</p></header>
           <p className="staff-cashier-modal-meta">{role === 'kitchen' ? typeLabel(order.order_type) : <>{typeLabel(order.order_type)} · {order.payment_channel === 'online' ? 'Online' : 'Cash'} · {['paid','succeeded','completed'].includes(order.payment_status.toLowerCase()) ? 'Paid' : 'Unpaid'}</>}</p>
+          {role === 'cashier' && order.order_status === 'pending_confirmation' && !maySendOrderToKitchen(order) && <p className="staff-notice is-error" role="note">This order must be paid before it can go to the kitchen. Unpaid cash is allowed only for delivery and pickup.</p>}
           {role === 'kitchen' ? <>
             {order.delivery_notes && <div className="staff-cashier-modal-note"><strong>Customer notes</strong><span>{order.delivery_notes}</span></div>}
             <ul className="staff-cashier-modal-items staff-kitchen-modal-items">{(order.items ?? []).map(item => <li key={item.id}><span>{item.item_name}{item.options?.length ? <small>{item.options.map(option => option.name).filter(Boolean).join(', ')}</small> : null}</span><strong>× {item.quantity}</strong></li>)}</ul>
@@ -664,7 +673,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
             <div className="staff-cashier-modal-total"><strong>Total</strong><strong>{money(order.total_centavos)}</strong></div>
           </>}
           {role === 'dispatcher' && order.order_status === 'ready_for_dispatch' && <div className="staff-inline-control"><label htmlFor={'staff-rider-modal-' + order.id}>Assign branch rider</label><select id={'staff-rider-modal-' + order.id} value={selectedRiders[order.id] ?? order.assigned_rider_user_id ?? ''} onChange={event => setSelectedRiders(current => ({ ...current, [order.id]: event.target.value }))}><option value="">Choose a rider</option>{(riders[order.branch_id] ?? []).map(rider => <option key={rider.user_id} value={rider.user_id}>{rider.display_name || 'Name missing — update rider profile'}</option>)}</select><button className="staff-button staff-button-secondary" type="button" disabled={busy === order.id || !(riders[order.branch_id] ?? []).length} onClick={() => void assign(order)}>Assign rider</button>{!(riders[order.branch_id] ?? []).length && <small>No active rider is assigned to this branch yet.</small>}</div>}{needsFee && <div className="staff-inline-control"><label htmlFor={'staff-fee-modal-' + order.id}>Delivery fee (PHP)</label><input id={'staff-fee-modal-' + order.id} type="number" min="0" max="10000000" step="0.01" inputMode="decimal" value={fees[order.id] ?? ''} onChange={event => setFees(current => ({ ...current, [order.id]: event.target.value }))} placeholder="e.g. 50.00" /><button className="staff-button staff-button-secondary" type="button" disabled={busy === order.id} onClick={() => void saveFee(order)}>Save fee</button></div>}
-          {buttons.length > 0 && <footer className="staff-cashier-modal-actions">{buttons.map(button => <button key={button.action} type="button" disabled={busy === order.id} className={'staff-button ' + (button.primary ? 'staff-button-primary' : 'staff-button-secondary')} onClick={() => void act(order, button.action, button.label.toLowerCase())}>{busy === order.id ? 'Saving…' : button.label}</button>)}</footer>}
+          {buttons.length > 0 && <footer className="staff-cashier-modal-actions">{buttons.map(button => <button key={button.action} type="button" disabled={busy === order.id || (button.action === 'confirm' && !maySendOrderToKitchen(order))} className={'staff-button ' + (button.primary ? 'staff-button-primary' : 'staff-button-secondary')} onClick={() => void act(order, button.action, button.label.toLowerCase())}>{busy === order.id ? 'Saving…' : button.label}</button>)}</footer>}
         </section>
       </div>;
     })()}
