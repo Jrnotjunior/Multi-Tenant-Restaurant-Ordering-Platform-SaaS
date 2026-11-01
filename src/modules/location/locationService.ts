@@ -222,7 +222,7 @@ async function resolveBarangayByCoordinates(latitude: number, longitude: number)
   const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
   if (!baseUrl || !publishableKey) return null;
 
-  const response = await fetch(`${baseUrl.replace(/\\/$/, '')}/functions/v1/resolve-philippine-barangay`, {
+  const response = await fetch(`${baseUrl.replace(/\/$/, '')}/functions/v1/resolve-philippine-barangay`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
