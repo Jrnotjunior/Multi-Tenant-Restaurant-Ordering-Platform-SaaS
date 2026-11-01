@@ -17,3 +17,19 @@ body{overflow-x:hidden}
 .map-service-page--restaurant .delivery-location-picker{display:grid;grid-template-columns:minmax(250px,.78fr) minmax(0,1.22fr);grid-template-areas:"hint map" "search map" "actions map" "confirmation confirmation" "error error";align-items:start;column-gap:24px;row-gap:14px}
 .map-service-page--restaurant .checkout-hint{grid-area:hint;padding:14px 15px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc}.map-service-page--restaurant .delivery-location-search{grid-area:search}.map-service-page--restaurant .delivery-location-map{grid-area:map;height:380px;min-height:340px;border-radius:14px}.map-service-page--restaurant .delivery-location-map-actions{grid-area:actions;padding:14px;border:1px solid #e2e8f0;border-radius:12px}.map-service-page--restaurant .delivery-location-confirmation{grid-area:confirmation}.map-service-page--restaurant .checkout-error{grid-area:error}
 @media(max-width:760px){.map-service-page{padding:8px 10px 12px}.map-service-page--restaurant .delivery-location-picker{grid-template-columns:minmax(0,1fr);grid-template-areas:"hint" "search" "map" "actions" "confirmation" "error";gap:12px}.map-service-page--restaurant .delivery-location-map{height:300px;min-height:260px}.delivery-location-search-row{grid-template-columns:minmax(0,1fr)}.delivery-location-search-row .button{width:100%}.delivery-location-map{height:250px;min-height:220px}}
+
+
+/* Fill-height mode is used only inside the mobile delivery-location dialog. */
+html:has(.map-service-page--fill),body:has(.map-service-page--fill),#map-service-root:has(.map-service-page--fill){height:100%;min-height:0;overflow:hidden}
+.map-service-page--fill{height:100%;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding:8px 10px 12px}
+.map-service-page--fill .delivery-location-picker{flex:1 1 auto;min-height:0;display:grid;grid-template-rows:auto auto minmax(180px,1fr) auto auto;gap:8px;overflow:hidden}
+.map-service-page--fill .checkout-hint{font-size:11px;line-height:1.25}
+.map-service-page--fill .delivery-location-search-row{grid-template-columns:minmax(0,1fr) auto;gap:6px}
+.map-service-page--fill .delivery-location-search-input,.map-service-page--fill .button{min-height:36px;padding:7px 10px}
+.map-service-page--fill .delivery-location-map{height:auto;min-height:0;margin:0;border-radius:10px}
+.map-service-page--fill .delivery-location-map-actions{gap:5px;align-items:stretch}
+.map-service-page--fill .delivery-location-map-actions span{font-size:11px}
+.map-service-page--fill .delivery-location-confirmation{gap:5px;padding:8px}
+.map-service-page--fill .delivery-location-confirmation .button{min-height:36px}
+.map-service-page--fill .checkout-error{padding:7px 9px;font-size:12px}
+@media(max-width:760px){.map-service-page--fill .delivery-location-search-row{grid-template-columns:minmax(0,1fr) auto}.map-service-page--fill .delivery-location-search-row .button{width:auto}}
