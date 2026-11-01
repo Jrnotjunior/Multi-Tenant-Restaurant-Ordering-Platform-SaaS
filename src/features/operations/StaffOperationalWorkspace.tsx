@@ -4,6 +4,7 @@ import { userDisplayName } from '../../domain/userDisplayName';
 import { supabase } from '../../lib/supabase';
 import { loadKitchenMenuForTenant, publicMenuPhoto, type KitchenMenu } from '../management/menuService';
 import type { StaffWorkspaceRole } from './OperationalDashboard';
+import { printKitchenTicket } from './kitchenTicketPrinter';
 import './staff-workspace.css';
 import './rider-dashboard.css';
 
@@ -288,6 +289,11 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
 
   async function act(order: Order, action: StaffOrderAction, description: string) {
     if (!supabase) return;
+    let ticketWindow: Window | null = null;
+    if (role === 'cashier' && action === 'confirm') {
+      try { ticketWindow = window.open('', '_blank', 'popup,width=440,height=720'); }
+      catch { ticketWindow = null; }
+    }
     if ((action === 'cancel' || action === 'deliver') && !window.confirm(
       action === 'deliver' ? `Confirm order #${order.order_number} has been delivered?` : `Cancel order #${order.order_number} before it enters the kitchen?`,
     )) return;
@@ -310,10 +316,27 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         const { error: actionError } = await supabase.rpc('transition_staff_order', { p_tenant_id: tenantId, p_order_id: order.id, p_action: action });
         if (actionError) throw actionError;
       }
-      setNotice(`Order #${order.order_number}: ${description}.`);
+      let confirmationNotice = `Order #${order.order_number}: ${description}.`;
+      if (role === 'cashier' && action === 'confirm') {
+        if (ticketWindow && !ticketWindow.closed) {
+          try {
+            printKitchenTicket(ticketWindow, order, restaurantName);
+            confirmationNotice = `Order #${order.order_number} sent to the kitchen. Choose the kitchen printer in the print dialog.`;
+          } catch {
+            ticketWindow.close();
+            confirmationNotice = `Order #${order.order_number} sent to the kitchen, but the kitchen ticket could not be opened for printing.`;
+          }
+        } else {
+          confirmationNotice = `Order #${order.order_number} sent to the kitchen. Allow pop-ups to print its kitchen ticket.`;
+        }
+      }
+      setNotice(confirmationNotice);
       if ((role === 'kitchen' && action === 'mark_ready') || (role === 'dispatcher' && action === 'dispatch')) setSelectedCashierOrderId(null);
       await load(true);
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to update this order.'); }
+    } catch (reason) {
+      if (ticketWindow && !ticketWindow.closed) ticketWindow.close();
+      setError(reason instanceof Error ? reason.message : 'Unable to update this order.');
+    }
     finally { setBusy(''); }
   }
 
