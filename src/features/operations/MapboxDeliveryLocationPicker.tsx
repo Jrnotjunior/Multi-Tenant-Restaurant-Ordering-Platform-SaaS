@@ -18,7 +18,7 @@ type InitMessage = {
   initialLongitude: number | null;
 };
 
-const CENTRAL_MAP_SERVICE_URL = 'https://app.web2table.io/maps.html';
+const CENTRAL_MAP_SERVICE_URL = 'https://app.web2table.io/maps.html?layout=fill';
 
 function mapServiceUrl(): { href: string; origin: string; configurationError: string } {
   // All tenants use the same centrally managed map service. Do not permit
