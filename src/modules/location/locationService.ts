@@ -217,6 +217,38 @@ export async function searchAddresses(query: string): Promise<GeocodingFeature[]
   return philippines.sort((a, b) => priority(a) - priority(b)).slice(0, 10);
 }
 
+async function resolveBarangayByCoordinates(latitude: number, longitude: number) {
+  const baseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
+  const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
+  if (!baseUrl || !publishableKey) return null;
+
+  const response = await fetch(`${baseUrl.replace(/\\/$/, '')}/functions/v1/resolve-philippine-barangay`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: publishableKey,
+      Authorization: `Bearer ${publishableKey}`,
+    },
+    body: JSON.stringify({ latitude, longitude }),
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!response.ok) {
+    console.warn('Philippine barangay lookup unavailable', { status: response.status });
+    return null;
+  }
+  const result = await response.json() as {
+    barangay?: string;
+    city?: string;
+    psgcCode?: string;
+    matched?: boolean;
+    source?: string;
+    boundaryDate?: string;
+  };
+  return result.matched && result.barangay
+    ? { barangay: result.barangay, city: result.city ?? '', psgcCode: result.psgcCode ?? '', source: result.source ?? '', boundaryDate: result.boundaryDate ?? '' }
+    : null;
+}
+
 export async function reverseGeocodeLocation(latitude: number, longitude: number): Promise<GeocodingFeature | null> {
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)
     || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
@@ -228,5 +260,25 @@ export async function reverseGeocodeLocation(latitude: number, longitude: number
     lang: 'en',
   });
   const data = await requestJson(`https://photon.komoot.io/reverse?${params.toString()}`);
-  return data.features?.[0] ?? null;
+  const feature = data.features?.[0] ?? null;
+  if (!feature) return null;
+
+  // Use a coordinate-in-polygon boundary lookup for barangay identity instead
+  // of guessing it from Photon suburb/locality/district labels.
+  try {
+    const boundary = await resolveBarangayByCoordinates(latitude, longitude);
+    if (boundary) {
+      feature.properties = {
+        ...(feature.properties ?? {}),
+        barangay: boundary.barangay,
+        context: {
+          ...(feature.properties?.context ?? {}),
+          barangay: { name: boundary.barangay },
+        },
+      };
+    }
+  } catch (error) {
+    console.warn('Unable to resolve barangay from boundaries.', error);
+  }
+  return feature;
 }
