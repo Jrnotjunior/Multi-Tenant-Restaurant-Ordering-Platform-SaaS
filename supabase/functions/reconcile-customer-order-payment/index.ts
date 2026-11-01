@@ -1,4 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { withSupabase } from "npm:@supabase/server@1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,15 +9,6 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
   status, headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store" },
 });
 
-function serviceKey() {
-  try {
-    const values = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}");
-    return values.default ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-  } catch {
-    return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-  }
-}
-
 function paymongoKey(environment: string) {
   const explicit = Deno.env.get(environment === "live" ? "PAYMONGO_LIVE_SECRET_KEY" : "PAYMONGO_TEST_SECRET_KEY");
   const fallback = Deno.env.get("PAYMONGO_SECRET_KEY") ?? "";
@@ -26,22 +17,18 @@ function paymongoKey(environment: string) {
 
 const basic = (key: string) => "Basic " + btoa(key + ":");
 
-Deno.serve(async (request: Request) => {
+Deno.serve(withSupabase({ auth: ["user", "publishable"] }, async (request: Request, ctx) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (request.method !== "POST") return json({ error: "Method not allowed." }, 405);
 
   try {
-    const url = Deno.env.get("SUPABASE_URL") ?? "";
-    const key = serviceKey();
-    if (!url || !key) return json({ error: "Payment service is not configured." }, 500);
-
     const body = await request.json().catch(() => ({}));
     const trackingToken = String(body.trackingToken ?? "").trim();
     if (!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(trackingToken)) {
       return json({ error: "A valid order tracking token is required." }, 400);
     }
 
-    const admin = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
+    const admin = ctx.supabaseAdmin;
     const { data: order, error: orderError } = await admin.from("customer_orders")
       .select("id,tenant_id,total_centavos,payment_status,payment_method")
       .eq("idempotency_key", trackingToken).maybeSingle();
@@ -130,10 +117,12 @@ Deno.serve(async (request: Request) => {
     if (!finalized?.success) return json({ error: "The paid order could not be finalized." }, 409);
     return json({ success: true, status: "paid" });
   } catch (error) {
+    const errorRecord = error && typeof error === "object" ? error as { code?: unknown; message?: unknown } : null;
     console.error("reconcile-customer-order-payment failed", {
       name: error instanceof Error ? error.name : "UnknownError",
-      message: error instanceof Error ? error.message : String(error),
+      code: typeof errorRecord?.code === "string" ? errorRecord.code : undefined,
+      message: error instanceof Error ? error.message : typeof errorRecord?.message === "string" ? errorRecord.message : String(error),
     });
     return json({ error: "Unable to verify the PayMongo payment right now." }, 500);
   }
-});
+}));
