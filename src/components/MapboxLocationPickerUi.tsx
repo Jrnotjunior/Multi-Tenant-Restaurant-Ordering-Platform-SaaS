@@ -291,7 +291,15 @@ export function MapboxLocationPickerUi({
                   type="button"
                   onClick={() => selectSearchResult(result)}
                 >
-                  {properties.full_address || [properties.name, properties.place_formatted].filter(Boolean).join(', ') || 'Map location'}
+                  {(() => {
+                    const label = properties.full_address || [properties.name, properties.place_formatted].filter(Boolean).join(', ') || 'Map location';
+                    const requestedNumber = searchQuery.trim().match(/^\\s*(\\d+[A-Za-z]?)\\b/)?.[1];
+                    const matchedNumber = properties.housenumber?.trim();
+                    const isStreetResult = Boolean(properties.street || /\\b(street|st\\.?|road|rd\\.?|avenue|ave\\.?|drive|dr\\.?|lane|ln\\.?|boulevard|blvd|highway|hwy)\\b/i.test(properties.name ?? ''));
+                    return requestedNumber && !matchedNumber && isStreetResult
+                      ? `Street match only — house number ${requestedNumber} not verified: ${label}`
+                      : label;
+                  })()}
                 </button>
               );
             })}
