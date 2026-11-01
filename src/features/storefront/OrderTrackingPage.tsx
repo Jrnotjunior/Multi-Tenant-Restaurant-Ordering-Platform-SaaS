@@ -109,6 +109,7 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
     : ['Your order has been received by the restaurant.', 'The restaurant has confirmed your order.', 'The kitchen is preparing your food.', 'Your order is being prepared for dispatch.', 'Your order is on its way to you.', 'Your order has been delivered. Thank you!'];
   const current = status ? stages.indexOf(status.order_status) : -1;
   const terminal = status ? ['rejected', 'cancelled'].includes(status.order_status) : false;
+  const isCancelled = status?.order_status === 'cancelled';
   const currentStage = current < 0 ? (terminal ? (status?.order_status ?? 'unknown').replaceAll('_', ' ') : 'Order Received') : labels[current];
   const orderNumText = orderNumber ? String(orderNumber).padStart(5, '0') : '…';
   const orderTypeLabel = dineIn ? 'Dine-in' : orderType.replaceAll('-', ' ').replace(/\\b\\w/g, x => x.toUpperCase());
@@ -130,13 +131,20 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
       ? normalizedPaymentStatus.charAt(0).toUpperCase() + normalizedPaymentStatus.slice(1)
       : 'Unpaid';
   const paymentLabel = isPaymentRefunded ? 'Refunded' : isPaymentPaid ? 'Paid' : paymentOptionLabel;
+  const cancellationMessage = status?.refund_status === 'pending'
+    ? 'Your order was cancelled. PayMongo is processing your refund.'
+    : status?.refund_status === 'refunded'
+      ? 'Your order was cancelled and the PayMongo refund is complete.'
+      : status?.refund_status === 'failed'
+        ? 'Your order was cancelled, but PayMongo could not process the refund automatically. Please contact the restaurant for help.'
+        : 'This order has been cancelled.';
 
   return <main className="sf-order-tracking-page">
     {trackingToken && status ? <section className="sf-tracking-receipt" aria-live="polite" aria-label="Live order tracking">
       <header className="sf-tracking-order-heading">
-        <span className="sf-tracking-eyebrow">{dineInCashOrder ? 'DINE-IN · TELL THE CASHIER' : orderTypeLabel.toUpperCase()}</span>
+        <span className="sf-tracking-eyebrow">{isCancelled ? 'ORDER CANCELLED' : dineInCashOrder ? 'DINE-IN · TELL THE CASHIER' : orderTypeLabel.toUpperCase()}</span>
         <h1>ORD-{orderNumText}</h1>
-        <p>{dineInCashOrder ? 'Give this order number to the cashier to help them find your order.' : 'Your order status updates automatically.'}</p>
+        <p>{isCancelled ? cancellationMessage : dineInCashOrder ? 'Give this order number to the cashier to help them find your order.' : 'Your order status updates automatically.'}</p>
       </header>
       <section className="sf-tracking-details">
         <div><span className="sf-tracking-eyebrow">YOUR ORDER</span><h2>Order details</h2></div>
@@ -159,23 +167,15 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
           {cancelError && <p className="sf-tracking-error" role="alert">{cancelError}</p>}
         </section>}
       </div>}
-      <ol className="sf-tracking-timeline">{stages.map((stage, index) => {
+      {!isCancelled && <ol className="sf-tracking-timeline">{stages.map((stage, index) => {
         const done = current >= index && !terminal;
         const active = current === index && !terminal;
         return <li key={stage} className={done ? 'is-complete' : ''}>
           <span className="sf-tracking-timeline-marker">{done ? '✓' : index + 1}</span>
           <div><h3>{labels[index]}</h3><p>{descriptions[index]}</p>{active && <span className="sf-tracking-current">Current status</span>}</div>
         </li>;
-      })}</ol>
-      {terminal && <p className="sf-tracking-error" role="status">{status?.order_status === 'cancelled' && status.refund_status === 'pending'
-        ? 'Your order was cancelled. PayMongo is processing your refund.'
-        : status?.order_status === 'cancelled' && status.refund_status === 'refunded'
-          ? 'Your order was cancelled and the PayMongo refund is complete.'
-          : status?.order_status === 'cancelled' && status.refund_status === 'failed'
-            ? 'Your order was cancelled, but PayMongo could not process the refund automatically. Please contact the restaurant for help.'
-            : status?.order_status === 'cancelled'
-              ? 'Your order was cancelled.'
-              : `This order was ${currentStage.toLowerCase()}. Please contact the restaurant if you need assistance.`}</p>}
+      })}</ol>}
+      {terminal && !isCancelled && <p className="sf-tracking-error" role="status">This order was {currentStage.toLowerCase()}. Please contact the restaurant if you need assistance.</p>}
       {error && <p className="sf-tracking-error" role="status">{error}</p>}
       <footer className="sf-tracking-footer"><span>{orderTypeLabel.charAt(0).toUpperCase() + orderTypeLabel.slice(1)}</span><span>{paymentOptionLabel.charAt(0).toUpperCase() + paymentOptionLabel.slice(1)}</span><span>{paymentStatusLabel.charAt(0).toUpperCase() + paymentStatusLabel.slice(1)}</span></footer>
     </section> : trackingToken ? <section className="sf-tracking-receipt"><p>{error || 'Connecting to your order…'}</p></section> : <section className="sf-tracking-receipt"><p>You don’t have an order to track yet. After placing an order, you can return here to follow its progress.</p></section>}
