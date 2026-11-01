@@ -7,12 +7,13 @@ import type { StaffWorkspaceRole } from './OperationalDashboard';
 import { KitchenTicketPreview } from './KitchenTicketPreview';
 import './staff-workspace.css';
 import './rider-dashboard.css';
+import { buildRiderNavigationUrls } from './riderNavigation';
 
 type Item = { id: string; item_name: string; quantity: number; line_total_centavos: number; options?: { name?: string }[] };
 type Order = {
   id: string; order_number: number; branch_id: string; branch_name: string;
   order_type: 'delivery' | 'take_out' | 'pickup' | 'dine_in'; customer_name: string; customer_phone: string;
-  delivery_address: string | null; delivery_notes: string; subtotal_centavos: number; delivery_fee_centavos: number | null;
+  delivery_address: string | null; delivery_latitude: number | null; delivery_longitude: number | null; delivery_notes: string; subtotal_centavos: number; delivery_fee_centavos: number | null;
   total_centavos: number | null; order_status: string; payment_status: string; payment_channel?: 'online' | 'other'; created_at: string;
   assigned_rider_user_id: string | null; assignment_status: string | null; items: Item[];
 };
@@ -453,8 +454,14 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
                 <div><p className="rider-delivery-label">Delivery destination</p><h2>Customer address</h2></div>
                 <span className="rider-delivery-location-icon" aria-hidden="true">⌖</span>
               </div>
-              {order.delivery_address ? <a className="rider-delivery-address-link" href={'https://www.openstreetmap.org/search?query=' + encodeURIComponent(order.delivery_address)} target="_blank" rel="noreferrer"><span className="rider-delivery-address-pin" aria-hidden="true">⌖</span><span><strong>Delivery address</strong><span className="rider-delivery-address">{order.delivery_address}</span></span><span className="rider-delivery-address-chevron" aria-hidden="true">›</span></a> : <p className="rider-delivery-address">No delivery address provided</p>}
-              {order.delivery_address && <p className="rider-delivery-helper">Tap the address to open it in OpenStreetMap or Waze.</p>}
+              {order.delivery_address ? <div className="rider-delivery-address-link"><span className="rider-delivery-address-pin" aria-hidden="true">⌖</span><span><strong>Delivery address</strong><span className="rider-delivery-address">{order.delivery_address}</span></span></div> : <p className="rider-delivery-address">No delivery address provided</p>}
+              {order.delivery_address && (() => {
+                const navigation = buildRiderNavigationUrls(order.delivery_latitude, order.delivery_longitude);
+                return navigation ? <div className="rider-navigation-actions" aria-label="Choose navigation app">
+                  <a className="rider-navigation-button" href={navigation.waze} target="_blank" rel="noopener noreferrer">Navigate with Waze</a>
+                  <a className="rider-navigation-button" href={navigation.googleMaps} target="_blank" rel="noopener noreferrer">Navigate with Google Maps</a>
+                </div> : <p className="rider-delivery-helper" role="note">Navigation coordinates are unavailable for this order. Contact the customer or dispatcher to confirm the exact delivery location.</p>;
+              })()}
               {order.delivery_notes && <p className="rider-delivery-helper">Delivery notes: {order.delivery_notes}</p>}
             </section>
             <section className="rider-delivery-card rider-order-details-card">
