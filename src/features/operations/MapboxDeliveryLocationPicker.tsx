@@ -36,6 +36,7 @@ export function MapboxDeliveryLocationPicker({
   restaurantSlug,
   initialLatitude = null,
   initialLongitude = null,
+  fillContainer = false,
 }: {
   disabled?: boolean;
   onSelect: (address: DeliveryLocationAddress) => void | Promise<void>;
@@ -44,6 +45,7 @@ export function MapboxDeliveryLocationPicker({
   restaurantSlug: string;
   initialLatitude?: number | null;
   initialLongitude?: number | null;
+  fillContainer?: boolean;
 }) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const callbacksRef = useRef({ onSelect, onLocationChange, disabled, variant, initialLatitude, initialLongitude, restaurantSlug });
@@ -156,7 +158,7 @@ export function MapboxDeliveryLocationPicker({
         src={service.href}
         title={variant === 'restaurant' ? 'Restaurant map location' : 'Delivery address map'}
         loading="eager"
-        style={{ height: `${frameHeight}px`, minHeight: 0 }}
+        style={fillContainer ? { height: '100%', minHeight: 0, flex: '1 1 auto' } : { height: `${frameHeight}px`, minHeight: 0 }}
         allow="geolocation"
         referrerPolicy="strict-origin-when-cross-origin"
         onLoad={sendInit}
