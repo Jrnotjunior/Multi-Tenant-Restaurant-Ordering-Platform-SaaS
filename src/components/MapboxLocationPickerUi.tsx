@@ -4,7 +4,7 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 setWorkerUrl(workerUrl);
-import { geocodingFeatureToAddress, reverseGeocodeLocation, searchAddresses as geocodeAddresses, type GeocodingFeature } from '../modules/location/locationService';
+import { geocodingFeatureToAddress, matchesRequestedHouseNumber, requestedHouseNumber, reverseGeocodeLocation, searchAddresses as geocodeAddresses, type GeocodingFeature } from '../modules/location/locationService';
 import type { DeliveryLocationAddress } from '../modules/location/mapServiceProtocol';
 export type { DeliveryLocationAddress } from '../modules/location/mapServiceProtocol';
 
@@ -182,9 +182,8 @@ export function MapboxLocationPickerUi({
       address,
       false,
     );
-    const requestedNumber = searchQuery.trim().match(/^\s*(\d+[A-Za-z]?)\b/)?.[1];
-    const matchedNumber = feature.properties?.housenumber?.trim();
-    setRequiresPinAdjustment(Boolean(requestedNumber && !matchedNumber));
+    const requestedNumber = requestedHouseNumber(searchQuery);
+    setRequiresPinAdjustment(Boolean(requestedNumber && !matchesRequestedHouseNumber(searchQuery, feature.properties?.housenumber)));
     mapRef.current?.setZoom(17);
     setSearchResults([]);
     setSearchQuery(address.formattedAddress || address.address);
@@ -299,11 +298,10 @@ export function MapboxLocationPickerUi({
                 >
                   {(() => {
                     const label = properties.full_address || [properties.name, properties.place_formatted].filter(Boolean).join(', ') || 'Map location';
-                    const requestedNumber = searchQuery.trim().match(/^\s*(\d+[A-Za-z]?)\b/)?.[1];
+                    const requestedNumber = requestedHouseNumber(searchQuery);
                     const matchedNumber = properties.housenumber?.trim();
-                    const isStreetResult = Boolean(properties.street || /\b(street|st\.?|road|rd\.?|avenue|ave\.?|drive|dr\.?|lane|ln\.?|boulevard|blvd|highway|hwy)\b/i.test(properties.name ?? ''));
-                    return requestedNumber && !matchedNumber && isStreetResult
-                      ? `Street match only — house number ${requestedNumber} not verified: ${label}`
+                    return requestedNumber && !matchesRequestedHouseNumber(searchQuery, matchedNumber)
+                      ? `House number ${requestedNumber} not verified${matchedNumber ? ` (provider matched ${matchedNumber})` : ''}: ${label}`
                       : label;
                   })()}
                 </button>
@@ -317,7 +315,7 @@ export function MapboxLocationPickerUi({
 
       {requiresPinAdjustment && (
         <p className="checkout-error" role="alert">
-          This result identifies the street, not a verified house number. Drag the pin to your exact delivery entrance or tap the map before confirming.
+          This result does not verify the requested house number. Drag the pin to your exact delivery entrance or tap the map before confirming.
         </p>
       )}
 
