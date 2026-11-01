@@ -75,9 +75,13 @@ function normalizePhotonFeature(feature: {
   const coordinates = feature.geometry?.coordinates;
   const housenumber = stringValue('housenumber');
   const street = stringValue('street');
+  const namedStreet = /\b(street|st\.?|road|rd\.?|avenue|ave\.?|drive|dr\.?|lane|ln\.?|boulevard|blvd\.?|highway|hwy)\b/i.test(stringValue('name'))
+    ? stringValue('name')
+    : '';
+  const resolvedStreet = street || namedStreet;
   const name = nonEmpty(stringValue('name'), street, stringValue('city'));
   const parts = [
-    [housenumber, street].filter(Boolean).join(' '),
+    [housenumber, resolvedStreet].filter(Boolean).join(' '),
     stringValue('suburb'),
     stringValue('city'),
     stringValue('state'),
@@ -93,7 +97,7 @@ function normalizePhotonFeature(feature: {
       ...(p as GeocodingFeature['properties']),
       geocoding_id: osmId ? `${osmType || 'osm'}:${osmId}` : String(feature.id ?? ''),
       name,
-      address: nonEmpty(stringValue('housenumber') && street ? `${housenumber} ${street}` : '', street, stringValue('name')),
+      address: nonEmpty(housenumber && resolvedStreet ? `${housenumber} ${resolvedStreet}` : '', resolvedStreet, stringValue('name')),
       full_address: parts.join(', ') || name,
       place_formatted: [stringValue('city'), stringValue('state'), stringValue('country')].filter(Boolean).join(', '),
       coordinates: {
@@ -178,7 +182,7 @@ async function requestJson(url: string) {
 }
 
 export async function searchAddresses(query: string): Promise<GeocodingFeature[]> {
-  const value = query.trim().replace(/\\s+/g, ' ');
+  const value = query.trim().replace(/\s+/g, ' ');
   if (value.length < 3) return [];
 
   const params = new URLSearchParams({
@@ -198,7 +202,17 @@ export async function searchAddresses(query: string): Promise<GeocodingFeature[]
 
   // Keep Philippine results when the provider supplies country metadata, while
   // retaining results with no country field so useful incomplete records survive.
+  const addressLikeQuery = /\d/.test(value) || /\b(street|st\.?|road|rd\.?|avenue|ave\.?|drive|dr\.?|lane|ln\.?|boulevard|blvd|highway|hwy)\b/i.test(value);
   const philippines = features.filter((feature) => {
+    const properties = feature.properties ?? {};
+    // Do not present a city-only hit as an address match for a house/street query.
+    if (addressLikeQuery && !properties.housenumber && !properties.street) {
+      const name = properties.name?.trim().toLowerCase() ?? '';
+      const city = properties.city?.trim().toLowerCase() ?? '';
+      const type = `${properties.type ?? ''} ${properties.osm_key ?? ''} ${properties.osm_value ?? ''}`.toLowerCase();
+      const hasStreetName = /\b(street|st\.?|road|rd\.?|avenue|ave\.?|drive|dr\.?|lane|ln\.?|boulevard|blvd|highway|hwy)\b/i.test(name);
+      if (!hasStreetName && (name === city || !type.includes('street') && !type.includes('highway'))) return false;
+    }
     const country = feature.properties?.country?.trim().toLowerCase();
     return !country || country === 'philippines' || country === 'the philippines';
   });
