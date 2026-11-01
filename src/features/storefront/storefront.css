@@ -493,7 +493,7 @@
 .sf-tracking-error{padding:10px;border-radius:8px;background:var(--sf-muted-bg);font-size:var(--sf-font-size-12)}
 .sf-tracking-cancel{display:grid;gap:10px;margin-top:18px;padding:14px;border:1px solid var(--sf-border);border-radius:11px}
 .sf-tracking-cancel>p{margin:0;font-size:var(--sf-font-size-13);line-height:1.5}
-.sf-tracking-cancel>div{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px}
+.sf-tracking-cancel>div{display:flex;justify-content:center;flex-wrap:wrap;gap:8px}
 .sf-tracking-cancel button{min-height:40px;padding:0 13px;border:1px solid var(--sf-border);border-radius:8px;font:inherit;font-size:var(--sf-font-size-13);font-weight:800;cursor:pointer}
 .sf-tracking-cancel button:disabled{opacity:.55;cursor:not-allowed}
 .sf-tracking-cancel button:focus-visible{outline:3px solid color-mix(in srgb,var(--sf-font-color) 28%,transparent);outline-offset:2px}
