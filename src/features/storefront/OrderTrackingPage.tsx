@@ -90,6 +90,7 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
 
   const orderType = status?.order_type?.toLowerCase().replaceAll('_', '-') ?? 'dine-in';
   const dineIn = ['dine-in', 'dinein'].includes(orderType);
+  const dineInCashOrder = dineIn && orderMeta.paymentMethod === 'cash';
   const stages = dineIn
     ? ['pending_confirmation', 'confirmed', 'preparing', 'ready_for_serve', 'served']
     : ['pending_confirmation', 'confirmed', 'preparing', 'ready_for_dispatch', 'out_for_delivery', 'delivered'];
@@ -121,9 +122,9 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
   return <main className="sf-order-tracking-page">
     {trackingToken && status ? <section className="sf-tracking-receipt" aria-live="polite" aria-label="Live order tracking">
       <header className="sf-tracking-order-heading">
-        <span className="sf-tracking-eyebrow">{dineIn ? 'DINE-IN · TELL THE CASHIER' : orderTypeLabel.toUpperCase()}</span>
+        <span className="sf-tracking-eyebrow">{dineInCashOrder ? 'DINE-IN · TELL THE CASHIER' : orderTypeLabel.toUpperCase()}</span>
         <h1>ORD-{orderNumText}</h1>
-        <p>{dineIn ? 'Give this order number to the cashier to help them find your order.' : 'Your order status updates automatically.'}</p>
+        <p>{dineInCashOrder ? 'Give this order number to the cashier to help them find your order.' : 'Your order status updates automatically.'}</p>
       </header>
       <section className="sf-tracking-details">
         <div><span className="sf-tracking-eyebrow">YOUR ORDER</span><h2>Order details</h2></div>
