@@ -4,7 +4,7 @@ import { userDisplayName } from '../../domain/userDisplayName';
 import { supabase } from '../../lib/supabase';
 import { loadKitchenMenuForTenant, publicMenuPhoto, type KitchenMenu } from '../management/menuService';
 import type { StaffWorkspaceRole } from './OperationalDashboard';
-import { printKitchenTicket } from './kitchenTicketPrinter';
+import { KitchenTicketPreview } from './KitchenTicketPreview';
 import './staff-workspace.css';
 import './rider-dashboard.css';
 
@@ -68,6 +68,8 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState('');
   const [selectedCashierOrderId, setSelectedCashierOrderId] = useState<string | null>(null);
+  const [latestKitchenTicket, setLatestKitchenTicket] = useState<Order | null>(null);
+  const [kitchenTicketPreviewOpen, setKitchenTicketPreviewOpen] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [accountEmail, setAccountEmail] = useState('');
@@ -289,11 +291,6 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
 
   async function act(order: Order, action: StaffOrderAction, description: string) {
     if (!supabase) return;
-    let ticketWindow: Window | null = null;
-    if (role === 'cashier' && action === 'confirm') {
-      try { ticketWindow = window.open('', '_blank', 'popup,width=440,height=720'); }
-      catch { ticketWindow = null; }
-    }
     if ((action === 'cancel' || action === 'deliver') && !window.confirm(
       action === 'deliver' ? `Confirm order #${order.order_number} has been delivered?` : `Cancel order #${order.order_number} before it enters the kitchen?`,
     )) return;
@@ -318,25 +315,15 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       }
       let confirmationNotice = `Order #${order.order_number}: ${description}.`;
       if (role === 'cashier' && action === 'confirm') {
-        if (ticketWindow && !ticketWindow.closed) {
-          try {
-            printKitchenTicket(ticketWindow, order, restaurantName);
-            confirmationNotice = `Order #${order.order_number} sent to the kitchen. Choose the kitchen printer in the print dialog.`;
-          } catch {
-            ticketWindow.close();
-            confirmationNotice = `Order #${order.order_number} sent to the kitchen, but the kitchen ticket could not be opened for printing.`;
-          }
-        } else {
-          confirmationNotice = `Order #${order.order_number} sent to the kitchen. Allow pop-ups to print its kitchen ticket.`;
-        }
+        setLatestKitchenTicket(order);
+        setKitchenTicketPreviewOpen(true);
+        setSelectedCashierOrderId(null);
+        confirmationNotice = `Order #${order.order_number} sent to the kitchen. Review its ticket before printing.`;
       }
       setNotice(confirmationNotice);
       if ((role === 'kitchen' && action === 'mark_ready') || (role === 'dispatcher' && action === 'dispatch')) setSelectedCashierOrderId(null);
       await load(true);
-    } catch (reason) {
-      if (ticketWindow && !ticketWindow.closed) ticketWindow.close();
-      setError(reason instanceof Error ? reason.message : 'Unable to update this order.');
-    }
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to update this order.'); }
     finally { setBusy(''); }
   }
 
@@ -626,6 +613,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         {role !== 'kitchen' && <div className="staff-queue-toolbar-end staff-payment-toolbar"><div className="staff-payment-tabs" role="tablist" aria-label="Payment category"><button type="button" role="tab" aria-selected={paymentTab === 'all'} className={paymentTab === 'all' ? 'is-selected' : ''} onClick={() => setPaymentTab('all')}>All</button><button type="button" role="tab" aria-selected={paymentTab === 'online_paid'} className={paymentTab === 'online_paid' ? 'is-selected' : ''} onClick={() => setPaymentTab('online_paid')}>Online Paid <span className="staff-payment-count">{paymentCounts.onlinePaid}</span></button><button type="button" role="tab" aria-selected={paymentTab === 'unpaid'} className={paymentTab === 'unpaid' ? 'is-selected' : ''} onClick={() => setPaymentTab('unpaid')}>Unpaid <span className="staff-payment-count">{paymentCounts.unpaid}</span></button></div><span className="staff-result-count">{visibleOrders.length} {visibleOrders.length === 1 ? 'order' : 'orders'}</span></div>}
       </div>
       {(error || notice) && <p className={'staff-notice ' + (error ? 'is-error' : 'is-success')} role={error ? 'alert' : 'status'}>{error || notice}</p>}
+      {role === 'cashier' && latestKitchenTicket && !kitchenTicketPreviewOpen && <button className="staff-button staff-button-secondary" type="button" onClick={() => setKitchenTicketPreviewOpen(true)}>View latest kitchen ticket</button>}
       {loading ? <p className="staff-empty"><span className="staff-loading-dot" aria-hidden="true" /> Loading orders…</p> : visibleOrders.length === 0 ? <div className="staff-empty"><span className="staff-empty-icon" aria-hidden="true">{orders.length > 0 ? '⌕' : '✓'}</span><h3>{orders.length > 0 ? 'No matching orders' : 'You’re all caught up'}</h3><p>{orders.length > 0 ? 'Try another payment tab or search term.' : (role === 'kitchen' ? 'Accepted orders will appear here. Start preparing each ticket, then mark it ready for handoff.' : 'New orders will appear here automatically. You can keep working while the queue stays up to date.')}</p></div> :
         <div className="staff-order-list">{visibleOrders.map(order => {
           const buttons = actions(order);
@@ -669,6 +657,11 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         </section>
       </div>;
     })()}
+    {role === 'cashier' && kitchenTicketPreviewOpen && latestKitchenTicket && <KitchenTicketPreview
+      order={latestKitchenTicket}
+      restaurantName={restaurantName}
+      onClose={() => setKitchenTicketPreviewOpen(false)}
+    />}
     </>}
   </main>;
 }

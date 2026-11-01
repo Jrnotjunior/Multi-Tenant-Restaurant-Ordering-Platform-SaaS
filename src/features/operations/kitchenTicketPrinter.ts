@@ -1,4 +1,5 @@
 type KitchenTicketItem = {
+  id: string;
   item_name: string;
   quantity: number;
   options?: { name?: string }[];

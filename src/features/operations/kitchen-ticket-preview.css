@@ -1,0 +1,23 @@
+.staff-kitchen-ticket-preview-backdrop{position:fixed;inset:0;z-index:1100;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(16,27,47,.58)}
+.staff-kitchen-ticket-preview-dialog{display:flex;flex-direction:column;gap:16px;width:min(100%,540px);max-height:min(92vh,900px);overflow:auto;padding:22px;border:1px solid var(--color-border,#DCE3ED);border-radius:16px;background:var(--color-surface,#fff);color:var(--color-text,#101B2F);box-shadow:0 24px 80px #101b2f40}
+.staff-kitchen-ticket-preview-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.staff-kitchen-ticket-preview-heading p{margin:0 0 4px;color:var(--color-muted,#526782);font-size:.72rem;font-weight:800;letter-spacing:.1em}
+.staff-kitchen-ticket-preview-heading h2{margin:0;font-size:1.25rem}
+.staff-kitchen-ticket-preview-close{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border:0;border-radius:50%;background:var(--color-page,#F1F4F8);color:var(--color-text,#101B2F);font-size:24px;cursor:pointer}
+.staff-kitchen-ticket-paper{width:min(100%,360px);margin:0 auto;padding:22px;border:1px solid var(--color-border,#DCE3ED);border-radius:8px;background:#fff;color:#111;font:14px/1.4 Arial,sans-serif;box-shadow:0 4px 16px #101b2f12}
+.staff-kitchen-ticket-paper>header{display:grid;justify-items:center;gap:5px;padding-bottom:14px;border-bottom:1px dashed #555;text-align:center}
+.staff-kitchen-ticket-brand{font-size:16px}
+.staff-kitchen-ticket-label{font-size:10px;font-weight:700;letter-spacing:.14em}
+.staff-kitchen-ticket-number{font-size:26px;line-height:1.1}
+.staff-kitchen-ticket-type{text-transform:uppercase}
+.staff-kitchen-ticket-meta{display:grid;gap:4px;padding:12px 0;border-bottom:1px dashed #555;font-size:12px;overflow-wrap:anywhere}
+.staff-kitchen-ticket-items{display:grid;gap:10px;list-style:none;margin:0;padding:14px 0;border-bottom:1px dashed #555}
+.staff-kitchen-ticket-items li{display:grid;grid-template-columns:38px minmax(0,1fr);gap:8px;align-items:start;break-inside:avoid}
+.staff-kitchen-ticket-items li>strong{font-size:16px}
+.staff-kitchen-ticket-items li>span{font-weight:700;overflow-wrap:anywhere}
+.staff-kitchen-ticket-items small{display:block;margin-top:3px;font-size:12px;font-weight:400}
+.staff-kitchen-ticket-note{display:grid;gap:4px;padding:12px 0;border-bottom:1px dashed #555;white-space:pre-wrap;overflow-wrap:anywhere}
+.staff-kitchen-ticket-paper>footer{padding-top:12px;text-align:center;font-size:11px}
+.staff-kitchen-ticket-preview-error{margin:0;color:#9F2525;font-size:.88rem}
+.staff-kitchen-ticket-preview-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+@media(max-width:520px){.staff-kitchen-ticket-preview-backdrop{padding:10px}.staff-kitchen-ticket-preview-dialog{gap:12px;max-height:96vh;padding:16px 12px}.staff-kitchen-ticket-paper{padding:16px}}
