@@ -656,7 +656,12 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
             paymentMethod: submission.paymentMethod,
              loyaltyPointsToRedeem: submission.loyaltyPointsToRedeem,
           } });
-          if (error) throw new Error(error.message || 'Order could not be placed.');
+          if (error) {
+            const context = (error as { context?: unknown }).context;
+            const response = context instanceof Response ? context : null;
+            const payload = response ? await response.clone().json().catch(() => null) as { error?: string } | null : null;
+            throw new Error(payload?.error || error.message || 'Order could not be placed.');
+          }
           const result = data as { success?: boolean; order_number?: number; order_id?: string; error?: string; delivery_fee_confirmed?: boolean } | null;
           if (result?.error) throw new Error(result.error);
           if (submission.orderType === 'Delivery' && !result?.delivery_fee_confirmed) throw new Error('The server did not confirm the delivery fee. No payment was started. Please retry checkout.');

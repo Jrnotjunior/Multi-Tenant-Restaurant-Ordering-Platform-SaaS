@@ -14,6 +14,17 @@ async function quote(admin:any,slug:string,lat:number,lon:number){
  if(distance>max)throw new Error("This address is outside the restaurant delivery area ("+(max/1000).toFixed(1)+" km maximum driving distance).");
  return {tenantId:t.id,feeCentavos:Math.round((base+Math.ceil(distance/inc)*per)*100),distanceMeters:Math.round(distance)};
 }
+async function linkCustomerOrder(admin:any,orderId:string,trackingToken:string,customerUserId:string){
+ const {error}=await admin.from("customer_orders")
+   .update({customer_user_id:customerUserId})
+   .eq("id",orderId).eq("idempotency_key",trackingToken).is("customer_user_id",null);
+ if(error){console.error("customer order account link failed",{orderId,code:error.code,message:error.message});return;}
+ const {data,error:verifyError}=await admin.from("customer_orders")
+   .select("customer_user_id").eq("id",orderId).eq("idempotency_key",trackingToken).maybeSingle();
+ if(verifyError||data?.customer_user_id!==customerUserId){
+   console.error("customer order account link was not verified",{orderId,code:verifyError?.code,message:verifyError?.message});
+ }
+}
 
 Deno.serve(async(req:Request)=>{if(req.method==="OPTIONS")return new Response("ok",{headers:corsHeaders});if(req.method!=="POST")return json({error:"Method not allowed."},405);try{const url=Deno.env.get("SUPABASE_URL")??"",key=serviceKey();if(!url||!key)return json({error:"Ordering service is not configured."},500);const admin=createClient(url,key,{auth:{autoRefreshToken:false,persistSession:false}}),b=await req.json(),slug=String(b.restaurantSlug??"").trim().toLowerCase();if(!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)||slug.length<3||slug.length>64)return json({error:"Choose a valid restaurant."},400);
  const paymentMethod=String(b.paymentMethod??"");if(!["cash","online"].includes(paymentMethod))return json({error:"Choose a valid payment method."},400);
@@ -37,15 +48,18 @@ Deno.serve(async(req:Request)=>{if(req.method==="OPTIONS")return new Response("o
    .select("payment_method").eq("id",result.order_id).maybeSingle();
  if(savedMethodError||savedOrder?.payment_method!==paymentMethod)return json({error:"Order was created, but its selected payment method could not be verified. Please contact the restaurant before retrying."},500);
  if(q){const subtotal=Number(result.subtotal_centavos);if(!Number.isSafeInteger(subtotal)||subtotal<=0)return json({error:"Invalid order subtotal."},500);const {data:existingOrder,error:readError}=await admin.from("customer_orders").select("delivery_fee_centavos,total_centavos").eq("id",result.order_id).eq("tenant_id",q.tenantId).maybeSingle();if(readError||!existingOrder)return json({error:"Unable to verify the saved delivery fee. Contact the restaurant before retrying."},500);let fee=existingOrder.delivery_fee_centavos===null?q.feeCentavos:Number(existingOrder.delivery_fee_centavos);let total=existingOrder.total_centavos===null?subtotal+fee:Number(existingOrder.total_centavos);if(existingOrder.delivery_fee_centavos===null){const {error:ue}=await admin.from("customer_orders").update({delivery_fee_centavos:fee,total_centavos:total,updated_at:new Date().toISOString()}).eq("id",result.order_id).eq("tenant_id",q.tenantId).is("delivery_fee_centavos",null);if(ue){console.error("delivery fee persistence failed",ue);return json({error:"Order created but delivery fee could not be finalized. Contact the restaurant before retrying."},500);}const {data:saved}=await admin.from("customer_orders").select("delivery_fee_centavos,total_centavos").eq("id",result.order_id).eq("tenant_id",q.tenantId).maybeSingle();if(saved){fee=Number(saved.delivery_fee_centavos);total=Number(saved.total_centavos);}}if(customerUserId){
+ if(loyaltyPointsToRedeem>0){
  const {data:loyaltyResult,error:loyaltyError}=await admin.rpc("apply_customer_loyalty_redemption",{p_order_id:result.order_id,p_tracking_token:id,p_customer_user_id:customerUserId,p_points_to_redeem:loyaltyPointsToRedeem});
- if(loyaltyError||!loyaltyResult?.success){console.error("customer loyalty redemption failed",{orderId:result.order_id,code:loyaltyError?.code,message:loyaltyError?.message});return json({error:loyaltyPointsToRedeem>0?"Order was created but loyalty redemption could not be finalized. Contact the restaurant before retrying.":"Order was created but customer loyalty could not be linked. Contact the restaurant if you need points credited."},409);}
+ if(loyaltyError||!loyaltyResult?.success){console.error("customer loyalty redemption failed",{orderId:result.order_id,code:loyaltyError?.code,message:loyaltyError?.message});return json({error:"Order #"+result.order_number+" was created, but loyalty redemption could not be finalized. Do not place the order again; contact the restaurant to correct the points."},409);}
  total=Number(loyaltyResult.total_centavos??total);
+ }else await linkCustomerOrder(admin,result.order_id,id,customerUserId);
  }return json({...result,delivery_fee_confirmed:fee!==null,delivery_fee_centavos:fee,distance_meters:q.distanceMeters,total_centavos:total,loyalty_discount_centavos:customerUserId?Number((await admin.from("customer_orders").select("loyalty_discount_centavos").eq("id",result.order_id).maybeSingle()).data?.loyalty_discount_centavos??0):0});}
- if(customerUserId){
+ if(customerUserId&&loyaltyPointsToRedeem>0){
  const {data:loyaltyResult,error:loyaltyError}=await admin.rpc("apply_customer_loyalty_redemption",{p_order_id:result.order_id,p_tracking_token:id,p_customer_user_id:customerUserId,p_points_to_redeem:loyaltyPointsToRedeem});
- if(loyaltyError||!loyaltyResult?.success){console.error("customer loyalty redemption failed",{orderId:result.order_id,code:loyaltyError?.code,message:loyaltyError?.message});return json({error:loyaltyPointsToRedeem>0?"Order was created but loyalty redemption could not be finalized. Contact the restaurant before retrying.":"Order was created but customer loyalty could not be linked. Contact the restaurant if you need points credited."},409);}
+ if(loyaltyError||!loyaltyResult?.success){console.error("customer loyalty redemption failed",{orderId:result.order_id,code:loyaltyError?.code,message:loyaltyError?.message});return json({error:"Order #"+result.order_number+" was created, but loyalty redemption could not be finalized. Do not place the order again; contact the restaurant to correct the points."},409);}
  return json({...result,delivery_fee_confirmed:true,delivery_fee_centavos:0,total_centavos:Number(loyaltyResult.total_centavos??result.subtotal_centavos),loyalty_discount_centavos:Number(loyaltyResult.discount_centavos??0)});
  }
+ if(customerUserId)await linkCustomerOrder(admin,result.order_id,id,customerUserId);
  return json({...result,delivery_fee_confirmed:true,delivery_fee_centavos:0,total_centavos:Number(result.subtotal_centavos),loyalty_discount_centavos:0});
 
 }catch(e){console.error("create-customer-order failed",e);return json({error:e instanceof Error?e.message:"Unable to create order."},400);}});
