@@ -95,7 +95,7 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
     ? ['pending_confirmation', 'confirmed', 'preparing', 'ready_for_serve', 'served']
     : ['pending_confirmation', 'confirmed', 'preparing', 'ready_for_dispatch', 'out_for_delivery', 'delivered'];
   const labels = dineIn
-    ? ['Order Received', 'Confirmed', 'Preparing', 'Ready to serve', 'Served']
+    ? ['Order Received', 'Confirmed', 'Preparing', 'Ready', 'Served']
     : ['Order Received', 'Confirmed', 'Preparing', 'Ready', 'Out for delivery', 'Delivered'];
   const descriptions = dineIn
     ? ['Your order has been received by the restaurant.', 'The restaurant has confirmed your order.', 'The kitchen is preparing your food.', 'Your food is ready. Restaurant staff will bring it to your table.', 'Your order has been served. Thank you!']
