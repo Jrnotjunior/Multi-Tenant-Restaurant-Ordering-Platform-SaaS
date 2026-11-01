@@ -111,16 +111,12 @@ GRANT EXECUTE ON FUNCTION public.authorize_staff_order_cancellation(uuid, uuid) 
 CREATE OR REPLACE FUNCTION public.cancel_customer_order(p_tracking_token uuid)
 RETURNS jsonb
 LANGUAGE plpgsql
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path = ''
 AS $function$
 DECLARE
   v_order public.customer_orders%rowtype;
 BEGIN
-  IF auth.role() IS DISTINCT FROM 'service_role' THEN
-    RAISE EXCEPTION 'Order cancellation must be requested through the secure cancellation service.' USING ERRCODE = '42501';
-  END IF;
-
   IF p_tracking_token IS NULL THEN
     RAISE EXCEPTION 'Order tracking token is required' USING ERRCODE = '22023';
   END IF;
