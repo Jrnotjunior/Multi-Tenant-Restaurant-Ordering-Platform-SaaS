@@ -408,8 +408,8 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
                 <div><p className="rider-delivery-label">Delivery destination</p><h2>Customer address</h2></div>
                 <span className="rider-delivery-location-icon" aria-hidden="true">⌖</span>
               </div>
-              {order.delivery_address ? <a className="rider-delivery-address-link" href={'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(order.delivery_address)} target="_blank" rel="noreferrer"><span className="rider-delivery-address-pin" aria-hidden="true">⌖</span><span><strong>Delivery address</strong><span className="rider-delivery-address">{order.delivery_address}</span></span><span className="rider-delivery-address-chevron" aria-hidden="true">›</span></a> : <p className="rider-delivery-address">No delivery address provided</p>}
-              {order.delivery_address && <p className="rider-delivery-helper">Tap the address to open Google Maps or Waze.</p>}
+              {order.delivery_address ? <a className="rider-delivery-address-link" href={'https://www.openstreetmap.org/search?query=' + encodeURIComponent(order.delivery_address)} target="_blank" rel="noreferrer"><span className="rider-delivery-address-pin" aria-hidden="true">⌖</span><span><strong>Delivery address</strong><span className="rider-delivery-address">{order.delivery_address}</span></span><span className="rider-delivery-address-chevron" aria-hidden="true">›</span></a> : <p className="rider-delivery-address">No delivery address provided</p>}
+              {order.delivery_address && <p className="rider-delivery-helper">Tap the address to open it in OpenStreetMap or Waze.</p>}
               {order.delivery_notes && <p className="rider-delivery-helper">Delivery notes: {order.delivery_notes}</p>}
             </section>
             <section className="rider-delivery-card rider-order-details-card">

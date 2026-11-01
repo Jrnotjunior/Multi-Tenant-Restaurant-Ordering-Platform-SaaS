@@ -47,6 +47,17 @@ export type GeocodingFeature = {
 type GeocodingFeatureCollection = { features?: GeocodingFeature[] };
 type GeocodingContext = Record<string, { name?: string } | undefined>;
 
+export function requestedHouseNumber(query: string) {
+  return query.trim().match(/^(\d+[A-Za-z]?(?:[-/]\d+[A-Za-z]?)?)\b/)?.[1] ?? '';
+}
+
+export function matchesRequestedHouseNumber(query: string, result: string | undefined) {
+  const requested = requestedHouseNumber(query);
+  const matched = result?.trim() ?? '';
+  if (!requested || !matched) return false;
+  return requested.replace(/\s+/g, '').toUpperCase() === matched.replace(/\s+/g, '').toUpperCase();
+}
+
 function contextName(context: GeocodingContext | undefined, key: string) {
   return context?.[key]?.name?.trim() ?? '';
 }
