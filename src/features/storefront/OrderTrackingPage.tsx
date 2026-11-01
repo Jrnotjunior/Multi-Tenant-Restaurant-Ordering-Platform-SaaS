@@ -130,8 +130,21 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
         <button type="button" aria-expanded={detailsOpen} onClick={() => setDetailsOpen(value => !value)}>{detailsOpen ? 'Hide details' : 'View details'} <span aria-hidden="true">{detailsOpen ? '⌃' : '⌄'}</span></button>
       </section>
       {detailsOpen && <div className="sf-tracking-order-lines">
-        {status.items?.length ? status.items.map((line, index) => <div key={line.name + index}><span>{line.quantity} × {line.name}</span><strong>{peso(line.total_centavos)}</strong></div>) : <p>Order items are not available for this order.</p>}{status.subtotal_centavos != null && <p><span>Subtotal</span><strong>{peso(status.subtotal_centavos)}</strong></p>}{status.delivery_fee_centavos != null && <p><span>Delivery fee</span><strong>{peso(status.delivery_fee_centavos)}</strong></p>}{status.total_centavos != null && <p><span>Total</span><strong>{peso(status.total_centavos)}</strong></p>}
+        {status.items?.length ? status.items.map((line, index) => <div key={line.name + index}><span>{line.quantity} × {line.name}</span><strong>{peso(line.total_centavos)}</strong></div>) : <p>Order items are not available for this order.</p>}
+        {status.subtotal_centavos != null && <p><span>Subtotal</span><strong>{peso(status.subtotal_centavos)}</strong></p>}
+        {status.delivery_fee_centavos != null && <p><span>Delivery fee</span><strong>{peso(status.delivery_fee_centavos)}</strong></p>}
+        {status.total_centavos != null && <p><span>Total</span><strong>{peso(status.total_centavos)}</strong></p>}
         <p><span>Payment</span><strong>{paymentLabel}</strong></p>
+        {status.order_status === 'pending_confirmation' && <section className="sf-tracking-cancel" aria-label="Cancel order">
+          {cancelConfirmationOpen ? <>
+            <p>Cancel this order before the restaurant confirms it?</p>
+            <div>
+              <button type="button" className="sf-tracking-cancel-keep" disabled={cancelling} onClick={() => { setCancelConfirmationOpen(false); setCancelError(''); }}>Keep order</button>
+              <button type="button" className="sf-tracking-cancel-confirm" disabled={cancelling} onClick={() => void cancelOrder()}>{cancelling ? 'Cancelling…' : 'Confirm cancellation'}</button>
+            </div>
+          </> : <button type="button" className="sf-tracking-cancel-start" onClick={() => { setCancelConfirmationOpen(true); setCancelError(''); }}>Cancel order</button>}
+          {cancelError && <p className="sf-tracking-error" role="alert">{cancelError}</p>}
+        </section>}
       </div>}
       <ol className="sf-tracking-timeline">{stages.map((stage, index) => {
         const done = current >= index && !terminal;
@@ -142,16 +155,6 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
         </li>;
       })}</ol>
       {terminal && <p className="sf-tracking-error" role="status">This order was {currentStage.toLowerCase()}. Please contact the restaurant if you need assistance.</p>}
-      {status.order_status === 'pending_confirmation' && <section className="sf-tracking-cancel" aria-label="Cancel order">
-        {cancelConfirmationOpen ? <>
-          <p>Cancel this order before the restaurant confirms it?</p>
-          <div>
-            <button type="button" className="sf-tracking-cancel-keep" disabled={cancelling} onClick={() => { setCancelConfirmationOpen(false); setCancelError(''); }}>Keep order</button>
-            <button type="button" className="sf-tracking-cancel-confirm" disabled={cancelling} onClick={() => void cancelOrder()}>{cancelling ? 'Cancelling…' : 'Confirm cancellation'}</button>
-          </div>
-        </> : <button type="button" className="sf-tracking-cancel-start" onClick={() => { setCancelConfirmationOpen(true); setCancelError(''); }}>Cancel order</button>}
-        {cancelError && <p className="sf-tracking-error" role="alert">{cancelError}</p>}
-      </section>}
       {error && <p className="sf-tracking-error" role="status">{error}</p>}
       <footer className="sf-tracking-footer"><span>{orderTypeLabel.charAt(0).toUpperCase() + orderTypeLabel.slice(1)}</span><span>{paymentOptionLabel.charAt(0).toUpperCase() + paymentOptionLabel.slice(1)}</span><span>{paymentStatusLabel.charAt(0).toUpperCase() + paymentStatusLabel.slice(1)}</span></footer>
     </section> : trackingToken ? <section className="sf-tracking-receipt"><p>{error || 'Connecting to your order…'}</p></section> : <section className="sf-tracking-receipt"><p>You don’t have an order to track yet. After placing an order, you can return here to follow its progress.</p></section>}
