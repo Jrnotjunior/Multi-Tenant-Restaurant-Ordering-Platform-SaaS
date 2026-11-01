@@ -206,8 +206,10 @@ export function MapServiceApp() {
     );
   }
 
+  const fillLayout = new URLSearchParams(window.location.search).get('layout') === 'fill';
+
   return (
-    <main className={session.variant === 'restaurant' ? 'map-service-page map-service-page--restaurant' : 'map-service-page'}>
+    <main className={`map-service-page${session.variant === 'restaurant' ? ' map-service-page--restaurant' : ''}${fillLayout ? ' map-service-page--fill' : ''}`}>
       <MapboxLocationPickerUi
           variant={session.variant}
         disabled={session.disabled}
