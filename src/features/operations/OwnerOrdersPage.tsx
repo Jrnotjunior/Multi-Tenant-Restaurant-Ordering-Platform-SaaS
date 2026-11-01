@@ -45,7 +45,7 @@ const statusLabel = (value: string) => value.replaceAll('_', ' ');
 const nextActions: Record<string, { action: string; label: string }[]> = {
   // Incoming order decisions belong to the cashier workspace, not the owner dashboard.
   pending_confirmation: [],
-  confirmed: [{ action: 'start_preparing', label: 'Start preparing' }, { action: 'cancel', label: 'Cancel' }],
+  confirmed: [{ action: 'start_preparing', label: 'Start preparing' }],
   preparing: [{ action: 'mark_ready', label: 'Mark ready' }],
   ready_for_dispatch: [{ action: 'dispatch', label: 'Dispatch' }],
   out_for_delivery: [{ action: 'deliver', label: 'Mark delivered' }],

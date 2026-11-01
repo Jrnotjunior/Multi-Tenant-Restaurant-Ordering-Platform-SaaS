@@ -6,7 +6,7 @@ import './storefront.css';
 
 type HistoryItem = { name: string; quantity: number; total_centavos: number };
 type HistoryOrder = {
-  order_id: string; order_number: number; restaurant_name: string; restaurant_slug: string;
+  order_id: string; tracking_token: string; order_number: number; restaurant_name: string; restaurant_slug: string;
   order_type: string; order_status: string; payment_status: string; created_at: string;
   subtotal_centavos: number; delivery_fee_centavos: number | null; total_centavos: number | null;
   items: HistoryItem[];
@@ -17,6 +17,7 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
   const [orders, setOrders] = useState<HistoryOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const [cancellingOrderId, setCancellingOrderId] = useState('');
   useEffect(() => {
     let active = true;
     if (!supabase) { setMessage('Account services are not configured.'); setLoading(false); return; }
@@ -36,6 +37,33 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
     })();
     return () => { active = false; };
   }, []);
+
+  async function cancelOrder(order: HistoryOrder) {
+    if (!supabase || order.order_status !== 'pending_confirmation' || cancellingOrderId) return;
+    if (!window.confirm(`Cancel order #${order.order_number} before the restaurant confirms it?`)) return;
+    setCancellingOrderId(order.order_id);
+    setMessage('');
+    try {
+      const { data, error } = await supabase.functions.invoke('cancel-customer-order', {
+        body: { trackingToken: order.tracking_token },
+      });
+      if (error) {
+        const context = (error as { context?: unknown }).context;
+        const response = context instanceof Response ? context : null;
+        const payload = response ? await response.clone().json().catch(() => null) : null;
+        throw new Error(payload?.error || error.message || 'Unable to cancel this order.');
+      }
+      if (!(data as { success?: boolean } | null)?.success) {
+        throw new Error((data as { error?: string } | null)?.error || 'Unable to cancel this order.');
+      }
+      setOrders(current => current.map(item => item.order_id === order.order_id ? { ...item, order_status: 'cancelled' } : item));
+      setMessage(`Order #${order.order_number} was cancelled.`);
+    } catch (reason) {
+      setMessage(reason instanceof Error ? reason.message : 'Unable to cancel this order. Please try again.');
+    } finally {
+      setCancellingOrderId('');
+    }
+  }
   const base = normalizeAppBase(baseUrl);
   return <div className="sf-storefront sf-account-shell">
     <header className="sf-header">
@@ -69,7 +97,10 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
           {order.delivery_fee_centavos != null && <p>Delivery fee: {peso(order.delivery_fee_centavos)}</p>}
           {order.total_centavos != null && <p><strong>Total: {peso(order.total_centavos)}</strong></p>}
         </div>
-        <a href={base + 'order/' + encodeURIComponent(order.restaurant_slug) + '#track'}>Open restaurant</a>
+        <div className="sf-order-history-actions">
+          <a href={base + 'order/' + encodeURIComponent(order.restaurant_slug) + '#track'}>Open restaurant</a>
+          {order.order_status === 'pending_confirmation' && <button type="button" className="sf-tracking-cancel-start" disabled={Boolean(cancellingOrderId)} onClick={() => void cancelOrder(order)}>{cancellingOrderId === order.order_id ? 'Cancelling…' : 'Cancel order'}</button>}
+        </div>
       </article>)}
       <a className="sf-tracking-back" href={base}>Back to storefront</a>
     </section>

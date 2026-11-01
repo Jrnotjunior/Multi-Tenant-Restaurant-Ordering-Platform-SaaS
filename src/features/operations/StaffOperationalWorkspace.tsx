@@ -287,12 +287,27 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   async function act(order: Order, action: string, description: string) {
     if (!supabase) return;
     if (['reject', 'cancel', 'deliver'].includes(action) && !window.confirm(
-      action === 'deliver' ? `Confirm order #${order.order_number} has been delivered?` : `${action === 'reject' ? 'Reject' : 'Cancel'} order #${order.order_number}?`,
+      action === 'deliver' ? `Confirm order #${order.order_number} has been delivered?` : action === 'cancel' ? `Cancel order #${order.order_number} before it enters the kitchen?` : `Reject order #${order.order_number}?`,
     )) return;
     setBusy(order.id); setError(''); setNotice('');
     try {
-      const { error: actionError } = await supabase.rpc('transition_staff_order', { p_tenant_id: tenantId, p_order_id: order.id, p_action: action });
-      if (actionError) throw actionError;
+      if (action === 'cancel') {
+        const { data, error: cancelFunctionError } = await supabase.functions.invoke('cancel-customer-order', {
+          body: { tenantId, orderId: order.id },
+        });
+        if (cancelFunctionError) {
+          const context = (cancelFunctionError as { context?: unknown }).context;
+          const response = context instanceof Response ? context : null;
+          const payload = response ? await response.clone().json().catch(() => null) : null;
+          throw new Error(payload?.error || cancelFunctionError.message || 'Unable to cancel this order.');
+        }
+        if (!(data as { success?: boolean } | null)?.success) {
+          throw new Error((data as { error?: string } | null)?.error || 'Unable to cancel this order.');
+        }
+      } else {
+        const { error: actionError } = await supabase.rpc('transition_staff_order', { p_tenant_id: tenantId, p_order_id: order.id, p_action: action });
+        if (actionError) throw actionError;
+      }
       setNotice(`Order #${order.order_number}: ${description}.`);
       if ((role === 'kitchen' && action === 'mark_ready') || (role === 'dispatcher' && action === 'dispatch')) setSelectedCashierOrderId(null);
       await load(true);
@@ -354,9 +369,8 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
 
   function actions(order: Order) {
     if (role === 'cashier' && order.order_status === 'pending_confirmation') return [
-      { action: 'confirm', label: 'Confirm order', primary: true }, { action: 'reject', label: 'Reject', primary: false },
+      { action: 'confirm', label: 'Confirm order', primary: true }, { action: 'reject', label: 'Reject', primary: false }, { action: 'cancel', label: 'Cancel order', primary: false },
     ];
-    if (role === 'cashier' && order.order_status === 'confirmed') return [{ action: 'cancel', label: 'Cancel order', primary: false }];
     if (role === 'cashier' && order.order_status === 'ready_for_pickup') return [{ action: 'complete_handoff', label: 'Complete handoff', primary: true }];
     if (role === 'kitchen' && order.order_status === 'preparing') return [{ action: 'mark_ready', label: 'Mark ready', primary: true }];
     if (role === 'dispatcher' && order.order_status === 'ready_for_dispatch' && order.assigned_rider_user_id) return [{ action: 'dispatch', label: 'Dispatch order', primary: true }];

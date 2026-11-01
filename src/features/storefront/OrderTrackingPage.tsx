@@ -16,6 +16,9 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
   });
   const [status, setStatus] = useState<TrackedStatus | null>(null);
   const [error, setError] = useState('');
+  const [cancelError, setCancelError] = useState('');
+  const [cancelConfirmationOpen, setCancelConfirmationOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [orderMeta] = useState(() => {
     try {
@@ -58,6 +61,32 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
     const interval = window.setInterval(() => { void refresh(); }, 30000);
     return () => { active = false; if (refreshTimer !== undefined) window.clearTimeout(refreshTimer); window.clearInterval(interval); void supabase?.removeChannel(channel); };
   }, [trackingToken]);
+
+  async function cancelOrder() {
+    if (!trackingToken || !supabase || status?.order_status !== 'pending_confirmation' || cancelling) return;
+    setCancelling(true);
+    setCancelError('');
+    try {
+      const { data, error: cancelFunctionError } = await supabase.functions.invoke('cancel-customer-order', {
+        body: { trackingToken },
+      });
+      if (cancelFunctionError) {
+        const context = (cancelFunctionError as { context?: unknown }).context;
+        const response = context instanceof Response ? context : null;
+        const payload = response ? await response.clone().json().catch(() => null) : null;
+        throw new Error(payload?.error || cancelFunctionError.message || 'Unable to cancel this order.');
+      }
+      if (!(data as { success?: boolean } | null)?.success) {
+        throw new Error((data as { error?: string } | null)?.error || 'Unable to cancel this order.');
+      }
+      setStatus(current => current ? { ...current, order_status: 'cancelled', updated_at: new Date().toISOString() } : current);
+      setCancelConfirmationOpen(false);
+    } catch (reason) {
+      setCancelError(reason instanceof Error ? reason.message : 'Unable to cancel this order. Please try again.');
+    } finally {
+      setCancelling(false);
+    }
+  }
 
   const orderType = status?.order_type?.toLowerCase().replaceAll('_', '-') ?? 'dine-in';
   const dineIn = ['dine-in', 'dinein'].includes(orderType);
@@ -113,6 +142,16 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
         </li>;
       })}</ol>
       {terminal && <p className="sf-tracking-error" role="status">This order was {currentStage.toLowerCase()}. Please contact the restaurant if you need assistance.</p>}
+      {status.order_status === 'pending_confirmation' && <section className="sf-tracking-cancel" aria-label="Cancel order">
+        {cancelConfirmationOpen ? <>
+          <p>Cancel this order before the restaurant confirms it?</p>
+          <div>
+            <button type="button" className="sf-tracking-cancel-keep" disabled={cancelling} onClick={() => { setCancelConfirmationOpen(false); setCancelError(''); }}>Keep order</button>
+            <button type="button" className="sf-tracking-cancel-confirm" disabled={cancelling} onClick={() => void cancelOrder()}>{cancelling ? 'Cancelling…' : 'Confirm cancellation'}</button>
+          </div>
+        </> : <button type="button" className="sf-tracking-cancel-start" onClick={() => { setCancelConfirmationOpen(true); setCancelError(''); }}>Cancel order</button>}
+        {cancelError && <p className="sf-tracking-error" role="alert">{cancelError}</p>}
+      </section>}
       {error && <p className="sf-tracking-error" role="status">{error}</p>}
       <footer className="sf-tracking-footer"><span>{orderTypeLabel.charAt(0).toUpperCase() + orderTypeLabel.slice(1)}</span><span>{paymentOptionLabel.charAt(0).toUpperCase() + paymentOptionLabel.slice(1)}</span><span>{paymentStatusLabel.charAt(0).toUpperCase() + paymentStatusLabel.slice(1)}</span></footer>
     </section> : trackingToken ? <section className="sf-tracking-receipt"><p>{error || 'Connecting to your order…'}</p></section> : <section className="sf-tracking-receipt"><p>You don’t have an order to track yet. After placing an order, you can return here to follow its progress.</p></section>}
