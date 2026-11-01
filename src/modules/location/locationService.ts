@@ -48,7 +48,7 @@ type GeocodingFeatureCollection = { features?: GeocodingFeature[] };
 type GeocodingContext = Record<string, { name?: string } | undefined>;
 
 export function requestedHouseNumber(query: string) {
-  return query.trim().match(/^(\d+[A-Za-z]?(?:[-/]\d+[A-Za-z]?)?)\b/)?.[1] ?? '';
+  return query.trim().match(/^(?:(?:#|no\.?)\s*)?(\d+[A-Za-z]?(?:[-/](?:\d+[A-Za-z]?|[A-Za-z]))?)(?=$|[\s,#])/i)?.[1] ?? '';
 }
 
 export function matchesRequestedHouseNumber(query: string, result: string | undefined) {
@@ -198,6 +198,7 @@ export async function searchAddresses(query: string): Promise<GeocodingFeature[]
 
   const params = new URLSearchParams({
     q: value,
+    countrycode: 'PH',
     lang: 'en',
     limit: '10',
   });
@@ -211,8 +212,9 @@ export async function searchAddresses(query: string): Promise<GeocodingFeature[]
   const data = await requestJson(`https://photon.komoot.io/api/?${params.toString()}`);
   const features = Array.isArray(data.features) ? data.features : [];
 
-  // Keep Philippine results when the provider supplies country metadata, while
-  // retaining results with no country field so useful incomplete records survive.
+  // Keep the Philippines constraint at the provider as well as filtering any
+  // result that explicitly contradicts it. Missing country metadata can still
+  // occur on incomplete records, but Photon will only search PH results.
   const addressLikeQuery = /\d/.test(value) || /\b(street|st\.?|road|rd\.?|avenue|ave\.?|drive|dr\.?|lane|ln\.?|boulevard|blvd|highway|hwy)\b/i.test(value);
   const philippines = features.filter((feature) => {
     const properties = feature.properties ?? {};

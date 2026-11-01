@@ -65,10 +65,10 @@ function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onS
     <MapboxDeliveryLocationPicker restaurantSlug={restaurantSlug} variant="delivery" initialLatitude={value?.latitude ?? null} initialLongitude={value?.longitude ?? null} onSelect={onSelect} />
     {value && <p className="sf-checkout-address-confirmed" role="status">Selected address: {value.formattedAddress || value.address}</p>}
     <div className="sf-checkout-fields sf-checkout-locality-fields">
-      <label>Municipality / City<input name="deliveryCity" autoComplete="address-level2" value={value?.city ?? ''} readOnly placeholder="Automatically filled by Mapbox" aria-describedby="delivery-locality-hint" /></label>
-      <label>Barangay<input name="deliveryBarangay" value={value?.barangay ?? ''} readOnly placeholder="Automatically filled by Mapbox" aria-describedby="delivery-locality-hint" /></label>
-      <label>Street address<input name="deliveryStreetAddress" autoComplete="street-address" value={streetAddress} onChange={event => onStreetAddressChange(event.target.value)} maxLength={240} placeholder="Automatically filled by Mapbox — you can edit it" aria-describedby="delivery-locality-hint" /></label>
-      <p id="delivery-locality-hint" className="sf-checkout-optional">City and barangay are filled from the selected Mapbox location. If either is missing, adjust the pin or search for a more specific address.</p>
+      <label>Municipality / City<input name="deliveryCity" autoComplete="address-level2" value={value?.city ?? ''} readOnly placeholder="Automatically filled from the selected map location" aria-describedby="delivery-locality-hint" /></label>
+      <label>Barangay<input name="deliveryBarangay" value={value?.barangay ?? ''} readOnly placeholder="Automatically filled from the selected map location" aria-describedby="delivery-locality-hint" /></label>
+      <label>Street address<input name="deliveryStreetAddress" autoComplete="street-address" value={streetAddress} onChange={event => onStreetAddressChange(event.target.value)} maxLength={240} placeholder="Automatically filled from the selected map location — you can edit it" aria-describedby="delivery-locality-hint" /></label>
+      <p id="delivery-locality-hint" className="sf-checkout-optional">City and barangay are filled from the selected map location. If either is missing, adjust the pin or search for a more specific address.</p>
     </div>
     <div className="sf-checkout-fields">
       <label>Delivery instructions <span className="sf-checkout-optional">(optional)</span><textarea name="notes" rows={2} maxLength={300} placeholder="Landmark or instructions for the rider" /></label>
