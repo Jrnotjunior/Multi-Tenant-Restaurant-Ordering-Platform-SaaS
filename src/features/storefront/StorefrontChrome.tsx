@@ -26,7 +26,7 @@ export function CustomerAccountBackLink({ href }: { href: string }) {
   return <a className="sf-account-back-link" href={href}>&larr; Back</a>;
 }
 
-export function StorefrontFooter({ socialLinks }: { socialLinks: StorefrontSocialLinks }) {
+export function StorefrontFooter({ socialLinks = { facebook: '', instagram: '', tiktok: '' } }: { socialLinks?: StorefrontSocialLinks }) {
   const links = [
     { key: 'facebook', label: 'Facebook', url: socialLinks.facebook, icon: 'social-facebook.svg' },
     { key: 'instagram', label: 'Instagram', url: socialLinks.instagram, icon: 'social-instagram.svg' },
