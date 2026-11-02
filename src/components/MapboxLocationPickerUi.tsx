@@ -89,6 +89,8 @@ export function MapboxLocationPickerUi({
 
   useEffect(() => {
     let cancelled = false;
+    let resizeObserver: ResizeObserver | null = null;
+    let resizeFrame = 0;
 
     async function setup() {
       setLoading(true);
@@ -119,6 +121,21 @@ export function MapboxLocationPickerUi({
 
         mapRef.current = map;
         markerRef.current = marker;
+
+        // The picker can open inside a full-screen dialog/iframe whose map
+        // container changes size after the map is created. Keep the canvas in
+        // sync with that container instead of relying only on window resizes.
+        const resizeMap = () => {
+          const container = mapContainerRef.current;
+          if (!container?.clientWidth || !container.clientHeight) return;
+          map.resize();
+        };
+        map.on('load', resizeMap);
+        if (typeof ResizeObserver !== 'undefined') {
+          resizeObserver = new ResizeObserver(resizeMap);
+          resizeObserver.observe(mapContainerRef.current);
+        }
+        resizeFrame = window.requestAnimationFrame(resizeMap);
 
         // Make the map's initial pin a selectable location so checkout can
         // always confirm a delivery point, even before the customer pans or searches.
@@ -164,6 +181,8 @@ export function MapboxLocationPickerUi({
 
     return () => {
       cancelled = true;
+      resizeObserver?.disconnect();
+      window.cancelAnimationFrame(resizeFrame);
       mapRef.current?.remove();
       mapRef.current = null;
       markerRef.current = null;
