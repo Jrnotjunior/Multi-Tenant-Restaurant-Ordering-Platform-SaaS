@@ -54,7 +54,7 @@ type PayMongoRefund = {
 };
 
 async function resetFailedRefund(
-  admin: ReturnType<typeof createClient>,
+  admin: ReturnType<typeof createClient<any>>,
   tenantId: string,
   refund: RefundRequest,
 ) {
@@ -74,7 +74,7 @@ async function resetFailedRefund(
 }
 
 async function saveRefundId(
-  admin: ReturnType<typeof createClient>,
+  admin: ReturnType<typeof createClient<any>>,
   tenantId: string,
   refund: RefundRequest,
   refundId: string,

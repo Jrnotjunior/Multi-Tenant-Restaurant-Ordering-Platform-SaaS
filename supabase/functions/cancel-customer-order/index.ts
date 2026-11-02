@@ -65,7 +65,7 @@ type PayMongoRefund = {
 };
 
 async function expireCheckoutSession(
-  admin: ReturnType<typeof createClient>,
+  admin: ReturnType<typeof createClient<any>>,
   order: { id: string; tenant_id: string },
   session: PaymentSession,
 ) {
@@ -125,7 +125,7 @@ async function expireCheckoutSession(
 }
 
 async function preparePaidOnlineCancellation(
-  admin: ReturnType<typeof createClient>,
+  admin: ReturnType<typeof createClient<any>>,
   lookup: { trackingToken?: string; tenantId?: string; orderId?: string },
 ) {
   const { data, error } = await admin.rpc("prepare_customer_order_cancellation", {
@@ -328,7 +328,7 @@ Deno.serve(async (request: Request) => {
     }
 
     const admin = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
-    let userClient: ReturnType<typeof createClient> | null = null;
+    let userClient: ReturnType<typeof createClient<any>> | null = null;
 
     if (!isCustomerRequest) {
       const authorization = request.headers.get("Authorization") ?? "";
