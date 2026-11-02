@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.58.0";
 
 const APP_URL = Deno.env.get("TENANT_SETUP_URL") ?? "https://app.web2table.io/restaurant";
 const allowedOrigins = new Set(["https://admin.web2table.io","https://app.web2table.io","https://jrnotjunior.github.io"]);

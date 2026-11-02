@@ -1,4 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.58.0";
 const corsHeaders = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, apikey, x-client-info, content-type","Access-Control-Allow-Methods":"POST, OPTIONS"};
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {status,headers:{...corsHeaders,"Content-Type":"application/json","Cache-Control":"no-store"}});
 function serviceKey(){try{const v=JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")??"{}");return v.default??Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";}catch{return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";}}

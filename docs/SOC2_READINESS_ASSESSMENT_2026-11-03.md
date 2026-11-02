@@ -15,13 +15,14 @@ The existing readiness register in [`SOC2_READINESS.md`](SOC2_READINESS.md) rema
 | Application checks | Partially present | Existing CI runs dependency audit, typecheck, unit tests, and build. CI has not been independently inspected for required status checks or protected-branch settings. |
 | Secret detection | Added, not yet evidenced | Gitleaks workflow now scans full Git history on pushes, pull requests, and weekly schedule. First successful scan and any findings must be reviewed; a clean scan does not prove secrets were never exposed. |
 | Static application security | Added, not yet evidenced | CodeQL `security-extended` workflow now scans JavaScript/TypeScript on changes and weekly. Results and alert remediation remain to be reviewed. |
-| Dependency maintenance | Added | Dependabot is configured for weekly npm and GitHub Actions update pull requests. The repository currently has no npm lockfile, so dependency resolution is not yet reproducible. Generating and verifying that lockfile was blocked because this environment could not reach the npm registry. |
+| Edge Function validation | Added, not yet evidenced | A Deno workflow now type-checks every Supabase Edge Function and audits resolved dependencies. A committed Deno lockfile is still needed for repeatable resolution. |
+| Dependency maintenance | Partially addressed | Web dependencies are exact-pinned and all Supabase Edge Function imports now use the same exact `@supabase/supabase-js` version. Dependabot is configured for weekly npm and GitHub Actions update pull requests. The repository still has no npm or Deno lockfile, so transitive dependency resolution is not yet reproducible. Generating and verifying a lockfile was blocked because this environment could not reach package registries. |
 | Production configuration | Not assessed | No authenticated access to Supabase project settings/advisors, GitHub security/branch settings, or Hostinger deployment and runtime configuration was available. |
 | Organizational controls and audit evidence | Not established | Named control owners, approved policies, access reviews, staff training, risk reviews, incident/tabletop records, vendor reviews, backup restore evidence, and retention/deletion evidence require business operation and records outside this repository. |
 
 ## Required next steps before an auditor-ready claim
 
-1. Commit and validate `package-lock.json`; make CI use `npm ci` after the lockfile exists.
+1. Generate and validate `package-lock.json` and Deno's dependency lock; make CI use reproducible locked installs for both runtimes.
 2. Run the new secret scan and CodeQL workflow, investigate every finding, rotate any exposed credential, and retain dated results.
 3. Inspect the deployed Supabase schema with Security Advisor and verify RLS, grants, Storage policies, Auth/MFA/rate limits, database network restrictions, backups/PITR, log access, and restore evidence.
 4. Enable and document GitHub branch protection, required checks, review approval, least-privilege workflow permissions, Dependabot alerts, and secret-scanning settings. Preserve an approved emergency-change path.
