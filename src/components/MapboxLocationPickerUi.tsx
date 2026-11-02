@@ -120,6 +120,15 @@ export function MapboxLocationPickerUi({
         mapRef.current = map;
         markerRef.current = marker;
 
+        // Make the map's initial pin a selectable location so checkout can
+        // always confirm a delivery point, even before the customer pans or searches.
+        const initialLocation = coordinatesToAddress({
+          lat: defaultCenter[1],
+          lng: defaultCenter[0],
+        });
+        selectedAddressRef.current = initialLocation;
+        setSelectedAddress(initialLocation);
+
         // Keep the pin visually anchored to the center of the map while the
         // customer pans underneath it. The selected coordinates update only
         // when the gesture ends, avoiding a React update for every map frame.
