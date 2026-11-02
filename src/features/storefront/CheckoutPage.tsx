@@ -8,6 +8,18 @@ import './delivery-address-picker.css';
 
 type OrderType = 'Delivery' | 'Take-out' | 'Pickup' | 'Dine-in';
 type PaymentMethod = 'cash' | 'online';
+type SavedCheckoutAddress = {
+  id: string;
+  label: string;
+  address_line: string;
+  city: string;
+  barangay: string;
+  latitude: number | null;
+  longitude: number | null;
+  geocoding_place_id: string;
+  is_default: boolean;
+};
+
 export type CheckoutSubmission = { orderType: OrderType; customerName: string; phone: string; deliveryAddress: string; deliveryNotes: string; paymentMethod: PaymentMethod; deliveryLatitude: number | null; deliveryLongitude: number | null; loyaltyPointsToRedeem: number };
 
 function storefrontMapHeaderStyle(): CSSProperties {
@@ -69,15 +81,22 @@ function CustomerInformation({ firstName, lastName, phone, onFirstNameChange, on
   </fieldset>;
 }
 
-function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onStreetAddressChange, restaurantSlug }: { orderType: OrderType; value: DeliveryLocationAddress | null; onSelect: (address: DeliveryLocationAddress) => void; streetAddress: string; onStreetAddressChange: (streetAddress: string) => void; restaurantSlug: string }) {
+function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onStreetAddressChange, restaurantSlug, savedAddresses, savedAddressesLoading, onChooseSavedAddress }: { orderType: OrderType; value: DeliveryLocationAddress | null; onSelect: (address: DeliveryLocationAddress) => void; streetAddress: string; onStreetAddressChange: (streetAddress: string) => void; restaurantSlug: string; savedAddresses: SavedCheckoutAddress[]; savedAddressesLoading: boolean; onChooseSavedAddress: (id: string) => void }) {
   const [addressPickerOpen, setAddressPickerOpen] = useState(false);
   if (orderType !== 'Delivery') return null;
   return <fieldset className="sf-checkout-section">
     <legend>Delivery address</legend>
 
+    {savedAddresses.length > 0 && <label className="sf-checkout-saved-address-select">Saved address
+      <select value={(() => { const match = savedAddresses.find(address => address.address_line === streetAddress && address.city === value?.city && address.barangay === value?.barangay); return match?.id ?? ''; })()} onChange={event => onChooseSavedAddress(event.target.value)}>
+        <option value="">Choose a saved address…</option>
+        {savedAddresses.map(address => <option key={address.id} value={address.id}>{address.label}{address.is_default ? ' (Default)' : ''} — {[address.address_line, address.barangay, address.city].filter(Boolean).join(', ')}</option>)}
+      </select>
+    </label>}
+    {savedAddressesLoading && <p className="sf-checkout-optional" role="status">Loading your saved addresses…</p>}
     {value && <p className="sf-checkout-address-confirmed" role="status">Selected address: {value.formattedAddress || value.address}</p>}
     <button type="button" className="sf-checkout-address-picker-toggle" onClick={() => setAddressPickerOpen(true)} aria-expanded={addressPickerOpen}>
-      {value ? 'Change delivery address' : 'Select delivery address'}
+      {value ? 'Choose another location on map' : 'Select delivery address on map'}
     </button>
     {addressPickerOpen && createPortal(<div className="w2t-address-picker-overlay" role="presentation">
       <section className="w2t-address-picker-screen" role="dialog" aria-modal="true" aria-labelledby="w2t-address-picker-title">
@@ -109,7 +128,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
   const [customerFirstName, setCustomerFirstName] = useState('');
   const [customerLastName, setCustomerLastName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [deliveryAddress, setDeliveryAddress] = useState<DeliveryLocationAddress | null>(null);
+  const [deliveryAddress, setDeliveryAddress] = useState<DeliveryLocationAddress | null>(null);\n  const [savedAddresses, setSavedAddresses] = useState<SavedCheckoutAddress[]>([]);\n  const [savedAddressesLoading, setSavedAddressesLoading] = useState(false);
   const [streetAddress, setStreetAddress] = useState('');
   const [message, setMessage] = useState('');
   const [reviewed, setReviewed] = useState(false);
@@ -146,6 +165,32 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
       }
       if (typeof metadata.phone === 'string') setCustomerPhone(normalizePhilippineMobile(metadata.phone).slice(0, 11));
 
+      setSavedAddressesLoading(true);
+      const { data: addresses, error: addressesError } = await supabase!
+        .from('customer_saved_addresses')
+        .select('id,label,address_line,city,barangay,latitude,longitude,geocoding_place_id,is_default')
+        .eq('user_id', user.id)
+        .order('is_default', { ascending: false })
+        .order('updated_at', { ascending: false });
+      if (!active) return;
+      if (!addressesError && Array.isArray(addresses)) {
+        const validAddresses = addresses as SavedCheckoutAddress[];
+        setSavedAddresses(validAddresses);
+        const preferred = validAddresses.find(address => address.is_default) ?? validAddresses[0];
+        if (preferred) {
+          setDeliveryAddress({
+            formattedAddress: [preferred.address_line, preferred.barangay, preferred.city].filter(Boolean).join(', '),
+            address: preferred.address_line,
+            city: preferred.city,
+            barangay: preferred.barangay,
+            placeId: preferred.geocoding_place_id ?? '',
+            latitude: preferred.latitude,
+            longitude: preferred.longitude,
+          });
+          setStreetAddress(preferred.address_line);
+        }
+      }
+      setSavedAddressesLoading(false);
     })();
     return () => { active = false; };
   }, []);
@@ -256,7 +301,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
     {!paymentComplete && <form className="sf-checkout-page-form" onSubmit={handleSubmit}>
       <OrderTypeSection value={orderType} onChange={type => { setOrderType(type); setMessage(''); setReviewed(false); }} />
       <CustomerInformation firstName={customerFirstName} lastName={customerLastName} phone={customerPhone} onFirstNameChange={setCustomerFirstName} onLastNameChange={setCustomerLastName} onPhoneChange={setCustomerPhone} />
-      <DeliveryAddressSection orderType={orderType} value={deliveryAddress} onSelect={address => { setDeliveryAddress(address); setStreetAddress(address.address); }} streetAddress={streetAddress} onStreetAddressChange={setStreetAddress} restaurantSlug={restaurantSlug} />
+      <DeliveryAddressSection orderType={orderType} value={deliveryAddress} onSelect={address => { setDeliveryAddress(address); setStreetAddress(address.address); }} streetAddress={streetAddress} onStreetAddressChange={setStreetAddress} restaurantSlug={restaurantSlug} savedAddresses={savedAddresses} savedAddressesLoading={savedAddressesLoading} onChooseSavedAddress={id => { const saved = savedAddresses.find(address => address.id === id); if (!saved) return; setDeliveryAddress({ formattedAddress: [saved.address_line, saved.barangay, saved.city].filter(Boolean).join(', '), address: saved.address_line, city: saved.city, barangay: saved.barangay, placeId: saved.geocoding_place_id ?? '', latitude: saved.latitude, longitude: saved.longitude }); setStreetAddress(saved.address_line); setMessage(''); }} />
 
       <section className="sf-checkout-total" aria-label="Order summary">
         <div className="sf-checkout-summary-heading"><span>Order summary</span></div>
