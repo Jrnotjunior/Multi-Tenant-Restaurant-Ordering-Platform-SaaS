@@ -87,16 +87,20 @@ function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onS
   return <fieldset className="sf-checkout-section">
     <legend>Delivery address</legend>
 
-    {savedAddresses.length > 0 && <label className="sf-checkout-saved-address-select">Saved address
-      <select value={(() => { const match = savedAddresses.find(address => address.address_line === streetAddress && address.city === value?.city && address.barangay === value?.barangay); return match?.id ?? ''; })()} onChange={event => onChooseSavedAddress(event.target.value)}>
+    {savedAddresses.length > 0 && <div className="sf-checkout-saved-address">
+      <label htmlFor="sf-checkout-saved-address-select">Saved address</label>
+      <select id="sf-checkout-saved-address-select" className="sf-checkout-saved-address-select" value={(() => { const match = savedAddresses.find(address => address.address_line === streetAddress && address.city === value?.city && address.barangay === value?.barangay); return match?.id ?? ''; })()} onChange={event => onChooseSavedAddress(event.target.value)}>
         <option value="">Choose a saved address…</option>
-        {savedAddresses.map(address => <option key={address.id} value={address.id}>{address.label}{address.is_default ? ' (Default)' : ''} — {[address.address_line, address.barangay, address.city].filter(Boolean).join(', ')}</option>)}
+        {savedAddresses.map(address => <option key={address.id} value={address.id}>{address.label}{address.is_default ? ' · Default' : ''}</option>)}
       </select>
-    </label>}
+    </div>}
     {savedAddressesLoading && <p className="sf-checkout-optional" role="status">Loading your saved addresses…</p>}
-    {value && <p className="sf-checkout-address-confirmed" role="status">Selected address: {value.formattedAddress || value.address}</p>}
+    {value && <div className="sf-checkout-selected-address" role="status">
+      <span className="sf-checkout-selected-address-label">DELIVERING TO</span>
+      <strong>{value.formattedAddress || [streetAddress, value.barangay, value.city].filter(Boolean).join(', ')}</strong>
+    </div>}
     <button type="button" className="sf-checkout-address-picker-toggle" onClick={() => setAddressPickerOpen(true)} aria-expanded={addressPickerOpen}>
-      {value ? 'Choose another location on map' : 'Select delivery address on map'}
+      <span aria-hidden="true">⌖</span> {value ? 'Change delivery location' : 'Choose delivery location on map'}
     </button>
     {addressPickerOpen && createPortal(<div className="w2t-address-picker-overlay" role="presentation">
       <section className="w2t-address-picker-screen" role="dialog" aria-modal="true" aria-labelledby="w2t-address-picker-title">
