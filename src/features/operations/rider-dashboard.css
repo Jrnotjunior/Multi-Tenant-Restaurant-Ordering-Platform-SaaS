@@ -264,18 +264,24 @@
 .rider-order-details-card .rider-delivery-total>strong{grid-column:2;justify-self:end;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .rider-order-details-card .rider-delivery-total{padding:.7rem 0;border-top:1px solid var(--border,#e2e8f0);font-size:1rem;line-height:1.4}
 
-/* Compact, high-contrast app picker for rider directions. */
-.rider-navigation-picker{margin-top:.9rem}
-.rider-navigation-label{margin:0 0 .5rem;color:var(--muted,#64748b);font-size:.72rem;font-weight:800;letter-spacing:.055em;text-transform:uppercase}
-.rider-navigation-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}
-.rider-navigation-button{display:flex;align-items:center;gap:.6rem;min-width:0;min-height:58px;padding:.65rem .75rem;border:1px solid var(--border,#dbe1ea);border-radius:.8rem;background:var(--surface,#fff);color:var(--text,#172033);font:inherit;text-align:left;text-decoration:none;box-shadow:0 1px 2px rgb(15 23 42 / 4%);transition:border-color .16s ease,background .16s ease,box-shadow .16s ease,transform .16s ease}
-.rider-navigation-button:hover{border-color:#94a3b8;background:#f8fafc;box-shadow:0 4px 12px rgb(15 23 42 / 8%);transform:translateY(-1px)}
-.rider-navigation-button:focus-visible{outline:3px solid rgb(37 99 235 / 35%);outline-offset:2px}
+/* Single directions action with a compact native app chooser. */
+.rider-navigation-picker{position:relative;margin-top:.9rem}
+.rider-navigation-trigger{display:flex;align-items:center;justify-content:center;gap:.6rem;width:100%;min-height:50px;padding:.7rem 1rem;border:1px solid #cbd5e1;border-radius:.8rem;background:#111827;color:#fff;font:inherit;font-size:.88rem;font-weight:800;cursor:pointer;list-style:none;box-shadow:0 2px 5px rgb(15 23 42 / 12%);transition:background .16s ease,box-shadow .16s ease}
+.rider-navigation-trigger::-webkit-details-marker{display:none}
+.rider-navigation-trigger::marker{content:''}
+.rider-navigation-trigger:hover{background:#1e293b;box-shadow:0 4px 12px rgb(15 23 42 / 18%)}
+.rider-navigation-trigger:focus-visible{outline:3px solid rgb(37 99 235 / 35%);outline-offset:2px}
+.rider-navigation-trigger-icon{font-size:1.05rem}
+.rider-navigation-trigger-chevron{margin-left:auto;font-size:1.1rem;transition:transform .16s ease}
+.rider-navigation-picker[open] .rider-navigation-trigger-chevron{transform:rotate(180deg)}
+.rider-navigation-menu{display:grid;gap:.45rem;margin-top:.5rem;padding:.45rem;border:1px solid var(--border,#e2e8f0);border-radius:.85rem;background:var(--surface,#fff);box-shadow:0 8px 22px rgb(15 23 42 / 10%)}
+.rider-navigation-option{display:flex;align-items:center;gap:.65rem;min-width:0;min-height:54px;padding:.55rem .65rem;border-radius:.6rem;color:var(--text,#172033);text-align:left;text-decoration:none;transition:background .14s ease}
+.rider-navigation-option:hover,.rider-navigation-option:focus-visible{background:#f1f5f9}
+.rider-navigation-option:focus-visible{outline:2px solid rgb(37 99 235 / 45%);outline-offset:-2px}
 .rider-navigation-app-icon{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:.65rem;background:#eaf2ff;color:#2563eb;font-size:1rem;font-weight:850}
-.rider-navigation-button--waze .rider-navigation-app-icon{background:#e4f5ff;color:#087db7}
-.rider-navigation-button--google .rider-navigation-app-icon{background:#eef2ff;color:#2563eb}
+.rider-navigation-option--waze .rider-navigation-app-icon{background:#e4f5ff;color:#087db7}
+.rider-navigation-option--google .rider-navigation-app-icon{background:#eef2ff;color:#2563eb}
 .rider-navigation-app-copy{display:grid;gap:.15rem;min-width:0}
 .rider-navigation-app-copy strong{overflow:hidden;font-size:.82rem;font-weight:800;text-overflow:ellipsis;white-space:nowrap}
 .rider-navigation-app-copy small{color:var(--muted,#64748b);font-size:.68rem;font-weight:600}
 .rider-navigation-external{margin-left:auto;color:#64748b;font-size:.95rem;font-weight:700}
-@media(max-width:380px){.rider-navigation-actions{grid-template-columns:1fr}.rider-navigation-button{min-height:54px}}
