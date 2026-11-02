@@ -53,6 +53,10 @@
 .rider-account-button{display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--color-border);border-radius:50%;background:var(--color-background);color:var(--color-text);cursor:pointer}
 .rider-account-button svg{width:18px;height:18px}
 .rider-account-dropdown{position:absolute;right:0;top:46px;z-index:10;display:grid;gap:4px;min-width:170px;padding:8px;border:1px solid var(--color-border);border-radius:12px;background:var(--color-background);box-shadow:0 10px 30px #101b2f1a}
+.rider-account-phone{display:grid;gap:7px;padding:9px 0;border-top:1px solid var(--color-border)}
+.rider-account-phone label{font-size:.75rem;font-weight:700;color:var(--color-text)}
+.rider-account-phone input{width:100%;min-height:38px;padding:8px;border:1px solid var(--color-border);border-radius:8px;font:inherit}
+.rider-account-phone button{width:100%;min-height:36px;border:0;border-radius:8px;background:var(--color-text);color:#fff;font:inherit;font-weight:700;cursor:pointer}
 .rider-account-email{padding:8px;font-size:.72rem;color:var(--color-muted);overflow-wrap:anywhere}
 .rider-account-dropdown button{padding:9px 8px;border:0;border-radius:7px;background:transparent;text-align:left;font:inherit;font-size:.78rem;color:var(--color-text);cursor:pointer}
 .rider-account-dropdown button:hover{background:var(--color-secondary)}

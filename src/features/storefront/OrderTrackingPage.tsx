@@ -162,11 +162,16 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
       {assignedRider && <section className="sf-tracking-rider" aria-label="Your delivery rider">
         <span className="sf-tracking-eyebrow">YOUR RIDER</span>
         <h2>Hi, my name is {status?.rider_name}.</h2>
-        <p>I’ll be delivering your order. You can contact me here.</p>
-        {riderPhone && <nav className="sf-tracking-rider-actions" aria-label="Contact your rider">
+        <p>{riderPhone ? 'I’ll be delivering your order. You can contact me here.' : 'I’ll be delivering your order. My contact number is not available yet; please contact the restaurant if you need to reach me.'}</p>
+        <nav className="sf-tracking-rider-actions" aria-label="Contact your rider">
+          {riderPhone ? <>
           <a href={'tel:' + riderPhone} aria-label={'Call ' + status?.rider_name}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.2 3.8 4.8 5.1c-.8.5-.9 1.6-.7 2.5 1.5 6.2 6.1 10.8 12.3 12.3.9.2 2 0 2.5-.7l1.3-2.4-4.1-2.8-2 2a14.3 14.3 0 0 1-5.8-5.8l2-2-3.1-4.4Z" /></svg>Call</a>
           <a href={'sms:' + riderPhone} aria-label={'Text ' + status?.rider_name}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.2a7.8 7.8 0 0 1-8 7.6 8.7 8.7 0 0 1-3.6-.8L4 19l1.1-3.7A7.2 7.2 0 0 1 4 11.2a7.8 7.8 0 0 1 8-7.6 7.8 7.8 0 0 1 8 7.6Z" /><path d="M8 11.5h.01M12 11.5h.01M16 11.5h.01" /></svg>Text</a>
-        </nav>}
+          </> : <>
+            <button type="button" disabled aria-label="Call unavailable until the rider adds a phone number"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.2 3.8 4.8 5.1c-.8.5-.9 1.6-.7 2.5 1.5 6.2 6.1 10.8 12.3 12.3.9.2 2 0 2.5-.7l1.3-2.4-4.1-2.8-2 2a14.3 14.3 0 0 1-5.8-5.8l2-2-3.1-4.4Z" /></svg>Call</button>
+            <button type="button" disabled aria-label="Text unavailable until the rider adds a phone number"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.2a7.8 7.8 0 0 1-8 7.6 8.7 8.7 0 0 1-3.6-.8L4 19l1.1-3.7A7.2 7.2 0 0 1 4 11.2a7.8 7.8 0 0 1 8-7.6 7.8 7.8 0 0 1 8 7.6Z" /><path d="M8 11.5h.01M12 11.5h.01M16 11.5h.01" /></svg>Text</button>
+          </>}
+        </nav>
       </section>}
       <section className="sf-tracking-details">
         <div><span className="sf-tracking-eyebrow">YOUR ORDER</span><h2>Order details</h2></div>
