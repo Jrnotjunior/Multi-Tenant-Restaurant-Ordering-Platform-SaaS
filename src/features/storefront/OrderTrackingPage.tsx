@@ -7,12 +7,13 @@ const peso = (centavos: number) => new Intl.NumberFormat('en-PH', { style: 'curr
 type TrackedItem = { name: string; quantity: number; total_centavos: number; unit_price_centavos?: number; options?: unknown[] };
 type TrackedStatus = { order_status: string; payment_status: string; payment_method?: string; refund_status?: 'pending' | 'refunded' | 'failed' | null; order_type?: string; updated_at: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null };
 
-export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
-  const [trackingToken] = useState<string | null>(() => {
-    try { return window.sessionStorage.getItem('web2table:latest-order-tracking') || window.localStorage.getItem('web2table:latest-order-tracking'); } catch { return null; }
+export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingToken?: string | null }) {
+  const [storedTrackingToken] = useState<string | null>(() => {
+    try { return window.sessionStorage.getItem('web2table:latest-order-tracking'); } catch { return null; }
   });
+  const trackingToken = props.trackingToken === undefined ? storedTrackingToken : props.trackingToken;
   const [orderNumber, setOrderNumber] = useState<number | null>(() => {
-    try { const value = window.sessionStorage.getItem('web2table:latest-order-number') || window.localStorage.getItem('web2table:latest-order-number'); return value ? Number(value) : null; } catch { return null; }
+    try { const value = window.sessionStorage.getItem('web2table:latest-order-number'); return value ? Number(value) : null; } catch { return null; }
   });
   const [status, setStatus] = useState<TrackedStatus | null>(null);
   const [error, setError] = useState('');
@@ -22,9 +23,7 @@ export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [orderMeta] = useState(() => {
     try {
-      const raw = window.sessionStorage.getItem('web2table:latest-order-details')
-        || window.localStorage.getItem('web2table:latest-order-details')
-        || '{}';
+      const raw = window.sessionStorage.getItem('web2table:latest-order-details') || '{}';
       const parsed = JSON.parse(raw) as { paymentMethod?: string; lines?: { name: string; quantity: number; totalCentavos: number }[] };
       return { ...parsed, lines: Array.isArray(parsed.lines) ? parsed.lines : [] };
     } catch { return { lines: [] as { name: string; quantity: number; totalCentavos: number }[] }; }

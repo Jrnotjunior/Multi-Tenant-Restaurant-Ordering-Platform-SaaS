@@ -251,6 +251,8 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const [checkoutPage, setCheckoutPage] = useState(() => isStorefrontCheckoutPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
   const [trackingPage, setTrackingPage] = useState(() => isStorefrontTrackingPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
   const [hasTrackedOrder, setHasTrackedOrder] = useState(false);
+  const [accountTrackingToken, setAccountTrackingToken] = useState<string | null>(null);
+  const [accountTrackingSlug, setAccountTrackingSlug] = useState<string | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutDetails,setCheckoutDetails]=useState<CheckoutDetails>({
     customerName:'',phone:'',deliveryAddress:'',deliveryNotes:'',
@@ -279,18 +281,40 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   useEffect(() => {
     let cancelled = false;
     const syncTrackingAvailability = async () => {
+      const activeStatuses = new Set([
+        'pending_confirmation', 'pending', 'confirmed', 'preparing', 'ready_for_dispatch',
+        'ready_for_delivery', 'out_for_delivery', 'ready_for_pickup', 'ready_for_pick_up',
+        'ready_for_serve', 'ready_to_serve',
+      ]);
+      if (customerSignedIn && supabase) {
+        // The database is authoritative for an account's active order. The
+        // tracking token is returned only by this auth.uid()-scoped RPC.
+        const { data, error } = await supabase.rpc('customer_order_history');
+        if (cancelled) return;
+        if (error) {
+          setAccountTrackingToken(null);
+          setAccountTrackingSlug(null);
+          setHasTrackedOrder(false);
+          return;
+        }
+        const orders = (Array.isArray(data) ? data : []) as Array<{
+          tracking_token?: string; restaurant_slug?: string; order_status?: string;
+        }>;
+        const activeOrder = orders.find(order => {
+          const status = order.order_status?.trim().toLowerCase().replaceAll('-', '_').replaceAll(' ', '_');
+          return Boolean(order.tracking_token && order.restaurant_slug && status && activeStatuses.has(status));
+        });
+        setAccountTrackingToken(activeOrder?.tracking_token ?? null);
+        setAccountTrackingSlug(activeOrder?.restaurant_slug ?? null);
+        setHasTrackedOrder(Boolean(activeOrder));
+        return;
+      }
+
+      setAccountTrackingToken(null);
+      setAccountTrackingSlug(null);
       let trackingToken: string | null = null;
       try {
-        const sessionToken = window.sessionStorage.getItem('web2table:latest-order-tracking');
-        const sharedToken = window.localStorage.getItem('web2table:latest-order-tracking');
-        trackingToken = sessionToken || sharedToken;
-        // Bridge an order created before cross-tab tracking was enabled. The
-        // localStorage write also notifies other storefront tabs to refresh.
-        if (sessionToken && sessionToken !== sharedToken) {
-          window.localStorage.setItem('web2table:latest-order-tracking', sessionToken);
-          const sessionOrderNumber = window.sessionStorage.getItem('web2table:latest-order-number');
-          if (sessionOrderNumber) window.localStorage.setItem('web2table:latest-order-number', sessionOrderNumber);
-        }
+        trackingToken = window.sessionStorage.getItem('web2table:latest-order-tracking');
       } catch {
         if (!cancelled) setHasTrackedOrder(false);
         return;
@@ -310,25 +334,11 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       const rawResult = Array.isArray(data) ? data[0] : data;
       const result = rawResult as { found?: boolean; order_status?: string } | null;
       const status = result?.order_status?.trim().toLowerCase().replaceAll('-', '_').replaceAll(' ', '_');
-      const activeStatuses = new Set([
-        'pending_confirmation',
-        'pending',
-        'confirmed',
-        'preparing',
-        'ready_for_dispatch',
-        'ready_for_delivery',
-        'out_for_delivery',
-        'ready_for_pickup',
-        'ready_for_pick_up',
-        'ready_for_serve',
-        'ready_to_serve',
-      ]);
       const hasActiveOrder = Boolean(result?.found && status && activeStatuses.has(status));
       setHasTrackedOrder(hasActiveOrder);
       if (result?.found && status && !hasActiveOrder) {
         try {
           window.sessionStorage.removeItem('web2table:latest-order-tracking');
-          window.localStorage.removeItem('web2table:latest-order-tracking');
         } catch {
           // The header remains hidden even when browser storage cannot be cleared.
         }
@@ -336,14 +346,12 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     };
     const handleSavedOrder = () => { void syncTrackingAvailability(); };
     window.addEventListener('web2table:tracking-order-saved', handleSavedOrder);
-    window.addEventListener('storage', handleSavedOrder);
     void syncTrackingAvailability();
     return () => {
       cancelled = true;
       window.removeEventListener('web2table:tracking-order-saved', handleSavedOrder);
-      window.removeEventListener('storage', handleSavedOrder);
     };
-  }, []);
+  }, [customerSignedIn, customerUserId]);
 
   useEffect(() => {
     // Hydrate both guest and signed-in carts. Guest carts use sessionStorage;
@@ -496,36 +504,15 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   }
 
   function navigateTracking() {
-    if (!resolvedSlug) return;
-    navigateHashRoute(storefrontTrackingHash(resolvedSlug));
+    const slug = customerSignedIn ? accountTrackingSlug : resolvedSlug;
+    if (!slug) return;
+    navigateHashRoute(storefrontTrackingHash(slug));
     setTrackingPage(true);
     setCartPage(false);
     setCheckoutPage(false);
     setAccountMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'auto' });
   }
-
-  useEffect(() => {
-    if (!customerSignedIn || !trackingPage) return;
-    // Guest tracking links are not the signed-in customer's order history.
-    // Clear guest tracking context and return authenticated customers to the menu.
-    try {
-      window.sessionStorage.removeItem('web2table:latest-order-tracking');
-      window.sessionStorage.removeItem('web2table:latest-order-number');
-      window.sessionStorage.removeItem('web2table:latest-order-details');
-      window.localStorage.removeItem('web2table:latest-order-tracking');
-      window.localStorage.removeItem('web2table:latest-order-number');
-      window.localStorage.removeItem('web2table:latest-order-details');
-    } catch {
-      // Storage may be unavailable; route protection still applies.
-    }
-    setHasTrackedOrder(false);
-    setTrackingPage(false);
-    setCartPage(false);
-    setCheckoutPage(false);
-    if (resolvedSlug) navigateHashRoute(restaurantMenuHash(resolvedSlug));
-    else window.history.replaceState({}, '', normalizeAppBase(baseUrl));
-  }, [customerSignedIn, trackingPage, resolvedSlug, baseUrl]);
 
   function navigateCheckout(open: boolean) {
     if (!resolvedSlug) { setCheckoutPage(open); setCartPage(false); return; }
@@ -637,7 +624,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     />
 
     <main className={cartPage ? "sf-main sf-main-cart" : "sf-main"}>
-      {trackingPage ? <OrderTrackingPage onBackToMenu={() => { window.location.hash = restaurantMenuHash(resolvedSlug ?? requestedSlug ?? ''); setTrackingPage(false); setCartPage(false); setCheckoutPage(false); }} /> : cartPage ? <CartPage count={count} onBack={() => navigateCart(false)}>
+      {trackingPage ? <OrderTrackingPage trackingToken={customerSignedIn ? accountTrackingToken : undefined} onBackToMenu={() => { window.location.hash = restaurantMenuHash(resolvedSlug ?? requestedSlug ?? ''); setTrackingPage(false); setCartPage(false); setCheckoutPage(false); }} /> : cartPage ? <CartPage count={count} onBack={() => navigateCart(false)}>
         <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} close={() => navigateCart(false)} onCheckout={() => navigateCheckout(true)}/>
       </CartPage> : checkoutPage ? <CheckoutPage
         restaurantSlug={resolvedSlug ?? requestedSlug ?? ''}
