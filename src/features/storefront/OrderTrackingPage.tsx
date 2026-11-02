@@ -5,7 +5,7 @@ import './storefront.css';
 const peso = (centavos: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 2 }).format(centavos / 100);
 
 type TrackedItem = { name: string; quantity: number; total_centavos: number; unit_price_centavos?: number; options?: unknown[] };
-type TrackedStatus = { order_status: string; assignment_status?: string | null; payment_status: string; payment_method?: string; refund_status?: 'pending' | 'refunded' | 'failed' | null; order_type?: string; updated_at: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null };
+type TrackedStatus = { order_status: string; assignment_status?: string | null; rider_name?: string | null; rider_phone?: string | null; payment_status: string; payment_method?: string; refund_status?: 'pending' | 'refunded' | 'failed' | null; order_type?: string; updated_at: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null };
 
 export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingToken?: string | null }) {
   const [storedTrackingToken] = useState<string | null>(() => {
@@ -41,14 +41,14 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
       const { data, error: rpcError } = await supabase!.rpc('track_customer_order', { p_tracking_token: trackingToken });
       if (!active) return;
       if (rpcError) { setError('Live tracking is reconnecting. We will keep trying.'); return; }
-      const result = data as { found?: boolean; order_number?: number; order_status?: string; assignment_status?: string | null; payment_status?: string; payment_method?: string; refund_status?: TrackedStatus['refund_status']; order_type?: string; updated_at?: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null } | null;
+      const result = data as { found?: boolean; order_number?: number; order_status?: string; assignment_status?: string | null; rider_name?: string | null; rider_phone?: string | null; payment_status?: string; payment_method?: string; refund_status?: TrackedStatus['refund_status']; order_type?: string; updated_at?: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null } | null;
       if (!result?.found || !result.order_status || !result.payment_status || !result.updated_at) {
         setError('We could not find this order. Keep your tracking link and contact the restaurant if needed.');
         return;
       }
       setError('');
       setOrderNumber(Number(result.order_number));
-      setStatus({ order_status: result.order_status, assignment_status: result.assignment_status, payment_status: result.payment_status, payment_method: result.payment_method, refund_status: result.refund_status, order_type: result.order_type, updated_at: result.updated_at, items: result.items ?? [], subtotal_centavos: result.subtotal_centavos, delivery_fee_centavos: result.delivery_fee_centavos, total_centavos: result.total_centavos });
+      setStatus({ order_status: result.order_status, assignment_status: result.assignment_status, rider_name: result.rider_name, rider_phone: result.rider_phone, payment_status: result.payment_status, payment_method: result.payment_method, refund_status: result.refund_status, order_type: result.order_type, updated_at: result.updated_at, items: result.items ?? [], subtotal_centavos: result.subtotal_centavos, delivery_fee_centavos: result.delivery_fee_centavos, total_centavos: result.total_centavos });
     };
     void refresh();
     const channel = supabase.channel('order-tracking:' + trackingToken)
@@ -106,7 +106,7 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
   const labels = dineIn
     ? ['Order Received', 'Confirmed', 'Preparing', 'Ready', 'Served']
     : deliveryOrder
-      ? ['Order Received', 'Confirmed', 'Preparing', 'Ready', 'Assigned', 'Out for delivery', 'Arrived at your address', 'Delivered']
+      ? ['Order Received', 'Confirmed', 'Preparing', 'Ready', 'Assigned', 'Out for delivery', 'Arrived', 'Delivered']
       : ['Order Received', 'Confirmed', 'Preparing', 'Ready', 'Out for delivery', 'Delivered'];
   const descriptions = dineIn
     ? ['Your order has been received by the restaurant.', 'The restaurant has confirmed your order.', 'The kitchen is preparing your food.', 'Your food is ready. Restaurant staff will bring it to your table.', 'Your order has been served. Thank you!']
@@ -122,6 +122,8 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
   const terminal = status ? ['rejected', 'cancelled'].includes(status.order_status) : false;
   const isCancelled = status?.order_status === 'cancelled';
   const currentStage = current < 0 ? (terminal ? (status?.order_status ?? 'unknown').replaceAll('_', ' ') : 'Order Received') : labels[current];
+  const assignedRider = Boolean(!isCancelled && deliveryOrder && status?.rider_name && ['assigned', 'accepted', 'dispatched', 'out_for_delivery', 'arrived_at_customer'].includes(status.assignment_status ?? ''));
+  const riderPhone = status?.rider_phone?.replace(/[^+\d]/g, '') ?? '';
   const orderNumText = orderNumber ? String(orderNumber).padStart(5, '0') : '…';
   const orderTypeLabel = dineIn ? 'Dine-in' : orderType.replaceAll('-', ' ').replace(/\\b\\w/g, x => x.toUpperCase());
   const normalizedPaymentStatus = (status?.payment_status ?? '').toLowerCase();
@@ -157,6 +159,15 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
         <h1>ORD-{orderNumText}</h1>
         <p>{isCancelled ? cancellationMessage : dineInCashOrder ? 'Give this order number to the cashier to help them find your order.' : 'Your order status updates automatically.'}</p>
       </header>
+      {assignedRider && <section className="sf-tracking-rider" aria-label="Your delivery rider">
+        <span className="sf-tracking-eyebrow">YOUR RIDER</span>
+        <h2>Hi, my name is {status?.rider_name}.</h2>
+        <p>I’ll be delivering your order. You can contact me here.</p>
+        {riderPhone && <nav className="sf-tracking-rider-actions" aria-label="Contact your rider">
+          <a href={'tel:' + riderPhone} aria-label={'Call ' + status?.rider_name}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.2 3.8 4.8 5.1c-.8.5-.9 1.6-.7 2.5 1.5 6.2 6.1 10.8 12.3 12.3.9.2 2 0 2.5-.7l1.3-2.4-4.1-2.8-2 2a14.3 14.3 0 0 1-5.8-5.8l2-2-3.1-4.4Z" /></svg>Call</a>
+          <a href={'sms:' + riderPhone} aria-label={'Text ' + status?.rider_name}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.2a7.8 7.8 0 0 1-8 7.6 8.7 8.7 0 0 1-3.6-.8L4 19l1.1-3.7A7.2 7.2 0 0 1 4 11.2a7.8 7.8 0 0 1 8-7.6 7.8 7.8 0 0 1 8 7.6Z" /><path d="M8 11.5h.01M12 11.5h.01M16 11.5h.01" /></svg>Text</a>
+        </nav>}
+      </section>}
       <section className="sf-tracking-details">
         <div><span className="sf-tracking-eyebrow">YOUR ORDER</span><h2>Order details</h2></div>
         <button type="button" aria-expanded={detailsOpen} onClick={() => setDetailsOpen(value => !value)}>{detailsOpen ? 'Hide details' : 'View details'} <span aria-hidden="true">{detailsOpen ? '⌃' : '⌄'}</span></button>
