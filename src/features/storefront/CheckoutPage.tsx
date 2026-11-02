@@ -128,7 +128,9 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
   const [customerFirstName, setCustomerFirstName] = useState('');
   const [customerLastName, setCustomerLastName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [deliveryAddress, setDeliveryAddress] = useState<DeliveryLocationAddress | null>(null);\n  const [savedAddresses, setSavedAddresses] = useState<SavedCheckoutAddress[]>([]);\n  const [savedAddressesLoading, setSavedAddressesLoading] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState<DeliveryLocationAddress | null>(null);
+  const [savedAddresses, setSavedAddresses] = useState<SavedCheckoutAddress[]>([]);
+  const [savedAddressesLoading, setSavedAddressesLoading] = useState(false);
   const [streetAddress, setStreetAddress] = useState('');
   const [message, setMessage] = useState('');
   const [reviewed, setReviewed] = useState(false);
