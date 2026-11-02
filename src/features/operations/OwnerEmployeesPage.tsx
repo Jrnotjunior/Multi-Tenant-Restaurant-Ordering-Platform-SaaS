@@ -1,9 +1,9 @@
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import './owner-employees.css';
 
 type Branch={id:string;name:string;slug:string;is_active:boolean};
-type Staff={user_id:string;email:string;display_name:string;role:string;status:string;branches:{id:string;name:string}[]};
+type Staff={user_id:string;email:string;display_name:string;first_name:string;last_name:string;phone:string;role:string;status:string;branches:{id:string;name:string}[]};
 type Invitation={id:string;email:string;role:string;branch_id:string;branch_name:string|null;status:string;expires_at:string};
 type Directory={branches:Branch[];staff:Staff[];invitations:Invitation[]};
 const roles=[['cashier','Cashier'],['kitchen','Kitchen'],['dispatcher','Dispatcher'],['rider','Rider']];
@@ -12,7 +12,7 @@ const pretty=(value:string)=>value.replaceAll('_',' ').replace(/^./,c=>c.toUpper
 export function OwnerEmployeesPage({tenantId}:{tenantId:string}){
  const [directory,setDirectory]=useState<Directory>({branches:[],staff:[],invitations:[]});
  const [email,setEmail]=useState('');const [firstName,setFirstName]=useState('');const [lastName,setLastName]=useState('');const [role,setRole]=useState('cashier');const [branchId,setBranchId]=useState('');
- const [editingUser,setEditingUser]=useState<string|null>(null);const [editingRole,setEditingRole]=useState('cashier');const [editingBranchIds,setEditingBranchIds]=useState<string[]>([]);const [staffBusy,setStaffBusy]=useState<string|null>(null);
+ const [editingUser,setEditingUser]=useState<string|null>(null);const [editingFirstName,setEditingFirstName]=useState('');const [editingLastName,setEditingLastName]=useState('');const [editingPhone,setEditingPhone]=useState('');const [editingRole,setEditingRole]=useState('cashier');const [editError,setEditError]=useState('');const [staffBusy,setStaffBusy]=useState<string|null>(null);
  const [loading,setLoading]=useState(true);const [sending,setSending]=useState(false);const [error,setError]=useState('');const [notice,setNotice]=useState('');
  const load=useCallback(async()=>{if(!supabase){setError('Restaurant services are not configured.');setLoading(false);return;}setLoading(true);setError('');
   try{const {data,error:queryError}=await supabase.rpc('list_tenant_staff',{p_tenant_id:tenantId});if(queryError)throw queryError;
@@ -28,14 +28,15 @@ export function OwnerEmployeesPage({tenantId}:{tenantId:string}){
    setNotice('Invitation sent to '+email.trim()+'.');setEmail('');setFirstName('');setLastName('');await load();
   }catch(reason){setError(reason instanceof Error?reason.message:'Unable to send staff invitation.');}finally{setSending(false);}
  }
- function beginEdit(member:Staff){setEditingUser(member.user_id);setEditingRole(member.role);setEditingBranchIds(member.branches.map(branch=>branch.id).filter(id=>directory.branches.some(branch=>branch.id===id&&branch.is_active)));setError('');setNotice('');}
- async function saveStaffAccess(event:React.FormEvent<HTMLFormElement>,member:Staff){event.preventDefault();if(!supabase)return;setError('');setNotice('');
-  const validBranchIds=editingBranchIds.filter(id=>directory.branches.some(branch=>branch.id===id&&branch.is_active));
-  if(!validBranchIds.length){setError('Select at least one active branch for this team member.');return;}
+ function beginEdit(member:Staff){setEditingUser(member.user_id);setEditingFirstName(member.first_name??'');setEditingLastName(member.last_name??'');setEditingPhone(member.phone??'');setEditingRole(member.role);setEditError('');setError('');setNotice('');}
+ async function saveStaffProfile(event:FormEvent<HTMLFormElement>,member:Staff){event.preventDefault();if(!supabase)return;setEditError('');setNotice('');
+  const nextFirstName=editingFirstName.trim();const nextLastName=editingLastName.trim();const nextPhone=editingPhone.trim();
+  if(!nextFirstName||!nextLastName){setEditError('Enter the employee’s first and last name.');return;}
+  if(nextPhone&&!/^\+?[\d\s().-]{7,24}$/.test(nextPhone)){setEditError('Enter a valid phone number, including the country code if needed.');return;}
   setStaffBusy(member.user_id);
-  try{const {error:saveError}=await supabase.rpc('owner_update_tenant_staff',{p_tenant_id:tenantId,p_user_id:member.user_id,p_role:editingRole,p_branch_ids:validBranchIds});if(saveError)throw saveError;
-   setEditingUser(null);setNotice(`Access updated for ${member.display_name||pretty(member.role)}.`);await load();
-  }catch(reason){setError(reason instanceof Error?reason.message:'Unable to update staff access.');}finally{setStaffBusy(null);}
+  try{const {error:saveError}=await supabase.rpc('owner_update_tenant_staff',{p_tenant_id:tenantId,p_user_id:member.user_id,p_first_name:nextFirstName,p_last_name:nextLastName,p_phone:nextPhone,p_role:editingRole});if(saveError)throw saveError;
+   setEditingUser(null);setNotice(`Employee details updated for ${nextFirstName} ${nextLastName}.`);await load();
+  }catch(reason){setEditError(reason instanceof Error?reason.message:'Unable to update employee details.');}finally{setStaffBusy(null);}
  }
  async function setStaffStatus(member:Staff){if(!supabase)return;const nextStatus=member.status==='active'?'disabled':'active';
   const prompt=nextStatus==='disabled'?`Deactivate ${member.display_name||pretty(member.role)}? They will lose access and remain in the System Administrator's removal queue.`:`Reactivate ${member.display_name||pretty(member.role)}? They will regain access to their assigned branches.`;
@@ -57,17 +58,20 @@ export function OwnerEmployeesPage({tenantId}:{tenantId:string}){
     <div className="employees-form-actions"><button className="employees-primary" type="submit" disabled={sending||loading||!directory.branches.some(branch=>branch.id===branchId&&branch.is_active)}>{sending?'Sending invitation…':'Send invitation'}</button>{!directory.branches.some(branch=>branch.is_active)&&<span>No active branch is available for staff assignment.</span>}</div>
    </form>
   </section>
-  <section className="employees-panel"><div className="employees-panel-heading"><div><h2>Current team</h2><p>Manage staff role and branch access. Deactivated accounts remain for System Administrator review.</p></div><span className="employees-count">{directory.staff.filter(member=>member.status==='active').length} active · {directory.staff.filter(member=>member.status==='disabled').length} deactivated</span></div>
+  <section className="employees-panel"><div className="employees-panel-heading"><div><h2>Current team</h2><p>Edit employee names, phone numbers, and roles. Deactivated accounts remain for System Administrator review.</p></div><span className="employees-count">{directory.staff.filter(member=>member.status==='active').length} active · {directory.staff.filter(member=>member.status==='disabled').length} deactivated</span></div>
    {loading?<p className="employees-empty">Loading team…</p>:directory.staff.length===0?<p className="employees-empty">No staff members yet. Invite a team member above.</p>:
-    <div className="employees-table-wrap"><table className="employees-table"><thead><tr><th>Team member</th><th>Role</th><th>Branch access</th><th>Status</th><th>Actions</th></tr></thead><tbody>{directory.staff.map(member=><Fragment key={member.user_id}>
-      <tr key={member.user_id}><td><strong>{member.display_name||pretty(member.role)}</strong><small>{member.email}</small></td><td>{pretty(member.role)}</td><td>{member.branches.map(branch=>branch.name).join(', ')||'No branch assigned'}</td><td><span className={'employees-status '+(member.status==='active'?'is-active':'is-disabled')}>{member.status==='disabled'?'Deactivated · awaiting admin':pretty(member.status)}</span></td><td><div className="employees-row-actions"><button className="employees-text-button" type="button" onClick={()=>editingUser===member.user_id?setEditingUser(null):beginEdit(member)} disabled={staffBusy!==null}>{editingUser===member.user_id?'Cancel':'Edit access'}</button><button className={member.status==='active'?'employees-danger-button':'employees-text-button'} type="button" onClick={()=>void setStaffStatus(member)} disabled={staffBusy!==null}>{staffBusy===member.user_id?'Saving…':member.status==='active'?'Deactivate':'Reactivate'}</button></div></td></tr>
-      {editingUser===member.user_id&&<tr key={`${member.user_id}:edit`}><td colSpan={5}><form className="employees-edit-form" onSubmit={event=>void saveStaffAccess(event,member)}>
-        <label>Role<select value={editingRole} onChange={event=>setEditingRole(event.target.value)}>{roles.map(([value,text])=><option key={value} value={value}>{text}</option>)}</select></label>
-        <fieldset className="employees-edit-branches"><legend>Branch access</legend>{directory.branches.filter(branch=>branch.is_active).map(branch=><label key={branch.id}><input type="checkbox" checked={editingBranchIds.includes(branch.id)} onChange={event=>setEditingBranchIds(current=>event.target.checked?[...new Set([...current,branch.id])]:current.filter(id=>id!==branch.id))}/><span>{branch.name}</span></label>)}<small>Choose one or more active branches.</small></fieldset>
-        <div className="employees-edit-actions"><button className="employees-primary" type="submit" disabled={staffBusy!==null}>{staffBusy===member.user_id?'Saving…':'Save changes'}</button></div>
-      </form></td></tr>}
+   <div className="employees-table-wrap"><table className="employees-table"><thead><tr><th>Team member</th><th>Phone</th><th>Role</th><th>Branch access</th><th>Status</th><th>Actions</th></tr></thead><tbody>{directory.staff.map(member=><Fragment key={member.user_id}>
+      <tr key={member.user_id}><td><strong>{member.display_name||pretty(member.role)}</strong><small>{member.email}</small></td><td>{member.phone||'—'}</td><td>{pretty(member.role)}</td><td>{member.branches.map(branch=>branch.name).join(', ')||'No branch assigned'}</td><td><span className={'employees-status '+(member.status==='active'?'is-active':'is-disabled')}>{member.status==='disabled'?'Deactivated · awaiting admin':pretty(member.status)}</span></td><td><div className="employees-row-actions"><button className="employees-text-button" type="button" onClick={()=>beginEdit(member)} disabled={staffBusy!==null}>Edit details</button><button className={member.status==='active'?'employees-danger-button':'employees-text-button'} type="button" onClick={()=>void setStaffStatus(member)} disabled={staffBusy!==null}>{staffBusy===member.user_id?'Saving…':member.status==='active'?'Deactivate':'Reactivate'}</button></div></td></tr>
     </Fragment>)}</tbody></table></div>}
   </section>
+  {editingUser&&(()=>{const member=directory.staff.find(item=>item.user_id===editingUser);if(!member)return null;return <div className="employees-modal-backdrop" onKeyDown={event=>{if(event.key==='Escape'&&staffBusy===null)setEditingUser(null)}} onMouseDown={event=>{if(event.target===event.currentTarget&&staffBusy===null)setEditingUser(null)}}><section className="employees-edit-modal" role="dialog" aria-modal="true" aria-labelledby="employees-edit-title"><div className="employees-edit-modal-heading"><div><span>TEAM MEMBER</span><h2 id="employees-edit-title">Edit employee</h2><p>Update this employee’s contact details and role.</p></div><button type="button" className="employees-modal-close" aria-label="Close edit employee" onClick={()=>staffBusy===null&&setEditingUser(null)}>×</button></div><form onSubmit={event=>void saveStaffProfile(event,member)}>
+    <label>First name<input autoFocus autoComplete="given-name" value={editingFirstName} onChange={event=>setEditingFirstName(event.target.value)} required maxLength={60}/></label>
+    <label>Last name<input autoComplete="family-name" value={editingLastName} onChange={event=>setEditingLastName(event.target.value)} required maxLength={60}/></label>
+    <label>Phone number<input type="tel" autoComplete="tel" inputMode="tel" value={editingPhone} onChange={event=>setEditingPhone(event.target.value.slice(0,24))} maxLength={24} placeholder="09XXXXXXXXX"/></label>
+    <label>Role<select value={editingRole} onChange={event=>setEditingRole(event.target.value)}>{roles.map(([value,text])=><option key={value} value={value}>{text}</option>)}</select></label>
+    {editError&&<div className="employees-alert is-error" role="alert">{editError}</div>}
+    <div className="employees-edit-modal-actions"><button type="button" className="employees-secondary" onClick={()=>setEditingUser(null)} disabled={staffBusy!==null}>Cancel</button><button className="employees-primary" type="submit" disabled={staffBusy!==null}>{staffBusy===member.user_id?'Saving…':'Save changes'}</button></div>
+   </form></section></div>})()}
   <section className="employees-panel"><div className="employees-panel-heading"><div><h2>Pending invitations</h2><p>Invitations expire after seven days.</p></div><span className="employees-count">{directory.invitations.length} pending</span></div>
    {loading?<p className="employees-empty">Loading invitations…</p>:directory.invitations.length===0?<p className="employees-empty">No pending invitations.</p>:
     <div className="employees-table-wrap"><table className="employees-table"><thead><tr><th>Email</th><th>Role</th><th>Branch</th><th>Status</th><th>Expires</th></tr></thead><tbody>{directory.invitations.map(item=><tr key={item.id}><td><strong>{item.email}</strong></td><td>{pretty(item.role)}</td><td>{item.branch_name??'—'}</td><td><span className="employees-status">{pretty(item.status)}</span></td><td>{new Intl.DateTimeFormat('en-PH',{dateStyle:'medium'}).format(new Date(item.expires_at))}</td></tr>)}</tbody></table></div>}

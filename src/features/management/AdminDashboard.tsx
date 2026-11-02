@@ -99,8 +99,8 @@ export function AdminDashboard(){
     </section>
     <section className="mg-card"><div className="mg-card-title"><div><h2>Deactivated staff</h2><p>Remove deactivated staff memberships from their restaurant. Their login and historical records are retained.</p></div><span className="mg-pill">{deactivatedStaff.length} awaiting removal</span></div>
       {!deactivatedStaff.length?<p className="mg-muted">No deactivated staff are waiting for administrator review.</p>:
-        <div className="mg-list">{deactivatedStaff.map(staff=><div className="mg-staff-removal-row" key={`${staff.tenant_id}:${staff.user_id}`}>
-          <div className="mg-staff-removal-person"><strong>{staff.display_name}</strong><span>{staff.email} · {staff.role} · {staff.tenant_name}</span><small>{staff.branches.length?staff.branches.join(', '):'No branch access'}{staff.disabled_at?` · Deactivated ${new Intl.DateTimeFormat('en-PH',{dateStyle:'medium'}).format(new Date(staff.disabled_at))}`:''}</small></div>
+          <div className="mg-list">{deactivatedStaff.map(staff=><div className="mg-staff-removal-row" key={`${staff.tenant_id}:${staff.user_id}`}>
+            <div className="mg-staff-removal-person"><strong>{staff.display_name}</strong><span>{staff.email}{staff.phone?` · ${staff.phone}`:''} · {staff.role} · {staff.tenant_name}</span><small>{staff.branches.length?staff.branches.join(', '):'No branch access'}{staff.disabled_at?` · Deactivated ${new Intl.DateTimeFormat('en-PH',{dateStyle:'medium'}).format(new Date(staff.disabled_at))}`:''}</small></div>
           <button className="mg-danger" type="button" disabled={busy} onClick={()=>deleteDisabledStaff(staff)}>Delete from restaurant</button>
         </div>)}</div>}
     </section>

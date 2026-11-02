@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase';
 export type Tenant = {id:string;name:string;slug:string};
 export type DeactivatedStaff = {
   tenant_id:string;tenant_name:string;user_id:string;email:string;display_name:string;
-  role:string;disabled_at:string|null;branches:string[];
+  phone:string;role:string;disabled_at:string|null;branches:string[];
 };
 export type Branch = {id:string;tenant_id:string;slug:string;name:string;is_active:boolean};
 export type Brand = {
