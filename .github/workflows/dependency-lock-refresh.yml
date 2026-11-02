@@ -1,0 +1,45 @@
+name: Refresh dependency lockfiles
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Pin npm to the CI version
+        run: npm install --global npm@11.19.1
+      - name: Generate npm lockfile
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Upload npm lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-package-lock
+          path: package-lock.json
+          if-no-files-found: error
+          retention-days: 1
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.8
+      - name: Generate and audit Deno lockfile
+        run: |
+          deno check --node-modules-dir=none supabase/functions/*/index.ts
+          deno audit --level=moderate
+      - name: Upload Deno lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: deno-lock
+          path: deno.lock
+          if-no-files-found: error
+          retention-days: 1
