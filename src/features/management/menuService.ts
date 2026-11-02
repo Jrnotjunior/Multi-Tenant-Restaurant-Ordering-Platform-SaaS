@@ -1,6 +1,10 @@
 import { supabase } from '../../lib/supabase';
 
 export type Tenant = {id:string;name:string;slug:string};
+export type DeactivatedStaff = {
+  tenant_id:string;tenant_name:string;user_id:string;email:string;display_name:string;
+  role:string;disabled_at:string|null;branches:string[];
+};
 export type Branch = {id:string;tenant_id:string;slug:string;name:string;is_active:boolean};
 export type Brand = {
   tenant_id:string;default_branch_id:string;display_name:string;tagline:string;
@@ -274,6 +278,26 @@ export async function sendOwnerInvitation(tenantId:string,email:string):Promise<
   if(data?.error) throw new Error(String(data.error));
   if(typeof data?.invitationId!=='string'||data?.status!=='sent') throw new Error('The owner invitation email could not be confirmed as sent.');
   return data.invitationId;
+}
+
+export async function listDeactivatedStaff():Promise<DeactivatedStaff[]> {
+  const db=requireClient();
+  const {data,error}=await db.rpc('system_admin_list_deactivated_staff');
+  check(error);
+  if(!data||typeof data!=='object'||!Array.isArray((data as {staff?:unknown}).staff)) {
+    throw new Error('The deactivated staff list could not be loaded.');
+  }
+  return (data as {staff:DeactivatedStaff[]}).staff;
+}
+
+export async function removeDeactivatedStaff(tenantId:string,userId:string):Promise<string> {
+  const db=requireClient();
+  const {data,error}=await db.rpc('system_admin_delete_deactivated_staff',{
+    p_tenant_id:tenantId,p_user_id:userId,
+  });
+  check(error);
+  if(data!==true) throw new Error('The deactivated staff membership was not removed.');
+  return userId;
 }
 
 
