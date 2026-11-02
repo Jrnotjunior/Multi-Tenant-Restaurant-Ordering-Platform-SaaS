@@ -733,7 +733,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       </>}
     </main>
 
-    <StorefrontFooter />
+    <StorefrontFooter socialLinks={restaurant.socialLinks} />
 
     {checkoutOpen && <div className="sf-checkout-backdrop" role="presentation" onMouseDown={event => {if(event.target===event.currentTarget)setCheckoutOpen(false);}}>
       <section className="sf-checkout-panel" role="dialog" aria-modal="true" aria-labelledby="sf-checkout-heading">
