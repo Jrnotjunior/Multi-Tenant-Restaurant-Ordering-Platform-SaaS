@@ -84,12 +84,12 @@ function validateSocialLinks(value:unknown):StorefrontSocialLinks {
   for(const key of Object.keys(hosts) as Array<keyof typeof hosts>) {
     const raw=value[key];
     if(raw===undefined||raw===null||raw==='')continue;
-    if(typeof raw!=='string'||raw.length>500)throw new Error('Invalid published social link');
+    // A malformed optional social URL must never make the entire restaurant menu unavailable.
+    // Ignore only the invalid icon; the rest of the published storefront remains usable.
+    if(typeof raw!=='string'||raw.length>500)continue;
     let url:URL;
-    try{url=new URL(raw);}catch{throw new Error('Invalid published social link');}
-    if(!['https:','http:'].includes(url.protocol)||!hosts[key].includes(url.hostname.toLowerCase())||url.username||url.password) {
-      throw new Error('Invalid published social link');
-    }
+    try{url=new URL(raw);}catch{continue;}
+    if(!['https:','http:'].includes(url.protocol)||!hosts[key].includes(url.hostname.toLowerCase())||url.username||url.password) continue;
     result[key]=url.toString();
   }
   return result;
