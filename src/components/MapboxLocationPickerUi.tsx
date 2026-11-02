@@ -277,13 +277,6 @@ export function MapboxLocationPickerUi({
 
   return (
     <div className="delivery-location-picker">
-      <p className="checkout-hint">
-        {variant === 'restaurant'
-          ? 'Search the restaurant address or move the pin to the exact restaurant location.'
-          : ''}
-        {' · '}Powered by <a href="https://www.mapbox.com/" target="_blank" rel="noreferrer">Mapbox</a>
-      </p>
-
       <div className="delivery-location-search">
         <div className="delivery-location-search-row">
           <input
