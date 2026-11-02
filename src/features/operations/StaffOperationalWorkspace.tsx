@@ -82,10 +82,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [kitchenTicketPreviewOpen, setKitchenTicketPreviewOpen] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  const [accountEmail, setAccountEmail] = useState('');
   const [accountName, setAccountName] = useState('');
-  const [riderPhoneDraft, setRiderPhoneDraft] = useState('');
-  const [savingRiderPhone, setSavingRiderPhone] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const copy = roleCopy[role];
@@ -170,32 +167,11 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     void supabase?.auth.getUser().then(({ data }) => {
       if (!active) return;
       const user = data.user;
-      const email = user?.email ?? '';
       const roleFallback = role === 'rider' ? 'Rider' : role === 'dispatcher' ? 'Dispatcher' : role === 'cashier' ? 'Cashier' : 'Kitchen Staff';
-      setAccountEmail(email);
       setAccountName(userDisplayName(user, roleFallback));
-      if (role === 'rider') setRiderPhoneDraft(String(user?.user_metadata?.phone_number ?? user?.user_metadata?.phone ?? user?.phone ?? ''));
     });
     return () => { active = false; };
   }, []);
-
-  async function saveRiderPhone() {
-    if (!supabase || savingRiderPhone || role !== 'rider') return;
-    const phone = riderPhoneDraft.trim();
-    if (phone && !/^\+?[\d\s().-]{7,24}$/.test(phone)) {
-      setError('Enter a valid phone number, including country code if needed.');
-      return;
-    }
-    setSavingRiderPhone(true);
-    setError('');
-    const { error: updateError } = await supabase.auth.updateUser({ data: { phone_number: phone || null } });
-    if (updateError) setError(updateError.message || 'Unable to save your contact number.');
-    else {
-      setNotice('Your contact number was saved for customers with an assigned delivery.');
-      setAccountMenuOpen(false);
-    }
-    setSavingRiderPhone(false);
-  }
 
   async function signOut() {
     if (!supabase || signingOut) return;
@@ -556,7 +532,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           <button className="rider-account-button" type="button" aria-label="Open rider account menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(open => !open)}>
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5" /><path d="M5 20c.8-3.4 3.2-5.2 7-5.2s6.2 1.8 7 5.2" /></svg>
           </button>
-          {accountMenuOpen && <div className="rider-account-dropdown"><div className="rider-account-email">{accountName || 'Rider account'}</div><form className="rider-account-phone" onSubmit={event => { event.preventDefault(); void saveRiderPhone(); }}><label htmlFor="rider-contact-phone">Contact phone</label><input id="rider-contact-phone" type="tel" autoComplete="tel" inputMode="tel" value={riderPhoneDraft} onChange={event => setRiderPhoneDraft(event.target.value)} placeholder="Add your phone number" /><button type="submit" disabled={savingRiderPhone}>{savingRiderPhone ? 'Saving…' : riderPhoneDraft ? 'Save number' : 'Add number'}</button></form><button type="button" onClick={() => void signOut()} disabled={signingOut}>{signingOut ? 'Logging out…' : 'Log out'}</button></div>}
+          {accountMenuOpen && <div className="rider-account-dropdown"><div className="rider-account-email">{accountName || 'Rider account'}</div><button type="button" onClick={() => void signOut()} disabled={signingOut}>{signingOut ? 'Logging out…' : 'Log out'}</button></div>}
         </div>
       </header>
       {error && <div className="rider-dashboard-message" role="alert">{error}</div>}
