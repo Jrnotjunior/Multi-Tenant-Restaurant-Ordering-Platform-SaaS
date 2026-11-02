@@ -38,68 +38,50 @@ describe('house-number verification', () => {
 });
 
 describe('address search provider', () => {
-  it('uses Geoapify autocomplete, preserves number-like units, and keeps street-only matches unverified', async () => {
-    vi.stubEnv('VITE_GEOAPIFY_API_KEY', 'test-public-key');
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
-      type: 'FeatureCollection',
-      features: [{
-        type: 'Feature',
-        id: 'geoapify-place-1',
-        geometry: { type: 'Point', coordinates: [121.04, 14.65] },
-        properties: {
-          name: 'Kalayaan Avenue',
-          unit: 'No. 47-C',
-          street: 'Kalayaan Avenue',
-          address_line1: 'Kalayaan Avenue',
-          address_line2: 'Pinyahan, Quezon City, Philippines',
-          formatted: 'Kalayaan Avenue, Pinyahan, Quezon City, Philippines',
-          result_type: 'street',
-          country: 'Philippines',
-          country_code: 'ph',
-          place_id: 'geoapify-place-1',
-        },
-      }],
-    }), { status: 200, headers: { 'Content-Type': 'application/geo+json' } }));
+  it('uses Mapbox Geocoding v6 with supported feature types', async () => {
+    vi.stubEnv('VITE_SUPABASE_URL', 'https://example.supabase.co');
+    vi.stubEnv('VITE_SUPABASE_PUBLISHABLE_KEY', 'test-public-key');
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ accessToken: 'test-mapbox-token' }), {
+        status: 200, headers: { 'Content-Type': 'application/json' },
+      }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        features: [{
+          id: 'mapbox-address-1',
+          geometry: { type: 'Point', coordinates: [121.04, 14.65] },
+          properties: {
+            mapbox_id: 'mapbox-address-1',
+            feature_type: 'address',
+            name: 'J. Martin Street',
+            address: 'Unit V5, J. Martin Street',
+            address_number: 'V5',
+            street: 'J. Martin Street',
+            full_address: 'Unit V5, Red Gate, White Apartment, J. Martin Street, Valenzuela, Philippines',
+            country_code: 'ph',
+            context: {
+              place: { name: 'Valenzuela' },
+              neighborhood: { name: 'Dalandanan' },
+              country: { name: 'Philippines' },
+              region: { name: 'Metro Manila' },
+            },
+          },
+        }],
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
     vi.stubGlobal('fetch', fetchMock);
 
-    const query = 'No. 47-C Kalayaan Avenue, Quezon City';
-    const results = await searchAddresses(query);
+    const results = await searchAddresses('Unit V5, Red Gate, White Apartment, J. Martin Street');
+    const requestUrl = new URL(String(fetchMock.mock.calls[1][0]));
     const address = geocodingFeatureToAddress(results[0]);
-    const requestUrl = new URL(String(fetchMock.mock.calls[0][0]));
 
-    expect(requestUrl.origin).toBe('https://api.geoapify.com');
-    expect(requestUrl.pathname).toBe('/v1/geocode/autocomplete');
-    expect(requestUrl.searchParams.get('text')).toBe(query);
-    expect(requestUrl.searchParams.get('filter')).toBe('countrycode:ph');
-    expect(requestUrl.searchParams.get('apiKey')).toBe('test-public-key');
-    expect(isGeoapifyAddressSearchConfigured()).toBe(true);
-    expect(matchesRequestedHouseNumber(query, resultHouseNumber(results[0].properties))).toBe(false);
+    expect(requestUrl.origin).toBe('https://api.mapbox.com');
+    expect(requestUrl.pathname).toBe('/search/geocode/v6/forward');
+    expect(requestUrl.searchParams.get('types')).toBe('address,street,locality,neighborhood,place,district');
+    expect(requestUrl.searchParams.get('types')).not.toContain('poi');
+    expect(requestUrl.searchParams.get('country')).toBe('PH');
     expect(address).toMatchObject({
-      address: '47-C Kalayaan Avenue',
-      formattedAddress: '47-C Kalayaan Avenue, Pinyahan, Quezon City, Philippines',
-      placeId: 'geoapify-place-1',
+      placeId: 'mapbox-address-1',
       latitude: 14.65,
       longitude: 121.04,
     });
-  });
-
-  it('keeps Photon search available when Geoapify is not configured', async () => {
-    vi.stubEnv('VITE_GEOAPIFY_API_KEY', '');
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
-      features: [{
-        type: 'Feature',
-        id: 'osm-1',
-        geometry: { type: 'Point', coordinates: [121.04, 14.65] },
-        properties: { name: 'Kalayaan Avenue', street: 'Kalayaan Avenue', city: 'Quezon City', country: 'Philippines' },
-      }],
-    }), { status: 200, headers: { 'Content-Type': 'application/geo+json' } }));
-    vi.stubGlobal('fetch', fetchMock);
-
-    const results = await searchAddresses('Kalayaan Avenue, Quezon City');
-    const requestUrl = new URL(String(fetchMock.mock.calls[0][0]));
-
-    expect(isGeoapifyAddressSearchConfigured()).toBe(false);
-    expect(requestUrl.hostname).toBe('photon.komoot.io');
-    expect(results).toHaveLength(1);
   });
 });
