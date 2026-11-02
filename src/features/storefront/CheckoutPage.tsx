@@ -59,12 +59,16 @@ function CustomerInformation({ firstName, lastName, phone, onFirstNameChange, on
 }
 
 function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onStreetAddressChange, restaurantSlug }: { orderType: OrderType; value: DeliveryLocationAddress | null; onSelect: (address: DeliveryLocationAddress) => void; streetAddress: string; onStreetAddressChange: (streetAddress: string) => void; restaurantSlug: string }) {
+  const [addressPickerOpen, setAddressPickerOpen] = useState(!value);
   if (orderType !== 'Delivery') return null;
   return <fieldset className="sf-checkout-section">
     <legend>Delivery address</legend>
 
-    <MapboxDeliveryLocationPicker restaurantSlug={restaurantSlug} variant="delivery" initialLatitude={value?.latitude ?? null} initialLongitude={value?.longitude ?? null} onSelect={onSelect} />
     {value && <p className="sf-checkout-address-confirmed" role="status">Selected address: {value.formattedAddress || value.address}</p>}
+    <button type="button" className="sf-checkout-address-picker-toggle" onClick={() => setAddressPickerOpen(open => !open)} aria-expanded={addressPickerOpen}>
+      {addressPickerOpen ? 'Hide map' : 'Select delivery address'}
+    </button>
+    {addressPickerOpen && <MapboxDeliveryLocationPicker restaurantSlug={restaurantSlug} variant="delivery" initialLatitude={value?.latitude ?? null} initialLongitude={value?.longitude ?? null} onSelect={address => { onSelect(address); setAddressPickerOpen(false); }} />}
     <div className="sf-checkout-fields sf-checkout-locality-fields">
       <label>Municipality / City<input name="deliveryCity" autoComplete="address-level2" value={value?.city ?? ''} readOnly placeholder="Automatically filled from the selected map location" aria-describedby="delivery-locality-hint" /></label>
       <label>Barangay<input name="deliveryBarangay" value={value?.barangay ?? ''} readOnly placeholder="Automatically filled from the selected map location" aria-describedby="delivery-locality-hint" /></label>
