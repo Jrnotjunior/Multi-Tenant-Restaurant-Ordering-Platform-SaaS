@@ -484,13 +484,12 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
                 <div><p className="rider-delivery-label">Delivery destination</p><h2>Customer address</h2></div>
                 <span className="rider-delivery-location-icon" aria-hidden="true">⌖</span>
               </div>
-              {order.delivery_address ? <div className="rider-delivery-address-link"><span className="rider-delivery-address-pin" aria-hidden="true">⌖</span><span><strong>Delivery address</strong><span className="rider-delivery-address">{order.delivery_address}</span></span></div> : <p className="rider-delivery-address">No delivery address provided</p>}
-              {order.delivery_address && (() => {
+              {order.delivery_address ? (() => {
                 const navigation = buildRiderNavigationUrls(order.delivery_latitude, order.delivery_longitude, order.delivery_address);
-                return navigation ? <a className="rider-navigation-trigger" href={navigation.googleMaps} target="_blank" rel="noopener noreferrer" aria-label="Open delivery directions in Google Maps">
-                  <span className="rider-navigation-trigger-icon" aria-hidden="true">↗</span><span>Open directions</span><span className="rider-navigation-trigger-external" aria-hidden="true">Google Maps</span>
-                </a> : <p className="rider-delivery-helper" role="note">Couldn’t create a map route. Contact the customer or dispatcher to confirm the delivery location.</p>;
-              })()}
+                return navigation ? <a className="rider-delivery-address-link" href={navigation.googleMaps} aria-label={'Open ' + order.delivery_address + ' in Google Maps'}>
+                  <span className="rider-delivery-address-pin" aria-hidden="true">⌖</span><span><strong>Delivery address</strong><span className="rider-delivery-address">{order.delivery_address}</span></span>
+                </a> : <p className="rider-delivery-address">No valid delivery location available</p>;
+              })() : <p className="rider-delivery-address">No delivery address provided</p>}
               {order.delivery_notes && <p className="rider-delivery-helper">Delivery notes: {order.delivery_notes}</p>}
             </section>
             <section className="rider-delivery-card rider-order-details-card">
