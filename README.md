@@ -61,7 +61,7 @@ The storefront is an interactive **preview** using fictional restaurant details,
 - `supabase/` — reserved for reviewed migrations
 - `docs/` — architecture, security rules and development roadmap
 
-See [Architecture](docs/ARCHITECTURE.md), [Security](docs/SECURITY.md), [SOC 2 Security and Readiness Baseline](docs/SOC2_READINESS.md), and [Roadmap](docs/ROADMAP.md).
+See [Architecture](docs/ARCHITECTURE.md), [Security](docs/SECURITY.md), [SOC 2 Security and Readiness Baseline](docs/SOC2_READINESS.md), the [2026-11-03 SOC 2 readiness assessment](docs/SOC2_READINESS_ASSESSMENT_2026-11-03.md), and [Roadmap](docs/ROADMAP.md).
 
 ## GitHub repository scope
 
