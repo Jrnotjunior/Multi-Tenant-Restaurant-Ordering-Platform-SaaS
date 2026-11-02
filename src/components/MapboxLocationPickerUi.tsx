@@ -4,7 +4,7 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 setWorkerUrl(workerUrl);
-import { geocodingFeatureToAddress, isGeoapifyAddressSearchConfigured, matchesRequestedHouseNumber, requestedHouseNumber, resultHouseNumber, reverseGeocodeLocation, searchAddresses as geocodeAddresses, type GeocodingFeature } from '../modules/location/locationService';
+import { geocodingFeatureToAddress, mapboxAccessToken, matchesRequestedHouseNumber, requestedHouseNumber, resultHouseNumber, reverseGeocodeLocation, searchAddresses as geocodeAddresses, type GeocodingFeature } from '../modules/location/locationService';
 import type { DeliveryLocationAddress } from '../modules/location/mapServiceProtocol';
 export type { DeliveryLocationAddress } from '../modules/location/mapServiceProtocol';
 
@@ -104,9 +104,11 @@ export function MapboxLocationPickerUi({
           ? [Number(initialLongitude), Number(initialLatitude)]
           : [120.9780, 14.6760];
 
+        const mapboxToken = await mapboxAccessToken();
+        if (cancelled || !mapContainerRef.current) return;
         const map = new MapLibreMap({
           container: mapContainerRef.current,
-          style: 'https://tiles.openfreemap.org/styles/liberty',
+          style: `https://api.mapbox.com/styles/v1/mapbox/streets-v12?access_token=${encodeURIComponent(mapboxToken)}`,
           center: defaultCenter,
           zoom: Number.isFinite(initialLatitude) && Number.isFinite(initialLongitude) ? 16 : 15,
           attributionControl: { compact: true },
@@ -272,11 +274,7 @@ export function MapboxLocationPickerUi({
         {variant === 'restaurant'
           ? 'Search the restaurant address or move the pin to the exact restaurant location.'
           : ''}
-        {isGeoapifyAddressSearchConfigured() && (
-          <>
-            {' · '}Powered by <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer">Geoapify</a>
-          </>
-        )}
+        {' · '}Powered by <a href="https://www.mapbox.com/" target="_blank" rel="noreferrer">Mapbox</a>
       </p>
 
       <div className="delivery-location-search">
