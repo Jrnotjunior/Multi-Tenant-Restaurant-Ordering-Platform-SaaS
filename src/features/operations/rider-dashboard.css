@@ -58,7 +58,7 @@
 .rider-account-phone input{width:100%;min-height:38px;padding:8px;border:1px solid var(--color-border);border-radius:8px;font:inherit}
 .rider-account-phone button{width:100%;min-height:36px;border:0;border-radius:8px;background:var(--color-text);color:#fff;font:inherit;font-weight:700;cursor:pointer}
 .rider-account-email{padding:8px;font-size:.72rem;color:var(--color-muted);overflow-wrap:anywhere}
-.rider-account-dropdown button{padding:9px 8px;border:0;border-radius:7px;background:transparent;text-align:left;font:inherit;font-size:.78rem;color:var(--color-text);cursor:pointer}
+.rider-account-dropdown button{display:flex;align-items:center;gap:10px;width:100%;padding:9px 8px;border:0;border-radius:7px;background:transparent;text-align:left;font:inherit;font-size:.78rem;font-weight:650;color:var(--color-text);cursor:pointer}.rider-account-dropdown button svg{width:18px;height:18px;flex:0 0 18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .rider-account-dropdown button:hover{background:var(--color-secondary)}
 .rider-dashboard-section{padding:1rem;border-radius:15px}
 .rider-dashboard-tabs{background:#080808;padding:3px;gap:3px;margin:0 0 1rem}
