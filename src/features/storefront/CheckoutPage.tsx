@@ -6,6 +6,7 @@ import { MapboxDeliveryLocationPicker, type DeliveryLocationAddress } from '../o
 
 type OrderType = 'Delivery' | 'Take-out' | 'Pickup' | 'Dine-in';
 type PaymentMethod = 'cash' | 'online';
+type SavedCheckoutAddress = { id: string; label: string; address_line: string; city: string; barangay: string; latitude: number | null; longitude: number | null; geocoding_place_id: string; is_default: boolean };
 export type CheckoutSubmission = { orderType: OrderType; customerName: string; phone: string; deliveryAddress: string; deliveryNotes: string; paymentMethod: PaymentMethod; deliveryLatitude: number | null; deliveryLongitude: number | null; loyaltyPointsToRedeem: number };
 
 type CheckoutPageProps = {
@@ -58,10 +59,11 @@ function CustomerInformation({ firstName, lastName, phone, onFirstNameChange, on
   </fieldset>;
 }
 
-function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onStreetAddressChange, restaurantSlug }: { orderType: OrderType; value: DeliveryLocationAddress | null; onSelect: (address: DeliveryLocationAddress) => void; streetAddress: string; onStreetAddressChange: (streetAddress: string) => void; restaurantSlug: string }) {
+function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onStreetAddressChange, restaurantSlug, savedAddresses, selectedSavedAddressId, onSavedAddressChange }: { orderType: OrderType; value: DeliveryLocationAddress | null; onSelect: (address: DeliveryLocationAddress) => void; streetAddress: string; onStreetAddressChange: (streetAddress: string) => void; restaurantSlug: string; savedAddresses: SavedCheckoutAddress[]; selectedSavedAddressId: string; onSavedAddressChange: (id: string) => void }) {
   if (orderType !== 'Delivery') return null;
   return <fieldset className="sf-checkout-section">
     <legend>Delivery address</legend>
+    {savedAddresses.length > 0 && <label className="sf-checkout-saved-address">Saved address<select aria-label="Choose a saved delivery address" value={selectedSavedAddressId} onChange={event => onSavedAddressChange(event.target.value)}><option value="">Choose another address…</option>{savedAddresses.map(address => <option key={address.id} value={address.id}>{address.label}{address.is_default ? ' (Default)' : ''} — {[address.address_line, address.barangay, address.city].filter(Boolean).join(', ')}</option>)}</select></label>}
     <MapboxDeliveryLocationPicker restaurantSlug={restaurantSlug} variant="delivery" initialLatitude={value?.latitude ?? null} initialLongitude={value?.longitude ?? null} onSelect={onSelect} />
     {value && <p className="sf-checkout-address-confirmed" role="status">Selected address: {value.formattedAddress || value.address}</p>}
     <div className="sf-checkout-fields sf-checkout-locality-fields">
@@ -83,6 +85,8 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
   const [customerLastName, setCustomerLastName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState<DeliveryLocationAddress | null>(null);
+  const [savedAddresses, setSavedAddresses] = useState<SavedCheckoutAddress[]>([]);
+  const [selectedSavedAddressId, setSelectedSavedAddressId] = useState('');
   const [streetAddress, setStreetAddress] = useState('');
   const [message, setMessage] = useState('');
   const [reviewed, setReviewed] = useState(false);
@@ -118,6 +122,30 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
         setCustomerLastName(parts.join(' '));
       }
       if (typeof metadata.phone === 'string') setCustomerPhone(normalizePhilippineMobile(metadata.phone).slice(0, 11));
+      const savedResult = await supabase!.from('customer_saved_addresses')
+        .select('id,label,address_line,city,barangay,latitude,longitude,geocoding_place_id,is_default')
+        .eq('user_id', user.id)
+        .order('is_default', { ascending: false })
+        .order('updated_at', { ascending: false });
+      if (!active) return;
+      if (!savedResult.error && savedResult.data?.length) {
+        const addresses = savedResult.data as SavedCheckoutAddress[];
+        setSavedAddresses(addresses);
+        const defaultAddress = addresses.find(address => address.is_default) ?? addresses[0];
+        if (defaultAddress) {
+          setSelectedSavedAddressId(defaultAddress.id);
+          setDeliveryAddress({
+            formattedAddress: [defaultAddress.address_line, defaultAddress.barangay, defaultAddress.city].filter(Boolean).join(', '),
+            city: defaultAddress.city,
+            barangay: defaultAddress.barangay,
+            address: defaultAddress.address_line,
+            placeId: defaultAddress.geocoding_place_id || '',
+            latitude: defaultAddress.latitude,
+            longitude: defaultAddress.longitude,
+          });
+          setStreetAddress(defaultAddress.address_line);
+        }
+      }
     })();
     return () => { active = false; };
   }, []);
@@ -228,7 +256,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
     {!paymentComplete && <form className="sf-checkout-page-form" onSubmit={handleSubmit}>
       <OrderTypeSection value={orderType} onChange={type => { setOrderType(type); setMessage(''); setReviewed(false); }} />
       <CustomerInformation firstName={customerFirstName} lastName={customerLastName} phone={customerPhone} onFirstNameChange={setCustomerFirstName} onLastNameChange={setCustomerLastName} onPhoneChange={setCustomerPhone} />
-      <DeliveryAddressSection orderType={orderType} value={deliveryAddress} onSelect={address => { setDeliveryAddress(address); setStreetAddress(address.address); }} streetAddress={streetAddress} onStreetAddressChange={setStreetAddress} restaurantSlug={restaurantSlug} />
+      <DeliveryAddressSection orderType={orderType} value={deliveryAddress} onSelect={address => { setSelectedSavedAddressId(''); setDeliveryAddress(address); setStreetAddress(address.address); }} streetAddress={streetAddress} onStreetAddressChange={setStreetAddress} restaurantSlug={restaurantSlug} savedAddresses={savedAddresses} selectedSavedAddressId={selectedSavedAddressId} onSavedAddressChange={id => { setSelectedSavedAddressId(id); const saved = savedAddresses.find(address => address.id === id); if (!saved) return; setDeliveryAddress({ formattedAddress: [saved.address_line, saved.barangay, saved.city].filter(Boolean).join(', '), city: saved.city, barangay: saved.barangay, address: saved.address_line, placeId: saved.geocoding_place_id || '', latitude: saved.latitude, longitude: saved.longitude }); setStreetAddress(saved.address_line); setMessage(''); }} />
 
       <section className="sf-checkout-total" aria-label="Order summary">
         <div className="sf-checkout-summary-heading"><span>Order summary</span></div>
