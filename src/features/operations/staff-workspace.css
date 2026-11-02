@@ -168,7 +168,8 @@
 
 
 /* Shared account access for cashier, kitchen, dispatch, and rider workspaces. */
-.staff-account-row{display:flex;align-items:center;justify-content:flex-end;gap:16px;position:relative;z-index:20;margin:0 0 14px}
+.staff-account-row{display:flex;align-items:center;justify-content:flex-end;width:100%;box-sizing:border-box;gap:16px;position:relative;z-index:20;margin:0 0 14px}
+.staff-account-row>.staff-account-menu{margin-left:auto}
 .staff-workspace-brand{display:flex;align-items:center;gap:9px;width:max-content;margin:0 0 16px;color:#101b2f;text-decoration:none}
 .staff-workspace-brand:hover .staff-workspace-brand-mark{background:#314765}
 .staff-workspace-brand-mark{width:34px;height:34px;display:grid;place-items:center;flex:0 0 34px;border-radius:9px;background:#17263e;color:#fff;font-size:14px;font-weight:850}
