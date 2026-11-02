@@ -201,7 +201,7 @@
 .rider-delivery-address-link:focus-visible,.rider-delivery-contact-button:focus-visible{outline:2px solid var(--primary,#2563eb);outline-offset:3px}
 @media(max-width:560px){
  .rider-delivery-contact-button{min-height:56px;font-size:1rem}
- .rider-delivery-address-link{grid-template-columns:48px minmax(0,1fr) 16px;gap:.65rem;padding:.85rem}
+ .rider-delivery-address-link{grid-template-columns:48px minmax(0,1fr);gap:.65rem;padding:.85rem}
  .rider-delivery-address-pin{width:48px;height:48px}
  .rider-delivery-address-link .rider-delivery-address{font-size:.98rem}
 }
