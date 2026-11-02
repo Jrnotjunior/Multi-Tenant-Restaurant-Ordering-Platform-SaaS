@@ -2,6 +2,7 @@ import { type MenuItem, type ModifierGroup } from './demoCatalog';
 import { supabase } from '../../lib/supabase';
 
 export type BranchChoice = Readonly<{slug:string;name:string}>;
+export type StorefrontSocialLinks = Readonly<{facebook:string;instagram:string;tiktok:string}>;
 export type WebsiteColors = Readonly<{pageBackground:string;headerColor:string;footerBackground:string;footerFont:string;heroColor:string;productCard:string;fontColor:string;headerIcon:string;primaryButton:string;primaryButtonFont:string;secondaryButton:string;secondaryButtonFont:string}>;
 const WEBSITE_COLOR_KEYS: Array<keyof WebsiteColors> = ['pageBackground','headerColor','footerBackground','footerFont','heroColor','productCard','fontColor','headerIcon','primaryButton','primaryButtonFont','secondaryButton','secondaryButtonFont'];
 export type StorefrontCatalog = Readonly<{
@@ -15,6 +16,7 @@ export type StorefrontCatalog = Readonly<{
     heroEmphasis: string;
     primaryColor: string;
     websiteColors: WebsiteColors;
+    socialLinks: StorefrontSocialLinks;
     logoUrl: string | null;
     faviconUrl: string | null;
     fontFamily: 'modern' | 'rounded' | 'classic';
@@ -73,6 +75,26 @@ function validateModifiers(value:unknown):ModifierGroup[] {
   });
 }
 
+function validateSocialLinks(value:unknown):StorefrontSocialLinks {
+  const defaults:StorefrontSocialLinks={facebook:'',instagram:'',tiktok:''};
+  if(value===undefined||value===null)return defaults;
+  if(!record(value))throw new Error('Invalid published social links');
+  const hosts={facebook:['facebook.com','www.facebook.com','m.facebook.com','fb.com','www.fb.com'],instagram:['instagram.com','www.instagram.com'],tiktok:['tiktok.com','www.tiktok.com']} as const;
+  const result={...defaults};
+  for(const key of Object.keys(hosts) as Array<keyof typeof hosts>) {
+    const raw=value[key];
+    if(raw===undefined||raw===null||raw==='')continue;
+    if(typeof raw!=='string'||raw.length>500)throw new Error('Invalid published social link');
+    let url:URL;
+    try{url=new URL(raw);}catch{throw new Error('Invalid published social link');}
+    if(!['https:','http:'].includes(url.protocol)||!hosts[key].includes(url.hostname.toLowerCase())||url.username||url.password) {
+      throw new Error('Invalid published social link');
+    }
+    result[key]=url.toString();
+  }
+  return result;
+}
+
 function getImageUrl(path:unknown):string|undefined {
   if(path==null)return undefined;
   if(typeof path!=='string' ||
@@ -103,7 +125,7 @@ function getFaviconUrl(path:unknown):string|null {
 export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
   if (value === null) return null;
   if (!record(value)) throw new Error('Invalid published storefront response');
-  const {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors,logoPath,faviconPath,fontFamily,branchName,branchSlug,branches,categories,items} = value;
+  const {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors,socialLinks,logoPath,faviconPath,fontFamily,branchName,branchSlug,branches,categories,items} = value;
   if (!validText(slug,64) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)
     || !validText(name,160) || !validText(heroHeading,90)
     || !validText(heroEmphasis,90) || !validText(branchName,160)
@@ -162,7 +184,7 @@ export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
   const initials = name.split(/\s+/).slice(0,2).map((word) => word.charAt(0)).join('').toUpperCase();
   const normalizedWebsiteColors = Object.fromEntries(WEBSITE_COLOR_KEYS.map(key => [key, websiteColors[key] as string])) as WebsiteColors;
   return {
-    restaurant: {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors:normalizedWebsiteColors,logoUrl:getLogoUrl(logoPath),faviconUrl:getFaviconUrl(faviconPath),fontFamily:(fontFamily==='rounded'||fontFamily==='classic'?fontFamily:'modern'),branchName,branchSlug:typeof branchSlug==='string'?branchSlug:'',initials},
+    restaurant: {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors:normalizedWebsiteColors,socialLinks:validateSocialLinks(socialLinks),logoUrl:getLogoUrl(logoPath),faviconUrl:getFaviconUrl(faviconPath),fontFamily:(fontFamily==='rounded'||fontFamily==='classic'?fontFamily:'modern'),branchName,branchSlug:typeof branchSlug==='string'?branchSlug:'',initials},
     branches:branchChoices,
     categories:['All',...categories.map((entry:Row) => entry.name as string)],
     menu,
