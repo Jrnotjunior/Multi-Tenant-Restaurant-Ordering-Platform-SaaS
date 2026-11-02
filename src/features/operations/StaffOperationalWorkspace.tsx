@@ -73,7 +73,6 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [kitchenMenuError, setKitchenMenuError] = useState('');
   const [search, setSearch] = useState('');
   const [paymentTab, setPaymentTab] = useState<'all' | 'online_paid' | 'unpaid'>('all');
-  const [dispatcherTab, setDispatcherTab] = useState<Order['order_type']>('delivery');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState('');
   const [selectedCashierOrderId, setSelectedCashierOrderId] = useState<string | null>(null);
@@ -258,7 +257,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     for (const order of orders) {
       if (['pending_confirmation', 'ready_for_pickup'].includes(order.order_status)) cashier += 1;
       if (['confirmed', 'preparing'].includes(order.order_status)) kitchen += 1;
-      if (order.order_status === 'ready_for_dispatch') dispatcher[order.order_type] += 1;
+      if (order.order_status === 'ready_for_dispatch' && order.order_type === 'delivery' && !['dispatched', 'out_for_delivery', 'delivered', 'cancelled'].includes(order.assignment_status ?? '')) dispatcher.delivery += 1;
     }
     return { cashier, kitchen, dispatcher };
   }, [orders]);
@@ -269,7 +268,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       const matchesPaymentTab = role !== 'cashier' || (paymentTab === 'all' ? true : paymentTab === 'online_paid' ? isPaid && order.payment_channel === 'online' : !isPaid && !['cancelled', 'canceled', 'rejected', 'refunded'].includes(order.order_status.toLowerCase()));
       const searchable = [String(order.order_number), order.customer_name, order.customer_phone, order.branch_name, order.order_status, ...(order.items ?? []).map(item => item.item_name)];
       const matchesSearch = !term || searchable.some(value => value.toLowerCase().includes(term));
-      const matchesDispatcherTab = role !== 'dispatcher' || order.order_type === dispatcherTab;
+      const matchesDispatcherTab = role !== 'dispatcher' || (order.order_type === 'delivery' && order.order_status === 'ready_for_dispatch' && !['dispatched', 'out_for_delivery', 'delivered', 'cancelled'].includes(order.assignment_status ?? ''));
       return matchesPaymentTab && matchesSearch && matchesDispatcherTab;
     }).sort((a, b) => {
       // Put work that needs an immediate staff action at the top, then keep
@@ -284,14 +283,14 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           if (order.order_status === 'confirmed') return 0;
           if (order.order_status === 'preparing') return 1;
         }
-        if (role === 'dispatcher' && order.order_status === 'ready_for_dispatch') return order.assigned_rider_user_id ? 0 : 1;
-        if (role === 'rider' && ['assigned', 'out_for_delivery'].includes(order.assignment_status ?? '')) return 0;
+        if (role === 'dispatcher' && order.order_type === 'delivery' && order.order_status === 'ready_for_dispatch' && order.assignment_status !== 'dispatched') return order.assigned_rider_user_id ? 0 : 1;
+        if (role === 'rider' && ['dispatched', 'assigned', 'out_for_delivery'].includes(order.assignment_status ?? '')) return 0;
         return 4;
       };
       const rankDifference = priority(a) - priority(b);
       return rankDifference || new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
     });
-  }, [orders, search, paymentTab, role, dispatcherTab]);
+  }, [orders, search, paymentTab, role]);
 
   const salesOrders = useMemo(() => orders.filter(order =>
     ['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase()) &&
@@ -302,7 +301,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const stats = useMemo(() => ({
     incoming: orders.filter(o => o.order_status === 'pending_confirmation').length,
     preparing: orders.filter(o => ['confirmed', 'preparing'].includes(o.order_status)).length,
-    ready: orders.filter(o => o.order_status === 'ready_for_dispatch').length,
+    ready: orders.filter(o => o.order_status === 'ready_for_dispatch' && o.assignment_status !== 'dispatched').length,
     delivery: orders.filter(o => o.order_status === 'out_for_delivery').length,
     riderAssigned: orders.filter(o => ['assigned', 'accepted'].includes(o.assignment_status ?? '') && o.order_status !== 'out_for_delivery').length,
     riderOnRoute: orders.filter(o => o.assignment_status === 'out_for_delivery' && o.order_status === 'out_for_delivery').length,
@@ -365,6 +364,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
 
   async function assign(order: Order) {
     if (!supabase) return;
+    if (order.order_type !== 'delivery') { setError('Only delivery orders can be assigned to a rider.'); return; }
     const riderId = selectedRiders[order.id];
     if (!riderId) { setError('Choose a rider before assigning this order.'); return; }
     setBusy(order.id); setError(''); setNotice('');
@@ -405,25 +405,25 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     ];
     if (role === 'cashier' && order.order_status === 'ready_for_pickup') return [{ action: 'complete_handoff', label: 'Complete handoff', primary: true }];
     if (role === 'kitchen' && order.order_status === 'preparing') return [{ action: 'mark_ready', label: 'Mark ready', primary: true }];
-    if (role === 'dispatcher' && order.order_status === 'ready_for_dispatch' && order.assigned_rider_user_id) return [{ action: 'dispatch', label: 'Dispatch order', primary: true }];
-    if (role === 'rider' && order.assignment_status === 'assigned') return [{ action: 'accept_delivery', label: 'Start delivery', primary: true }];
-    if (role === 'rider' && order.assignment_status === 'out_for_delivery' && order.order_status === 'out_for_delivery') return [{ action: 'deliver', label: 'Mark delivered', primary: true }];
+    if (role === 'dispatcher' && order.order_type === 'delivery' && order.order_status === 'ready_for_dispatch' && order.assigned_rider_user_id && order.assignment_status !== 'dispatched') return [{ action: 'dispatch', label: 'Dispatch order', primary: true }];
+    if (role === 'rider' && order.order_type === 'delivery' && order.assignment_status === 'dispatched') return [{ action: 'accept_delivery', label: 'Start delivery', primary: true }];
+    if (role === 'rider' && order.order_type === 'delivery' && order.assignment_status === 'out_for_delivery' && order.order_status === 'out_for_delivery') return [{ action: 'deliver', label: 'Mark delivered', primary: true }];
     return [];
   }
 
   if (role === 'rider') {
     const activeDeliveries = orders.filter(order =>
-      ['assigned', 'accepted', 'out_for_delivery'].includes(order.assignment_status ?? '') &&
+      order.order_type === 'delivery' && ['assigned', 'accepted', 'dispatched', 'out_for_delivery'].includes(order.assignment_status ?? '') &&
       !['delivered', 'cancelled', 'rejected', 'refunded'].includes(order.order_status.toLowerCase()),
     );
     const deliveryHistory = orders.filter(order =>
-      order.assignment_status === 'delivered' || ['delivered', 'completed'].includes(order.order_status.toLowerCase()),
+      order.order_type === 'delivery' && (order.assignment_status === 'delivered' || ['delivered', 'completed'].includes(order.order_status.toLowerCase())),
     );
     const hasOnRoad = activeDeliveries.some(order => order.assignment_status === 'out_for_delivery' || order.order_status === 'out_for_delivery');
     const selectedRiderOrder = activeDeliveries.find(order => order.id === selectedRiderOrderId) ?? deliveryHistory.find(order => order.id === selectedRiderOrderId);
     if (selectedRiderOrder) {
       const order = selectedRiderOrder;
-      const status = order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : order.assignment_status === 'delivered' ? 'Delivered' : 'Assigned';
+      const status = order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'dispatched' ? 'Dispatched · ready to start' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : order.assignment_status === 'delivered' ? 'Delivered' : 'Assigned · waiting for dispatch';
       const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'deliver');
       return <main className="rider-dashboard-page rider-delivery-page">
         <header className="rider-delivery-header">
@@ -505,7 +505,8 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
                 <span className="rider-delivery-slider-label" aria-hidden="true">{busy === order.id ? 'Updating…' : button.action === 'accept_delivery' ? 'Swipe when leaving for delivery' : 'Swipe to mark delivered'}</span>
                 <span className="rider-delivery-slider-arrow" aria-hidden="true">›</span>
               </div>}
-              {order.assignment_status === 'assigned' && <p className="rider-delivery-helper">Assigned by the dispatcher. Swipe only when you are actually leaving with the order; this marks it out for delivery.</p>}
+              {order.assignment_status === 'assigned' && <p className="rider-delivery-helper">Assigned by the dispatcher. Waiting for dispatch.</p>}
+              {order.assignment_status === 'dispatched' && <p className="rider-delivery-helper">The dispatcher sent this order to you. Start delivery when you are leaving with it.</p>}
             </section>
           </aside>
         </div>
@@ -544,7 +545,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
             <div className="rider-dashboard-empty"><strong>No active deliveries</strong><span>New orders assigned by the dispatcher will appear here.</span></div> :
             <div className="rider-dashboard-list">{activeDeliveries.map(order => {
               const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'deliver');
-              const status = order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : 'Assigned';
+              const status = order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'dispatched' ? 'Dispatched · ready to start' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : 'Assigned · waiting for dispatch';
               return <article className="rider-dashboard-delivery-card rider-dashboard-delivery-card-clickable" key={order.id}>
                 <button className="rider-dashboard-card-open" type="button" onClick={() => { setSelectedRiderOrderId(order.id); setOrderDetailsOpen(false); setSwipeProgress(0); }} aria-label={'Open order ' + order.order_number}>
                   <span className="rider-dashboard-delivery-top">
@@ -598,12 +599,9 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       <button type="button" className={kitchenTab === 'orders' ? 'is-active' : ''} aria-current={kitchenTab === 'orders' ? 'page' : undefined} aria-label={orderTabCounts.kitchen ? `Orders, ${orderTabCounts.kitchen} active kitchen tickets` : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'orders'); setKitchenTab('orders'); }}>Orders{orderTabCounts.kitchen > 0 && <span className="staff-tab-count" aria-hidden="true">{orderTabCounts.kitchen}</span>}</button>
       <button type="button" className={kitchenTab === 'menu' ? 'is-active' : ''} aria-current={kitchenTab === 'menu' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'menu'); setKitchenTab('menu'); }}>Menu</button>
     </nav>}
-    {role === 'dispatcher' && <nav className="staff-workspace-tabs" aria-label="Order type" role="tablist">
-        <button type="button" role="tab" aria-selected={dispatcherTab === 'delivery'} aria-label={orderTabCounts.dispatcher.delivery ? `Delivery, ${orderTabCounts.dispatcher.delivery} orders ready for dispatch` : undefined} className={dispatcherTab === 'delivery' ? 'is-active' : ''} onClick={() => setDispatcherTab('delivery')}>Delivery{orderTabCounts.dispatcher.delivery > 0 && <span className="staff-tab-count" aria-hidden="true">{orderTabCounts.dispatcher.delivery}</span>}</button>
-        <button type="button" role="tab" aria-selected={dispatcherTab === 'pickup'} aria-label={orderTabCounts.dispatcher.pickup ? `Pick up, ${orderTabCounts.dispatcher.pickup} orders ready for dispatch` : undefined} className={dispatcherTab === 'pickup' ? 'is-active' : ''} onClick={() => setDispatcherTab('pickup')}>Pick up{orderTabCounts.dispatcher.pickup > 0 && <span className="staff-tab-count" aria-hidden="true">{orderTabCounts.dispatcher.pickup}</span>}</button>
-        <button type="button" role="tab" aria-selected={dispatcherTab === 'take_out'} aria-label={orderTabCounts.dispatcher.take_out ? `Take out, ${orderTabCounts.dispatcher.take_out} orders ready for dispatch` : undefined} className={dispatcherTab === 'take_out' ? 'is-active' : ''} onClick={() => setDispatcherTab('take_out')}>Take out{orderTabCounts.dispatcher.take_out > 0 && <span className="staff-tab-count" aria-hidden="true">{orderTabCounts.dispatcher.take_out}</span>}</button>
-        <button type="button" role="tab" aria-selected={dispatcherTab === 'dine_in'} aria-label={orderTabCounts.dispatcher.dine_in ? `Dine in, ${orderTabCounts.dispatcher.dine_in} orders ready for dispatch` : undefined} className={dispatcherTab === 'dine_in' ? 'is-active' : ''} onClick={() => setDispatcherTab('dine_in')}>Dine in{orderTabCounts.dispatcher.dine_in > 0 && <span className="staff-tab-count" aria-hidden="true">{orderTabCounts.dispatcher.dine_in}</span>}</button>
-      </nav>}
+    {role === 'dispatcher' && <nav className="staff-workspace-tabs" aria-label="Delivery dispatch">
+      <button type="button" className="is-active" aria-current="page" disabled>Delivery{orderTabCounts.dispatcher.delivery > 0 && <span className="staff-tab-count" aria-hidden="true">{orderTabCounts.dispatcher.delivery}</span>}</button>
+    </nav>}
     {role === 'cashier' && cashierTab === 'sales' ? <section className="staff-sales-view">
       <div className="staff-sales-heading"><div><p className="staff-eyebrow">BUSINESS SUMMARY</p><h2>Sales</h2><p>Paid orders from the order history currently loaded.</p></div><button className="staff-button staff-button-secondary" type="button" onClick={() => void load()} disabled={loading}>Refresh sales</button></div>
       <div className="staff-sales-metrics">
@@ -640,13 +638,12 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       </div>
       {(error || notice) && <p className={'staff-notice ' + (error ? 'is-error' : 'is-success')} role={error ? 'alert' : 'status'}>{error || notice}</p>}
       {role === 'cashier' && latestKitchenTicket && !kitchenTicketPreviewOpen && <button className="staff-button staff-button-secondary" type="button" onClick={() => setKitchenTicketPreviewOpen(true)}>View latest kitchen ticket</button>}
-      {loading ? <p className="staff-empty"><span className="staff-loading-dot" aria-hidden="true" /> Loading orders…</p> : visibleOrders.length === 0 ? <div className="staff-empty"><span className="staff-empty-icon" aria-hidden="true">{orders.length > 0 ? '⌕' : '✓'}</span><h3>{orders.length > 0 ? 'No matching orders' : 'You’re all caught up'}</h3><p>{orders.length > 0 ? (role === 'cashier' ? 'Try another payment tab or search term.' : role === 'dispatcher' ? 'Try another order type or search term.' : 'Try another search term.') : (role === 'kitchen' ? 'Accepted orders will appear here. Start preparing each ticket, then mark it ready for handoff.' : 'New orders will appear here automatically. You can keep working while the queue stays up to date.')}</p></div> :
+      {loading ? <p className="staff-empty"><span className="staff-loading-dot" aria-hidden="true" /> Loading orders…</p> : visibleOrders.length === 0 ? <div className="staff-empty"><span className="staff-empty-icon" aria-hidden="true">{orders.length > 0 ? '⌕' : '✓'}</span><h3>{orders.length > 0 ? 'No matching orders' : 'You’re all caught up'}</h3><p>{orders.length > 0 ? (role === 'cashier' ? 'Try another payment tab or search term.' : 'Try another search term.') : (role === 'kitchen' ? 'Accepted orders will appear here. Start preparing each ticket, then mark it ready for handoff.' : 'New orders will appear here automatically. You can keep working while the queue stays up to date.')}</p></div> :
         <div className="staff-order-list">{visibleOrders.map(order => {
           const buttons = actions(order);
           const branchRiders = riders[order.branch_id] ?? [];
-          const canAssign = role === 'dispatcher' && order.order_status === 'ready_for_dispatch';
           const needsFee = role === 'cashier' && order.order_type === 'delivery' && order.order_status === 'pending_confirmation' && order.total_centavos == null;
-          const needsAttention = (role === 'cashier' && order.order_status === 'pending_confirmation') || (role === 'kitchen' && ['confirmed', 'preparing'].includes(order.order_status)) || (role === 'dispatcher' && order.order_status === 'ready_for_dispatch');
+          const needsAttention = (role === 'cashier' && order.order_status === 'pending_confirmation') || (role === 'kitchen' && ['confirmed', 'preparing'].includes(order.order_status)) || (role === 'dispatcher' && order.order_type === 'delivery' && order.order_status === 'ready_for_dispatch' && order.assignment_status !== 'dispatched');
           return <button type="button" className="staff-cashier-order-summary" key={order.id} onClick={() => setSelectedCashierOrderId(order.id)} aria-label={`Open order ${order.order_number} details`}>
             <span className="staff-cashier-summary-main"><strong>ORD-{String(order.order_number).padStart(5, '0')}</strong></span>
             {role === 'kitchen' ? <span className="staff-cashier-summary-payment"><span>{typeLabel(order.order_type)}</span></span> : <span className="staff-cashier-summary-payment"><span>{typeLabel(order.order_type)} · {order.payment_channel === 'online' ? 'Online' : 'Cash'} · {['paid','succeeded','completed'].includes(order.payment_status.toLowerCase()) ? 'Paid' : 'Unpaid'}</span><strong>{money(order.total_centavos)}</strong></span>}
@@ -679,7 +676,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
             </div>
             <div className="staff-cashier-modal-total"><strong>Total</strong><strong>{money(order.total_centavos)}</strong></div>
           </>}
-          {role === 'dispatcher' && order.order_status === 'ready_for_dispatch' && <div className="staff-inline-control"><label htmlFor={'staff-rider-modal-' + order.id}>Assign branch rider</label><select id={'staff-rider-modal-' + order.id} value={selectedRiders[order.id] ?? order.assigned_rider_user_id ?? ''} onChange={event => setSelectedRiders(current => ({ ...current, [order.id]: event.target.value }))}><option value="">Choose a rider</option>{(riders[order.branch_id] ?? []).map(rider => <option key={rider.user_id} value={rider.user_id}>{rider.display_name || 'Name missing — update rider profile'}</option>)}</select><button className="staff-button staff-button-secondary" type="button" disabled={busy === order.id || !(riders[order.branch_id] ?? []).length} onClick={() => void assign(order)}>Assign rider</button>{!(riders[order.branch_id] ?? []).length && <small>No active rider is assigned to this branch yet.</small>}</div>}{needsFee && <div className="staff-inline-control"><label htmlFor={'staff-fee-modal-' + order.id}>Delivery fee (PHP)</label><input id={'staff-fee-modal-' + order.id} type="number" min="0" max="10000000" step="0.01" inputMode="decimal" value={fees[order.id] ?? ''} onChange={event => setFees(current => ({ ...current, [order.id]: event.target.value }))} placeholder="e.g. 50.00" /><button className="staff-button staff-button-secondary" type="button" disabled={busy === order.id} onClick={() => void saveFee(order)}>Save fee</button></div>}
+          {role === 'dispatcher' && order.order_type === 'delivery' && order.order_status === 'ready_for_dispatch' && order.assignment_status !== 'dispatched' && <div className="staff-inline-control"><label htmlFor={'staff-rider-modal-' + order.id}>Assign branch rider</label><select id={'staff-rider-modal-' + order.id} value={selectedRiders[order.id] ?? order.assigned_rider_user_id ?? ''} onChange={event => setSelectedRiders(current => ({ ...current, [order.id]: event.target.value }))}><option value="">Choose a rider</option>{(riders[order.branch_id] ?? []).map(rider => <option key={rider.user_id} value={rider.user_id}>{rider.display_name || 'Name missing — update rider profile'}</option>)}</select><button className="staff-button staff-button-secondary" type="button" disabled={busy === order.id || !(riders[order.branch_id] ?? []).length} onClick={() => void assign(order)}>Assign rider</button>{!(riders[order.branch_id] ?? []).length && <small>No active rider is assigned to this branch yet.</small>}</div>}{needsFee && <div className="staff-inline-control"><label htmlFor={'staff-fee-modal-' + order.id}>Delivery fee (PHP)</label><input id={'staff-fee-modal-' + order.id} type="number" min="0" max="10000000" step="0.01" inputMode="decimal" value={fees[order.id] ?? ''} onChange={event => setFees(current => ({ ...current, [order.id]: event.target.value }))} placeholder="e.g. 50.00" /><button className="staff-button staff-button-secondary" type="button" disabled={busy === order.id} onClick={() => void saveFee(order)}>Save fee</button></div>}
           {buttons.length > 0 && <footer className="staff-cashier-modal-actions">{buttons.map(button => <button key={button.action} type="button" disabled={busy === order.id || (button.action === 'confirm' && !maySendOrderToKitchen(order))} className={'staff-button ' + (button.primary ? 'staff-button-primary' : 'staff-button-secondary')} onClick={() => void act(order, button.action, button.label.toLowerCase())}>{busy === order.id ? 'Saving…' : button.label}</button>)}</footer>}
         </section>
       </div>;
