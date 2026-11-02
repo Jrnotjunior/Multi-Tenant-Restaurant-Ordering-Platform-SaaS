@@ -109,7 +109,7 @@ export function MapboxLocationPickerUi({
           style: 'mapbox://styles/mapbox/streets-v12',
           center: defaultCenter,
           zoom: Number.isFinite(initialLatitude) && Number.isFinite(initialLongitude) ? 16 : 15,
-          attributionControl: { compact: true },
+          attributionControl: true,
           dragRotate: false,
         });
 
