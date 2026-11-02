@@ -51,6 +51,8 @@ export function MapboxDeliveryLocationPicker({
   const callbacksRef = useRef({ onSelect, onLocationChange, disabled, variant, initialLatitude, initialLongitude, restaurantSlug });
   const readyRef = useRef(false);
   const service = mapServiceUrl();
+  const frameUrl = new URL(service.href);
+  if (fillContainer) frameUrl.searchParams.set('layout', 'fill');
   const [serviceError, setServiceError] = useState(service.configurationError);
   const [frameHeight, setFrameHeight] = useState(520);
 
@@ -155,7 +157,7 @@ export function MapboxDeliveryLocationPicker({
       <iframe
         ref={iframeRef}
         className="mapbox-central-frame"
-        src={service.href}
+        src={frameUrl.href}
         title={variant === 'restaurant' ? 'Restaurant map location' : 'Delivery address map'}
         loading="eager"
         style={fillContainer ? { height: '100%', minHeight: 0, flex: '1 1 auto' } : { height: `${frameHeight}px`, minHeight: 0 }}
