@@ -79,7 +79,7 @@ function validateSocialLinks(value:unknown):StorefrontSocialLinks {
   const defaults:StorefrontSocialLinks={facebook:'',instagram:'',tiktok:''};
   if(value===undefined||value===null)return defaults;
   if(!record(value))throw new Error('Invalid published social links');
-  const hosts={facebook:['facebook.com','www.facebook.com','m.facebook.com','fb.com','www.fb.com'],instagram:['instagram.com','www.instagram.com'],tiktok:['tiktok.com','www.tiktok.com']} as const;
+  const hosts: Record<keyof StorefrontSocialLinks, readonly string[]> = {facebook:['facebook.com','www.facebook.com','m.facebook.com','fb.com','www.fb.com'],instagram:['instagram.com','www.instagram.com'],tiktok:['tiktok.com','www.tiktok.com']};
   const result: {facebook:string;instagram:string;tiktok:string}={...defaults};
   for(const key of Object.keys(hosts) as Array<keyof typeof hosts>) {
     const raw=value[key];
