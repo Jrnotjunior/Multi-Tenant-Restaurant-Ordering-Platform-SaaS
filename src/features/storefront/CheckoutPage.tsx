@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { storefrontTrackingHash } from '../../app/routes';
 import { peso } from './demoCatalog';
 import { MapboxDeliveryLocationPicker, type DeliveryLocationAddress } from '../operations/MapboxDeliveryLocationPicker';
+import './delivery-address-picker.css';
 
 type OrderType = 'Delivery' | 'Take-out' | 'Pickup' | 'Dine-in';
 type PaymentMethod = 'cash' | 'online';
@@ -65,10 +66,21 @@ function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onS
     <legend>Delivery address</legend>
 
     {value && <p className="sf-checkout-address-confirmed" role="status">Selected address: {value.formattedAddress || value.address}</p>}
-    <button type="button" className="sf-checkout-address-picker-toggle" onClick={() => setAddressPickerOpen(open => !open)} aria-expanded={addressPickerOpen}>
-      {addressPickerOpen ? 'Hide map' : 'Select delivery address'}
+    <button type="button" className="sf-checkout-address-picker-toggle" onClick={() => setAddressPickerOpen(true)} aria-expanded={addressPickerOpen}>
+      {value ? 'Change delivery address' : 'Select delivery address'}
     </button>
-    {addressPickerOpen && <MapboxDeliveryLocationPicker restaurantSlug={restaurantSlug} variant="delivery" initialLatitude={value?.latitude ?? null} initialLongitude={value?.longitude ?? null} onSelect={address => { onSelect(address); setAddressPickerOpen(false); }} />}
+    {addressPickerOpen && <div className="w2t-address-picker-overlay" role="presentation">
+      <section className="w2t-address-picker-screen" role="dialog" aria-modal="true" aria-labelledby="w2t-address-picker-title">
+        <header className="w2t-address-picker-header">
+          <button type="button" className="w2t-address-picker-back" onClick={() => setAddressPickerOpen(false)} aria-label="Back to checkout">←</button>
+          <div><span>DELIVERY</span><h2 id="w2t-address-picker-title">Choose delivery address</h2><p>Search an address or move the pin to your exact location.</p></div>
+          <button type="button" className="w2t-address-picker-close" onClick={() => setAddressPickerOpen(false)} aria-label="Close address picker">×</button>
+        </header>
+        <div className="w2t-address-picker-map">
+          <MapboxDeliveryLocationPicker fillContainer restaurantSlug={restaurantSlug} variant="delivery" initialLatitude={value?.latitude ?? null} initialLongitude={value?.longitude ?? null} onSelect={address => { onSelect(address); setAddressPickerOpen(false); }} />
+        </div>
+      </section>
+    </div>}
     <div className="sf-checkout-fields sf-checkout-locality-fields">
       <label>Municipality / City<input name="deliveryCity" autoComplete="address-level2" value={value?.city ?? ''} readOnly placeholder="Automatically filled from the selected map location" aria-describedby="delivery-locality-hint" /></label>
       <label>Barangay<input name="deliveryBarangay" value={value?.barangay ?? ''} readOnly placeholder="Automatically filled from the selected map location" aria-describedby="delivery-locality-hint" /></label>
