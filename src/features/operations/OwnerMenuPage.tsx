@@ -49,13 +49,6 @@ export function OwnerMenuPage({ tenantId }: Props) {
     return () => { active = false; };
   }, [tenantId]);
 
-  useEffect(() => {
-    if (imagePreview.startsWith('blob:')) {
-      return () => URL.revokeObjectURL(imagePreview);
-    }
-    return undefined;
-  }, [imagePreview]);
-
   const categories = data?.categories ?? [];
   const products = (data?.items ?? []).filter((item) => item.status !== 'archived');
   const activeBranches = (data?.branches ?? []).filter((branch) => branch.is_active);
@@ -125,7 +118,9 @@ export function OwnerMenuPage({ tenantId }: Props) {
       return;
     }
     setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    // Keep uploaded file data out of DOM URL sinks; show its name until the
+    // server validates and stores the image.
+    setImagePreview('');
   }
 
   async function saveProduct(event: FormEvent<HTMLFormElement>) {
@@ -360,9 +355,10 @@ export function OwnerMenuPage({ tenantId }: Props) {
             <h2 id="product-modal-title">{isAddingProduct ? 'Add Product' : 'Edit Product'}</h2>
             <form className="restaurant-product-form" onSubmit={(event) => void saveProduct(event)}>
               <div className="restaurant-product-image-picker">
-                {imagePreview ? <img src={imagePreview} alt="Product preview" className="restaurant-product-image-preview"/>
-                  : <div className="restaurant-product-image-placeholder">No product image</div>}
-                <label className="button button-secondary" htmlFor="product-image-input">{imagePreview ? 'Change Image' : 'Add Image'}</label>
+                {imageFile ? <div className="restaurant-product-image-placeholder">Selected image<br/><strong>{imageFile.name}</strong></div>
+                  : imagePreview ? <img src={imagePreview} alt="Product preview" className="restaurant-product-image-preview"/>
+                    : <div className="restaurant-product-image-placeholder">No product image</div>}
+                <label className="button button-secondary" htmlFor="product-image-input">{imagePreview || imageFile ? 'Change Image' : 'Add Image'}</label>
                 <input id="product-image-input" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => handleImageChange(event.target.files?.[0])} disabled={savingForm}/>
                 <small>JPG, PNG, or WEBP · maximum 5 MB</small>
               </div>
