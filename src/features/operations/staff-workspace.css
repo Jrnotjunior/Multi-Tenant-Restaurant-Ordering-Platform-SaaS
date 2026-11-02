@@ -267,9 +267,9 @@
 
 /* Kitchen brand and account controls lead the kitchen tabs. */
 .staff-workspace--kitchen{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:16px}
-.staff-workspace--kitchen>.staff-account-row{grid-column:1/-1;grid-row:1;width:100%;margin:0 0 14px;align-self:start;justify-self:stretch;box-sizing:border-box}
+.staff-workspace--kitchen>.staff-account-row{grid-column:1/-1;grid-row:2;width:100%;margin:0 0 20px;align-self:start;justify-self:stretch;box-sizing:border-box}
 .staff-workspace--kitchen>.staff-account-row>.staff-account-menu{margin-left:auto}
-.staff-workspace--kitchen>.staff-workspace-tabs{grid-row:2;margin-top:0}
+.staff-workspace--kitchen>.staff-workspace-tabs{grid-row:2;align-self:start;margin-top:0}
 .staff-workspace--kitchen>.staff-workspace-tabs{grid-column:1/-1;grid-row:2;align-self:start;margin-bottom:20px}
 .staff-workspace--kitchen>section{grid-column:1/-1;grid-row:3;min-width:0}
 @media(max-width:560px){.staff-workspace--kitchen{column-gap:8px}.staff-workspace--kitchen>.staff-workspace-tabs{gap:4px}.staff-workspace--kitchen>.staff-workspace-tabs button{padding:9px 16px}}
