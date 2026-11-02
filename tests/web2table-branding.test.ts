@@ -7,8 +7,10 @@ describe('Web2Table interface branding', () => {
     const ownerShell = readFileSync('src/features/operations/OwnerAppShell.tsx', 'utf8');
 
     expect(app).toContain('Web2Table');
-    expect(ownerShell).toContain('Web2Table');
-    expect(ownerShell).toContain('RESTAURANT<br/>MANAGEMENT');
+    // Workspace branding was intentionally removed; keep the product name in
+    // the application while ensuring the owner workspace has no legacy brand header.
+    expect(ownerShell).not.toContain('owner-brand');
+    expect(ownerShell).not.toContain('RESTAURANT<br/>MANAGEMENT');
     expect(app).not.toMatch(/\\bV10\\b/i);
   });
 
