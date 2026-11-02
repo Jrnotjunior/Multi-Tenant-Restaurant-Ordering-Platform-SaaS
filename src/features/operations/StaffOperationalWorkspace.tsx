@@ -172,23 +172,51 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         return;
       }
 
-      // Staff names are stored on the tenant membership profile, not always in
-      // Supabase Auth metadata. Ask the server for this user's name within the
-      // current tenant before using Auth metadata as a fallback.
-      const { data: profileName, error: profileError } = await supabase.rpc(
-        'get_my_staff_display_name',
-        { p_tenant_id: tenantId },
-      );
+      // Resolve the authenticated user's tenant membership name first. The RPC is
+      // the preferred path; the RLS-protected own-membership query is a compatibility
+      // fallback for environments where the RPC migration has not propagated yet.
+      const { data: authResult, error: userError } = await supabase.auth.getUser();
       if (!active) return;
+      const user = !userError ? authResult.user : null;
+      if (user) {
+        const { data: profileName, error: profileError } = await supabase.rpc(
+          'get_my_staff_display_name',
+          { p_tenant_id: tenantId },
+        );
+        if (!active) return;
 
-      if (!profileError && typeof profileName === 'string' && profileName.trim()) {
-        setAccountName(profileName.trim());
+        const rpcName = typeof profileName === 'string'
+          ? profileName.trim()
+          : profileName && typeof profileName === 'object'
+            ? Object.values(profileName as Record<string, unknown>).find((value): value is string => typeof value === 'string' && value.trim().length > 0)?.trim() ?? ''
+            : '';
+        if (!profileError && rpcName) {
+          setAccountName(rpcName);
+          return;
+        }
+
+        const { data: membership, error: membershipError } = await supabase
+          .from('tenant_memberships')
+          .select('staff_first_name,staff_last_name')
+          .eq('tenant_id', tenantId)
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .maybeSingle();
+        if (!active) return;
+        if (!membershipError && membership) {
+          const membershipName = [membership.staff_first_name, membership.staff_last_name]
+            .filter((part): part is string => typeof part === 'string' && part.trim().length > 0)
+            .join(' ')
+            .trim();
+          if (membershipName) {
+            setAccountName(membershipName);
+            return;
+          }
+        }
+        setAccountName(userDisplayName(user, roleFallback));
         return;
       }
-
-      const { data, error: userError } = await supabase.auth.getUser();
-      if (!active) return;
-      setAccountName(!userError ? userDisplayName(data.user, roleFallback) : roleFallback);
+      setAccountName(roleFallback);
     })();
 
     return () => { active = false; };
