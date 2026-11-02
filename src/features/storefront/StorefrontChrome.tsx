@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+type StorefrontSocialLinks = Readonly<{facebook:string;instagram:string;tiktok:string}>;
+
 type StorefrontHeaderProps = {
   logo: ReactNode;
   actions?: ReactNode;
@@ -24,22 +26,23 @@ export function CustomerAccountBackLink({ href }: { href: string }) {
   return <a className="sf-account-back-link" href={href}>&larr; Back to account</a>;
 }
 
-export function StorefrontFooter() {
+export function StorefrontFooter({ socialLinks }: { socialLinks: StorefrontSocialLinks }) {
+  const links = [
+    { key: 'facebook', label: 'Facebook', url: socialLinks.facebook, icon: 'social-facebook.svg' },
+    { key: 'instagram', label: 'Instagram', url: socialLinks.instagram, icon: 'social-instagram.svg' },
+    { key: 'tiktok', label: 'TikTok', url: socialLinks.tiktok, icon: 'social-tiktok.svg' },
+  ] as const;
   return (
     <footer className="sf-footer">
       <div className="sf-footer-inner">
         <section className="sf-footer-social-section" aria-label="Follow Web2Table">
           <h2 className="sf-footer-heading">Follow Us</h2>
           <nav className="sf-footer-socials" aria-label="Social media links">
-            <span className="sf-footer-social-link is-disabled" aria-label="Facebook not configured" aria-disabled="true">
-              <img className="sf-footer-social-logo" src={`${import.meta.env.BASE_URL}social-facebook.svg`} alt="" />
-            </span>
-            <span className="sf-footer-social-link is-disabled" aria-label="Instagram not configured" aria-disabled="true">
-              <img className="sf-footer-social-logo" src={`${import.meta.env.BASE_URL}social-instagram.svg`} alt="" />
-            </span>
-            <span className="sf-footer-social-link is-disabled" aria-label="TikTok not configured" aria-disabled="true">
-              <img className="sf-footer-social-logo" src={`${import.meta.env.BASE_URL}social-tiktok.svg`} alt="" />
-            </span>
+            {links.filter(link => link.url).map(link => (
+              <a key={link.key} className="sf-footer-social-link" href={link.url} target="_blank" rel="noopener noreferrer" aria-label={`Visit our ${link.label} page (opens in a new tab)`}>
+                <img className="sf-footer-social-logo" src={`${import.meta.env.BASE_URL}${link.icon}`} alt="" />
+              </a>
+            ))}
           </nav>
         </section>
         <div className="sf-footer-bottom">
