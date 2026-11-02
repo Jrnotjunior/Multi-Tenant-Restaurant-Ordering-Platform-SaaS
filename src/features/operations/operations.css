@@ -538,6 +538,7 @@
 .owner-loyalty-muted{color:#64748b;font-size:13px;line-height:1.6}
 @media(max-width:640px){.owner-loyalty-rule{grid-template-columns:minmax(0,1fr)}.owner-loyalty-tabs{gap:20px}}
 
+.owner-loyalty-customer-search{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center;margin:0 0 16px;max-width:560px}.owner-loyalty-customer-search label{grid-column:1/-1;color:var(--color-text);font-size:12px;font-weight:650}.owner-loyalty-customer-search input{width:100%;min-width:0;min-height:40px;padding:9px 12px;border:1px solid var(--color-border,#dbe2ea);border-radius:9px;background:var(--color-surface,#fff);color:var(--color-text);font:inherit;font-size:13px;box-sizing:border-box}.owner-loyalty-customer-search input:focus-visible{outline:2px solid var(--color-primary,#2563eb);outline-offset:2px}.owner-loyalty-customer-search>span{color:#64748b;font-size:12px;white-space:nowrap}
 .owner-loyalty-customer-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
 .owner-loyalty-customer-heading h2{margin:0 0 6px;font-size:17px;color:var(--color-text)}
 .owner-loyalty-customer-heading .owner-loyalty-muted{margin:0}
