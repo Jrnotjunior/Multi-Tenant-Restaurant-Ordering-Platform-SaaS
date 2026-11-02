@@ -164,14 +164,35 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
 
   useEffect(() => {
     let active = true;
-    void supabase?.auth.getUser().then(({ data }) => {
+    const roleFallback = role === 'rider' ? 'Rider' : role === 'dispatcher' ? 'Dispatcher' : role === 'cashier' ? 'Cashier' : 'Kitchen Staff';
+
+    void (async () => {
+      if (!supabase) {
+        if (active) setAccountName(roleFallback);
+        return;
+      }
+
+      // Staff names are stored on the tenant membership profile, not always in
+      // Supabase Auth metadata. Ask the server for this user's name within the
+      // current tenant before using Auth metadata as a fallback.
+      const { data: profileName, error: profileError } = await supabase.rpc(
+        'get_my_staff_display_name',
+        { p_tenant_id: tenantId },
+      );
       if (!active) return;
-      const user = data.user;
-      const roleFallback = role === 'rider' ? 'Rider' : role === 'dispatcher' ? 'Dispatcher' : role === 'cashier' ? 'Cashier' : 'Kitchen Staff';
-      setAccountName(userDisplayName(user, roleFallback));
-    });
+
+      if (!profileError && typeof profileName === 'string' && profileName.trim()) {
+        setAccountName(profileName.trim());
+        return;
+      }
+
+      const { data, error: userError } = await supabase.auth.getUser();
+      if (!active) return;
+      setAccountName(!userError ? userDisplayName(data.user, roleFallback) : roleFallback);
+    })();
+
     return () => { active = false; };
-  }, []);
+  }, [role, tenantId]);
 
   async function signOut() {
     if (!supabase || signingOut) return;
