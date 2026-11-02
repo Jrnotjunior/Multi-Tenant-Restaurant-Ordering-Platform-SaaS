@@ -59,11 +59,11 @@ function CustomerInformation({ firstName, lastName, phone, onFirstNameChange, on
   </fieldset>;
 }
 
-function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onStreetAddressChange, restaurantSlug, savedAddresses, selectedSavedAddressId, onSavedAddressChange }: { orderType: OrderType; value: DeliveryLocationAddress | null; onSelect: (address: DeliveryLocationAddress) => void; streetAddress: string; onStreetAddressChange: (streetAddress: string) => void; restaurantSlug: string; savedAddresses: SavedCheckoutAddress[]; selectedSavedAddressId: string; onSavedAddressChange: (id: string) => void }) {
+function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onStreetAddressChange, restaurantSlug }: { orderType: OrderType; value: DeliveryLocationAddress | null; onSelect: (address: DeliveryLocationAddress) => void; streetAddress: string; onStreetAddressChange: (streetAddress: string) => void; restaurantSlug: string }) {
   if (orderType !== 'Delivery') return null;
   return <fieldset className="sf-checkout-section">
     <legend>Delivery address</legend>
-    {savedAddresses.length > 0 && <label className="sf-checkout-saved-address">Saved address<select aria-label="Choose a saved delivery address" value={selectedSavedAddressId} onChange={event => onSavedAddressChange(event.target.value)}><option value="">Choose another address…</option>{savedAddresses.map(address => <option key={address.id} value={address.id}>{address.label}{address.is_default ? ' (Default)' : ''} — {[address.address_line, address.barangay, address.city].filter(Boolean).join(', ')}</option>)}</select></label>}
+
     <MapboxDeliveryLocationPicker restaurantSlug={restaurantSlug} variant="delivery" initialLatitude={value?.latitude ?? null} initialLongitude={value?.longitude ?? null} onSelect={onSelect} />
     {value && <p className="sf-checkout-address-confirmed" role="status">Selected address: {value.formattedAddress || value.address}</p>}
     <div className="sf-checkout-fields sf-checkout-locality-fields">
@@ -256,7 +256,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
     {!paymentComplete && <form className="sf-checkout-page-form" onSubmit={handleSubmit}>
       <OrderTypeSection value={orderType} onChange={type => { setOrderType(type); setMessage(''); setReviewed(false); }} />
       <CustomerInformation firstName={customerFirstName} lastName={customerLastName} phone={customerPhone} onFirstNameChange={setCustomerFirstName} onLastNameChange={setCustomerLastName} onPhoneChange={setCustomerPhone} />
-      <DeliveryAddressSection orderType={orderType} value={deliveryAddress} onSelect={address => { setSelectedSavedAddressId(''); setDeliveryAddress(address); setStreetAddress(address.address); }} streetAddress={streetAddress} onStreetAddressChange={setStreetAddress} restaurantSlug={restaurantSlug} savedAddresses={savedAddresses} selectedSavedAddressId={selectedSavedAddressId} onSavedAddressChange={id => { setSelectedSavedAddressId(id); const saved = savedAddresses.find(address => address.id === id); if (!saved) return; setDeliveryAddress({ formattedAddress: [saved.address_line, saved.barangay, saved.city].filter(Boolean).join(', '), city: saved.city, barangay: saved.barangay, address: saved.address_line, placeId: saved.geocoding_place_id || '', latitude: saved.latitude, longitude: saved.longitude }); setStreetAddress(saved.address_line); setMessage(''); }} />
+      <DeliveryAddressSection orderType={orderType} value={deliveryAddress} onSelect={address => { setSelectedSavedAddressId(''); setDeliveryAddress(address); setStreetAddress(address.address); }} streetAddress={streetAddress} onStreetAddressChange={setStreetAddress} restaurantSlug={restaurantSlug} />
 
       <section className="sf-checkout-total" aria-label="Order summary">
         <div className="sf-checkout-summary-heading"><span>Order summary</span></div>
