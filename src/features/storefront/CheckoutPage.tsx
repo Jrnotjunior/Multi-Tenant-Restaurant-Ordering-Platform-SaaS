@@ -298,7 +298,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
         <div className="sf-payment-options">
           <label className={'sf-payment-option' + (paymentMethod === 'cash' ? ' is-selected' : '')}>
             <span className="sf-payment-option-icon" aria-hidden="true">₱</span>
-            <span className="sf-payment-option-copy"><strong>Pay cash at the counter</strong><small>Place your order now and pay the cashier at the restaurant counter before preparation.</small></span>
+            <span className="sf-payment-option-copy"><strong>{orderType === 'Delivery' ? 'Cash on delivery' : orderType === 'Pickup' ? 'Pay cash at pickup' : 'Pay cash at the counter'}</strong><small>{orderType === 'Delivery' ? 'Place your order now and pay the rider when your order arrives.' : orderType === 'Pickup' ? 'Place your order now and pay the cashier when you collect it.' : 'Place your order now and pay the cashier at the restaurant counter before preparation.'}</small></span>
             <input type="radio" name="paymentMethod" value="cash" checked={paymentMethod === 'cash'} onChange={() => setPaymentMethod('cash')} />
           </label>
           <label className={'sf-payment-option' + (paymentMethod === 'online' ? ' is-selected' : '')}>

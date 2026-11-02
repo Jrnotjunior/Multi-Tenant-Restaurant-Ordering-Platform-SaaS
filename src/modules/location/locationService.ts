@@ -368,55 +368,17 @@ export async function searchAddresses(query: string): Promise<GeocodingFeature[]
   return prioritizeAddressResults(value, (body.features ?? []).map(normalizeMapboxFeature));
 }
 
-async function resolveBarangayByCoordinates(latitude: number, longitude: number) {
-  const baseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
-  const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
-  if (!baseUrl || !publishableKey) return null;
-
-  const response = await fetch(`${baseUrl.replace(/\/$/, '')}/functions/v1/resolve-philippine-barangay`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: publishableKey,
-      Authorization: `Bearer ${publishableKey}`,
-    },
-    body: JSON.stringify({ latitude, longitude }),
-    signal: AbortSignal.timeout(8000),
-  });
-  if (!response.ok) {
-    console.warn('Philippine barangay lookup unavailable', { status: response.status });
-    return null;
-  }
-  const result = await response.json() as {
-    barangay?: string;
-    city?: string;
-    psgcCode?: string;
-    matched?: boolean;
-    source?: string;
-    boundaryDate?: string;
-  };
-  return result.matched && result.barangay
-    ? { barangay: result.barangay, city: result.city ?? '', psgcCode: result.psgcCode ?? '', source: result.source ?? '', boundaryDate: result.boundaryDate ?? '' }
-    : null;
-}
-
 export async function reverseGeocodeLocation(latitude: number, longitude: number): Promise<GeocodingFeature | null> {
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) throw new Error('The selected coordinates are invalid.');
-  let feature: GeocodingFeature | null = null;
   try {
     const token = await mapboxAccessToken();
     const params = new URLSearchParams({ longitude: String(longitude), latitude: String(latitude), access_token: token, language: 'en', limit: '1' });
     const response = await fetch(`https://api.mapbox.com/search/geocode/v6/reverse?${params.toString()}`, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) });
     const body = await response.json().catch(() => ({})) as { features?: Array<{ id?: string; geometry?: { coordinates?: [number, number] }; properties?: Record<string, unknown> }> };
     if (!response.ok) throw new Error('Mapbox reverse geocoding is temporarily unavailable.');
-    feature = (body.features ?? []).map(normalizeMapboxFeature)[0] ?? null;
-  } catch (error) { console.warn('Mapbox reverse geocoding unavailable; trying barangay boundaries.', error); }
-  try {
-    const boundary = await resolveBarangayByCoordinates(latitude, longitude);
-    if (boundary) {
-      if (!feature) feature = { geometry: { coordinates: [longitude, latitude] }, properties: { name: boundary.barangay, address: boundary.barangay, full_address: [boundary.barangay, boundary.city].filter(Boolean).join(', '), city: boundary.city, barangay: boundary.barangay, coordinates: { latitude, longitude } } };
-      else feature.properties = { ...(feature.properties ?? {}), barangay: boundary.barangay, context: { ...(feature.properties?.context ?? {}), barangay: { name: boundary.barangay } } };
-    }
-  } catch (error) { console.warn('Unable to resolve barangay from boundaries.', error); }
-  return feature;
+    return (body.features ?? []).map(normalizeMapboxFeature)[0] ?? null;
+  } catch (error) {
+    console.warn('Mapbox reverse geocoding unavailable.', error);
+    return null;
+  }
 }
