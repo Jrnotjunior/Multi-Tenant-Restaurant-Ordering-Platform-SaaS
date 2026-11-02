@@ -23,7 +23,7 @@ export function StorefrontHeader({ logo, actions }: StorefrontHeaderProps) {
 }
 
 export function CustomerAccountBackLink({ href }: { href: string }) {
-  return <a className="sf-account-back-link" href={href}>&larr; Back to account</a>;
+  return <a className="sf-account-back-link" href={href}>&larr; Back</a>;
 }
 
 export function StorefrontFooter({ socialLinks }: { socialLinks: StorefrontSocialLinks }) {
