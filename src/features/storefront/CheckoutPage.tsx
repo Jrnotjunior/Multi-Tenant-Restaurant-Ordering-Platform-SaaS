@@ -59,7 +59,7 @@ function CustomerInformation({ firstName, lastName, phone, onFirstNameChange, on
 }
 
 function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onStreetAddressChange, restaurantSlug }: { orderType: OrderType; value: DeliveryLocationAddress | null; onSelect: (address: DeliveryLocationAddress) => void; streetAddress: string; onStreetAddressChange: (streetAddress: string) => void; restaurantSlug: string }) {
-  const [addressPickerOpen, setAddressPickerOpen] = useState(!value);
+  const [addressPickerOpen, setAddressPickerOpen] = useState(false);
   if (orderType !== 'Delivery') return null;
   return <fieldset className="sf-checkout-section">
     <legend>Delivery address</legend>
