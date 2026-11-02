@@ -1,4 +1,4 @@
-@import 'maplibre-gl/dist/maplibre-gl.css';
+@import 'mapbox-gl/dist/mapbox-gl.css';
 :root{color-scheme:light;font-family:Inter,Arial,sans-serif;color:#0f172a;background:#fff}
 *{box-sizing:border-box}
 html,body,#map-service-root{width:100%;min-width:0;min-height:100%;margin:0;background:#fff;color:#0f172a}
