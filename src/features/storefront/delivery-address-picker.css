@@ -12,6 +12,7 @@
   color: #111827;
   font: inherit;
   font-weight: 650;
+  margin-bottom: 12px;
   cursor: pointer;
   transition: background-color 160ms ease, transform 160ms ease;
 }
