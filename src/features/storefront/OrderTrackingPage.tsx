@@ -5,7 +5,7 @@ import './storefront.css';
 const peso = (centavos: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 2 }).format(centavos / 100);
 
 type TrackedItem = { name: string; quantity: number; total_centavos: number; unit_price_centavos?: number; options?: unknown[] };
-type TrackedStatus = { order_status: string; payment_status: string; payment_method?: string; refund_status?: 'pending' | 'refunded' | 'failed' | null; order_type?: string; updated_at: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null };
+type TrackedStatus = { order_status: string; assignment_status?: string | null; payment_status: string; payment_method?: string; refund_status?: 'pending' | 'refunded' | 'failed' | null; order_type?: string; updated_at: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null };
 
 export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingToken?: string | null }) {
   const [storedTrackingToken] = useState<string | null>(() => {
@@ -41,14 +41,14 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
       const { data, error: rpcError } = await supabase!.rpc('track_customer_order', { p_tracking_token: trackingToken });
       if (!active) return;
       if (rpcError) { setError('Live tracking is reconnecting. We will keep trying.'); return; }
-      const result = data as { found?: boolean; order_number?: number; order_status?: string; payment_status?: string; payment_method?: string; refund_status?: TrackedStatus['refund_status']; order_type?: string; updated_at?: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null } | null;
+      const result = data as { found?: boolean; order_number?: number; order_status?: string; assignment_status?: string | null; payment_status?: string; payment_method?: string; refund_status?: TrackedStatus['refund_status']; order_type?: string; updated_at?: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null } | null;
       if (!result?.found || !result.order_status || !result.payment_status || !result.updated_at) {
         setError('We could not find this order. Keep your tracking link and contact the restaurant if needed.');
         return;
       }
       setError('');
       setOrderNumber(Number(result.order_number));
-      setStatus({ order_status: result.order_status, payment_status: result.payment_status, payment_method: result.payment_method, refund_status: result.refund_status, order_type: result.order_type, updated_at: result.updated_at, items: result.items ?? [], subtotal_centavos: result.subtotal_centavos, delivery_fee_centavos: result.delivery_fee_centavos, total_centavos: result.total_centavos });
+      setStatus({ order_status: result.order_status, assignment_status: result.assignment_status, payment_status: result.payment_status, payment_method: result.payment_method, refund_status: result.refund_status, order_type: result.order_type, updated_at: result.updated_at, items: result.items ?? [], subtotal_centavos: result.subtotal_centavos, delivery_fee_centavos: result.delivery_fee_centavos, total_centavos: result.total_centavos });
     };
     void refresh();
     const channel = supabase.channel('order-tracking:' + trackingToken)
@@ -97,16 +97,28 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
   const orderType = status?.order_type?.toLowerCase().replaceAll('_', '-') ?? 'dine-in';
   const dineIn = ['dine-in', 'dinein'].includes(orderType);
   const dineInCashOrder = dineIn && (status?.payment_method ?? orderMeta.paymentMethod) === 'cash';
+  const deliveryOrder = orderType === 'delivery';
   const stages = dineIn
     ? ['pending_confirmation', 'confirmed', 'preparing', 'ready_for_serve', 'served']
-    : ['pending_confirmation', 'confirmed', 'preparing', 'ready_for_dispatch', 'out_for_delivery', 'delivered'];
+    : deliveryOrder
+      ? ['pending_confirmation', 'confirmed', 'preparing', 'ready_for_dispatch', 'assigned', 'out_for_delivery', 'arrived_at_customer', 'delivered']
+      : ['pending_confirmation', 'confirmed', 'preparing', 'ready_for_dispatch', 'out_for_delivery', 'delivered'];
   const labels = dineIn
     ? ['Order Received', 'Confirmed', 'Preparing', 'Ready', 'Served']
-    : ['Order Received', 'Confirmed', 'Preparing', 'Ready', 'Out for delivery', 'Delivered'];
+    : deliveryOrder
+      ? ['Order Received', 'Confirmed', 'Preparing', 'Ready', 'Assigned', 'Out for delivery', 'Arrived at your address', 'Delivered']
+      : ['Order Received', 'Confirmed', 'Preparing', 'Ready', 'Out for delivery', 'Delivered'];
   const descriptions = dineIn
     ? ['Your order has been received by the restaurant.', 'The restaurant has confirmed your order.', 'The kitchen is preparing your food.', 'Your food is ready. Restaurant staff will bring it to your table.', 'Your order has been served. Thank you!']
-    : ['Your order has been received by the restaurant.', 'The restaurant has confirmed your order.', 'The kitchen is preparing your food.', 'Your order is being prepared for dispatch.', 'Your order is on its way to you.', 'Your order has been delivered. Thank you!'];
-  const current = status ? stages.indexOf(status.order_status) : -1;
+    : deliveryOrder
+      ? ['Your order has been received by the restaurant.', 'The restaurant has confirmed your order.', 'The kitchen is preparing your food.', 'Your order is ready and waiting for dispatch.', 'A rider has been assigned to your order.', 'Your rider is on the way to you.', 'Your rider has arrived at your delivery address.', 'Your order was delivered to you. Thank you!']
+      : ['Your order has been received by the restaurant.', 'The restaurant has confirmed your order.', 'The kitchen is preparing your food.', 'Your order is being prepared for pickup.', 'Your order is ready for pickup.', 'Your order has been picked up. Thank you!'];
+  const assignmentStage: Record<string, number> = { assigned: 4, accepted: 4, dispatched: 4, out_for_delivery: 5, arrived_at_customer: 6, delivered: 7 };
+  const current = status
+    ? (deliveryOrder && status.assignment_status && assignmentStage[status.assignment_status] != null
+      ? assignmentStage[status.assignment_status]
+      : stages.indexOf(status.order_status))
+    : -1;
   const terminal = status ? ['rejected', 'cancelled'].includes(status.order_status) : false;
   const isCancelled = status?.order_status === 'cancelled';
   const currentStage = current < 0 ? (terminal ? (status?.order_status ?? 'unknown').replaceAll('_', ' ') : 'Order Received') : labels[current];
