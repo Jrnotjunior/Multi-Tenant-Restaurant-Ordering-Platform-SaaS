@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Map as MapLibreMap, Marker, setWorkerUrl } from 'maplibre-gl';
-import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
-import 'maplibre-gl/dist/maplibre-gl.css';
-
-setWorkerUrl(workerUrl);
+import mapboxgl, { Map as MapboxMap, Marker } from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { geocodingFeatureToAddress, mapboxAccessToken, matchesRequestedHouseNumber, requestedHouseNumber, resultHouseNumber, reverseGeocodeLocation, searchAddresses as geocodeAddresses, type GeocodingFeature } from '../modules/location/locationService';
 import type { DeliveryLocationAddress } from '../modules/location/mapServiceProtocol';
 export type { DeliveryLocationAddress } from '../modules/location/mapServiceProtocol';
@@ -43,7 +40,7 @@ export function MapboxLocationPickerUi({
   initialLongitude?: number | null;
 }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<MapLibreMap | null>(null);
+  const mapRef = useRef<MapboxMap | null>(null);
   const markerRef = useRef<Marker | null>(null);
   const selectedAddressRef = useRef<DeliveryLocationAddress | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -106,9 +103,10 @@ export function MapboxLocationPickerUi({
 
         const mapboxToken = await mapboxAccessToken();
         if (cancelled || !mapContainerRef.current) return;
-        const map = new MapLibreMap({
+        mapboxgl.accessToken = mapboxToken;
+        const map = new MapboxMap({
           container: mapContainerRef.current,
-          style: `https://api.mapbox.com/styles/v1/mapbox/streets-v12?access_token=${encodeURIComponent(mapboxToken)}`,
+          style: 'mapbox://styles/mapbox/streets-v12',
           center: defaultCenter,
           zoom: Number.isFinite(initialLatitude) && Number.isFinite(initialLongitude) ? 16 : 15,
           attributionControl: { compact: true },
@@ -143,7 +141,7 @@ export function MapboxLocationPickerUi({
         });
 
         map.on('error', (event) => {
-          console.error('MapLibre map error', event.error);
+          console.error('Mapbox map error', event.error);
         });
       } catch (setupError) {
         console.error('Unable to initialize delivery map.', setupError);
