@@ -485,9 +485,16 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
               {order.delivery_address ? <div className="rider-delivery-address-link"><span className="rider-delivery-address-pin" aria-hidden="true">⌖</span><span><strong>Delivery address</strong><span className="rider-delivery-address">{order.delivery_address}</span></span></div> : <p className="rider-delivery-address">No delivery address provided</p>}
               {order.delivery_address && (() => {
                 const navigation = buildRiderNavigationUrls(order.delivery_latitude, order.delivery_longitude, order.delivery_address);
-                return navigation ? <div className="rider-navigation-actions" aria-label="Choose navigation app">
-                  <a className="rider-navigation-button" href={navigation.waze} target="_blank" rel="noopener noreferrer">Navigate with Waze</a>
-                  <a className="rider-navigation-button" href={navigation.googleMaps} target="_blank" rel="noopener noreferrer">Navigate with Google Maps</a>
+                return navigation ? <div className="rider-navigation-picker" aria-label="Choose navigation app">
+                  <p className="rider-navigation-label">Open directions with</p>
+                  <div className="rider-navigation-actions">
+                    <a className="rider-navigation-button rider-navigation-button--waze" href={navigation.waze} target="_blank" rel="noopener noreferrer" aria-label="Open delivery directions in Waze">
+                      <span className="rider-navigation-app-icon" aria-hidden="true">W</span><span className="rider-navigation-app-copy"><strong>Waze</strong><small>Open route</small></span><span className="rider-navigation-external" aria-hidden="true">↗</span>
+                    </a>
+                    <a className="rider-navigation-button rider-navigation-button--google" href={navigation.googleMaps} target="_blank" rel="noopener noreferrer" aria-label="Open delivery directions in Google Maps">
+                      <span className="rider-navigation-app-icon" aria-hidden="true">G</span><span className="rider-navigation-app-copy"><strong>Google Maps</strong><small>Open route</small></span><span className="rider-navigation-external" aria-hidden="true">↗</span>
+                    </a>
+                  </div>
                 </div> : <p className="rider-delivery-helper" role="note">Couldn’t create a map route. Contact the customer or dispatcher to confirm the delivery location.</p>;
               })()}
               {order.delivery_notes && <p className="rider-delivery-helper">Delivery notes: {order.delivery_notes}</p>}
