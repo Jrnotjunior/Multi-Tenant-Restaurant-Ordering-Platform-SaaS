@@ -306,7 +306,7 @@ function prioritizeAddressResults(query: string, features: GeocodingFeature[]) {
 
 let mapboxTokenPromise: Promise<string> | null = null;
 
-async function mapboxAccessToken(): Promise<string> {
+export async function mapboxAccessToken(): Promise<string> {
   if (!mapboxTokenPromise) {
     mapboxTokenPromise = (async () => {
       const baseUrl = import.meta.env.VITE_SUPABASE_URL?.trim().replace(/\/$/, '');
