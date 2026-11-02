@@ -288,6 +288,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           if (order.order_status === 'preparing') return 1;
         }
         if (role === 'dispatcher' && order.order_type === 'delivery' && order.order_status === 'ready_for_dispatch' && order.assignment_status !== 'dispatched') return order.assigned_rider_user_id ? 0 : 1;
+        if (role === 'dispatcher' && order.order_type !== 'delivery' && order.order_status === 'ready_for_pickup') return 0;
         if (role === 'rider' && ['dispatched', 'assigned', 'out_for_delivery'].includes(order.assignment_status ?? '')) return 0;
         return 4;
       };
@@ -344,7 +345,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         confirmationNotice = `Order #${order.order_number} sent to the kitchen. Review its ticket before printing.`;
       }
       setNotice(confirmationNotice);
-      if ((role === 'kitchen' && action === 'mark_ready') || (role === 'dispatcher' && action === 'dispatch')) setSelectedCashierOrderId(null);
+      if ((role === 'kitchen' && action === 'mark_ready') || (role === 'dispatcher' && ['dispatch', 'complete_handoff'].includes(action))) setSelectedCashierOrderId(null);
       await load(true);
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to update this order.'); }
     finally { setBusy(''); }
@@ -410,6 +411,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     if (role === 'cashier' && order.order_status === 'ready_for_pickup') return [{ action: 'complete_handoff', label: 'Complete handoff', primary: true }];
     if (role === 'kitchen' && order.order_status === 'preparing') return [{ action: 'mark_ready', label: 'Mark ready', primary: true }];
     if (role === 'dispatcher' && order.order_type === 'delivery' && order.order_status === 'ready_for_dispatch' && order.assigned_rider_user_id && order.assignment_status !== 'dispatched') return [{ action: 'dispatch', label: 'Dispatch order', primary: true }];
+    if (role === 'dispatcher' && order.order_type !== 'delivery' && order.order_status === 'ready_for_pickup') return [{ action: 'complete_handoff', label: order.order_type === 'dine_in' ? 'Mark served' : 'Mark picked up', primary: true }];
     if (role === 'rider' && order.order_type === 'delivery' && order.assignment_status === 'dispatched') return [{ action: 'accept_delivery', label: 'Start delivery', primary: true }];
     if (role === 'rider' && order.order_type === 'delivery' && order.assignment_status === 'out_for_delivery' && order.order_status === 'out_for_delivery') return [{ action: 'deliver', label: 'Mark delivered', primary: true }];
     return [];
@@ -650,7 +652,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           const buttons = actions(order);
           const branchRiders = riders[order.branch_id] ?? [];
           const needsFee = role === 'cashier' && order.order_type === 'delivery' && order.order_status === 'pending_confirmation' && order.total_centavos == null;
-          const needsAttention = (role === 'cashier' && order.order_status === 'pending_confirmation') || (role === 'kitchen' && ['confirmed', 'preparing'].includes(order.order_status)) || (role === 'dispatcher' && order.order_type === 'delivery' && order.order_status === 'ready_for_dispatch' && order.assignment_status !== 'dispatched');
+          const needsAttention = (role === 'cashier' && order.order_status === 'pending_confirmation') || (role === 'kitchen' && ['confirmed', 'preparing'].includes(order.order_status)) || (role === 'dispatcher' && ((order.order_type === 'delivery' && order.order_status === 'ready_for_dispatch' && order.assignment_status !== 'dispatched') || (order.order_type !== 'delivery' && order.order_status === 'ready_for_pickup')));
           return <button type="button" className="staff-cashier-order-summary" key={order.id} onClick={() => setSelectedCashierOrderId(order.id)} aria-label={`Open order ${order.order_number} details`}>
             <span className="staff-cashier-summary-main"><strong>ORD-{String(order.order_number).padStart(5, '0')}</strong></span>
             {role === 'kitchen' ? <span className="staff-cashier-summary-payment"><span>{typeLabel(order.order_type)}</span></span> : <span className="staff-cashier-summary-payment"><span>{typeLabel(order.order_type)} · {order.payment_channel === 'online' ? 'Online' : 'Cash'} · {['paid','succeeded','completed'].includes(order.payment_status.toLowerCase()) ? 'Paid' : 'Unpaid'}</span><strong>{money(order.total_centavos)}</strong></span>}
