@@ -31,3 +31,9 @@ The existing readiness register in [`SOC2_READINESS.md`](SOC2_READINESS.md) rema
 7. Agree system scope and selected Trust Services Criteria with an independent SOC 2 auditor, collect evidence throughout the observation period, remediate findings, and complete the engagement before making a SOC 2 report claim.
 
 Until those items are implemented and evidenced, approved public wording is: “security controls are being developed with SOC 2 readiness in mind.”
+
+## Follow-up verification — 2026-11-03
+
+The GitHub Actions page was inspected for the latest main commit `bbc68b5` (Open rider delivery address directly in Google Maps). Its Foundation checks passed, and its CodeQL and Secret scan workflows passed. This indicates those workflows completed successfully; findings still need review in their respective security dashboards.
+
+The Edge Function checks failed because Deno attempted to resolve `@supabase/supabase-js` from a local `node_modules` directory, which had not been installed. The repository mixes Deno Edge Functions with a root npm `package.json`. The workflow now runs `deno check --node-modules-dir=none` so Deno resolves npm packages from its managed cache. This change is pending a new GitHub Actions run. A committed Deno lockfile and npm lockfile are still outstanding; package-registry access from this workstation timed out, so reproducible dependency installs are not yet complete.
