@@ -1,8 +1,12 @@
 export type RiderNavigationUrls = { waze: string; googleMaps: string };
-export function buildRiderNavigationUrls(latitude: number | null, longitude: number | null): RiderNavigationUrls | null {
+export function buildRiderNavigationUrls(latitude: number | null, longitude: number | null, address?: string | null): RiderNavigationUrls | null {
   const valid = typeof latitude === 'number' && Number.isFinite(latitude) && latitude >= -90 && latitude <= 90
     && typeof longitude === 'number' && Number.isFinite(longitude) && longitude >= -180 && longitude <= 180;
-  if (!valid) return null;
-  const destination = encodeURIComponent(`${latitude},${longitude}`);
-  return { waze: `https://www.waze.com/ul?ll=${destination}&navigate=yes`, googleMaps: `https://www.google.com/maps/dir/?api=1&destination=${destination}` };
+  const destination = valid ? `${latitude},${longitude}` : address?.trim();
+  if (!destination) return null;
+  const encodedDestination = encodeURIComponent(destination);
+  const waze = valid
+    ? `https://www.waze.com/ul?ll=${encodedDestination}&navigate=yes`
+    : `https://www.waze.com/ul?q=${encodedDestination}&navigate=yes`;
+  return { waze, googleMaps: `https://www.google.com/maps/dir/?api=1&destination=${encodedDestination}` };
 }

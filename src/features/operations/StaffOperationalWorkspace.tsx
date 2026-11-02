@@ -484,11 +484,11 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
               </div>
               {order.delivery_address ? <div className="rider-delivery-address-link"><span className="rider-delivery-address-pin" aria-hidden="true">⌖</span><span><strong>Delivery address</strong><span className="rider-delivery-address">{order.delivery_address}</span></span></div> : <p className="rider-delivery-address">No delivery address provided</p>}
               {order.delivery_address && (() => {
-                const navigation = buildRiderNavigationUrls(order.delivery_latitude, order.delivery_longitude);
+                const navigation = buildRiderNavigationUrls(order.delivery_latitude, order.delivery_longitude, order.delivery_address);
                 return navigation ? <div className="rider-navigation-actions" aria-label="Choose navigation app">
                   <a className="rider-navigation-button" href={navigation.waze} target="_blank" rel="noopener noreferrer">Navigate with Waze</a>
                   <a className="rider-navigation-button" href={navigation.googleMaps} target="_blank" rel="noopener noreferrer">Navigate with Google Maps</a>
-                </div> : <p className="rider-delivery-helper" role="note">Navigation coordinates are unavailable for this order. Contact the customer or dispatcher to confirm the exact delivery location.</p>;
+                </div> : <p className="rider-delivery-helper" role="note">Couldn’t create a map route. Contact the customer or dispatcher to confirm the delivery location.</p>;
               })()}
               {order.delivery_notes && <p className="rider-delivery-helper">Delivery notes: {order.delivery_notes}</p>}
             </section>
