@@ -73,6 +73,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [kitchenMenuError, setKitchenMenuError] = useState('');
   const [search, setSearch] = useState('');
   const [paymentTab, setPaymentTab] = useState<'all' | 'online_paid' | 'unpaid'>('all');
+  const [dispatcherTab, setDispatcherTab] = useState<Order['order_type']>('delivery');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState('');
   const [selectedCashierOrderId, setSelectedCashierOrderId] = useState<string | null>(null);
@@ -257,7 +258,8 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     for (const order of orders) {
       if (['pending_confirmation', 'ready_for_pickup'].includes(order.order_status)) cashier += 1;
       if (['confirmed', 'preparing'].includes(order.order_status)) kitchen += 1;
-      if (order.order_status === 'ready_for_dispatch' && order.order_type === 'delivery' && !['dispatched', 'out_for_delivery', 'delivered', 'cancelled'].includes(order.assignment_status ?? '')) dispatcher.delivery += 1;
+      if (order.order_type === 'delivery' && order.order_status === 'ready_for_dispatch' && !['dispatched', 'out_for_delivery', 'delivered', 'cancelled'].includes(order.assignment_status ?? '')) dispatcher.delivery += 1;
+      if (order.order_type !== 'delivery' && order.order_status === 'ready_for_pickup') dispatcher[order.order_type] += 1;
     }
     return { cashier, kitchen, dispatcher };
   }, [orders]);
@@ -268,7 +270,9 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       const matchesPaymentTab = role !== 'cashier' || (paymentTab === 'all' ? true : paymentTab === 'online_paid' ? isPaid && order.payment_channel === 'online' : !isPaid && !['cancelled', 'canceled', 'rejected', 'refunded'].includes(order.order_status.toLowerCase()));
       const searchable = [String(order.order_number), order.customer_name, order.customer_phone, order.branch_name, order.order_status, ...(order.items ?? []).map(item => item.item_name)];
       const matchesSearch = !term || searchable.some(value => value.toLowerCase().includes(term));
-      const matchesDispatcherTab = role !== 'dispatcher' || (order.order_type === 'delivery' && order.order_status === 'ready_for_dispatch' && !['dispatched', 'out_for_delivery', 'delivered', 'cancelled'].includes(order.assignment_status ?? ''));
+      const matchesDispatcherTab = role !== 'dispatcher' || (order.order_type === dispatcherTab && (dispatcherTab === 'delivery'
+        ? order.order_status === 'ready_for_dispatch' && !['dispatched', 'out_for_delivery', 'delivered', 'cancelled'].includes(order.assignment_status ?? '')
+        : order.order_status === 'ready_for_pickup'));
       return matchesPaymentTab && matchesSearch && matchesDispatcherTab;
     }).sort((a, b) => {
       // Put work that needs an immediate staff action at the top, then keep
@@ -290,7 +294,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       const rankDifference = priority(a) - priority(b);
       return rankDifference || new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
     });
-  }, [orders, search, paymentTab, role]);
+  }, [orders, search, paymentTab, role, dispatcherTab]);
 
   const salesOrders = useMemo(() => orders.filter(order =>
     ['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase()) &&
@@ -599,8 +603,11 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       <button type="button" className={kitchenTab === 'orders' ? 'is-active' : ''} aria-current={kitchenTab === 'orders' ? 'page' : undefined} aria-label={orderTabCounts.kitchen ? `Orders, ${orderTabCounts.kitchen} active kitchen tickets` : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'orders'); setKitchenTab('orders'); }}>Orders{orderTabCounts.kitchen > 0 && <span className="staff-tab-count" aria-hidden="true">{orderTabCounts.kitchen}</span>}</button>
       <button type="button" className={kitchenTab === 'menu' ? 'is-active' : ''} aria-current={kitchenTab === 'menu' ? 'page' : undefined} onClick={() => { window.location.hash = staffRouteFor(role, 'menu'); setKitchenTab('menu'); }}>Menu</button>
     </nav>}
-    {role === 'dispatcher' && <nav className="staff-workspace-tabs" aria-label="Delivery dispatch">
-      <button type="button" className="is-active" aria-current="page" disabled>Delivery{orderTabCounts.dispatcher.delivery > 0 && <span className="staff-tab-count" aria-hidden="true">{orderTabCounts.dispatcher.delivery}</span>}</button>
+    {role === 'dispatcher' && <nav className="staff-workspace-tabs" aria-label="Order type" role="tablist">
+      <button type="button" role="tab" aria-selected={dispatcherTab === 'delivery'} aria-label={orderTabCounts.dispatcher.delivery ? `Delivery, ${orderTabCounts.dispatcher.delivery} orders ready for dispatch` : undefined} className={dispatcherTab === 'delivery' ? 'is-active' : ''} onClick={() => setDispatcherTab('delivery')}>Delivery{orderTabCounts.dispatcher.delivery > 0 && <span className="staff-tab-count" aria-hidden="true">{orderTabCounts.dispatcher.delivery}</span>}</button>
+      <button type="button" role="tab" aria-selected={dispatcherTab === 'pickup'} aria-label={orderTabCounts.dispatcher.pickup ? `Pick up, ${orderTabCounts.dispatcher.pickup} ready for handoff` : undefined} className={dispatcherTab === 'pickup' ? 'is-active' : ''} onClick={() => setDispatcherTab('pickup')}>Pick up{orderTabCounts.dispatcher.pickup > 0 && <span className="staff-tab-count" aria-hidden="true">{orderTabCounts.dispatcher.pickup}</span>}</button>
+      <button type="button" role="tab" aria-selected={dispatcherTab === 'take_out'} aria-label={orderTabCounts.dispatcher.take_out ? `Take out, ${orderTabCounts.dispatcher.take_out} ready for handoff` : undefined} className={dispatcherTab === 'take_out' ? 'is-active' : ''} onClick={() => setDispatcherTab('take_out')}>Take out{orderTabCounts.dispatcher.take_out > 0 && <span className="staff-tab-count" aria-hidden="true">{orderTabCounts.dispatcher.take_out}</span>}</button>
+      <button type="button" role="tab" aria-selected={dispatcherTab === 'dine_in'} aria-label={orderTabCounts.dispatcher.dine_in ? `Dine in, ${orderTabCounts.dispatcher.dine_in} ready for handoff` : undefined} className={dispatcherTab === 'dine_in' ? 'is-active' : ''} onClick={() => setDispatcherTab('dine_in')}>Dine in{orderTabCounts.dispatcher.dine_in > 0 && <span className="staff-tab-count" aria-hidden="true">{orderTabCounts.dispatcher.dine_in}</span>}</button>
     </nav>}
     {role === 'cashier' && cashierTab === 'sales' ? <section className="staff-sales-view">
       <div className="staff-sales-heading"><div><p className="staff-eyebrow">BUSINESS SUMMARY</p><h2>Sales</h2><p>Paid orders from the order history currently loaded.</p></div><button className="staff-button staff-button-secondary" type="button" onClick={() => void load()} disabled={loading}>Refresh sales</button></div>
