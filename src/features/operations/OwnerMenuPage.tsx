@@ -266,11 +266,7 @@ export function OwnerMenuPage({ tenantId }: Props) {
         {error && <div className="restaurant-dashboard-error" role="alert">{error}</div>}
 
         <div className="restaurant-menu-management-card">
-          <div className="restaurant-menu-section-header">
-            <div>
-              <h2>Menu</h2>
-              <p>Manage the products customers can order from your restaurant.</p>
-            </div>
+          <div className="restaurant-menu-section-header is-actions-only">
             <button className="button restaurant-menu-add-button restaurant-compact-action" type="button" onClick={openAdd} disabled={loading}>+ Add Product</button>
           </div>
 

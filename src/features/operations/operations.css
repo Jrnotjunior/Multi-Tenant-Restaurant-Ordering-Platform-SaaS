@@ -80,9 +80,7 @@
 .owner-orders-empty p{font-size:12px;line-height:1.6;color:#657791;max-width:640px}
 .owner-orders-empty button{border:1px solid #d2dce9;background:#F7F9FC;color:#263754;border-radius:8px;padding:9px 12px;cursor:pointer}
 .owner-dashboard{display:grid;align-content:start;gap:18px;max-width:1600px;margin:0 auto;color:#101B2F}
-.owner-dashboard-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:22px;padding-bottom:2px}
-.owner-dashboard-heading h1{margin:0;color:#101B2F;font-size:clamp(23px,2.3vw,31px);line-height:1.2;letter-spacing:-.035em;font-weight:780}
-.owner-dashboard-heading>div>p:last-child{margin:7px 0 0;color:#657791;font-size:13px;line-height:1.55}
+.owner-dashboard-actions{display:flex;justify-content:flex-end}
 .owner-dashboard-kicker{margin:0 0 7px;color:#70819a;font-size:9px;letter-spacing:.13em;font-weight:800}
 .owner-dashboard-refresh{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:0 14px;border:1px solid #dce5f0;border-radius:8px;background:#fff;color:#263754;font:inherit;font-size:11px;font-weight:750;cursor:pointer;box-shadow:0 1px 2px #26375408}
 .owner-dashboard-refresh:hover,.owner-dashboard-link:hover{background:#f7f9fc}
@@ -149,7 +147,7 @@
 @media(max-width:980px){.owner-sidebar{width:180px}.owner-main{margin-left:180px}.owner-order-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.owner-sidebar{position:relative;inset:auto;width:100%;height:auto;min-height:0;max-height:none;overflow:visible;padding:12px}.owner-main{margin-left:0}.owner-brand{padding-bottom:12px}.owner-nav-group{margin-bottom:8px}.owner-nav-group:not(:first-of-type){display:block}.owner-support{display:none}.owner-topbar{height:58px;padding:0 14px}.owner-content{padding:18px 13px 35px}.owner-order-stats{grid-template-columns:1fr}.owner-order-stats article{min-height:78px}}
 @media(max-width:1100px){.owner-dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-dashboard-main-grid{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:650px){.owner-dashboard{gap:13px}.owner-dashboard-heading{align-items:flex-start}.owner-dashboard-heading h1{font-size:22px;overflow-wrap:anywhere}.owner-dashboard-heading>div>p:last-child{font-size:11px}.owner-dashboard-refresh{min-height:34px;padding:0 10px;font-size:10px}.owner-dashboard-stats{gap:9px}.owner-dashboard-stats article{min-height:124px;padding:12px}.owner-dashboard-stat-icon{width:26px;height:26px;margin-bottom:9px}.owner-dashboard-stats article>strong{font-size:19px}.owner-dashboard-stats article>small{font-size:9px}.owner-dashboard-main-grid{gap:10px}.owner-dashboard-panel-heading{padding:14px 13px 10px}.owner-dashboard-chart{height:135px;padding:7px 12px 13px;gap:7px}.owner-dashboard-orders{min-width:700px}.owner-dashboard-data-note{font-size:9px}}
+@media(max-width:650px){.owner-dashboard{gap:13px}.owner-dashboard-refresh{min-height:34px;padding:0 10px;font-size:10px}.owner-dashboard-stats{gap:9px}.owner-dashboard-stats article{min-height:124px;padding:12px}.owner-dashboard-stat-icon{width:26px;height:26px;margin-bottom:9px}.owner-dashboard-stats article>strong{font-size:19px}.owner-dashboard-stats article>small{font-size:9px}.owner-dashboard-main-grid{gap:10px}.owner-dashboard-panel-heading{padding:14px 13px 10px}.owner-dashboard-chart{height:135px;padding:7px 12px 13px;gap:7px}.owner-dashboard-orders{min-width:700px}.owner-dashboard-data-note{font-size:9px}}
 
 /* Website & Branding feature styles; scoped to its page module. */
 .owner-branding-page{max-width:100%;color:#101B2F}
@@ -339,6 +337,7 @@
 .restaurant-menu-page{--color-primary:var(--color-sidebar,#101B2F);--color-primary-hover:var(--color-active,#263754);--color-primary-text:#FFFFFF;--color-background:var(--color-page,#F7F9FC);--radius-lg:12px;--radius-md:8px}
 .restaurant-menu-management-card{border:1px solid var(--color-border,#DCE3ED);border-radius:14px;padding:20px;margin-top:0;background:var(--color-surface,#FFFFFF)}
 .restaurant-menu-section-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.restaurant-menu-section-header.is-actions-only{justify-content:flex-end}
 .restaurant-menu-section-header>div{min-width:0}
 .restaurant-menu-section-header h2{margin:0 0 4px;color:var(--color-text,#101B2F);font-family:var(--font-heading,Manrope,sans-serif);font-size:21px}
 .restaurant-menu-section-header p{margin:0;color:var(--color-muted,#526782);font-size:13px;line-height:1.5}
@@ -448,9 +447,6 @@
 .w2t-map-picker-crash button{min-height:34px;border:1px solid #DCE3ED;border-radius:8px;padding:7px 11px;background:#FFFFFF;color:#263754;font-size:11px;font-weight:750;cursor:pointer}
 
 /* Live, MFA-gated restaurant order inbox. */
-.owner-orders-toolbar{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:22px}
-.owner-orders-toolbar h1{font-size:24px;letter-spacing:-.04em;margin:0 0 6px}
-.owner-orders-toolbar p{font-size:12px;line-height:1.6;color:#657791;margin:0}
 .owner-orders-toolbar-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px}
 .owner-orders-toolbar-actions button,.owner-order-actions button{border:1px solid #101B2F;border-radius:8px;background:#101B2F;color:#fff;padding:9px 12px;font:inherit;font-size:11px;font-weight:750;cursor:pointer}
 .owner-orders-toolbar-actions button:disabled,.owner-order-actions button:disabled{opacity:.6;cursor:wait}
@@ -502,7 +498,7 @@
 .owner-order-totals strong{color:#101B2F;text-align:right}
 .owner-order-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;border-top:1px solid #e8edf4;padding-top:12px}
 .owner-order-actions button.is-danger{background:#fff;color:#a72b2b;border-color:#edcaca}
-@media(max-width:760px){.owner-orders-toolbar{display:block}.owner-orders-toolbar-actions{justify-content:flex-start;margin-top:14px}.owner-orders-list{padding:13px}.owner-order-card{padding:12px}.owner-order-totals{grid-template-columns:1fr}.owner-refund-card{grid-template-columns:minmax(0,1fr) auto}.owner-refund-card button,.owner-refund-status{grid-column:1/-1;justify-self:start}}
+@media(max-width:760px){.owner-orders-toolbar-actions{justify-content:flex-start;margin-top:14px}.owner-orders-list{padding:13px}.owner-order-card{padding:12px}.owner-order-totals{grid-template-columns:1fr}.owner-refund-card{grid-template-columns:minmax(0,1fr) auto}.owner-refund-card button,.owner-refund-status{grid-column:1/-1;justify-self:start}}
 
 .owner-order-delivery-fee{display:grid;gap:7px;padding:12px;margin:2px 0 10px;border:1px solid #dce5f0;border-radius:9px;background:#f8fafc}
 .owner-order-delivery-fee>label{font-size:11px;font-weight:800;color:#263754}
@@ -514,9 +510,6 @@
 @media(max-width:420px){.owner-order-delivery-fee>div{align-items:stretch}.owner-order-delivery-fee input{flex:1}}
 
 .owner-loyalty-page{display:flex;flex-direction:column;gap:16px}
-.owner-page-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
-.owner-page-heading h1{margin:4px 0 8px;font-size:clamp(24px,2.5vw,32px);font-weight:750;letter-spacing:-.035em;color:var(--color-text)}
-.owner-page-heading p:not(.op-eyebrow){margin:0;color:#64748b;font-size:14px}
 .owner-loyalty-tabs{display:flex;align-items:center;gap:26px;flex-wrap:wrap;border-bottom:1px solid var(--color-border);margin:0;padding:0 4px}
 .owner-loyalty-tabs button{position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 2px;margin:0 0 -1px;border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;color:#475569;font:inherit;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer}
 .owner-loyalty-tabs button:hover{color:var(--color-text)}
@@ -543,7 +536,7 @@
 .owner-loyalty-alert.is-error{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
 .owner-loyalty-alert.is-success{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
 .owner-loyalty-muted{color:#64748b;font-size:13px;line-height:1.6}
-@media(max-width:640px){.owner-loyalty-rule{grid-template-columns:minmax(0,1fr)}.owner-loyalty-tabs{gap:20px}.owner-page-heading{flex-direction:column}}
+@media(max-width:640px){.owner-loyalty-rule{grid-template-columns:minmax(0,1fr)}.owner-loyalty-tabs{gap:20px}}
 
 .owner-loyalty-customer-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
 .owner-loyalty-customer-heading h2{margin:0 0 6px;font-size:17px;color:var(--color-text)}
@@ -568,11 +561,6 @@
 
 
 /* Fiscal/POS owner management landing page; scoped styles, no overrides. */
-.owner-page-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin:28px 28px 22px}
-.owner-page-heading h1{margin:0 0 8px;font-size:28px;letter-spacing:-.035em;color:#101B2F}
-.owner-page-heading p:not(.owner-page-eyebrow){margin:0;color:#657791;line-height:1.6;font-size:13px}
-.owner-page-eyebrow{margin:0 0 8px;color:#657791;font-size:10px;font-weight:800;letter-spacing:.14em}
-.owner-page-status{white-space:nowrap;border:1px solid #f0d7a5;background:#fff8e8;color:#875d13;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:750}
 .owner-fiscal-notice{margin:0 28px 18px;padding:18px 20px;border:1px solid #f0d7a5;border-radius:12px;background:#fffaf0;color:#604b26}
 .owner-fiscal-notice strong{font-size:13px}
 .owner-fiscal-notice p{margin:7px 0 0;font-size:12px;line-height:1.65}
@@ -581,13 +569,10 @@
 .owner-fiscal-card h2{margin:0 0 8px;color:#101B2F;font-size:14px}
 .owner-fiscal-card p{margin:0;color:#657791;font-size:12px;line-height:1.65}
 .owner-fiscal-card>span{align-self:flex-start;border-radius:6px;background:#f3f5f9;color:#526782;padding:6px 8px;font-size:10px;font-weight:750}
-@media(max-width:760px){.owner-page-heading{margin:22px 16px 18px;flex-direction:column}.owner-fiscal-notice{margin:0 16px 16px}.owner-fiscal-grid{grid-template-columns:1fr;margin:0 16px 24px}}
+@media(max-width:760px){.owner-fiscal-notice{margin:0 16px 16px}.owner-fiscal-grid{grid-template-columns:1fr;margin:0 16px 24px}}
 
 
 /* Taxpayer form layout is isolated to the Fiscal & POS owner page. */
-.owner-fiscal-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin:28px 28px 22px}
-.owner-fiscal-heading h1{margin:0 0 8px;font-size:28px;letter-spacing:-.035em;color:#101b2f}
-.owner-fiscal-heading p:not(.owner-page-eyebrow){margin:0;color:#657791;line-height:1.6;font-size:13px}
 .owner-fiscal-card{display:block;margin:0 28px 28px;padding:24px 26px;border:1px solid #e2e8f1;border-radius:13px;background:#fff}
 .owner-fiscal-card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:0 0 24px}
 .owner-fiscal-card-heading h2{margin:0 0 6px;color:#101b2f;font-size:15px;font-weight:750}
@@ -605,8 +590,8 @@
 .owner-fiscal-actions button:hover:not(:disabled){background:#203653}
 .owner-fiscal-actions button:focus-visible{outline:2px solid #315b91;outline-offset:3px}
 .owner-fiscal-actions button:disabled{opacity:.6;cursor:wait}
-@media(max-width:760px){.owner-fiscal-heading{margin:22px 16px 18px;flex-direction:row}.owner-fiscal-card{margin:0 16px 24px;padding:18px}.owner-fiscal-fields{grid-template-columns:minmax(0,1fr);gap:15px}.owner-fiscal-fields .owner-fiscal-wide{grid-column:auto}}
-@media(max-width:420px){.owner-fiscal-heading{gap:12px}.owner-fiscal-heading h1{font-size:24px}.owner-fiscal-card-heading{flex-direction:column;gap:10px}}
+@media(max-width:760px){.owner-fiscal-card{margin:0 16px 24px;padding:18px}.owner-fiscal-fields{grid-template-columns:minmax(0,1fr);gap:15px}.owner-fiscal-fields .owner-fiscal-wide{grid-column:auto}}
+@media(max-width:420px){.owner-fiscal-card-heading{flex-direction:column;gap:10px}}
 
 .owner-fiscal-branch-picker label{display:grid;gap:8px;max-width:420px;color:#263754;font-size:12px;font-weight:700}
 .owner-fiscal-branch-picker select{width:100%;min-height:42px;box-sizing:border-box;border:1px solid #cbd6e5;border-radius:8px;padding:10px 12px;background:#fff;color:#101b2f;font:inherit;font-size:13px}

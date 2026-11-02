@@ -9,7 +9,7 @@ type Directory={branches:Branch[];staff:Staff[];invitations:Invitation[]};
 const roles=[['cashier','Cashier'],['kitchen','Kitchen'],['dispatcher','Dispatcher'],['rider','Rider']];
 const pretty=(value:string)=>value.replaceAll('_',' ').replace(/^./,c=>c.toUpperCase());
 
-export function OwnerEmployeesPage({tenantId,restaurantName}:{tenantId:string;restaurantName:string|null}){
+export function OwnerEmployeesPage({tenantId}:{tenantId:string}){
  const [directory,setDirectory]=useState<Directory>({branches:[],staff:[],invitations:[]});
  const [email,setEmail]=useState('');const [firstName,setFirstName]=useState('');const [lastName,setLastName]=useState('');const [role,setRole]=useState('cashier');const [branchId,setBranchId]=useState('');
  const [loading,setLoading]=useState(true);const [sending,setSending]=useState(false);const [error,setError]=useState('');const [notice,setNotice]=useState('');
@@ -28,7 +28,7 @@ export function OwnerEmployeesPage({tenantId,restaurantName}:{tenantId:string;re
   }catch(reason){setError(reason instanceof Error?reason.message:'Unable to send staff invitation.');}finally{setSending(false);}
  }
  return <main className="owner-content owner-employees">
-  <header className="employees-heading"><div><p className="employees-eyebrow">PEOPLE & PERMISSIONS</p><h1>Employees</h1><p>Invite your team to {restaurantName??'your restaurant'}, assign their role, and restrict their access to a branch.</p></div><button className="employees-secondary" type="button" onClick={()=>void load()} disabled={loading}>Refresh</button></header>
+  <div className="employees-page-actions"><button className="employees-secondary" type="button" onClick={()=>void load()} disabled={loading}>Refresh</button></div>
   {(error||notice)&&<div className={'employees-alert '+(error?'is-error':'is-success')} role={error?'alert':'status'}>{error||notice}</div>}
   <section className="employees-panel"><div className="employees-panel-heading"><div><h2>Invite a team member</h2><p>They receive an email to finish setting up their account.</p></div><span className="employees-pill">MFA protected</span></div>
    <form className="employees-form" onSubmit={event=>void invite(event)}>

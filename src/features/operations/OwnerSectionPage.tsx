@@ -4,7 +4,7 @@ import { loadOwnerDataForTenant } from '../management/menuService';
 import type { OwnerPage } from './ownerWorkspaceConfig';
 import { ownerPageTitles } from './ownerWorkspaceConfig';
 
-type Props = { page: OwnerPage; tenantId: string; restaurantName: string | null; onNavigate: (page: OwnerPage) => void };
+type Props = { page: OwnerPage; tenantId: string; onNavigate: (page: OwnerPage) => void };
 type Order = {
   id: string; order_number: number; order_type: string; customer_name: string;
   subtotal_centavos: number; total_centavos: number | null; order_status: string;
@@ -60,7 +60,7 @@ function OrdersChart({ orders, timezone }: { orders: Order[]; timezone: string }
   </section>;
 }
 
-function OperationsDashboard({ tenantId, restaurantName, onNavigate }: Pick<Props, 'tenantId' | 'restaurantName' | 'onNavigate'>) {
+function OperationsDashboard({ tenantId, onNavigate }: Pick<Props, 'tenantId' | 'onNavigate'>) {
   const [data, setData] = useState<DashboardData>({ orders: [], menuItems: 0, teamMembers: 0, timezone: 'Asia/Manila' });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -116,13 +116,11 @@ function OperationsDashboard({ tenantId, restaurantName, onNavigate }: Pick<Prop
   const recentOrders = data.orders.slice(0, 6);
 
   return <main className="owner-content owner-dashboard">
-    <header className="owner-dashboard-heading">
-      <div><p className="owner-dashboard-kicker">RESTAURANT OVERVIEW</p><h1>Good day{restaurantName ? `, ${restaurantName}` : ''}</h1>
-        <p>Here’s what’s happening across your restaurant today.</p></div>
+    <div className="owner-dashboard-actions">
       <button type="button" className="owner-dashboard-refresh" onClick={() => void load(true)} disabled={loading || refreshing}>
         <span aria-hidden="true">↻</span>{refreshing ? 'Updating…' : 'Refresh'}
       </button>
-    </header>
+    </div>
 
     {error && <div className="owner-dashboard-alert" role="alert"><span>{error}</span><button type="button" onClick={() => void load()}>Try again</button></div>}
 
@@ -163,8 +161,8 @@ function OperationsDashboard({ tenantId, restaurantName, onNavigate }: Pick<Prop
   </main>;
 }
 
-export function OwnerSectionPage({ page, tenantId, restaurantName, onNavigate }: Props) {
-  if (page === 'dashboard') return <OperationsDashboard tenantId={tenantId} restaurantName={restaurantName} onNavigate={onNavigate} />;
+export function OwnerSectionPage({ page, tenantId, onNavigate }: Props) {
+  if (page === 'dashboard') return <OperationsDashboard tenantId={tenantId} onNavigate={onNavigate} />;
 
   return <main className="owner-content"><section className="owner-orders-empty">
     <h1>{ownerPageTitles[page]}</h1>

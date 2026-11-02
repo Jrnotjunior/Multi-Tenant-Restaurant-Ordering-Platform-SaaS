@@ -231,10 +231,6 @@ export function OwnerFiscalPage() {
   }
 
   return <main className="owner-content">
-    <div className="owner-fiscal-heading">
-      <div><p className="owner-page-eyebrow">OWNER CONTROLS</p><h1>Fiscal &amp; POS</h1><p>Taxpayer configuration belongs here, separate from cashier workflows.</p></div>
-      <span className="owner-page-status">{profile?.fiscal_status?.replaceAll('_', ' ') ?? (loading ? 'Loading' : 'Draft setup')}</span>
-    </div>
     <section className="owner-fiscal-notice" role="note">
       <strong>Fiscal issuance is disabled.</strong>
       <p>Saving creates a draft only. It does not confirm BIR authorization or make operational receipt/X/Z previews fiscal documents. Have your tax adviser verify applicable tax treatment and authorization before production use.</p>

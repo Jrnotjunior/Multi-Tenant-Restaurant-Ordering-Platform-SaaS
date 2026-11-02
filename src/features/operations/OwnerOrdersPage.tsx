@@ -194,13 +194,6 @@ export function OwnerOrdersPage({ tenantId, filter, onFilterChange }: Props) {
   ));
 
   return <main className="owner-content owner-orders-page">
-    <div className="owner-orders-toolbar">
-      <div>
-        <h1>Orders</h1>
-        <p>Review incoming requests and move accepted orders through fulfillment.</p>
-      </div>
-    </div>
-
     <nav className="owner-order-tabs" aria-label="Order filter">
       <button className={filter === 'active' ? 'active' : ''} onClick={() => onFilterChange('active')}>Active</button>
       <button className={filter === 'all' ? 'active' : ''} onClick={() => onFilterChange('all')}>All orders</button>

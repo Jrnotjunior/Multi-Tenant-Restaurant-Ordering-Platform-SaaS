@@ -103,22 +103,17 @@ export function OwnerReportingPage({ tenantId, page }: Props) {
     };
   }, [filtered]);
 
-  const title = page === 'sales' ? 'Sales' : 'Business Reports';
   return <main className="owner-content owner-reporting">
-    <header className="owner-page-heading">
-      <div><p className="owner-eyebrow">WEB2TABLE · BUSINESS INTELLIGENCE</p><h1>{title}</h1>
-        <p className="owner-reporting-intro">{page === 'sales' ? 'Review paid order sales and refunds for your restaurant.' : 'Understand order volume, fulfillment, and top-selling menu items.'}</p>
-      </div>
-      <button type="button" className="owner-reporting-refresh" onClick={() => void load()} disabled={loading}>{loading ? 'Loading…' : 'Refresh'}</button>
-    </header>
-
-    <div className="owner-reporting-filters">
+    <div className="owner-reporting-toolbar">
+      <div className="owner-reporting-filters">
       <label>Period<select value={period} onChange={event => setPeriod(event.target.value)}>
         <option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option>
       </select></label>
       <label>Branch<select value={branchId} onChange={event => setBranchId(event.target.value)}>
         <option value="all">All branches</option>{branches.map(branch => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
       </select></label>
+      </div>
+      <button type="button" className="owner-reporting-refresh" onClick={() => void load()} disabled={loading}>{loading ? 'Loading…' : 'Refresh'}</button>
     </div>
 
     {error && <p className="owner-reporting-alert" role="alert">{error}</p>}
