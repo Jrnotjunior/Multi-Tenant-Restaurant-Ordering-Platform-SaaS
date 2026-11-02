@@ -116,8 +116,8 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | ''>('');
   const [submitting, setSubmitting] = useState(false);
-  const [trackingToken, setTrackingToken] = useState<string | null>(() => { try { return window.sessionStorage.getItem('web2table:latest-order-tracking'); } catch { return null; } });
-  const [trackedOrderNumber, setTrackedOrderNumber] = useState<number | null>(() => { try { const value = window.sessionStorage.getItem('web2table:latest-order-number'); return value ? Number(value) : null; } catch { return null; } });
+  const [trackingToken, setTrackingToken] = useState<string | null>(() => { try { return window.sessionStorage.getItem('web2table:latest-order-tracking') || window.localStorage.getItem('web2table:latest-order-tracking'); } catch { return null; } });
+  const [trackedOrderNumber, setTrackedOrderNumber] = useState<number | null>(() => { try { const value = window.sessionStorage.getItem('web2table:latest-order-number') || window.localStorage.getItem('web2table:latest-order-number'); return value ? Number(value) : null; } catch { return null; } });
   const [trackedStatus, setTrackedStatus] = useState<{ order_status: string; payment_status: string; updated_at: string } | null>(null);
   const [trackingError, setTrackingError] = useState('');
   const [deliveryQuote, setDeliveryQuote] = useState<{ feeCentavos: number; distanceMeters: number } | null>(null);
@@ -342,6 +342,8 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
               try {
                 window.sessionStorage.setItem('web2table:latest-order-tracking', result.trackingToken);
                 window.sessionStorage.setItem('web2table:latest-order-number', String(result.orderNumber));
+                window.localStorage.setItem('web2table:latest-order-tracking', result.trackingToken);
+                window.localStorage.setItem('web2table:latest-order-number', String(result.orderNumber));
                 window.sessionStorage.setItem('web2table:latest-order-details', JSON.stringify({ paymentMethod, lines: orderLines }));
                 window.localStorage.setItem('web2table:latest-order-details', JSON.stringify({ paymentMethod, lines: orderLines }));
               } catch { /* Tracking continues in memory if session storage is unavailable. */ }

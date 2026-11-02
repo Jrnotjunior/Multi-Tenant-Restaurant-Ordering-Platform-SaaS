@@ -9,10 +9,10 @@ type TrackedStatus = { order_status: string; payment_status: string; payment_met
 
 export function OrderTrackingPage(_props: { onBackToMenu: () => void }) {
   const [trackingToken] = useState<string | null>(() => {
-    try { return window.sessionStorage.getItem('web2table:latest-order-tracking'); } catch { return null; }
+    try { return window.sessionStorage.getItem('web2table:latest-order-tracking') || window.localStorage.getItem('web2table:latest-order-tracking'); } catch { return null; }
   });
   const [orderNumber, setOrderNumber] = useState<number | null>(() => {
-    try { const value = window.sessionStorage.getItem('web2table:latest-order-number'); return value ? Number(value) : null; } catch { return null; }
+    try { const value = window.sessionStorage.getItem('web2table:latest-order-number') || window.localStorage.getItem('web2table:latest-order-number'); return value ? Number(value) : null; } catch { return null; }
   });
   const [status, setStatus] = useState<TrackedStatus | null>(null);
   const [error, setError] = useState('');

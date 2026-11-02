@@ -136,6 +136,8 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
           window.sessionStorage.removeItem('web2table:latest-order-tracking');
           window.sessionStorage.removeItem('web2table:latest-order-number');
           window.sessionStorage.removeItem('web2table:latest-order-details');
+          window.localStorage.removeItem('web2table:latest-order-tracking');
+          window.localStorage.removeItem('web2table:latest-order-number');
           window.localStorage.removeItem('web2table:latest-order-details');
         } catch {
           // Storage can be unavailable; sign-in should still complete.

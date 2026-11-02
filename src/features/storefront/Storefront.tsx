@@ -281,7 +281,16 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     const syncTrackingAvailability = async () => {
       let trackingToken: string | null = null;
       try {
-        trackingToken = window.sessionStorage.getItem('web2table:latest-order-tracking');
+        const sessionToken = window.sessionStorage.getItem('web2table:latest-order-tracking');
+        const sharedToken = window.localStorage.getItem('web2table:latest-order-tracking');
+        trackingToken = sessionToken || sharedToken;
+        // Bridge an order created before cross-tab tracking was enabled. The
+        // localStorage write also notifies other storefront tabs to refresh.
+        if (sessionToken && sessionToken !== sharedToken) {
+          window.localStorage.setItem('web2table:latest-order-tracking', sessionToken);
+          const sessionOrderNumber = window.sessionStorage.getItem('web2table:latest-order-number');
+          if (sessionOrderNumber) window.localStorage.setItem('web2table:latest-order-number', sessionOrderNumber);
+        }
       } catch {
         if (!cancelled) setHasTrackedOrder(false);
         return;
@@ -319,6 +328,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       if (result?.found && status && !hasActiveOrder) {
         try {
           window.sessionStorage.removeItem('web2table:latest-order-tracking');
+          window.localStorage.removeItem('web2table:latest-order-tracking');
         } catch {
           // The header remains hidden even when browser storage cannot be cleared.
         }
@@ -503,6 +513,8 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       window.sessionStorage.removeItem('web2table:latest-order-tracking');
       window.sessionStorage.removeItem('web2table:latest-order-number');
       window.sessionStorage.removeItem('web2table:latest-order-details');
+      window.localStorage.removeItem('web2table:latest-order-tracking');
+      window.localStorage.removeItem('web2table:latest-order-number');
       window.localStorage.removeItem('web2table:latest-order-details');
     } catch {
       // Storage may be unavailable; route protection still applies.
