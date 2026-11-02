@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import { storefrontTrackingHash } from '../../app/routes';
@@ -69,7 +70,7 @@ function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onS
     <button type="button" className="sf-checkout-address-picker-toggle" onClick={() => setAddressPickerOpen(true)} aria-expanded={addressPickerOpen}>
       {value ? 'Change delivery address' : 'Select delivery address'}
     </button>
-    {addressPickerOpen && <div className="w2t-address-picker-overlay" role="presentation">
+    {addressPickerOpen && createPortal(<div className="w2t-address-picker-overlay" role="presentation">
       <section className="w2t-address-picker-screen" role="dialog" aria-modal="true" aria-labelledby="w2t-address-picker-title">
         <header className="w2t-address-picker-header">
           <button type="button" className="w2t-address-picker-back" onClick={() => setAddressPickerOpen(false)} aria-label="Back to checkout">←</button>
@@ -80,7 +81,7 @@ function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onS
           <MapboxDeliveryLocationPicker fillContainer restaurantSlug={restaurantSlug} variant="delivery" initialLatitude={value?.latitude ?? null} initialLongitude={value?.longitude ?? null} onSelect={address => { onSelect(address); setAddressPickerOpen(false); }} />
         </div>
       </section>
-    </div>}
+    </div>, document.body)}
     <div className="sf-checkout-fields sf-checkout-locality-fields">
       <label>Municipality / City<input name="deliveryCity" autoComplete="address-level2" value={value?.city ?? ''} readOnly placeholder="Automatically filled from the selected map location" aria-describedby="delivery-locality-hint" /></label>
       <label>Barangay<input name="deliveryBarangay" value={value?.barangay ?? ''} readOnly placeholder="Automatically filled from the selected map location" aria-describedby="delivery-locality-hint" /></label>
