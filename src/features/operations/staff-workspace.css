@@ -73,7 +73,7 @@
 
 
 /* Cashier/staff queue refinements: fast scanning, search, and clear empty states. */
-.staff-workspace{max-width:1560px;padding:clamp(22px,3.2vw,48px);color:var(--color-text,#101B2F)}
+.staff-workspace{box-sizing:border-box;max-width:1560px;padding:clamp(22px,3.2vw,48px);color:var(--color-text,#101B2F)}
 .staff-header{align-items:center;margin-bottom:clamp(22px,2.5vw,34px)}
 .staff-header h1{font-size:clamp(2rem,3.4vw,3rem);line-height:1.08;letter-spacing:-.055em}
 .staff-intro{font-size:.96rem}
