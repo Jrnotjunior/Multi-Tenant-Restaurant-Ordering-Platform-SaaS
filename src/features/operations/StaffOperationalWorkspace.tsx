@@ -573,19 +573,23 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       const date = new Date(order.created_at);
       return !Number.isNaN(date.getTime()) && date.toLocaleDateString('en-CA') === riderHistoryDate;
     });
-    return <main className="rider-dashboard-page">
+    return <main className="rider-dashboard-page rider-dashboard-home-page">
+      <div className="rider-dashboard-mobile-appbar">
+        <span className="rider-dashboard-brandmark" aria-hidden="true">W2T</span>
+        <span className="rider-dashboard-brand-name">Web2Table <small>RIDER</small></span>
+        <div className="rider-dashboard-account-menu">
+          <button className="rider-account-button" type="button" aria-label="Open rider account menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(open => !open)}>
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5" /><path d="M5 20c.8-3.4 3.2-5.2 7-5.2s6.2 1.8 7 5.2" /></svg>
+          </button>
+          {accountMenuOpen && <div className="rider-account-dropdown"><div className="rider-account-email">{accountName || 'Rider account'}</div><button type="button" onClick={() => void signOut()} disabled={signingOut}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg>{signingOut ? 'Logging out…' : 'Log out'}</button></div>}
+        </div>
+      </div>
       <header className="rider-dashboard-header">
         <div>
           <p className="eyebrow">Rider dashboard</p>
           <h1>Hello, {accountName || 'Rider'}.</h1>
           <div className="rider-dashboard-availability"><span className={'rider-dashboard-availability-dot ' + (hasOnRoad ? 'is-delivering' : 'is-available')} aria-hidden="true" /><strong>{hasOnRoad ? 'Out for delivery' : 'Available'}</strong></div>
           <p>{activeDeliveries.length === 0 ? 'You have no active deliveries right now.' : `You have ${activeDeliveries.length} active ${activeDeliveries.length === 1 ? 'delivery' : 'deliveries'}.`}</p>
-        </div>
-        <div className="rider-dashboard-account-menu">
-          <button className="rider-account-button" type="button" aria-label="Open rider account menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(open => !open)}>
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5" /><path d="M5 20c.8-3.4 3.2-5.2 7-5.2s6.2 1.8 7 5.2" /></svg>
-          </button>
-          {accountMenuOpen && <div className="rider-account-dropdown"><div className="rider-account-email">{accountName || 'Rider account'}</div><button type="button" onClick={() => void signOut()} disabled={signingOut}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg>{signingOut ? 'Logging out…' : 'Log out'}</button></div>}
         </div>
       </header>
       {error && <div className="rider-dashboard-message" role="alert">{error}</div>}
@@ -598,7 +602,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
         {riderTab === 'active' ? <>
           <div className="rider-dashboard-section-heading"><div><p className="rider-delivery-label">My deliveries</p><h2>Orders assigned to you</h2></div></div>
           {loading ? <div className="rider-dashboard-empty">Loading your deliveries…</div> : activeDeliveries.length === 0 ?
-            <div className="rider-dashboard-empty"><strong>No active deliveries</strong><span>New orders assigned by the dispatcher will appear here.</span></div> :
+            <div className="rider-dashboard-empty"><span className="rider-dashboard-empty-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M10 15.5 24 8l14 7.5v17L24 40l-14-7.5v-17Z"/><path d="m10.5 15.8 13.5 7.6 13.5-7.6M24 23.5V40"/><path d="M17 11.8 31 19.5"/></svg></span><strong>No active deliveries</strong><span>New orders assigned by the dispatcher will appear here.</span></div> :
             <div className="rider-dashboard-list">{activeDeliveries.map(order => {
               const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'arrive_customer' || item.action === 'collect_cod' || item.action === 'deliver');
               const status = order.assignment_status === 'arrived_at_customer' ? 'Arrived at customer' : order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'dispatched' ? 'Dispatched · ready to start' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : 'Assigned · waiting for dispatch';

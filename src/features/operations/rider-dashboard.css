@@ -1,4 +1,6 @@
 .rider-dashboard-page{position:relative;width:min(900px,calc(100% - 2rem));margin:0 auto;padding:2rem 0 4rem;color:var(--color-text)}
+.rider-dashboard-mobile-appbar{display:contents}
+.rider-dashboard-brandmark,.rider-dashboard-brand-name{display:none}
 .rider-dashboard-header{position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin-bottom:1.5rem;padding-right:3.5rem}
 .rider-dashboard-header h1{margin:0;font-family:var(--font-heading);font-size:clamp(2rem,6vw,3.2rem);line-height:1;letter-spacing:-.04em}
 .rider-dashboard-header>div>p:last-child{margin:.5rem 0 0;color:var(--color-muted)}
@@ -36,7 +38,7 @@
 .rider-delivery-error{margin-bottom:1rem;padding:.8rem .9rem;border-radius:.7rem;background:color-mix(in srgb,var(--color-danger,#b91c1c) 8%,var(--color-background));color:var(--color-danger,#b91c1c);font-size:.82rem}
 .rider-delivery-back{display:inline-flex;margin-bottom:.75rem;color:var(--color-muted);font-size:.8rem;font-weight:700;text-decoration:none}
 .rider-delivery-back:hover{color:var(--color-primary)}
-@media(max-width:560px){.rider-dashboard-page{width:min(100% - 2rem,900px);padding-top:1rem}.rider-dashboard-header{align-items:flex-start;padding-right:3rem}.rider-dashboard-section{padding:1rem}.rider-dashboard-delivery-card{align-items:flex-start}.rider-dashboard-delivery-side{flex-direction:column;gap:.4rem}.rider-dashboard-delivery-side strong{font-size:.8rem}.rider-dashboard-tabs{margin-left:0;margin-right:0}.rider-dashboard-tabs button{font-size:.72rem}}
+@media(max-width:560px){.rider-dashboard-header{align-items:flex-start;padding-right:3rem}.rider-dashboard-section{padding:1rem}.rider-dashboard-delivery-card{align-items:flex-start}.rider-dashboard-delivery-side{flex-direction:column;gap:.4rem}.rider-dashboard-delivery-side strong{font-size:.8rem}.rider-dashboard-tabs{margin-left:0;margin-right:0}.rider-dashboard-tabs button{font-size:.72rem}}
 
 
 /* Original rider dashboard header and account controls. */
@@ -92,7 +94,7 @@
 .rider-history-filter label{font-size:.7rem}
 .rider-history-filter input{font-size:.72rem}
 .rider-history-filter button{font-size:.68rem}
-@media(max-width:560px){.rider-dashboard-page{width:100%;padding:12px 12px 24px}.rider-dashboard-header{padding-right:2.6rem}.rider-dashboard-section{padding:.75rem}.rider-dashboard-tabs{margin-left:0;margin-right:0}.rider-dashboard-delivery-card{align-items:flex-start}.rider-dashboard-delivery-side{flex-direction:column;gap:.3rem}.rider-dashboard-card-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.rider-dashboard-card-actions>*{width:100%}}
+@media(max-width:560px){.rider-dashboard-header{padding-right:2.6rem}.rider-dashboard-section{padding:.75rem}.rider-dashboard-tabs{margin-left:0;margin-right:0}.rider-dashboard-delivery-card{align-items:flex-start}.rider-dashboard-delivery-side{flex-direction:column;gap:.3rem}.rider-dashboard-card-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.rider-dashboard-card-actions>*{width:100%}}
 
 
 /* Rider order list and dedicated order detail view */
@@ -140,7 +142,39 @@
 .rider-dashboard-page .rider-order-detail .rider-dashboard-primary-action{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:.7rem 1rem;border:0;border-radius:.7rem;background:var(--color-primary,#111827);color:#fff;font:inherit;font-size:.88rem;font-weight:800;cursor:pointer}
 .rider-dashboard-page .rider-order-detail .rider-dashboard-primary-action:disabled{opacity:.55;cursor:not-allowed}
 @media(min-width:760px){.rider-dashboard-page .rider-order-detail{padding:1.5rem;gap:1.15rem}}
-@media(max-width:760px){.rider-dashboard-page:not(.rider-delivery-page){width:100%;max-width:none;min-height:100dvh;margin:0;padding:12px 12px 24px;background:var(--color-background,#fff)}.rider-dashboard-page .rider-dashboard-header{align-items:flex-start;gap:.75rem;padding-right:0}.rider-dashboard-page .rider-dashboard-header h1{font-size:2rem}.rider-dashboard-page .rider-dashboard-header>button{min-height:36px;padding:.45rem .6rem;font-size:.78rem}.rider-dashboard-page .rider-order-detail{padding:1rem}.rider-dashboard-page .rider-order-detail-items>div{font-size:.82rem}}
+@media(max-width:760px){
+  .rider-dashboard-home-page{box-sizing:border-box;width:100vw;max-width:100vw;min-height:100dvh;margin:0 calc(50% - 50vw);padding:0 0 calc(24px + env(safe-area-inset-bottom));background:#fff;color:#101b2f}
+  .rider-dashboard-home-page .rider-dashboard-mobile-appbar{position:relative;display:flex;align-items:center;gap:10px;width:100%;height:64px;padding:0 16px;background:#101b2f;color:#fff}
+  .rider-dashboard-home-page .rider-dashboard-brandmark{display:grid;place-items:center;width:36px;height:36px;flex:0 0 36px;border:1px solid #ffffff35;border-radius:10px;background:#263754;color:#fff;font-size:.66rem;font-weight:900;letter-spacing:-.04em}
+  .rider-dashboard-home-page .rider-dashboard-brand-name{display:grid;gap:2px;color:#fff;font-size:.86rem;font-weight:800;letter-spacing:-.02em}
+  .rider-dashboard-home-page .rider-dashboard-brand-name small{color:#b8c7dd;font-size:.55rem;letter-spacing:.12em}
+  .rider-dashboard-home-page .rider-dashboard-account-menu{position:absolute;top:12px;right:16px}
+  .rider-dashboard-home-page .rider-account-button{width:40px;height:40px;border-color:#ffffff35;background:#ffffff12;color:#fff}
+  .rider-dashboard-home-page .rider-account-dropdown{top:46px}
+  .rider-dashboard-home-page .rider-dashboard-header{align-items:flex-start;gap:.75rem;margin:0;padding:20px 18px 18px}
+  .rider-dashboard-home-page .rider-dashboard-header>div:first-child{min-width:0}
+  .rider-dashboard-home-page .rider-dashboard-header .eyebrow{margin:0 0 7px;color:#64748b;font-size:.62rem;letter-spacing:.13em}
+  .rider-dashboard-home-page .rider-dashboard-header h1{font-size:clamp(1.75rem,7vw,2.2rem);line-height:1.08;letter-spacing:-.045em;color:#101b2f}
+  .rider-dashboard-home-page .rider-dashboard-header>div>p:last-child{margin:.45rem 0 0;color:#64748b;font-size:.84rem;line-height:1.45}
+  .rider-dashboard-home-page .rider-dashboard-availability{margin-top:7px;color:#101b2f;font-size:.8rem}
+  .rider-dashboard-home-page .rider-dashboard-message,.rider-dashboard-home-page .rider-dashboard-notice{margin:0 14px 12px}
+  .rider-dashboard-home-page .rider-dashboard-section{margin:0 14px;padding:16px;border:1px solid #e1e7f0;border-radius:17px;background:#fff;box-shadow:0 8px 24px #101b2f08}
+  .rider-dashboard-home-page .rider-dashboard-tabs{margin:0 0 18px;padding:4px;background:#101b2f}
+  .rider-dashboard-home-page .rider-dashboard-tabs button{min-height:40px;font-size:.74rem}
+  .rider-dashboard-home-page .rider-dashboard-tabs button.is-active{background:#fff;color:#101b2f}
+  .rider-dashboard-home-page .rider-dashboard-tabs button:not(.is-active){color:#fff}
+  .rider-dashboard-home-page .rider-dashboard-tabs button span{background:#e8edf4;color:#101b2f}
+  .rider-dashboard-home-page .rider-dashboard-section-heading{margin-bottom:14px}
+  .rider-dashboard-home-page .rider-dashboard-section-heading h2{font-size:1.05rem;color:#101b2f}
+  .rider-dashboard-home-page .rider-delivery-label{font-size:.62rem;letter-spacing:.11em;color:#64748b}
+  .rider-dashboard-home-page .rider-dashboard-empty{gap:7px;min-height:185px;align-content:center;padding:22px 16px;border:1px dashed #d6dfeb;border-radius:13px;background:#f8fafc;color:#64748b;font-size:.78rem;line-height:1.5}
+  .rider-dashboard-home-page .rider-dashboard-empty-icon{display:grid;place-items:center;width:48px;height:48px;margin:0 auto 3px;border-radius:15px;background:#eaf0f8;color:#263754}
+  .rider-dashboard-home-page .rider-dashboard-empty-icon svg{width:27px;height:27px;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .rider-dashboard-home-page .rider-dashboard-empty strong{font-size:.88rem;color:#101b2f}
+  .rider-dashboard-home-page .rider-dashboard-empty span:last-child{max-width:260px;margin:0 auto}
+  .rider-dashboard-page:not(.rider-delivery-page) .rider-order-detail{padding:1rem}
+  .rider-dashboard-page:not(.rider-delivery-page) .rider-order-detail-items>div{font-size:.82rem}
+}
 
 /* Original-platform rider delivery layout, adapted to the SaaS workspace tokens. */
 .rider-delivery-page{position:relative;width:min(1040px,calc(100% - 2rem));margin:0 auto;padding:2rem 0 4rem;color:var(--color-text,var(--text,#172033))}
