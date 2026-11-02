@@ -23,6 +23,6 @@ jobs:
         with:
           deno-version: v2.9.8
       - name: Type-check Supabase Edge Functions
-        run: deno check --node-modules-dir=none supabase/functions/*/index.ts
+        run: deno check --frozen --node-modules-dir=none supabase/functions/*/index.ts
       - name: Audit Edge Function dependencies
-        run: deno audit --level=moderate
+        run: deno audit --frozen-lockfile --level=moderate
