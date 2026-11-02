@@ -549,6 +549,8 @@
 .sf-address-card-actions{width:100%}
 .sf-address-card-actions button{flex:1 1 0;min-width:0}
 .sf-address-form-actions button,.sf-address-card-actions button{min-height:38px;padding:8px 13px;border:1px solid var(--sf-border);border-radius:9px;background:var(--sf-primary-button);color:var(--sf-primary-button-font);font:inherit;font-size:var(--sf-font-size-13);font-weight:700;cursor:pointer}
+.sf-address-form-actions>button:first-child{flex:1 1 100%;width:100%}
+.sf-address-form-actions .sf-address-secondary{flex:1 1 100%;width:100%}
 .sf-address-form-actions button:disabled{opacity:.6;cursor:wait}
 .sf-address-form-actions .sf-address-secondary,.sf-address-card-actions button{background:var(--sf-product-card);color:var(--sf-font-color)}
 .sf-address-card{padding:16px 0;border-top:1px solid var(--sf-border);overflow-wrap:anywhere}
