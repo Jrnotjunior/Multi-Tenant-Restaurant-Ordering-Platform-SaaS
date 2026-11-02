@@ -381,7 +381,10 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           throw new Error((data as { error?: string } | null)?.error || 'Unable to cancel this order.');
         }
       } else {
-        const { error: actionError } = await supabase.rpc('transition_staff_order', { p_tenant_id: tenantId, p_order_id: order.id, p_action: action });
+        const unpaidCodDelivery = action === 'deliver' && order.order_type === 'delivery' && order.payment_channel === 'other' && !['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase());
+        const { error: actionError } = unpaidCodDelivery
+          ? await supabase.rpc('rider_complete_cod_delivery', { p_tenant_id: tenantId, p_order_id: order.id })
+          : await supabase.rpc('transition_staff_order', { p_tenant_id: tenantId, p_order_id: order.id, p_action: action });
         if (actionError) throw actionError;
       }
       let confirmationNotice = `Order #${order.order_number}: ${description}.`;
@@ -461,7 +464,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     if (role === 'dispatcher' && order.order_type !== 'delivery' && order.order_status === 'ready_for_pickup') return [{ action: 'complete_handoff', label: order.order_type === 'dine_in' ? 'Mark served' : 'Mark picked up', primary: true }];
     if (role === 'rider' && order.order_type === 'delivery' && order.assignment_status === 'dispatched') return [{ action: 'accept_delivery', label: 'Start delivery', primary: true }];
     if (role === 'rider' && order.order_type === 'delivery' && order.assignment_status === 'out_for_delivery' && order.order_status === 'out_for_delivery') return [{ action: 'arrive_customer', label: 'Mark arrived at customer', primary: true }];
-    if (role === 'rider' && order.order_type === 'delivery' && order.assignment_status === 'arrived_at_customer' && order.order_status === 'out_for_delivery') return [{ action: 'deliver', label: 'Mark delivered', primary: true }];
+    if (role === 'rider' && order.order_type === 'delivery' && order.assignment_status === 'arrived_at_customer' && order.order_status === 'out_for_delivery') return [{ action: 'deliver', label: order.payment_channel === 'other' && !['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase()) ? 'Confirm cash and mark delivered' : 'Mark delivered', primary: true }];
     return [];
   }
 
@@ -546,7 +549,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
                 })}
               </div>
               {button && <div className="rider-delivery-slider" data-status={button.action === 'accept_delivery' ? 'start' : button.action === 'arrive_customer' ? 'arrived' : 'delivered'}>
-                <input className="rider-delivery-slider-input" type="range" min="0" max="100" step="1" value={swipeProgress} disabled={busy === order.id} aria-label={button.action === 'accept_delivery' ? 'Slide right to mark out for delivery' : button.action === 'arrive_customer' ? 'Slide right to mark arrived at customer' : 'Slide right to mark delivered'} onChange={(event) => {
+                <input className="rider-delivery-slider-input" type="range" min="0" max="100" step="1" value={swipeProgress} disabled={busy === order.id} aria-label={button.action === 'accept_delivery' ? 'Slide right to mark out for delivery' : button.action === 'arrive_customer' ? 'Slide right to mark arrived at customer' : order.payment_channel === 'other' && !['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase()) ? 'Slide right to confirm cash collected and mark delivered' : 'Slide right to mark delivered'} onChange={(event) => {
                   const next = Number(event.target.value);
                   setSwipeProgress(next);
                   if (next >= 95 && busy !== order.id) {
@@ -554,9 +557,10 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
                     void act(order, button.action, button.label.toLowerCase());
                   }
                 }} onPointerUp={() => { if (swipeProgress < 95) setSwipeProgress(0); }} onTouchEnd={() => { if (swipeProgress < 95) setSwipeProgress(0); }} />
-                <span className="rider-delivery-slider-label" aria-hidden="true">{busy === order.id ? 'Updating…' : button.action === 'accept_delivery' ? 'Swipe when leaving for delivery' : button.action === 'arrive_customer' ? 'Swipe when you arrive at the customer' : 'Swipe to mark delivered'}</span>
+                <span className="rider-delivery-slider-label" aria-hidden="true">{busy === order.id ? 'Updating…' : button.action === 'accept_delivery' ? 'Swipe when leaving for delivery' : button.action === 'arrive_customer' ? 'Swipe when you arrive at the customer' : order.payment_channel === 'other' && !['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase()) ? 'Swipe to confirm cash & mark delivered' : 'Swipe to mark delivered'}</span>
                 <span className="rider-delivery-slider-arrow" aria-hidden="true">›</span>
               </div>}
+              {button?.action === 'deliver' && order.payment_channel === 'other' && !['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase()) && <p className="rider-delivery-helper">Collect {money(order.total_centavos)} from the customer first. This single swipe confirms the cash payment and completes the delivery.</p>}
               {order.assignment_status === 'assigned' && <p className="rider-delivery-helper">Assigned by the dispatcher. Waiting for dispatch.</p>}
               {order.assignment_status === 'dispatched' && <p className="rider-delivery-helper">The dispatcher sent this order to you. Start delivery when you are leaving with it.</p>}
             </section>
