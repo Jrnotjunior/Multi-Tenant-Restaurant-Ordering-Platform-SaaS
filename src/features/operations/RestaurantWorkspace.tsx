@@ -14,6 +14,7 @@ import { OwnerLoyaltyPage } from './OwnerLoyaltyPage';
 import { OwnerEmployeesPage } from './OwnerEmployeesPage';
 import { OwnerFiscalPage } from './OwnerFiscalPage';
 import { ownerNavGroups, type OwnerPage } from './ownerWorkspaceConfig';
+import { loadPosIntegration } from '../management/posIntegrationService';
 import { supabase } from '../../lib/supabase';
 import { applyAppFavicon, clearAppFavicon } from '../storefront/appFavicon';
 import './operations.css';
@@ -41,6 +42,7 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
   const [displayName, setDisplayName] = useState(cachedWorkspace?.displayName ?? 'Store Owner');
   const [ownerPage, setOwnerPage] = useState<OwnerPage>(() => ownerPageFromHash());
   const [visitedOwnerPages, setVisitedOwnerPages] = useState<Set<OwnerPage>>(() => new Set<OwnerPage>([ownerPageFromHash()]));
+  const [posIntegrationActive, setPosIntegrationActive] = useState<boolean | null>(null);
   const [orderFilter, setOrderFilter] = useState<'active' | 'all'>('active');
   const [loading, setLoading] = useState(!cachedWorkspace);
   const [error, setError] = useState('');
@@ -138,6 +140,31 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    if (!membership || membership.role !== 'restaurant_owner') {
+      setPosIntegrationActive(false);
+      return;
+    }
+
+    let active = true;
+    setPosIntegrationActive(null);
+    void loadPosIntegration(membership.tenant_id)
+      .then(status => {
+        if (active) setPosIntegrationActive(status === 'active');
+      })
+      .catch(() => {
+        // Fail closed: only show the POS section after the server confirms it is active.
+        if (active) setPosIntegrationActive(false);
+      });
+
+    return () => { active = false; };
+  }, [membership]);
+
+  useEffect(() => {
+    if (membership?.role !== 'restaurant_owner' || ownerPage !== 'fiscal' || posIntegrationActive !== false) return;
+    window.location.hash = 'restaurant/dashboard';
+  }, [membership, ownerPage, posIntegrationActive]);
+
   if (loading) return <main className="op-shell owner-workspace-loading" role="status" aria-live="polite"><p>Loading your workspace…</p></main>;
   if (error) return <main className="op-shell"><p className="op-eyebrow">WORKSPACE UNAVAILABLE</p><h1>We couldn't load your workspace</h1><p className="op-intro" role="alert">{error}</p></main>;
   if (!membership) return <main className="op-shell">
@@ -168,6 +195,13 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
     }
   };
 
+  const visibleOwnerNavGroups = ownerNavGroups
+    .map(group => ({
+      ...group,
+      items: group.items.filter(item => item.key !== 'fiscal' || posIntegrationActive === true),
+    }))
+    .filter(group => group.items.length > 0);
+
   const renderOwnerPage = (page: OwnerPage) => {
     if (page === 'orders') return <OwnerOrdersPage tenantId={membership.tenant_id} filter={orderFilter} onFilterChange={setOrderFilter} />;
     if (page === 'menu') return <OwnerMenuPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
@@ -180,8 +214,8 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
     return <OwnerSectionPage page={page} tenantId={membership.tenant_id} restaurantName={restaurantName} onNavigate={navigateOwnerPage} />;
   };
 
-  return <OwnerAppShell baseUrl={baseUrl} groups={ownerNavGroups} page={ownerPage} displayName={displayName} onNavigate={navigateOwnerPage} onSignOut={signOut}>
-    {ownerNavGroups.flatMap(group => group.items).filter(item => visitedOwnerPages.has(item.key)).map(item => (
+  return <OwnerAppShell baseUrl={baseUrl} groups={visibleOwnerNavGroups} page={ownerPage} displayName={displayName} onNavigate={navigateOwnerPage} onSignOut={signOut}>
+    {visibleOwnerNavGroups.flatMap(group => group.items).filter(item => visitedOwnerPages.has(item.key)).map(item => (
       <div key={item.key} style={{ display: ownerPage === item.key ? 'contents' : 'none' }} aria-hidden={ownerPage !== item.key}>
         {renderOwnerPage(item.key)}
       </div>
