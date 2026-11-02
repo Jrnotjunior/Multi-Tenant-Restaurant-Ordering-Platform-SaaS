@@ -108,25 +108,36 @@ export function MapboxLocationPickerUi({
           container: mapContainerRef.current,
           style: 'https://tiles.openfreemap.org/styles/liberty',
           center: defaultCenter,
-          zoom: Number.isFinite(initialLatitude) && Number.isFinite(initialLongitude) ? 16 : 13,
+          zoom: Number.isFinite(initialLatitude) && Number.isFinite(initialLongitude) ? 16 : 15,
           attributionControl: { compact: true },
           dragRotate: false,
         });
 
-        const marker = new Marker({ draggable: true })
+        const marker = new Marker({ draggable: false, anchor: 'bottom' })
           .setLngLat(defaultCenter)
           .addTo(map);
 
         mapRef.current = map;
         markerRef.current = marker;
 
-        marker.on('dragend', () => {
-          const position = marker.getLngLat();
-          setSelectedLocation({ lat: position.lat, lng: position.lng });
+        // Keep the pin visually anchored to the center of the map while the
+        // customer pans underneath it. The selected coordinates update only
+        // when the gesture ends, avoiding a React update for every map frame.
+        map.on('move', () => {
+          const center = map.getCenter();
+          marker.setLngLat(center);
         });
-
-        map.on('click', (event) => {
-          setSelectedLocation({ lat: event.lngLat.lat, lng: event.lngLat.lng });
+        map.on('moveend', () => {
+          const center = map.getCenter();
+          const current = selectedAddressRef.current;
+          const nextAddress = current
+            ? { ...current, latitude: center.lat, longitude: center.lng }
+            : coordinatesToAddress({ lat: center.lat, lng: center.lng });
+          selectedAddressRef.current = nextAddress;
+          setSelectedAddress(nextAddress);
+          setLocationConfirmed(false);
+          setRequiresPinAdjustment(false);
+          onLocationChange?.();
         });
 
         map.on('error', (event) => {
@@ -282,9 +293,9 @@ export function MapboxLocationPickerUi({
                 void runAddressSearch();
               }
             }}
-            placeholder={variant === 'restaurant' ? 'Search the restaurant address' : 'Search your delivery address'}
+            placeholder={variant === 'restaurant' ? 'Search the restaurant address' : 'Search street, building, or landmark'}
             disabled={disabled || loading || searching}
-            aria-label={variant === 'restaurant' ? 'Search the restaurant address' : 'Search your delivery address'}
+            aria-label={variant === 'restaurant' ? 'Search the restaurant address' : 'Search street, building, or landmark'}
           />
           <button
             className="button button-secondary restaurant-compact-action"
@@ -326,15 +337,15 @@ export function MapboxLocationPickerUi({
 
       {requiresPinAdjustment && (
         <p className="checkout-error" role="alert">
-          This result does not verify the requested house number. Drag the pin to your exact delivery entrance or tap the map before confirming.
+          This result does not verify the requested house number. Move the map to your exact delivery entrance before confirming.
         </p>
       )}
 
       <div className="delivery-location-map-actions">
-        <button className="button button-secondary restaurant-compact-action" type="button" onClick={useCurrentLocation} disabled={disabled || loading || locating}>
-          {locating ? 'Finding your location…' : 'Use my current location'}
+        <button className="button button-secondary restaurant-compact-action" type="button" onClick={useCurrentLocation} aria-live="polite" disabled={disabled || loading || locating}>
+          {locating ? 'Finding your location…' : '◎  Use my current location'}
         </button>
-        <span>{variant === 'restaurant' ? 'Move the pin or tap the map to set the restaurant location.' : 'Drag the pin or tap the map to adjust it.'}</span>
+        <span>{variant === 'restaurant' ? 'Move the map to place the pin at the restaurant location.' : 'Move the map to place the pin at your delivery location.'}</span>
       </div>
 
       {selectedAddress && (
