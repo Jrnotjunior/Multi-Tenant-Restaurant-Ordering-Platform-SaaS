@@ -304,6 +304,53 @@ function prioritizeAddressResults(query: string, features: GeocodingFeature[]) {
   return philippines.sort((a, b) => priority(a) - priority(b)).slice(0, 10);
 }
 
+let mapboxTokenPromise: Promise<string> | null = null;
+
+async function mapboxAccessToken(): Promise<string> {
+  if (!mapboxTokenPromise) {
+    mapboxTokenPromise = (async () => {
+      const baseUrl = import.meta.env.VITE_SUPABASE_URL?.trim().replace(/\/$/, '');
+      const publicKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? import.meta.env.VITE_SUPABASE_ANON_KEY ?? '').trim();
+      if (!baseUrl || !publicKey) throw new Error('Mapbox configuration is unavailable.');
+      const response = await fetch(`${baseUrl}/functions/v1/mapbox-public-config`, {
+        headers: { apikey: publicKey, Authorization: `Bearer ${publicKey}`, Accept: 'application/json' },
+        cache: 'no-store', signal: AbortSignal.timeout(8000),
+      });
+      const body = await response.json().catch(() => ({})) as { accessToken?: string; error?: string };
+      if (!response.ok || !body.accessToken) throw new Error(body.error || 'Mapbox configuration is unavailable.');
+      return body.accessToken;
+    })().catch((error) => { mapboxTokenPromise = null; throw error; });
+  }
+  return mapboxTokenPromise;
+}
+
+function normalizeMapboxFeature(feature: { id?: string; geometry?: { coordinates?: [number, number] }; properties?: Record<string, unknown> }): GeocodingFeature {
+  const p = feature.properties ?? {};
+  const context = p.context && typeof p.context === 'object' ? p.context as Record<string, unknown> : {};
+  const contextName = (key: string) => {
+    const value = context[key];
+    return value && typeof value === 'object' && typeof (value as Record<string, unknown>).name === 'string'
+      ? String((value as Record<string, unknown>).name) : '';
+  };
+  const coordinates = feature.geometry?.coordinates;
+  const city = contextName('place') || contextName('locality') || contextName('district') || contextName('region');
+  const barangay = contextName('neighborhood') || contextName('locality');
+  const name = typeof p.name === 'string' ? p.name : '';
+  const street = typeof p.street === 'string' ? p.street : '';
+  const address = typeof p.address === 'string' ? p.address : [p.address_number, street].filter(Boolean).join(' ');
+  return { id: feature.id ?? String(p.mapbox_id ?? ''), geometry: feature.geometry, properties: {
+    name, address, street, housenumber: typeof p.address_number === 'string' ? p.address_number : '',
+    full_address: typeof p.full_address === 'string' ? p.full_address : [address, barangay, city, contextName('region'), contextName('country')].filter(Boolean).join(', '),
+    place_formatted: typeof p.place_formatted === 'string' ? p.place_formatted : '',
+    city, barangay, country: contextName('country'), country_code: typeof p.country_code === 'string' ? p.country_code : '',
+    geocoding_id: typeof p.mapbox_id === 'string' ? p.mapbox_id : feature.id ?? '',
+    feature_type: typeof p.feature_type === 'string' ? p.feature_type : '',
+    result_type: typeof p.feature_type === 'string' ? p.feature_type : '',
+    coordinates: { longitude: coordinates?.[0], latitude: coordinates?.[1] },
+    context: { place: { name: city }, barangay: { name: barangay }, country: { name: contextName('country') }, region: { name: contextName('region') }, neighborhood: { name: contextName('neighborhood') }, locality: { name: contextName('locality') } },
+  } };
+}
+
 export function isGeoapifyAddressSearchConfigured() {
   return Boolean(import.meta.env.VITE_GEOAPIFY_API_KEY?.trim());
 }
@@ -311,34 +358,14 @@ export function isGeoapifyAddressSearchConfigured() {
 export async function searchAddresses(query: string): Promise<GeocodingFeature[]> {
   const value = query.trim().replace(/\s+/g, ' ');
   if (value.length < 3) return [];
-
-  const geoapifyApiKey = import.meta.env.VITE_GEOAPIFY_API_KEY?.trim();
-  if (geoapifyApiKey) {
-    const params = new URLSearchParams({
-      text: value,
-      filter: 'countrycode:ph',
-      lang: 'en',
-      limit: '10',
-      format: 'geojson',
-      apiKey: geoapifyApiKey,
-    });
-    const data = await requestJson(`https://api.geoapify.com/v1/geocode/autocomplete?${params.toString()}`, normalizeGeoapifyFeature);
-    return prioritizeAddressResults(value, data.features ?? []);
-  }
-
-  // Keep the existing open Photon search available for local/preview builds
-  // until a domain-restricted Geoapify browser key is configured.
-  const params = new URLSearchParams({
-    q: value,
-    countrycode: 'PH',
-    lang: 'en',
-    limit: '10',
+  const token = await mapboxAccessToken();
+  const params = new URLSearchParams({ q: value, access_token: token, country: 'PH', language: 'en', limit: '10', types: 'address,street,poi,locality,neighborhood,place,district' });
+  const response = await fetch(`https://api.mapbox.com/search/geocode/v6/forward?${params.toString()}`, {
+    headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000),
   });
-  for (const layer of ['house', 'street', 'locality', 'district', 'city', 'county', 'state', 'country', 'other']) {
-    params.append('layer', layer);
-  }
-  const data = await requestJson(`https://photon.komoot.io/api/?${params.toString()}`);
-  return prioritizeAddressResults(value, data.features ?? []);
+  const body = await response.json().catch(() => ({})) as { features?: Array<{ id?: string; geometry?: { coordinates?: [number, number] }; properties?: Record<string, unknown> }> };
+  if (!response.ok) throw new Error('We could not search that location right now. Please try again or move the pin manually.');
+  return prioritizeAddressResults(value, (body.features ?? []).map(normalizeMapboxFeature));
 }
 
 async function resolveBarangayByCoordinates(latitude: number, longitude: number) {
@@ -374,55 +401,22 @@ async function resolveBarangayByCoordinates(latitude: number, longitude: number)
 }
 
 export async function reverseGeocodeLocation(latitude: number, longitude: number): Promise<GeocodingFeature | null> {
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)
-    || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-    throw new Error('The selected coordinates are invalid.');
-  }
-  const params = new URLSearchParams({
-    lat: String(latitude),
-    lon: String(longitude),
-    lang: 'en',
-  });
-  // Reverse geocoding and barangay boundaries are independent services. A
-  // Photon outage must not prevent us from resolving the selected coordinates.
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) throw new Error('The selected coordinates are invalid.');
   let feature: GeocodingFeature | null = null;
   try {
-    const data = await requestJson(`https://photon.komoot.io/reverse?${params.toString()}`);
-    feature = data.features?.[0] ?? null;
-  } catch (error) {
-    console.warn('Photon reverse geocoding unavailable; trying barangay boundaries.', error);
-  }
-
-  // Use a coordinate-in-polygon boundary lookup for barangay identity instead
-  // of guessing it from Photon suburb/locality/district labels.
+    const token = await mapboxAccessToken();
+    const params = new URLSearchParams({ longitude: String(longitude), latitude: String(latitude), access_token: token, language: 'en', limit: '1' });
+    const response = await fetch(`https://api.mapbox.com/search/geocode/v6/reverse?${params.toString()}`, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) });
+    const body = await response.json().catch(() => ({})) as { features?: Array<{ id?: string; geometry?: { coordinates?: [number, number] }; properties?: Record<string, unknown> }> };
+    if (!response.ok) throw new Error('Mapbox reverse geocoding is temporarily unavailable.');
+    feature = (body.features ?? []).map(normalizeMapboxFeature)[0] ?? null;
+  } catch (error) { console.warn('Mapbox reverse geocoding unavailable; trying barangay boundaries.', error); }
   try {
     const boundary = await resolveBarangayByCoordinates(latitude, longitude);
     if (boundary) {
-      if (!feature) {
-        feature = {
-          geometry: { coordinates: [longitude, latitude] },
-          properties: {
-            name: boundary.barangay,
-            address: boundary.barangay,
-            full_address: [boundary.barangay, boundary.city].filter(Boolean).join(', '),
-            city: boundary.city,
-            barangay: boundary.barangay,
-            coordinates: { latitude, longitude },
-          },
-        };
-      } else {
-        feature.properties = {
-          ...(feature.properties ?? {}),
-          barangay: boundary.barangay,
-          context: {
-            ...(feature.properties?.context ?? {}),
-            barangay: { name: boundary.barangay },
-          },
-        };
-      }
+      if (!feature) feature = { geometry: { coordinates: [longitude, latitude] }, properties: { name: boundary.barangay, address: boundary.barangay, full_address: [boundary.barangay, boundary.city].filter(Boolean).join(', '), city: boundary.city, barangay: boundary.barangay, coordinates: { latitude, longitude } } };
+      else feature.properties = { ...(feature.properties ?? {}), barangay: boundary.barangay, context: { ...(feature.properties?.context ?? {}), barangay: { name: boundary.barangay } } };
     }
-  } catch (error) {
-    console.warn('Unable to resolve barangay from boundaries.', error);
-  }
+  } catch (error) { console.warn('Unable to resolve barangay from boundaries.', error); }
   return feature;
 }
