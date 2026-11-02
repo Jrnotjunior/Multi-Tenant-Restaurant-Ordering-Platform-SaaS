@@ -177,7 +177,7 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
     if (page === 'loyalty') return <OwnerLoyaltyPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
     if (page === 'sales' || page === 'reports') return <OwnerReportingPage tenantId={membership.tenant_id} page={page} />;
     if (page === 'fiscal') return <OwnerFiscalPage />;
-    return <OwnerSectionPage page={page} restaurantName={restaurantName} onNavigate={navigateOwnerPage} />;
+    return <OwnerSectionPage page={page} tenantId={membership.tenant_id} restaurantName={restaurantName} onNavigate={navigateOwnerPage} />;
   };
 
   return <OwnerAppShell baseUrl={baseUrl} groups={ownerNavGroups} page={ownerPage} displayName={displayName} onNavigate={navigateOwnerPage} onSignOut={signOut}>
