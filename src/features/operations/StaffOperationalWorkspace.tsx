@@ -336,7 +336,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
 
   async function act(order: Order, action: StaffOrderAction, description: string) {
     if (!supabase) return;
-    if ((action === 'cancel' || action === 'deliver') && !window.confirm(
+    if ((action === 'cancel' || (action === 'deliver' && role !== 'rider')) && !window.confirm(
       action === 'deliver' ? `Confirm order #${order.order_number} has been delivered?` : `Cancel order #${order.order_number} before it enters the kitchen?`,
     )) return;
     setBusy(order.id); setError(''); setNotice('');
