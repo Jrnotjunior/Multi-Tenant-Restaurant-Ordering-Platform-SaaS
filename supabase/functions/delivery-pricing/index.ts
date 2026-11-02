@@ -20,30 +20,15 @@ function serviceKey() {
   }
 }
 
-function routingBaseUrl() {
-  // Never send customer delivery coordinates to a public demo router by default.
-  // Production and preview environments must explicitly configure a trusted
-  // self-hosted OSRM-compatible endpoint with ROUTING_BASE_URL.
-  const configured = (Deno.env.get("ROUTING_BASE_URL") ?? "").trim();
-  if (!configured) {
-    throw new Error("Delivery routing is not configured. Please contact the restaurant.");
-  }
-  const url = new URL(configured);
-  if (url.protocol !== "https:" && url.hostname !== "localhost" && url.hostname !== "127.0.0.1") {
-    throw new Error("The routing service must use HTTPS.");
-  }
-  if (url.username || url.password) {
-    throw new Error("The routing service URL must not contain credentials.");
-  }
-  return url.toString().replace(/\/$/, "");
-}
-
 async function drivingDistance(originLongitude: number, originLatitude: number, destinationLongitude: number, destinationLatitude: number) {
+  const token = (Deno.env.get("MAPBOX_PUBLIC_TOKEN") ?? "").trim();
+  if (!token) throw new Error("Mapbox delivery routing is not configured. Please contact the restaurant.");
   const coordinates = [originLongitude, originLatitude, destinationLongitude, destinationLatitude];
   if (!coordinates.every(Number.isFinite)) throw new Error("Choose a valid delivery location on the map.");
   const url = new URL(
-    `${routingBaseUrl()}/route/v1/driving/${originLongitude},${originLatitude};${destinationLongitude},${destinationLatitude}`,
+    `https://api.mapbox.com/directions/v5/mapbox/driving/${originLongitude},${originLatitude};${destinationLongitude},${destinationLatitude}`,
   );
+  url.searchParams.set("access_token", token);
   url.searchParams.set("overview", "false");
   url.searchParams.set("alternatives", "false");
   url.searchParams.set("steps", "false");
@@ -54,8 +39,11 @@ async function drivingDistance(originLongitude: number, originLatitude: number, 
   });
   const body = await response.json().catch(() => null);
   const distance = Number(body?.routes?.[0]?.distance);
-  if (!response.ok || body?.code !== "Ok" || !Number.isFinite(distance) || distance <= 0) {
-    throw new Error("A driving route could not be calculated. Choose another map location.");
+  if (!response.ok || !Number.isFinite(distance) || distance <= 0) {
+    console.error("Mapbox delivery route failed", { status: response.status, code: body?.code ?? "UnknownError" });
+    throw new Error(response.status === 429
+      ? "Delivery routing is busy. Please wait a moment and try again."
+      : "Mapbox could not calculate a driving route for this location. Adjust the map pin and try again.");
   }
   return distance;
 }
@@ -126,7 +114,7 @@ Deno.serve(async (request: Request) => {
     return json({ success: true, feeCentavos: result.feeCentavos, distanceMeters: result.distanceMeters });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to calculate delivery pricing.";
-    const status = message === "The routing service must use HTTPS." || message === "Delivery routing is not configured. Please contact the restaurant." || message === "The routing service URL must not contain credentials." ? 500 : 400;
+    const status = message.includes("routing is not configured") ? 503 : 400;
     return json({ error: message }, status);
   }
 });
