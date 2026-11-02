@@ -42,6 +42,7 @@ const staffRouteFor = (role: StaffWorkspaceRole, page: string) => {
   const base = role === 'cashier' || role === 'kitchen' ? page : page === 'history' ? 'history' : '';
   return '#restaurant/' + role + (base ? '/' + base : '');
 };
+const staffWorkspaceHref = (role: StaffWorkspaceRole) => normalizeAppBase(import.meta.env.BASE_URL) + staffRouteFor(role, '');
 const label = (value: string) => value.replaceAll('_', ' ');
 const typeLabel = (value: Order['order_type']) => ({ delivery: 'Delivery', take_out: 'Take-out', pickup: 'Pickup', dine_in: 'Dine-in' })[value];
 const roleCopy: Record<StaffWorkspaceRole, { eyebrow: string; title: string; intro: string; queue: string }> = {
@@ -456,6 +457,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       return <main className="rider-dashboard-page rider-delivery-page">
         <header className="rider-delivery-header">
           <div>
+            <a className="staff-workspace-brand" href={staffWorkspaceHref(role)} aria-label="Return to rider workspace"><span className="staff-workspace-brand-mark">W</span><span><strong>Web2Table</strong><small>RIDER WORKSPACE</small></span></a>
             <a className="rider-delivery-back" href="#" onClick={(event) => { event.preventDefault(); setSelectedRiderOrderId(null); }}>← My deliveries</a>
             <p className="rider-delivery-order-eyebrow">Delivery order</p>
             <h1 className="rider-delivery-order-number">{/^ORD-/i.test(String(order.order_number)) ? String(order.order_number) : `Order #${order.order_number}`}</h1>
@@ -547,6 +549,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     return <main className="rider-dashboard-page">
       <header className="rider-dashboard-header">
         <div>
+          <a className="staff-workspace-brand" href={staffWorkspaceHref(role)} aria-label="Return to rider workspace"><span className="staff-workspace-brand-mark">W</span><span><strong>Web2Table</strong><small>RIDER WORKSPACE</small></span></a>
           <p className="eyebrow">Rider dashboard</p>
           <h1>Hello, {accountName || 'Rider'}.</h1>
           <div className="rider-dashboard-availability"><span className={'rider-dashboard-availability-dot ' + (hasOnRoad ? 'is-delivering' : 'is-available')} aria-hidden="true" /><strong>{hasOnRoad ? 'Out for delivery' : 'Available'}</strong></div>
@@ -602,6 +605,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
 
   return <main className={`staff-workspace staff-workspace--${role}`}>
     <div className="staff-account-row">
+      <a className="staff-workspace-brand" href={staffWorkspaceHref(role)} aria-label={'Return to ' + role + ' workspace'}><span className="staff-workspace-brand-mark">W</span><span><strong>Web2Table</strong><small>{role.toUpperCase()} WORKSPACE</small></span></a>
       <div className="staff-account-menu">
         <button type="button" className="staff-account-trigger" aria-label="Account menu" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(open => !open)}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>

@@ -168,7 +168,14 @@
 
 
 /* Shared account access for cashier, kitchen, dispatch, and rider workspaces. */
-.staff-account-row{display:flex;justify-content:flex-end;position:relative;z-index:20;margin:0 0 14px}
+.staff-account-row{display:flex;align-items:center;justify-content:space-between;gap:16px;position:relative;z-index:20;margin:0 0 14px}
+.staff-workspace-brand{display:flex;align-items:center;gap:9px;width:max-content;margin:0 0 16px;color:#101b2f;text-decoration:none}
+.staff-workspace-brand:hover .staff-workspace-brand-mark{background:#314765}
+.staff-workspace-brand-mark{width:34px;height:34px;display:grid;place-items:center;flex:0 0 34px;border-radius:9px;background:#17263e;color:#fff;font-size:14px;font-weight:850}
+.staff-workspace-brand>span:last-child{display:grid;gap:2px}
+.staff-workspace-brand strong{font-size:12px;font-weight:850;line-height:1.1}
+.staff-workspace-brand small{color:#75849a;font-size:8px;font-weight:800;letter-spacing:.08em}
+.staff-account-row>.staff-workspace-brand{margin:0}
 .staff-account-menu{position:relative}
 .staff-account-trigger{display:grid;place-items:center;width:42px;height:42px;border:1px solid var(--color-border,#DCE3ED);border-radius:50%;background:var(--color-surface,#fff);color:var(--color-text,#101B2F);cursor:pointer;box-shadow:0 2px 8px #101b2f08;transition:border-color .15s ease,background .15s ease}
 .staff-account-trigger:hover{border-color:var(--color-active,#263754);background:var(--color-page,#F7F9FC)}
@@ -182,16 +189,17 @@
 .staff-account-dropdown button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 @media(max-width:560px){.staff-account-row{margin-bottom:10px}.staff-account-trigger{width:40px;height:40px}}
 
-/* Keep the cashier account control in its existing top-right position while
-   allowing the Orders/Sales content to begin on the same top line. */
+/* Keep the staff brand and account control above cashier tabs. */
 .staff-workspace--cashier{position:relative}
-.staff-workspace--cashier .staff-account-row{position:absolute;top:clamp(22px,3.2vw,48px);right:clamp(22px,3.2vw,48px);margin:0}
+.staff-workspace--cashier .staff-account-row{position:absolute;top:clamp(22px,3.2vw,48px);left:clamp(22px,3.2vw,48px);right:clamp(22px,3.2vw,48px);margin:0}
+.staff-workspace--cashier>.staff-workspace-tabs{margin-top:48px}
 @media(max-width:760px){.staff-workspace--cashier .staff-account-row{top:24px;right:16px}}
 @media(max-width:560px){.staff-workspace--cashier .staff-account-row{top:18px;right:12px}}
 
-/* Keep dispatch content aligned with the account control at the top of the workspace. */
+/* Keep the dispatcher brand and account control above the order tabs. */
 .staff-workspace--dispatcher{position:relative}
-.staff-workspace--dispatcher .staff-account-row{position:absolute;top:clamp(22px,3.2vw,48px);right:clamp(22px,3.2vw,48px);margin:0}
+.staff-workspace--dispatcher .staff-account-row{position:absolute;top:clamp(22px,3.2vw,48px);left:clamp(22px,3.2vw,48px);right:clamp(22px,3.2vw,48px);margin:0}
+.staff-workspace--dispatcher>.staff-workspace-tabs{margin-top:48px}
 @media(max-width:760px){.staff-workspace--dispatcher .staff-account-row{top:24px;right:16px}}
 @media(max-width:560px){.staff-workspace--dispatcher .staff-account-row{top:18px;right:12px}}
 
@@ -256,11 +264,11 @@
 @media(max-width:760px){.staff-kitchen-menu-controls{align-items:stretch;flex-direction:column;gap:10px}.staff-kitchen-menu-search{flex:1;width:100%;max-width:none}.staff-kitchen-category-tabs{gap:18px}.staff-kitchen-menu-grid{grid-template-columns:1fr}.staff-kitchen-menu-card img,.staff-kitchen-menu-placeholder{width:clamp(100px,32vw,140px);height:140px;flex-basis:clamp(100px,32vw,140px)}}
 @media(max-width:640px){.staff-kitchen-menu-panel{padding:12px}.staff-kitchen-menu-toolbar{flex-direction:column}.staff-kitchen-menu-toolbar label{width:100%;justify-content:space-between}.staff-kitchen-menu-toolbar select{flex:1;min-width:0}}
 
-/* Kitchen top navigation shares a row with the account control, matching Cashier. */
+/* Kitchen brand and account controls lead the kitchen tabs. */
 .staff-workspace--kitchen{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:16px}
-.staff-workspace--kitchen>.staff-account-row{grid-column:2;grid-row:1;margin:0 0 20px;align-self:start}
-.staff-workspace--kitchen>.staff-workspace-tabs{grid-column:1;grid-row:1;align-self:start;margin-bottom:20px}
-.staff-workspace--kitchen>section{grid-column:1/-1;min-width:0}
+.staff-workspace--kitchen>.staff-account-row{grid-column:1/-1;grid-row:1;margin:0 0 18px;align-self:start}
+.staff-workspace--kitchen>.staff-workspace-tabs{grid-column:1/-1;grid-row:2;align-self:start;margin-bottom:20px}
+.staff-workspace--kitchen>section{grid-column:1/-1;grid-row:3;min-width:0}
 @media(max-width:560px){.staff-workspace--kitchen{column-gap:8px}.staff-workspace--kitchen>.staff-workspace-tabs{gap:4px}.staff-workspace--kitchen>.staff-workspace-tabs button{padding:9px 16px}}
 
 .staff-kitchen-menu-details{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
