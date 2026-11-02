@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 type StorefrontHeaderProps = {
   logo: ReactNode;
-  actions: ReactNode;
+  actions?: ReactNode;
 };
 
 export function StorefrontHeader({ logo, actions }: StorefrontHeaderProps) {
@@ -10,9 +10,11 @@ export function StorefrontHeader({ logo, actions }: StorefrontHeaderProps) {
     <header className="sf-header">
       <div className="sf-header-inner">
         {logo}
-        <nav className="sf-header-actions" aria-label="Store navigation">
-          {actions}
-        </nav>
+        {actions != null && (
+          <nav className="sf-header-actions" aria-label="Store navigation">
+            {actions}
+          </nav>
+        )}
       </div>
     </header>
   );

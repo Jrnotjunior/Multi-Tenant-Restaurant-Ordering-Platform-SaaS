@@ -608,7 +608,6 @@
 /* Customer account pages reuse the shared storefront header and footer styles. */
 @media(max-width:680px){
 .sf-account-page .sf-header-inner{width:100%;min-height:64px;padding:10px 12px}
-.sf-account-page .sf-account-logo{width:38px;height:38px;max-width:38px;max-height:38px;flex-basis:38px}
 .sf-account-page .sf-header-actions{gap:4px}
 
 }

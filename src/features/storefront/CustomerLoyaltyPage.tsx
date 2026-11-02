@@ -1,7 +1,7 @@
 import { useEffect,useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { normalizeAppBase } from '../../app/routes';
-import { CustomerAccountBackLink, StorefrontFooter } from './StorefrontChrome';
+import { CustomerAccountBackLink, StorefrontFooter, StorefrontHeader } from './StorefrontChrome';
 import './storefront.css';
 type Tx={id:string;tenant_id:string;points_change:number;transaction_type:string;description:string;created_at:string;restaurantName?:string};
 export function CustomerLoyaltyPage({baseUrl}:{baseUrl:string}){
@@ -26,14 +26,12 @@ export function CustomerLoyaltyPage({baseUrl}:{baseUrl:string}){
  setLoading(false);
  })();return()=>{live=false;};},[base]);
  return <div className="sf-storefront sf-account-shell">
-  <header className="sf-header">
-   <div className="sf-header-inner">
-    <a href={base} className="sf-logo sf-account-brand" aria-label="Web2Table storefront">
-     <img className="sf-logo-image" src="https://wvibrchebfwirbgkcnbr.supabase.co/storage/v1/object/public/web2table-assets/web2table.png" alt="Web2Table" width={46} height={46}/>
-     <span>Web2Table</span>
-    </a>
-   </div>
-  </header>
+  <StorefrontHeader
+   logo={<a href={base} className="sf-logo sf-account-brand" aria-label="Web2Table storefront">
+    <img className="sf-logo-image" src="https://wvibrchebfwirbgkcnbr.supabase.co/storage/v1/object/public/web2table-assets/web2table.png" alt="Web2Table" width={46} height={46}/>
+    <span>Web2Table</span>
+   </a>}
+  />
   <main className="sf-main sf-account-main">
    <section className="sf-account-hero">
     <CustomerAccountBackLink href={base+'account'} /><span className="sf-tracking-eyebrow">CUSTOMER REWARDS</span><h1>Loyalty Points</h1><p className="sf-account-email">Your points balance and rewards activity.</p>
