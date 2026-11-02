@@ -19,7 +19,7 @@ type Order = {
 };
 type Rider = { user_id: string; display_name: string | null };
 type Props = { tenantId: string; role: StaffWorkspaceRole; restaurantName: string | null };
-type StaffOrderAction = 'confirm' | 'cancel' | 'complete_handoff' | 'mark_ready' | 'dispatch' | 'accept_delivery' | 'arrive_customer' | 'deliver';
+type StaffOrderAction = 'confirm' | 'cancel' | 'complete_handoff' | 'mark_ready' | 'dispatch' | 'accept_delivery' | 'arrive_customer' | 'collect_cod' | 'deliver';
 type StaffOrderActionButton = { action: StaffOrderAction; label: string; primary: boolean };
 const money = (value: number | null) => value == null ? 'Total not finalized' : new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(value / 100);
 const maySendOrderToKitchen = (order: Order) => {
@@ -381,7 +381,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           throw new Error((data as { error?: string } | null)?.error || 'Unable to cancel this order.');
         }
       } else {
-        const unpaidCodDelivery = action === 'deliver' && order.order_type === 'delivery' && order.payment_channel === 'other' && !['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase());
+        const unpaidCodDelivery = action === 'collect_cod' && order.order_type === 'delivery' && order.payment_channel === 'other' && !['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase());
         const { error: actionError } = unpaidCodDelivery
           ? await supabase.rpc('rider_complete_cod_delivery', { p_tenant_id: tenantId, p_order_id: order.id })
           : await supabase.rpc('transition_staff_order', { p_tenant_id: tenantId, p_order_id: order.id, p_action: action });
@@ -464,7 +464,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     if (role === 'dispatcher' && order.order_type !== 'delivery' && order.order_status === 'ready_for_pickup') return [{ action: 'complete_handoff', label: order.order_type === 'dine_in' ? 'Mark served' : 'Mark picked up', primary: true }];
     if (role === 'rider' && order.order_type === 'delivery' && order.assignment_status === 'dispatched') return [{ action: 'accept_delivery', label: 'Start delivery', primary: true }];
     if (role === 'rider' && order.order_type === 'delivery' && order.assignment_status === 'out_for_delivery' && order.order_status === 'out_for_delivery') return [{ action: 'arrive_customer', label: 'Mark arrived at customer', primary: true }];
-    if (role === 'rider' && order.order_type === 'delivery' && order.assignment_status === 'arrived_at_customer' && order.order_status === 'out_for_delivery') return [{ action: 'deliver', label: order.payment_channel === 'other' && !['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase()) ? 'Confirm cash and mark delivered' : 'Mark delivered', primary: true }];
+    if (role === 'rider' && order.order_type === 'delivery' && order.assignment_status === 'arrived_at_customer' && order.order_status === 'out_for_delivery') return [{ action: order.payment_channel === 'other' && !['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase()) ? 'collect_cod' : 'deliver', label: order.payment_channel === 'other' && !['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase()) ? 'Collect cash and complete delivery' : 'Mark delivered', primary: true }];
     return [];
   }
 
@@ -481,7 +481,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     if (selectedRiderOrder) {
       const order = selectedRiderOrder;
       const status = order.assignment_status === 'arrived_at_customer' ? 'Arrived at customer' : order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'dispatched' ? 'Dispatched · ready to start' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : order.assignment_status === 'delivered' ? 'Delivered' : 'Assigned · waiting for dispatch';
-      const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'arrive_customer' || item.action === 'deliver');
+      const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'arrive_customer' || item.action === 'collect_cod' || item.action === 'deliver');
       return <main className="rider-dashboard-page rider-delivery-page">
         <header className="rider-delivery-header">
           <div>
@@ -548,8 +548,8 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
                   return <div className="rider-delivery-step" key={step.label}><span className={'rider-delivery-step-marker ' + (index <= current ? 'is-done' : '')}>{index <= current ? '✓' : index + 1}</span><div><strong>{step.label}</strong><p>{step.detail}</p></div></div>;
                 })}
               </div>
-              {button && <div className="rider-delivery-slider" data-status={button.action === 'accept_delivery' ? 'start' : button.action === 'arrive_customer' ? 'arrived' : 'delivered'}>
-                <input className="rider-delivery-slider-input" type="range" min="0" max="100" step="1" value={swipeProgress} disabled={busy === order.id} aria-label={button.action === 'accept_delivery' ? 'Slide right to mark out for delivery' : button.action === 'arrive_customer' ? 'Slide right to mark arrived at customer' : order.payment_channel === 'other' && !['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase()) ? 'Slide right to confirm cash collected and mark delivered' : 'Slide right to mark delivered'} onChange={(event) => {
+              {button && <div className="rider-delivery-slider" data-status={button.action === 'accept_delivery' ? 'start' : button.action === 'arrive_customer' ? 'arrived' : button.action === 'collect_cod' ? 'collect' : 'delivered'}>
+                <input className="rider-delivery-slider-input" type="range" min="0" max="100" step="1" value={swipeProgress} disabled={busy === order.id} aria-label={button.action === 'accept_delivery' ? 'Slide right to mark out for delivery' : button.action === 'arrive_customer' ? 'Slide right to mark arrived at customer' : button.action === 'collect_cod' ? 'Slide right to collect cash and complete delivery' : 'Slide right to mark delivered'} onChange={(event) => {
                   const next = Number(event.target.value);
                   setSwipeProgress(next);
                   if (next >= 95 && busy !== order.id) {
@@ -557,10 +557,10 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
                     void act(order, button.action, button.label.toLowerCase());
                   }
                 }} onPointerUp={() => { if (swipeProgress < 95) setSwipeProgress(0); }} onTouchEnd={() => { if (swipeProgress < 95) setSwipeProgress(0); }} />
-                <span className="rider-delivery-slider-label" aria-hidden="true">{busy === order.id ? 'Updating…' : button.action === 'accept_delivery' ? 'Swipe when leaving for delivery' : button.action === 'arrive_customer' ? 'Swipe when you arrive at the customer' : order.payment_channel === 'other' && !['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase()) ? 'Swipe to confirm cash & mark delivered' : 'Swipe to mark delivered'}</span>
+                <span className="rider-delivery-slider-label" aria-hidden="true">{busy === order.id ? 'Updating…' : button.action === 'accept_delivery' ? 'Swipe when leaving for delivery' : button.action === 'arrive_customer' ? 'Swipe when you arrive at the customer' : button.action === 'collect_cod' ? 'Swipe to collect cash' : 'Swipe to mark delivered'}</span>
                 <span className="rider-delivery-slider-arrow" aria-hidden="true">›</span>
               </div>}
-              {button?.action === 'deliver' && order.payment_channel === 'other' && !['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase()) && <p className="rider-delivery-helper">Collect {money(order.total_centavos)} from the customer first. This single swipe confirms the cash payment and completes the delivery.</p>}
+              {button?.action === 'collect_cod' && <p className="rider-delivery-helper">Collect {money(order.total_centavos)} from the customer before swiping. This confirms payment and marks the order delivered.</p>}
               {order.assignment_status === 'assigned' && <p className="rider-delivery-helper">Assigned by the dispatcher. Waiting for dispatch.</p>}
               {order.assignment_status === 'dispatched' && <p className="rider-delivery-helper">The dispatcher sent this order to you. Start delivery when you are leaving with it.</p>}
             </section>
@@ -600,7 +600,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           {loading ? <div className="rider-dashboard-empty">Loading your deliveries…</div> : activeDeliveries.length === 0 ?
             <div className="rider-dashboard-empty"><strong>No active deliveries</strong><span>New orders assigned by the dispatcher will appear here.</span></div> :
             <div className="rider-dashboard-list">{activeDeliveries.map(order => {
-              const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'arrive_customer' || item.action === 'deliver');
+              const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'arrive_customer' || item.action === 'collect_cod' || item.action === 'deliver');
               const status = order.assignment_status === 'arrived_at_customer' ? 'Arrived at customer' : order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'dispatched' ? 'Dispatched · ready to start' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : 'Assigned · waiting for dispatch';
               return <article className="rider-dashboard-delivery-card rider-dashboard-delivery-card-clickable" key={order.id}>
                 <button className="rider-dashboard-card-open" type="button" onClick={() => { setSelectedRiderOrderId(order.id); setOrderDetailsOpen(false); setSwipeProgress(0); }} aria-label={'Open order ' + order.order_number}>
