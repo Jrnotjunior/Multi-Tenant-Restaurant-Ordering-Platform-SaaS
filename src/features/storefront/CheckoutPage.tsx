@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import { storefrontTrackingHash } from '../../app/routes';
 import { peso } from './demoCatalog';
@@ -9,6 +9,15 @@ import './delivery-address-picker.css';
 type OrderType = 'Delivery' | 'Take-out' | 'Pickup' | 'Dine-in';
 type PaymentMethod = 'cash' | 'online';
 export type CheckoutSubmission = { orderType: OrderType; customerName: string; phone: string; deliveryAddress: string; deliveryNotes: string; paymentMethod: PaymentMethod; deliveryLatitude: number | null; deliveryLongitude: number | null; loyaltyPointsToRedeem: number };
+
+function storefrontMapHeaderStyle(): CSSProperties {
+  const storefront = document.querySelector<HTMLElement>('.sf-storefront');
+  const theme = storefront ? window.getComputedStyle(storefront) : null;
+  return {
+    '--picker-header-color': theme?.getPropertyValue('--sf-header-color').trim() || '#fff',
+    '--picker-header-foreground': theme?.getPropertyValue('--sf-header-icon').trim() || '#101b2f',
+  } as CSSProperties;
+}
 
 type CheckoutPageProps = {
   restaurantSlug: string;
@@ -72,9 +81,9 @@ function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onS
     </button>
     {addressPickerOpen && createPortal(<div className="w2t-address-picker-overlay" role="presentation">
       <section className="w2t-address-picker-screen" role="dialog" aria-modal="true" aria-labelledby="w2t-address-picker-title">
-        <header className="w2t-address-picker-header">
+        <header className="w2t-address-picker-header" style={storefrontMapHeaderStyle()}>
           <button type="button" className="w2t-address-picker-back" onClick={() => setAddressPickerOpen(false)} aria-label="Back to checkout">←</button>
-          <div><span>DELIVERY</span><h2 id="w2t-address-picker-title">Choose delivery address</h2><p>Search an address or move the pin to your exact location.</p></div>
+          <div><h2 id="w2t-address-picker-title">Choose delivery address</h2><p>Search an address or move the pin to your exact location.</p></div>
           <button type="button" className="w2t-address-picker-close" onClick={() => setAddressPickerOpen(false)} aria-label="Close address picker">×</button>
         </header>
         <div className="w2t-address-picker-map">

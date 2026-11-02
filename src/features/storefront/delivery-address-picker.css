@@ -48,12 +48,12 @@
   gap: 12px;
   padding: max(14px, env(safe-area-inset-top)) 16px 14px;
   border-bottom: 1px solid #e2e8f0;
-  background: #fff;
+  background: var(--picker-header-color, #fff);
+  color: var(--picker-header-foreground, #0f172a);
 }
 .w2t-address-picker-header > div { flex: 1; min-width: 0; }
-.w2t-address-picker-header span { color: #64748b; font-size: 10px; font-weight: 750; letter-spacing: .12em; }
 .w2t-address-picker-header h2 { margin: 3px 0 4px; font-size: 19px; line-height: 1.25; }
-.w2t-address-picker-header p { margin: 0; color: #64748b; font-size: 12px; line-height: 1.4; }
+.w2t-address-picker-header p { margin: 0; color: color-mix(in srgb, var(--picker-header-foreground, #0f172a) 72%, transparent); font-size: 12px; line-height: 1.4; }
 .w2t-address-picker-back,
 .w2t-address-picker-close {
   display: grid;
@@ -61,10 +61,10 @@
   width: 40px;
   height: 40px;
   place-items: center;
-  border: 1px solid #e2e8f0;
+  border: 1px solid color-mix(in srgb, var(--picker-header-foreground, #0f172a) 22%, transparent);
   border-radius: 12px;
-  background: #f8fafc;
-  color: #0f172a;
+  background: color-mix(in srgb, var(--picker-header-color, #fff) 90%, var(--picker-header-foreground, #0f172a));
+  color: var(--picker-header-foreground, #0f172a);
   font-size: 24px;
   cursor: pointer;
 }
