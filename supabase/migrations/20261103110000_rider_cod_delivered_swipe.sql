@@ -24,7 +24,7 @@ BEGIN
   SELECT m.role INTO v_role
   FROM public.tenant_memberships m
   WHERE m.tenant_id=p_tenant_id AND m.user_id=v_user AND m.status='active';
-  IF v_role <> 'rider' THEN
+  IF v_role IS DISTINCT FROM 'rider' THEN
     RAISE EXCEPTION 'Active rider access required' USING ERRCODE='42501';
   END IF;
 
