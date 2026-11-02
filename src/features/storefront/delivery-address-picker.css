@@ -70,6 +70,49 @@
 .w2t-address-picker-map > .mapbox-central-service { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; }
 .w2t-address-picker-map .mapbox-central-frame { display: block; width: 100%; height: 100% !important; min-height: 0; flex: 1 1 auto; border: 0; }
 .w2t-address-picker-map .w2t-map-picker-error { margin: 12px; }
+@media (max-width: 760px) {
+  .w2t-address-picker-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+    overflow: hidden;
+    background: #fff;
+  }
+  .w2t-address-picker-screen {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden;
+  }
+  .w2t-address-picker-header {
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+  .w2t-address-picker-map {
+    flex: 1 1 0;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+  }
+  .w2t-address-picker-map > .mapbox-central-service {
+    width: 100%;
+    height: 100%;
+  }
+  .w2t-address-picker-map .mapbox-central-frame {
+    width: 100%;
+    height: 100% !important;
+    min-height: 0;
+  }
+}
 @media (min-width: 761px) {
   .w2t-address-picker-overlay { align-items: center; padding: 24px; background: rgb(15 23 42 / 55%); }
   .w2t-address-picker-screen { height: min(860px, 100%); border-radius: 20px; overflow: hidden; }
