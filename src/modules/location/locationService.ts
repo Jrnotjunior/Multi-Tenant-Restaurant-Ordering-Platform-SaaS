@@ -359,7 +359,7 @@ export async function searchAddresses(query: string): Promise<GeocodingFeature[]
   const value = query.trim().replace(/\s+/g, ' ');
   if (value.length < 3) return [];
   const token = await mapboxAccessToken();
-  const params = new URLSearchParams({ q: value, access_token: token, country: 'PH', language: 'en', limit: '10', types: 'address,street,poi,locality,neighborhood,place,district' });
+  const params = new URLSearchParams({ q: value, access_token: token, country: 'PH', language: 'en', limit: '10', types: 'address,street,locality,neighborhood,place,district' });
   const response = await fetch(`https://api.mapbox.com/search/geocode/v6/forward?${params.toString()}`, {
     headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000),
   });
