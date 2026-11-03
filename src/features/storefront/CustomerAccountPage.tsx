@@ -66,7 +66,7 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
     setSignedIn(false);
     setName('Your account');
     setEmail('');
-    window.location.hash = '/account';
+    window.location.hash = '#/account';
   };
 
   const authHref = (mode: 'sign-in' | 'sign-up') => base + '#/account/' + mode;
