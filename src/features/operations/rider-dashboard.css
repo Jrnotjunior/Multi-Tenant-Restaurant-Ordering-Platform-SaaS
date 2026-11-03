@@ -183,6 +183,7 @@
 .rider-delivery-back:focus-visible{outline:2px solid var(--color-primary,#64748b);outline-offset:3px;border-radius:3px}
 .rider-delivery-header-actions{display:flex;align-items:center;gap:.65rem}
 .rider-delivery-status{display:inline-flex;align-items:center;min-height:36px;padding:0 .8rem;border-radius:999px;background:var(--surface-muted,#f1f5f9);color:var(--text,#172033);font-size:.8rem;font-weight:800}
+.rider-delivery-status-card{display:flex;align-items:center;justify-content:center;width:100%;box-sizing:border-box;margin:-.5rem 0 1.25rem;padding:.75rem 1rem;border:1px solid var(--border,#e2e8f0);border-radius:1rem;background:var(--surface,#fff);box-shadow:0 4px 14px rgba(15,23,42,.04)}
 .rider-delivery-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.8fr);gap:1rem;align-items:start}
 .rider-delivery-main,.rider-delivery-sidebar{display:grid;gap:1rem;min-width:0}
 .rider-delivery-card{padding:1.25rem;border:1px solid var(--border,#e2e8f0);border-radius:1rem;background:var(--surface,#fff)}
