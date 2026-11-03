@@ -83,16 +83,27 @@ function CustomerInformation({ firstName, lastName, phone, onFirstNameChange, on
 
 function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onStreetAddressChange, restaurantSlug, savedAddresses, savedAddressesLoading, onChooseSavedAddress }: { orderType: OrderType; value: DeliveryLocationAddress | null; onSelect: (address: DeliveryLocationAddress) => void; streetAddress: string; onStreetAddressChange: (streetAddress: string) => void; restaurantSlug: string; savedAddresses: SavedCheckoutAddress[]; savedAddressesLoading: boolean; onChooseSavedAddress: (id: string) => void }) {
   const [addressPickerOpen, setAddressPickerOpen] = useState(false);
+  const [savedAddressesOpen, setSavedAddressesOpen] = useState(false);
+  const selectedSavedAddress = savedAddresses.find(address => address.address_line === streetAddress && address.city === value?.city && address.barangay === value?.barangay);
   if (orderType !== 'Delivery') return null;
   return <fieldset className="sf-checkout-section">
     <legend>Delivery address</legend>
 
     {savedAddresses.length > 0 && <div className="sf-checkout-saved-address">
-      <label htmlFor="sf-checkout-saved-address-select">Saved address</label>
-      <select id="sf-checkout-saved-address-select" className="sf-checkout-saved-address-select" value={(() => { const match = savedAddresses.find(address => address.address_line === streetAddress && address.city === value?.city && address.barangay === value?.barangay); return match?.id ?? ''; })()} onChange={event => onChooseSavedAddress(event.target.value)}>
-        <option value="">Choose a saved address…</option>
-        {savedAddresses.map(address => <option key={address.id} value={address.id}>{address.label}{address.is_default ? ' · Default' : ''}</option>)}
-      </select>
+      <span className="sf-checkout-saved-address-label">Saved address</span>
+      <button type="button" className="sf-checkout-saved-address-trigger" aria-haspopup="listbox" aria-expanded={savedAddressesOpen} onClick={() => setSavedAddressesOpen(open => !open)}>
+        <span>{selectedSavedAddress ? `${selectedSavedAddress.label}${selectedSavedAddress.is_default ? ' · Default' : ''}` : 'Choose a saved address…'}</span>
+        <span className="sf-checkout-saved-address-chevron" aria-hidden="true">{savedAddressesOpen ? '⌃' : '⌄'}</span>
+      </button>
+      {savedAddressesOpen && <div className="sf-checkout-saved-address-options" role="listbox" aria-label="Saved addresses">
+        {savedAddresses.map(address => {
+          const selected = address.id === selectedSavedAddress?.id;
+          return <button type="button" role="option" aria-selected={selected} className={'sf-checkout-saved-address-option' + (selected ? ' is-selected' : '')} key={address.id} onClick={() => { onChooseSavedAddress(address.id); setSavedAddressesOpen(false); }}>
+            <span><strong>{address.label}{address.is_default ? ' · Default' : ''}</strong><small>{[address.address_line, address.barangay, address.city].filter(Boolean).join(', ')}</small></span>
+            {selected && <span className="sf-checkout-saved-address-check" aria-hidden="true">✓</span>}
+          </button>;
+        })}
+      </div>}
     </div>}
     {savedAddressesLoading && <p className="sf-checkout-optional" role="status">Loading your saved addresses…</p>}
     {value && <div className="sf-checkout-selected-address" role="status">
