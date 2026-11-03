@@ -502,7 +502,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   };
 
   const saveCustomized=async (item:MenuItem,selected:Selection,quantity:number,instructions:string):Promise<boolean>=>{
-    if (!(await checkStoreAvailability())) return false;
+    if (!(await checkStoreAvailability())) { setCustomizing(null); return false; }
     setCustomized(previous=>customizing?.line
       ? editCustom(previous,customizing.line.key,item,selected,quantity,instructions)
       : addCustom(previous,item,selected,quantity,instructions));
