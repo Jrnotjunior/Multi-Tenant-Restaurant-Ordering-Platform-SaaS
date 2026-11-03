@@ -494,7 +494,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           </div>
         </header>
         <div className="rider-delivery-status-card"><span className="rider-delivery-status">{status}</span></div>
-        {error && <div className="rider-dashboard-message" role="alert">{error}</div>
+        {error && <div className="rider-dashboard-message" role="alert">{error}</div>}
         {notice && <div className="rider-dashboard-notice" role="status">{notice}</div>}
         <div className="rider-delivery-layout">
           <main className="rider-delivery-main">
