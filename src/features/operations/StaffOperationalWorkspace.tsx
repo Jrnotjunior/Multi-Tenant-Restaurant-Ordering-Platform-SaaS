@@ -44,6 +44,7 @@ const staffRouteFor = (role: StaffWorkspaceRole, page: string) => {
 };
 const staffWorkspaceHref = (role: StaffWorkspaceRole) => normalizeAppBase(import.meta.env.BASE_URL) + staffRouteFor(role, '');
 const label = (value: string) => value.replaceAll('_', ' ');
+const formatOrderNumber = (value: number | string) => `ORD-${String(value).trim().replace(/^ORD-/i, '').padStart(5, '0')}`;
 const typeLabel = (value: Order['order_type']) => ({ delivery: 'Delivery', take_out: 'Take-out', pickup: 'Pickup', dine_in: 'Dine-in' })[value];
 const roleCopy: Record<StaffWorkspaceRole, { eyebrow: string; title: string; intro: string; queue: string }> = {
   cashier: { eyebrow: 'FRONT OF HOUSE', title: 'Cashier workspace', intro: 'Review incoming orders, finalize delivery fees, and confirm order details.', queue: 'Order desk' },
@@ -487,7 +488,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           <div>
             <button className="rider-delivery-back" type="button" onClick={() => setSelectedRiderOrderId(null)}>← Back</button>
             <p className="rider-delivery-order-eyebrow">Delivery order</p>
-            <h1 className="rider-delivery-order-number">{/^ORD-/i.test(String(order.order_number)) ? String(order.order_number) : `Order #${order.order_number}`}</h1>
+            <h1 className="rider-delivery-order-number">{formatOrderNumber(order.order_number)}</h1>
           </div>
           <div className="rider-delivery-header-actions">
             <span className="rider-delivery-status">{status}</span>
@@ -602,9 +603,9 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
               const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'arrive_customer' || item.action === 'collect_cod' || item.action === 'deliver');
               const status = order.assignment_status === 'arrived_at_customer' ? 'Arrived at customer' : order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'dispatched' ? 'Dispatched · ready to start' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : 'Assigned · waiting for dispatch';
               return <article className="rider-dashboard-delivery-card rider-dashboard-delivery-card-clickable" key={order.id}>
-                <button className="rider-dashboard-card-open" type="button" onClick={() => { setSelectedRiderOrderId(order.id); setOrderDetailsOpen(false); setSwipeProgress(0); }} aria-label={'Open order ' + order.order_number}>
+                <button className="rider-dashboard-card-open" type="button" onClick={() => { setSelectedRiderOrderId(order.id); setOrderDetailsOpen(false); setSwipeProgress(0); }} aria-label={'Open order ' + formatOrderNumber(order.order_number)}>
                   <span className="rider-dashboard-delivery-top">
-                    <strong>Order #{order.order_number}</strong>
+                    <strong>{formatOrderNumber(order.order_number)}</strong>
                     <span className={'rider-dashboard-status ' + (order.assignment_status === 'out_for_delivery' ? 'is-delivering' : '')}>{status}</span>
                   </span>
                   <span className="rider-dashboard-card-bottom">
@@ -620,8 +621,8 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           {loading ? <div className="rider-dashboard-empty">Loading order history…</div> : shownHistory.length === 0 ?
             <div className="rider-dashboard-empty"><strong>{deliveryHistory.length ? 'No deliveries for this date' : 'No delivery history yet'}</strong><span>{deliveryHistory.length ? 'Choose another date or view all dates to see older deliveries.' : 'Completed deliveries will appear here.'}</span></div> :
             <div className="rider-dashboard-list">{shownHistory.map(order => <article className="rider-dashboard-delivery-card rider-dashboard-history-card rider-dashboard-delivery-card-clickable" key={order.id}>
-              <button className="rider-dashboard-card-open rider-dashboard-history-open" type="button" onClick={() => { setSelectedRiderOrderId(order.id); setOrderDetailsOpen(false); setSwipeProgress(0); }} aria-label={'Open delivered order ' + order.order_number}>
-                <span className="rider-dashboard-delivery-main"><span className="rider-dashboard-delivery-top"><strong>Order #{order.order_number}</strong><span className="rider-dashboard-status is-delivered">Delivered</span></span><strong className="rider-dashboard-card-customer">{order.customer_name}</strong><span className="rider-dashboard-card-address">Delivered on {new Intl.DateTimeFormat('en-PH',{dateStyle:'medium'}).format(new Date(order.created_at))}</span></span>
+              <button className="rider-dashboard-card-open rider-dashboard-history-open" type="button" onClick={() => { setSelectedRiderOrderId(order.id); setOrderDetailsOpen(false); setSwipeProgress(0); }} aria-label={'Open delivered order ' + formatOrderNumber(order.order_number)}>
+                <span className="rider-dashboard-delivery-main"><span className="rider-dashboard-delivery-top"><strong>{formatOrderNumber(order.order_number)}</strong><span className="rider-dashboard-status is-delivered">Delivered</span></span><strong className="rider-dashboard-card-customer">{order.customer_name}</strong><span className="rider-dashboard-card-address">Delivered on {new Intl.DateTimeFormat('en-PH',{dateStyle:'medium'}).format(new Date(order.created_at))}</span></span>
                 <span className="rider-dashboard-delivery-side"><strong>{money(order.total_centavos)}</strong><span aria-hidden="true">✓</span></span>
               </button>
             </article>)}</div>}
