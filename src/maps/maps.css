@@ -14,9 +14,16 @@ body{overflow-x:hidden}
 .delivery-location-confirmation{display:grid;gap:6px;padding:12px;border:1px solid #e2e8f0;border-radius:12px;overflow-wrap:anywhere}.delivery-location-confirmation span,.delivery-location-confirmation small{color:#475569}.delivery-location-confirmation .button{width:100%}
 .checkout-error{margin:0;padding:10px 12px;border:1px solid #fecaca;border-radius:10px;background:#fff7f7;color:#991b1b;font-size:13px}
 .map-service-status{display:grid;gap:8px;padding:16px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc;color:#334155;overflow-wrap:anywhere}.map-service-status strong{color:#0f172a;font-size:14px}.map-service-status p{margin:0;font-size:13px;line-height:1.5}.map-service-status.is-error{border-color:#fecaca;background:#fff7f7;color:#991b1b}
-.map-service-page--restaurant .delivery-location-picker{display:grid;grid-template-columns:minmax(280px,360px) minmax(0,1fr);grid-template-areas:"search map" "actions map" "confirmation confirmation" "error error";align-items:start;column-gap:20px;row-gap:14px}
-.map-service-page--restaurant .delivery-location-search{grid-area:search}.map-service-page--restaurant .delivery-location-map{grid-area:map;height:400px;min-height:360px;border-radius:14px}.map-service-page--restaurant .delivery-location-map-actions{grid-area:actions;padding:14px;border:1px solid #e2e8f0;border-radius:12px}.map-service-page--restaurant .delivery-location-confirmation{grid-area:confirmation}.map-service-page--restaurant .checkout-error{grid-area:error}
-@media(max-width:760px){.map-service-page{padding:8px 10px 12px}.map-service-page--restaurant .delivery-location-picker{grid-template-columns:minmax(0,1fr);grid-template-areas:"search" "map" "actions" "confirmation" "error";gap:12px}.map-service-page--restaurant .delivery-location-map{height:300px;min-height:260px}.delivery-location-search-row{grid-template-columns:minmax(0,1fr)}.delivery-location-search-row .button{width:100%}.delivery-location-map{height:250px;min-height:220px}}
+/* Restaurant setup: one clean vertical flow; controls never sit beside or float away from the map. */
+.map-service-page--restaurant .delivery-location-picker{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"search" "map" "actions" "confirmation" "error";align-items:stretch;gap:12px;min-width:0;overflow:visible}
+.map-service-page--restaurant .delivery-location-search{grid-area:search;min-width:0}
+.map-service-page--restaurant .delivery-location-map{grid-area:map;width:100%;height:400px;min-height:360px;margin:0;border-radius:14px}
+.map-service-page--restaurant .delivery-location-map-actions{grid-area:actions;display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;padding:0;border:0;border-radius:0;min-width:0}
+.map-service-page--restaurant .delivery-location-map-actions .button{width:auto;min-width:220px}
+.map-service-page--restaurant .delivery-location-map-actions span{font-size:12px}
+.map-service-page--restaurant .delivery-location-confirmation{grid-area:confirmation;width:100%;min-width:0}
+.map-service-page--restaurant .checkout-error{grid-area:error}
+@media(max-width:760px){.map-service-page{padding:8px 10px 12px}.map-service-page--restaurant .delivery-location-picker{grid-template-columns:minmax(0,1fr);grid-template-areas:"search" "map" "actions" "confirmation" "error";gap:10px}.map-service-page--restaurant .delivery-location-map{height:320px;min-height:260px}.map-service-page--restaurant .delivery-location-map-actions{flex-direction:column;align-items:stretch}.map-service-page--restaurant .delivery-location-map-actions .button{width:100%;min-width:0}.delivery-location-search-row{grid-template-columns:minmax(0,1fr) auto}.delivery-location-search-row .button{width:auto}.delivery-location-map{height:250px;min-height:220px}}
 
 
 /* Fill-height mode is used only inside the mobile delivery-location dialog. */
