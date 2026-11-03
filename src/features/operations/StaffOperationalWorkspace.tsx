@@ -240,7 +240,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     if (!quiet) setLoading(true);
     setError('');
     try {
-      const { data, error: queryError } = await supabase.rpc('list_staff_orders', { p_tenant_id: tenantId, p_filter: filter, p_limit: 100 });
+      const { data, error: queryError } = await supabase.rpc('list_staff_orders', { p_tenant_id: tenantId, p_filter: role === 'rider' ? 'all' : filter, p_limit: 100 });
       if (queryError) throw queryError;
       const next = ((data as { orders?: Order[] } | null)?.orders ?? []) as Order[];
       setOrders(next);
@@ -592,8 +592,8 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       {notice && <div className="rider-dashboard-notice" role="status">{notice}</div>}
       <section className="rider-dashboard-section">
         <div className="rider-dashboard-tabs" role="tablist" aria-label="Rider deliveries">
-          <button className={riderTab === 'active' ? 'is-active' : ''} type="button" role="tab" aria-selected={riderTab === 'active'} onClick={() => { setRiderTab('active'); if (filter !== 'active') setFilter('active'); void load(); }}>Active <span>{activeDeliveries.length}</span></button>
-          <button className={riderTab === 'history' ? 'is-active' : ''} type="button" role="tab" aria-selected={riderTab === 'history'} onClick={() => { setRiderTab('history'); if (filter !== 'all') setFilter('all'); void load(); }}>Delivery history <span>{deliveryHistory.length}</span></button>
+          <button className={riderTab === 'active' ? 'is-active' : ''} type="button" role="tab" aria-selected={riderTab === 'active'} onClick={() => setRiderTab('active')}>Active <span>{activeDeliveries.length}</span></button>
+          <button className={riderTab === 'history' ? 'is-active' : ''} type="button" role="tab" aria-selected={riderTab === 'history'} onClick={() => setRiderTab('history')}>Delivery history <span>{deliveryHistory.length}</span></button>
         </div>
         {riderTab === 'active' ? <>
           <div className="rider-dashboard-section-heading"><div><p className="rider-delivery-label">My deliveries</p><h2>Orders assigned to you</h2></div></div>
