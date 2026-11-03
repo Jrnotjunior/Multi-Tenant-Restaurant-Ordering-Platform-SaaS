@@ -575,8 +575,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     });
     return <main className="rider-dashboard-page rider-dashboard-home-page">
       <div className="rider-dashboard-mobile-appbar">
-        <span className="rider-dashboard-brandmark" aria-hidden="true">W2T</span>
-        <span className="rider-dashboard-brand-name">Web2Table <small>RIDER</small></span>
+        <span className="rider-dashboard-wordmark" aria-label="Web2Table"><span>Web</span><strong>2</strong><span>Table</span></span>
         <div className="rider-dashboard-account-menu">
           <button className="rider-account-button" type="button" aria-label="Open rider account menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(open => !open)}>
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5" /><path d="M5 20c.8-3.4 3.2-5.2 7-5.2s6.2 1.8 7 5.2" /></svg>
