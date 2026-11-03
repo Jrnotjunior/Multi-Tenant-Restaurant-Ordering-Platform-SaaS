@@ -58,7 +58,7 @@
 .owner-nav-icon{width:17px;display:inline-flex;justify-content:center;align-items:center;color:#b8c7de;font-size:15px}
 .owner-support{margin-top:auto;border-top:1px solid #263754;padding:18px 11px 0;font-size:11px;color:#c2d1e9}
 .owner-main{min-width:0;min-height:100vh;margin-left:0;display:flex;flex-direction:column}
-.owner-topbar{position:sticky;top:0;z-index:80;height:64px;flex-shrink:0;background:#fff;border-bottom:1px solid #e2e8f1;display:flex;align-items:center;justify-content:flex-end;gap:11px;padding:0 24px}
+.owner-topbar{height:64px;flex-shrink:0;background:#fff;border-bottom:1px solid #e2e8f1;display:flex;align-items:center;justify-content:flex-end;gap:11px;padding:0 24px}
 .owner-live{font-size:11px;font-weight:750;color:#1c2b42;display:grid;grid-template-columns:9px auto;column-gap:8px;align-items:center;margin-right:8px}
 .owner-live i{width:8px;height:8px;background:#12a36c;border-radius:50%;grid-row:span 2}
 .owner-live small{font-size:10px;color:#657791;font-weight:450}
