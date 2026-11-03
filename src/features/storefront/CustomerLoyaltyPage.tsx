@@ -6,7 +6,7 @@ import './storefront.css';
 type Tx={id:string;tenant_id:string;points_change:number;transaction_type:string;description:string;created_at:string;restaurantName?:string};
 export function CustomerLoyaltyPage({baseUrl}:{baseUrl:string}){
  const base=normalizeAppBase(baseUrl),[points,setPoints]=useState(0),[earned,setEarned]=useState(0),[redeemed,setRedeemed]=useState(0),[transactions,setTransactions]=useState<Tx[]>([]),[loading,setLoading]=useState(true),[message,setMessage]=useState('');
- useEffect(()=>{let live=true;void(async()=>{if(!supabase){setMessage('Account services are not configured.');setLoading(false);return;}const {data,error}=await supabase.auth.getSession();const user=data.session?.user;if(error||!user){window.location.hash = '/account/sign-in';return;}
+ useEffect(()=>{let live=true;void(async()=>{if(!supabase){setMessage('Account services are not configured.');setLoading(false);return;}const {data,error}=await supabase.auth.getSession();const user=data.session?.user;if(error||!user){window.location.hash = '#/account/sign-in';return;}
  const [accounts,ledger]=await Promise.all([
   supabase.from('tenant_customer_loyalty_accounts').select('tenant_id,points_balance,lifetime_points_earned,lifetime_points_redeemed').eq('customer_user_id',user.id),
   supabase.from('tenant_customer_loyalty_transactions').select('id,tenant_id,points_change,transaction_type,description,created_at').eq('customer_user_id',user.id).order('created_at',{ascending:false}).limit(100)
