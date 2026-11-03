@@ -17,7 +17,7 @@ function CustomerPageShell({ children }: { children: ReactNode }) {
           <img className="sf-logo-image" src={WEB2TABLE_LOGO} alt="Web2Table" width={46} height={46} />
         </a>
         <nav className="sf-header-actions" aria-label="Store navigation">
-          <a href={base + 'cart'} className="sf-bag-button" aria-label="Open cart" title="Cart">
+          <a href={base + '#/cart'} className="sf-bag-button" aria-label="Open cart" title="Cart">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.5 4.5h2l2.1 10.2a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 1.9-1.4L21 8H7"/><circle cx="10" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
           </a>
         </nav>
@@ -40,7 +40,7 @@ function PolicyIcon({ type }: { type: (typeof policies)[number]['icon'] }) {
 }
 
 export function LegalPoliciesPage({ route = '#legal' }: { route?: string }) {
-  const accountUrl = normalizeAppBase(import.meta.env.BASE_URL) + 'account';
+  const accountUrl = normalizeAppBase(import.meta.env.BASE_URL) + '#/account';
   const details = {
     '#privacy': {
       eyebrow: 'Data Privacy', title: 'Privacy Notice',
