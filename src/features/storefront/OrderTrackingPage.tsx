@@ -130,9 +130,9 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
   const orderTypeLabel = dineIn ? 'Dine-in' : orderType.replaceAll('-', ' ').replace(/\\b\\w/g, x => x.toUpperCase());
   const normalizedPaymentStatus = (status?.payment_status ?? '').toLowerCase();
   const isPaymentPaid = ['paid', 'succeeded', 'completed'].includes(normalizedPaymentStatus);
+  const paymentMethod = (status?.payment_method ?? orderMeta.paymentMethod ?? '').toLowerCase();
   const deliveryCodUnpaid = deliveryOrder && paymentMethod === 'cash' && ['unpaid', 'not_started', 'pending'].includes(normalizedPaymentStatus);
   const isPaymentRefunded = normalizedPaymentStatus === 'refunded';
-  const paymentMethod = status?.payment_method ?? orderMeta.paymentMethod;
   const paidOnline = paymentMethod === 'online' && isPaymentPaid;
   const paymentOptionLabel = paymentMethod === 'online'
     ? 'Online payment'
