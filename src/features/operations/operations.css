@@ -67,6 +67,7 @@
 .owner-account small{color:#657791;font-size:10px}
 .owner-account-caret{border:0;background:transparent;color:#526782;font-size:17px;cursor:pointer;padding:5px}
 .owner-content{box-sizing:border-box;width:100%;max-width:1060px;margin-inline:auto;padding:25px clamp(18px,3.2vw,44px) 55px;min-width:0;flex:1}
+.owner-main > .owner-content{box-sizing:border-box;width:min(1060px,100%);max-width:1060px;min-width:0;flex:0 1 1060px;margin-left:auto;margin-right:auto}
 .owner-order-tabs{display:flex;align-items:center;gap:23px;border-bottom:1px solid #dbe3ef;margin:0 0 27px;padding:0 0 0 0}
 .owner-order-tabs button{border:0;border-bottom:2px solid transparent;background:transparent;padding:7px 0 11px;color:#60718c;font:inherit;font-size:12px;cursor:pointer}
 .owner-order-tabs button.active{border-bottom-color:#13233c;color:#101B2F;font-weight:750}
