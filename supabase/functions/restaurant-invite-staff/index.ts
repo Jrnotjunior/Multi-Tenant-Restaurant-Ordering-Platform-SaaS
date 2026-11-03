@@ -44,7 +44,7 @@ Deno.serve(async (req: Request) => {
     const tenantId=typeof body?.tenant_id==="string"?body.tenant_id:"";
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||email.length>254) return respond(req,400,{error:"Enter a valid staff email address."});
     if(!firstName||firstName.length>60||!lastName||lastName.length>60) return respond(req,400,{error:"Enter both a first name and a last name (up to 60 characters each)."});
-    if(!/^09\\d{9}$/.test(phone)) return respond(req,400,{error:"Enter a valid 11-digit mobile number starting with 09."});
+    if(!/^09\d{9}$/.test(phone)) return respond(req,400,{error:"Enter a valid 11-digit mobile number starting with 09."});
     if(!["cashier","kitchen","dispatcher","rider"].includes(role)) return respond(req,400,{error:"Choose cashier, kitchen, dispatcher, or rider."});
     const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if(!uuid.test(branchId)||!uuid.test(tenantId)) return respond(req,400,{error:"Choose a restaurant branch."});
