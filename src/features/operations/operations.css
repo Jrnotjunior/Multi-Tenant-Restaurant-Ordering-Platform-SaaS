@@ -66,7 +66,7 @@
 .owner-account strong{color:#101B2F;font-weight:800;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .owner-account small{color:#657791;font-size:10px}
 .owner-account-caret{border:0;background:transparent;color:#526782;font-size:17px;cursor:pointer;padding:5px}
-.owner-content{padding:25px clamp(18px,3.2vw,44px) 55px;min-width:0;flex:1}
+.owner-content{box-sizing:border-box;width:100%;max-width:1060px;margin-inline:auto;padding:25px clamp(18px,3.2vw,44px) 55px;min-width:0;flex:1}
 .owner-order-tabs{display:flex;align-items:center;gap:23px;border-bottom:1px solid #dbe3ef;margin:0 0 27px;padding:0 0 0 0}
 .owner-order-tabs button{border:0;border-bottom:2px solid transparent;background:transparent;padding:7px 0 11px;color:#60718c;font:inherit;font-size:12px;cursor:pointer}
 .owner-order-tabs button.active{border-bottom-color:#13233c;color:#101B2F;font-weight:750}
@@ -79,7 +79,7 @@
 .owner-orders-empty h1,.owner-orders-empty h2{font-size:17px;margin:0 0 9px}
 .owner-orders-empty p{font-size:12px;line-height:1.6;color:#657791;max-width:640px}
 .owner-orders-empty button{border:1px solid #d2dce9;background:#F7F9FC;color:#263754;border-radius:8px;padding:9px 12px;cursor:pointer}
-.owner-dashboard{display:grid;align-content:start;gap:18px;max-width:1600px;margin:0 auto;color:#101B2F}
+.owner-dashboard{display:grid;align-content:start;gap:18px;width:100%;max-width:1060px;margin:0 auto;color:#101B2F}
 .owner-dashboard-actions{display:flex;justify-content:flex-end}
 .owner-dashboard-kicker{margin:0 0 7px;color:#70819a;font-size:9px;letter-spacing:.13em;font-weight:800}
 .owner-dashboard-refresh{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:0 14px;border:1px solid #dce5f0;border-radius:8px;background:#fff;color:#263754;font:inherit;font-size:11px;font-weight:750;cursor:pointer;box-shadow:0 1px 2px #26375408}
