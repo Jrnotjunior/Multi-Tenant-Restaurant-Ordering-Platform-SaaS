@@ -481,7 +481,6 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     const selectedRiderOrder = activeDeliveries.find(order => order.id === selectedRiderOrderId) ?? deliveryHistory.find(order => order.id === selectedRiderOrderId);
     if (selectedRiderOrder) {
       const order = selectedRiderOrder;
-      const status = order.assignment_status === 'arrived_at_customer' ? 'Arrived at customer' : order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'dispatched' ? 'Dispatched · ready to start' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : order.assignment_status === 'delivered' ? 'Delivered' : 'Assigned · waiting for dispatch';
       const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'arrive_customer' || item.action === 'collect_cod' || item.action === 'deliver');
       return <main className="rider-dashboard-page rider-delivery-page">
         <header className="rider-delivery-header">
@@ -493,8 +492,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           <div className="rider-delivery-header-actions">
           </div>
         </header>
-        <div className="rider-delivery-status-card"><span className="rider-delivery-status">{status}</span></div>
-        {error && <div className="rider-dashboard-message" role="alert">{error}</div>}
+                {error && <div className="rider-dashboard-message" role="alert">{error}</div>}
         {notice && <div className="rider-dashboard-notice" role="status">{notice}</div>}
         <div className="rider-delivery-layout">
           <main className="rider-delivery-main">
@@ -536,8 +534,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           <aside className="rider-delivery-sidebar">
             <section className="rider-delivery-card rider-delivery-progress-card">
               <p className="rider-delivery-label">Delivery status</p>
-              <h2>{status}</h2>
-              <div className="rider-delivery-steps">
+                            <div className="rider-delivery-steps">
                 {[
                   { label: 'Assigned', detail: 'Dispatcher assigned this delivery to you.' },
                   { label: 'Out for delivery', detail: 'You are heading to the customer.' },
@@ -600,7 +597,6 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
             <div className="rider-dashboard-empty"><span className="rider-dashboard-empty-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M10 15.5 24 8l14 7.5v17L24 40l-14-7.5v-17Z"/><path d="m10.5 15.8 13.5 7.6 13.5-7.6M24 23.5V40"/><path d="M17 11.8 31 19.5"/></svg></span><strong>No active deliveries</strong><span>New orders assigned by the dispatcher will appear here.</span></div> :
             <div className="rider-dashboard-list">{activeDeliveries.map(order => {
               const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'arrive_customer' || item.action === 'collect_cod' || item.action === 'deliver');
-              const status = order.assignment_status === 'arrived_at_customer' ? 'Arrived at customer' : order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'dispatched' ? 'Dispatched · ready to start' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : 'Assigned · waiting for dispatch';
               return <article className="rider-dashboard-delivery-card rider-dashboard-delivery-card-clickable" key={order.id}>
                 <button className="rider-dashboard-card-open" type="button" onClick={() => { setSelectedRiderOrderId(order.id); setOrderDetailsOpen(false); setSwipeProgress(0); }} aria-label={'Open order ' + formatOrderNumber(order.order_number)}>
                   <span className="rider-dashboard-delivery-top">
