@@ -63,12 +63,12 @@ Deno.serve(async (request) => {
     if (storefrontError) throw storefrontError;
     const onlinePayments = storefront?.online_payments as {
       enabled?: boolean;
-      methods?: { card?: boolean; gcash?: boolean; qrph?: boolean; grab_pay?: boolean; paymaya?: boolean; dob?: boolean; billease?: boolean };
+      methods?: Record<string, boolean>;
     } | null;
     if (onlinePayments?.enabled !== true) {
       return json({ error: "This restaurant is not currently accepting online payments." }, 409);
     }
-    const methodMap: Array<[keyof NonNullable<typeof onlinePayments>["methods"], string]> = [
+    const methodMap: Array<[string, string]> = [
       ["card", "card"], ["gcash", "gcash"], ["qrph", "qrph"],
       ["grab_pay", "grab_pay"], ["paymaya", "paymaya"], ["dob", "dob"], ["billease", "billease"],
     ];
