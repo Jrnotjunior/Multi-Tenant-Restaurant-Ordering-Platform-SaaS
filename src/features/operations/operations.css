@@ -438,6 +438,34 @@
 .owner-menu-customization-settings .mg-choice-mode small{color:var(--color-muted,#526782);font-size:11px;line-height:1.45}
 .owner-menu-customization-settings .mg-multiple-choice{display:flex;align-items:center;gap:9px;color:var(--color-text,#101B2F);font-size:12px;font-weight:650}
 @media(max-width:650px){.owner-menu-customization-settings .mg-choice-mode{grid-template-columns:1fr}.owner-menu-customization-settings .mg-list-row{flex-wrap:wrap;justify-content:flex-start}.owner-menu-customization-settings .mg-list-row>div{flex:1 1 100%}}
+.owner-menu-customization-settings .owner-customizations-card>.mg-card-title{margin-bottom:12px}
+.owner-menu-customization-settings .mg-customization-list{display:grid;gap:8px;margin:8px 0 12px}
+.owner-menu-customization-settings .mg-customization-group{overflow:hidden;border:1px solid var(--color-border,#DCE3ED);border-radius:10px;background:#fff}
+.owner-menu-customization-settings .mg-customization-group-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 13px}
+.owner-menu-customization-settings .mg-customization-group-heading details{flex:1;min-width:0}
+.owner-menu-customization-settings .mg-customization-group-heading summary{display:grid;gap:4px;cursor:pointer;list-style:none}
+.owner-menu-customization-settings .mg-customization-group-heading summary::-webkit-details-marker{display:none}
+.owner-menu-customization-settings .mg-customization-group-heading summary::after{content:'Manage choices  ▾';color:var(--color-muted,#526782);font-size:10px;font-weight:650}
+.owner-menu-customization-settings .mg-customization-group-heading details[open] summary::after{content:'Hide choices  ▴'}
+.owner-menu-customization-settings .mg-customization-group-heading summary strong{color:var(--color-text,#101B2F);font-size:13px}
+.owner-menu-customization-settings .mg-customization-group-heading summary span{color:var(--color-muted,#526782);font-size:10px}
+.owner-menu-customization-settings .mg-customization-group-heading .mg-toggle{font-size:10px}
+.owner-menu-customization-settings .mg-customization-group-body{padding:0 13px 13px;border-top:1px solid var(--color-border,#DCE3ED)}
+.owner-menu-customization-settings .mg-customization-options{display:grid;gap:8px;padding-top:10px}
+.owner-menu-customization-settings .mg-customization-option{display:flex;align-items:center;gap:12px;min-height:36px;padding:7px 9px;border:1px solid #E8EDF4;border-radius:8px}
+.owner-menu-customization-settings .mg-customization-option>div{display:grid;gap:3px;flex:1;min-width:0}
+.owner-menu-customization-settings .mg-customization-option strong{font-size:11px;color:var(--color-text,#101B2F)}
+.owner-menu-customization-settings .mg-customization-option span{font-size:10px;color:var(--color-muted,#526782)}
+.owner-menu-customization-settings .mg-customization-option .mg-toggle{font-size:10px}
+.owner-menu-customization-settings .mg-customization-add-choice{display:grid;grid-template-columns:minmax(0,2fr) minmax(110px,1fr) auto;align-items:end;gap:9px;margin-top:4px;padding:10px;border:1px dashed #CBD6E5;border-radius:9px;background:#F8FAFC}
+.owner-menu-customization-settings .mg-customization-add-choice .mg-field{font-size:10px}
+.owner-menu-customization-settings .mg-customization-add-choice input{padding:8px 9px;font-size:12px}
+.owner-menu-customization-settings .mg-customization-add-choice button{min-height:36px}
+.owner-menu-customization-settings .mg-customization-create-form{display:grid;gap:12px;margin-top:10px;padding:13px;border:1px solid var(--color-border,#DCE3ED);border-radius:10px;background:#F8FAFC}
+.owner-menu-customization-settings .mg-customization-empty{margin:3px 0 12px;font-size:11px}
+.owner-menu-customization-settings .mg-add-customization{min-height:36px;padding:8px 12px}
+.owner-menu-customization-settings .mg-edit-group{margin-top:10px}
+@media(max-width:650px){.owner-menu-customization-settings .mg-customization-group-heading{align-items:flex-start;flex-direction:column}.owner-menu-customization-settings .mg-customization-add-choice{grid-template-columns:minmax(0,1fr)}.owner-menu-customization-settings .mg-customization-add-choice button{width:100%}.owner-menu-customization-settings .mg-customization-option{flex-wrap:wrap}.owner-menu-customization-settings .mg-customization-option>div{flex:1 1 100%}}
 .restaurant-product-form-actions .button{min-width:130px}
 .restaurant-product-category-hint{font-size:11px;font-weight:400;color:var(--color-muted,#526782);line-height:1.5}
 .restaurant-delete-modal-backdrop{position:fixed;inset:0;z-index:1100;display:flex;align-items:center;justify-content:center;padding:20px;background:#101B2F94;backdrop-filter:blur(3px)}
