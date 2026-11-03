@@ -698,6 +698,15 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
         onPlaceOrder={async (submission: CheckoutSubmission) => {
           if (!supabase) throw new Error('Ordering service is not configured. No order was placed.');
           if (!restaurant?.slug || !restaurant.branchSlug) throw new Error('Restaurant branch is unavailable. No order was placed.');
+          if (submission.paymentMethod === 'online') {
+            const { data: latestStorefront, error: availabilityError } = await supabase.rpc('get_branch_storefront', {
+              p_slug: restaurant.slug,
+              p_branch_slug: restaurant.branchSlug,
+            });
+            if (availabilityError || !latestStorefront || (latestStorefront as { onlinePaymentsAvailable?: boolean }).onlinePaymentsAvailable !== true) {
+              throw new Error('Online payment is not available for this restaurant. Please choose cash. No order was placed.');
+            }
+          }
           const orderItems = [
             ...cartLines(cart, menu).map(line => ({ item_id: line.item.id, quantity: line.quantity, option_ids: [] as string[] })),
             ...customLines(customized, menu).map(line => ({ item_id: line.itemId, quantity: line.quantity, option_ids: [...line.optionIds], special_instructions: line.instructions })),
