@@ -15,7 +15,6 @@ type DeliveryForm = { baseFee: string; distanceIncrementMeters: string; feePerIn
 type StorefrontRow = {
   tenant_id: string;
   display_name: string | null;
-  tagline: string | null;
   restaurant_address: string | null;
   store_address: string | null;
   delivery_location_latitude: number | null;
@@ -166,7 +165,6 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
   const [row, setRow] = useState<StorefrontRow | null>(null);
   const [restaurantSlug, setRestaurantSlug] = useState('');
   const [restaurantAddress, setRestaurantAddress] = useState('');
-  const [tagline, setTagline] = useState('');
   const [acceptingOrders, setAcceptingOrders] = useState(false);
   const [hours, setHours] = useState<OperatingHours>(DEFAULT_HOURS);
   const [delivery, setDelivery] = useState<DeliveryForm>({ baseFee: '0', distanceIncrementMeters: '500', feePerIncrement: '10', maxDistanceKm: '10' });
@@ -191,7 +189,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         if (tenantError) throw tenantError;
         if (tenant && typeof tenant.slug === 'string') setRestaurantSlug(tenant.slug);
         const { data, error } = await supabase.from('tenant_storefronts')
-          .select('tenant_id,display_name,tagline,restaurant_address,store_address,delivery_location_latitude,delivery_location_longitude,accepting_orders,opening_hours,delivery_pricing,cash_payment_options,rider_assignment,online_payments')
+          .select('tenant_id,display_name,restaurant_address,store_address,delivery_location_latitude,delivery_location_longitude,accepting_orders,opening_hours,delivery_pricing,cash_payment_options,rider_assignment,online_payments')
           .eq('tenant_id', tenantId).maybeSingle();
         if (error) throw error;
         if (!data) throw new Error('No store settings exist for this restaurant yet.');
@@ -199,7 +197,6 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         const settings = data as unknown as StorefrontRow;
         setRow(settings);
         setRestaurantAddress(settings.restaurant_address ?? '');
-        setTagline(settings.tagline ?? '');
         setAcceptingOrders(settings.accepting_orders !== false);
         setHours(normalizeHours(settings.opening_hours));
         setDelivery(normalizeDelivery(settings.delivery_pricing));
@@ -274,7 +271,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
       const changes: Obj = {
         updated_at: new Date().toISOString(),
       };
-      if (activeTab === 'profile') Object.assign(changes, { restaurant_address: restaurantAddress.trim() || null, tagline: tagline.trim() });
+      if (activeTab === 'profile') Object.assign(changes, { restaurant_address: restaurantAddress.trim() || null });
       if (activeTab === 'hours') Object.assign(changes, { accepting_orders: acceptingOrders, opening_hours: nextHours });
       if (activeTab === 'delivery') Object.assign(changes, {
         store_address: storeAddress.trim() || null,
@@ -315,7 +312,6 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
       {activeTab === 'profile' && <section className="w2t-settings-card" role="tabpanel">
         <p className="w2t-settings-help w2t-settings-profile-intro">Update the customer-facing profile for {row.display_name ?? restaurantName ?? 'your restaurant'}.</p>
         <label className="w2t-setting-field"><span>Restaurant address</span><input type="text" maxLength={500} value={restaurantAddress} disabled={saving} placeholder="Enter the address customers should see" onChange={event => { setRestaurantAddress(event.target.value); setMessage(''); setError(''); }} /><small>This is the pickup address shown to customers. Set delivery routing location under Delivery pricing.</small></label>
-        <label className="w2t-setting-field"><span>Restaurant tagline</span><input type="text" maxLength={120} value={tagline} disabled={saving} placeholder="Enter your restaurant tagline" onChange={event => { setTagline(event.target.value); setMessage(''); setError(''); }} /></label>
       </section>}
       {activeTab === 'hours' && <>
         <section className="w2t-settings-card">
