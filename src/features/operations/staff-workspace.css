@@ -218,7 +218,8 @@
 @media(max-width:640px){.staff-payment-toolbar{gap:8px;flex-wrap:wrap}}
 
 /* Shared cashier-style segmented tabs for kitchen Orders / Menu. */
-.staff-workspace-tabs{display:inline-flex;align-items:center;gap:4px;padding:4px;border:1px solid var(--color-border,#DCE3ED);border-radius:10px;background:var(--color-surface,#fff)}
+.staff-workspace-tabs{position:relative;z-index:21;display:inline-flex;align-items:center;gap:4px;padding:4px;border:1px solid var(--color-border,#DCE3ED);border-radius:10px;background:var(--color-surface,#fff);isolation:isolate;pointer-events:auto}
+.staff-workspace-tabs button{position:relative;z-index:1;pointer-events:auto;touch-action:manipulation}
 .staff-workspace-tabs button{appearance:none;border:0;border-radius:7px;min-height:34px;padding:7px 16px;background:transparent;color:var(--color-muted,#526782);font:inherit;font-size:.82rem;font-weight:750;white-space:nowrap;cursor:pointer}
 .staff-workspace-tabs button:hover{background:var(--color-page,#F7F9FC);color:var(--color-text,#101B2F)}
 .staff-workspace-tabs button.is-selected{background:var(--color-text,#101B2F);color:#fff;box-shadow:0 1px 3px #101b2f24}
