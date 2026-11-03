@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties, type TouchEvent } from 'react';
 import { cartCount, cartLines, cartSubtotal, updateCart, type Cart } from './cart';
-import {addCustom,changeCustom,customCount,customLines,customSubtotal,type CustomCart,type Selection} from './customCart';
+import {addCustom,changeCustom,customCount,customLines,customSubtotal,editCustom,type CustomCart,type CustomLine,type Selection} from './customCart';
 import {CustomizeDialog} from './CustomizeDialog';
 import { filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
 import { branchSlugFromSearch, loadDefaultPublishedMenu, loadPublishedMenu, type StorefrontCatalog } from './publishedMenu';
@@ -123,9 +123,10 @@ export function buildCheckoutReadiness(input: {
   return { ready: true, reason: 'Details are complete, but server-side order submission is not available yet. No order has been placed.', subtotalCentavos };
 }
 
-function CartContents({ cart, customized, menu, change, changeCustomized, close, onCheckout }: {
+function CartContents({ cart, customized, menu, change, changeCustomized, onEditCustom, onEditRegular, close, onCheckout }: {
   cart: Cart; customized: CustomCart; menu: readonly MenuItem[]; change: (id: string, delta: number) => void;
-  changeCustomized:(key:string,delta:number)=>void; close?: () => void; onCheckout: () => void;
+  changeCustomized:(key:string,delta:number)=>void; onEditCustom:(line:ReturnType<typeof customLines>[number])=>void;
+  onEditRegular:(item:MenuItem,quantity:number)=>void; close?: () => void; onCheckout: () => void;
 }) {
   const lines = cartLines(cart, menu);
   const count = cartCount(cart, menu)+customCount(customized,menu);
@@ -157,6 +158,7 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
             <strong className="sf-cart-lineprice">{peso(line.totalCentavos)}</strong>
           </div>
           {line.options.length>0 && <p className="sf-custom-cart-line">{line.options.map(option=>option.name).join(' · ')}</p>}
+          {line.instructions && <p className="sf-custom-cart-line"><strong>Note:</strong> {line.instructions}</p>}
           <span className="sf-cart-unit-price">{peso(line.unitPriceCentavos)}</span>
           <div className="sf-cart-item-actions">
             <div className="sf-qty">
@@ -166,7 +168,8 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
               <button type="button" aria-label={'Add one customized '+line.item.name}
                 disabled={line.quantity>=20} onClick={()=>changeCustomized(line.key,1)}>+</button>
             </div>
-            <button type="button" className="sf-cart-remove sf-visually-hidden" onClick={()=>setRevealedRemoveKey(current => current === 'custom:' + line.key ? null : 'custom:' + line.key)} aria-expanded={revealedRemoveKey === 'custom:' + line.key}>Show remove button</button>
+            <button type="button" className="sf-cart-line-action" onClick={()=>onEditCustom(line)}>Edit</button>
+            <button type="button" className="sf-cart-remove" onClick={()=>changeCustomized(line.key,-line.quantity)}>Remove</button>
           </div>
           </div>
         </div>)}
@@ -180,7 +183,8 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
           <span className="sf-cart-unit-price">{peso(item.priceCentavos)}</span>
           <div className="sf-cart-item-actions">
             <QuantityControl itemId={item.id} quantity={quantity} change={change}/>
-            <button type="button" className="sf-cart-remove sf-visually-hidden" onClick={()=>setRevealedRemoveKey(current => current === item.id ? null : item.id)} aria-expanded={revealedRemoveKey === item.id}>Show remove button</button>
+            <button type="button" className="sf-cart-line-action" onClick={()=>onEditRegular(item,quantity)}>Customize</button>
+            <button type="button" className="sf-cart-remove" onClick={()=>change(item.id,-quantity)}>Remove</button>
           </div>
           </div>
         </div>)}
@@ -196,9 +200,9 @@ function CartContents({ cart, customized, menu, change, changeCustomized, close,
   </>;
 }
 
-function MenuCard({ item, quantity, add, customize, notify }: { item: MenuItem; quantity: number; add: (id: string, delta: number) => void; customize:(item:MenuItem)=>void; notify:(message:string)=>void }) {
+function MenuCard({ item, customize, notify }: { item: MenuItem; customize:(item:MenuItem)=>void; notify:(message:string)=>void }) {
   const soldOut = item.isAvailable === false;
-  const tryAdd = () => { if (soldOut) { notify(`${item.name} is sold out and can’t be added to your cart.`); return; } add(item.id, 1); };
+  const tryAdd = () => { if (soldOut) { notify(`${item.name} is sold out and can’t be added to your cart.`); return; } customize(item); };
   return <article className={'sf-menu-card' + (soldOut ? ' is-sold-out' : '')} style={{display:'grid',gridTemplateColumns:'160px minmax(0,1fr)',minHeight:166,borderRadius:15}}>
     <div className="sf-card-image" style={{height:166,minHeight:166,alignSelf:'stretch'}}>
       <FoodArt item={item}/>
@@ -213,11 +217,7 @@ function MenuCard({ item, quantity, add, customize, notify }: { item: MenuItem; 
           ? <button type="button" className="sf-sold-out-badge" onClick={tryAdd} aria-label={'Add ' + item.name + ' to cart (sold out)'}>Sold Out</button>
           : <>
               <span aria-hidden="true" />
-              {(item.modifierGroups?.length??0)>0
-                ? <button type="button" className="sf-customize-action" onClick={()=>customize(item)}>Customize</button>
-                : quantity > 0
-                ? <QuantityControl itemId={item.id} quantity={quantity} change={add}/>
-                : <button type="button" className="sf-add" onClick={tryAdd} aria-label={'Add ' + item.name + ' to cart'}>+</button>}
+              <button type="button" className="sf-add" onClick={tryAdd} aria-label={'Customize ' + item.name + ' and add it to cart'}>+</button>
             </>}
       </div>
     </div>
@@ -246,7 +246,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const [cart, setCart] = useState<Cart>({});
   const [customized,setCustomized]=useState<CustomCart>({});
   const [hydratedCartKey, setHydratedCartKey] = useState('');
-  const [customizing,setCustomizing]=useState<MenuItem|null>(null);
+  const [customizing,setCustomizing]=useState<{item:MenuItem;line?:CustomLine;legacyQuantity?:number}|null>(null);
   const [cartPage, setCartPage] = useState(() => initialCartPage || isStorefrontCartPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
   const [checkoutPage, setCheckoutPage] = useState(() => isStorefrontCheckoutPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
   const [trackingPage, setTrackingPage] = useState(() => isStorefrontTrackingPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
@@ -477,7 +477,12 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   }, [count]);
 
   const changeCustomized=(key:string,delta:number)=>setCustomized(previous=>changeCustom(previous,key,delta));
-  const addCustomized=(item:MenuItem,selected:Selection)=>setCustomized(previous=>addCustom(previous,item,selected));
+  const saveCustomized=(item:MenuItem,selected:Selection,quantity:number,instructions:string)=>{
+    setCustomized(previous=>customizing?.line
+      ? editCustom(previous,customizing.line.key,item,selected,quantity,instructions)
+      : addCustom(previous,item,selected,quantity,instructions));
+    if(customizing?.legacyQuantity)setCart(previous=>updateCart(previous,item.id,-customizing.legacyQuantity!,menu));
+  };
   const change = (itemId: string, delta: number) => {
     const item=menu.find(entry=>entry.id===itemId);
     if (delta>0 && item?.isAvailable===false) { setAvailabilityMessage(`${item.name} is sold out and can’t be added to your cart.`); return; }
@@ -625,14 +630,20 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
 
     <main className={cartPage ? "sf-main sf-main-cart" : "sf-main"}>
       {trackingPage ? <OrderTrackingPage trackingToken={customerSignedIn ? accountTrackingToken : undefined} onBackToMenu={() => { window.location.hash = restaurantMenuHash(resolvedSlug ?? requestedSlug ?? ''); setTrackingPage(false); setCartPage(false); setCheckoutPage(false); }} /> : cartPage ? <CartPage count={count} onBack={() => navigateCart(false)}>
-        <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized} close={() => navigateCart(false)} onCheckout={() => navigateCheckout(true)}/>
+        <CartContents cart={cart} customized={customized} menu={menu} change={change} changeCustomized={changeCustomized}
+          onEditCustom={line=>setCustomizing({item:line.item,line})}
+          onEditRegular={(item,legacyQuantity)=>setCustomizing({item,legacyQuantity})}
+          close={() => navigateCart(false)} onCheckout={() => navigateCheckout(true)}/>
       </CartPage> : checkoutPage ? <CheckoutPage
         restaurantSlug={resolvedSlug ?? requestedSlug ?? ''}
         itemCount={count}
         subtotalCentavos={subtotal}
         orderLines={[
           ...cartLines(cart, menu).map(line => ({ name: line.item.name, quantity: line.quantity, totalCentavos: line.item.priceCentavos * line.quantity })),
-          ...customLines(customized, menu).map(line => ({ name: line.item.name, quantity: line.quantity, totalCentavos: line.totalCentavos }))
+          ...customLines(customized, menu).map(line => ({
+            name: line.item.name, quantity: line.quantity, totalCentavos: line.totalCentavos,
+            details: [line.options.map(option=>option.name).join(' · '),line.instructions&&`Note: ${line.instructions}`].filter(Boolean).join(' · '),
+          }))
         ]}
         onBackToMenu={() => navigateCheckout(false)}
         onPlaceOrder={async (submission: CheckoutSubmission) => {
@@ -640,9 +651,11 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           if (!restaurant?.slug || !restaurant.branchSlug) throw new Error('Restaurant branch is unavailable. No order was placed.');
           const orderItems = [
             ...cartLines(cart, menu).map(line => ({ item_id: line.item.id, quantity: line.quantity, option_ids: [] as string[] })),
-            ...customLines(customized, menu).map(line => ({ item_id: line.itemId, quantity: line.quantity, option_ids: [...line.optionIds] })),
+            ...customLines(customized, menu).map(line => ({ item_id: line.itemId, quantity: line.quantity, option_ids: [...line.optionIds], special_instructions: line.instructions })),
           ];
           if (!orderItems.length) throw new Error('Your cart is empty. No order was placed.');
+          const missingRequiredCustomization=cartLines(cart,menu).find(line=>(line.item.modifierGroups??[]).some(group=>group.minSelect>0));
+          if(missingRequiredCustomization)throw new Error(`Please customize ${missingRequiredCustomization.item.name} in your cart before placing the order.`);
           const orderTypeMap = { Delivery: 'delivery', 'Take-out': 'take_out', Pickup: 'pickup', 'Dine-in': 'dine_in' } as const;
           const idempotencyKey = window.crypto?.randomUUID?.();
           if (!idempotencyKey) throw new Error('This browser cannot securely start checkout. Please update your browser and try again.');
@@ -723,7 +736,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
             </div>
           </div>
           {results.length ? <div className="sf-menu-grid" style={{display:'grid',gridTemplateColumns:'minmax(0,1fr)',gap:12}}> 
-            {results.map((item) => <MenuCard item={item} quantity={cart[item.id] ?? 0} add={change} customize={setCustomizing} notify={setAvailabilityMessage} key={item.id}/>)}
+            {results.map((item) => <MenuCard item={item} customize={item=>setCustomizing({item})} notify={setAvailabilityMessage} key={item.id}/>)}
           </div> : menu.length === 0 ? <div className="sf-no-results sf-menu-coming-soon"><span aria-hidden="true">🍽️</span><h3>Menu coming soon</h3><p>{restaurant.name} is preparing its menu. Please check back soon.</p></div>
           : <div className="sf-no-results"><span aria-hidden="true">🔎</span><h3>Nothing on the menu matched</h3><p>Try another search or choose a different category.</p><button type="button" onClick={() => {setQuery('');setCategory('All');}}>Clear filters</button></div>}
         </div>
@@ -766,7 +779,12 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
         <span className="sf-mobile-cart-count">{count}</span><span>View cart</span><strong>{peso(subtotal)}</strong><svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m9 5 7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
       </button>
     </div>}
-    <CustomizeDialog item={customizing} onAdd={addCustomized} onClose={()=>setCustomizing(null)}/>
+    <CustomizeDialog item={customizing?.item??null}
+      initialOptionIds={customizing?.line?.optionIds??[]}
+      initialInstructions={customizing?.line?.instructions??''}
+      initialQuantity={customizing?.line?.quantity??customizing?.legacyQuantity??1}
+      editing={Boolean(customizing?.line||customizing?.legacyQuantity)}
+      onSave={saveCustomized} onClose={()=>setCustomizing(null)}/>
     <span className="sf-visually-hidden" aria-live="polite" aria-atomic="true">{count} items in cart, subtotal {peso(subtotal)}</span>
   </div>;
 }

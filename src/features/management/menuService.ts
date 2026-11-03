@@ -340,6 +340,13 @@ export async function changeModifierGroup(tenantId:string,id:string,active:boole
  check(error);
  if(!data)throw Error('Modifier group was not updated.');
 }
+export async function updateModifierGroup(tenantId:string,id:string,name:string,min:number,max:number) {
+ const db=requireClient();
+ const {data,error}=await db.from('menu_modifier_groups')
+   .update({name:name.trim(),min_select:min,max_select:max}).eq('tenant_id',tenantId).eq('id',id).select('id').single();
+ check(error);
+ if(!data)throw Error('Modifier group was not updated.');
+}
 export async function createModifierOption(tenantId:string,itemId:string,groupId:string,name:string,price:number) {
  const db=requireClient();
  const {data,error}=await db.from('menu_modifier_options').insert({
@@ -353,6 +360,13 @@ export async function changeModifierOption(tenantId:string,id:string,active:bool
  const db=requireClient();
  const {data,error}=await db.from('menu_modifier_options')
   .update({is_active:active}).eq('tenant_id',tenantId).eq('id',id).select('id').single();
+ check(error);
+ if(!data)throw Error('Modifier option was not updated.');
+}
+export async function updateModifierOption(tenantId:string,id:string,name:string,price:number) {
+ const db=requireClient();
+ const {data,error}=await db.from('menu_modifier_options')
+   .update({name:name.trim(),price_centavos:price}).eq('tenant_id',tenantId).eq('id',id).select('id').single();
  check(error);
  if(!data)throw Error('Modifier option was not updated.');
 }

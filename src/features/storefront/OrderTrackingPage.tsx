@@ -4,7 +4,7 @@ import './storefront.css';
 
 const peso = (centavos: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 2 }).format(centavos / 100);
 
-type TrackedItem = { name: string; quantity: number; total_centavos: number; unit_price_centavos?: number; options?: unknown[] };
+type TrackedItem = { name: string; quantity: number; total_centavos: number; unit_price_centavos?: number; options?: { name?: string }[]; special_instructions?: string };
 type TrackedStatus = { order_status: string; assignment_status?: string | null; rider_name?: string | null; rider_phone?: string | null; payment_status: string; payment_method?: string; refund_status?: 'pending' | 'refunded' | 'failed' | null; order_type?: string; updated_at: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null };
 
 export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingToken?: string | null }) {
@@ -178,7 +178,7 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
         <button type="button" aria-expanded={detailsOpen} onClick={() => setDetailsOpen(value => !value)}>{detailsOpen ? 'Hide details' : 'View details'} <span aria-hidden="true">{detailsOpen ? '⌃' : '⌄'}</span></button>
       </section>
       {detailsOpen && <div className="sf-tracking-order-lines">
-        {status.items?.length ? status.items.map((line, index) => <div key={line.name + index}><span>{line.quantity} × {line.name}</span><strong>{peso(line.total_centavos)}</strong></div>) : <p>Order items are not available for this order.</p>}
+        {status.items?.length ? status.items.map((line, index) => <div key={line.name + index}><span>{line.quantity} × {line.name}{line.options?.length ? <small className="sf-tracking-item-detail">{line.options.map(option=>option.name).filter(Boolean).join(' · ')}</small> : null}{line.special_instructions&&<small className="sf-tracking-item-detail">Note: {line.special_instructions}</small>}</span><strong>{peso(line.total_centavos)}</strong></div>) : <p>Order items are not available for this order.</p>}
         {status.subtotal_centavos != null && <p><span>Subtotal</span><strong>{peso(status.subtotal_centavos)}</strong></p>}
         {status.delivery_fee_centavos != null && <p><span>Delivery fee</span><strong>{peso(status.delivery_fee_centavos)}</strong></p>}
         {status.total_centavos != null && <p><span>Total</span><strong>{peso(status.total_centavos)}</strong></p>}

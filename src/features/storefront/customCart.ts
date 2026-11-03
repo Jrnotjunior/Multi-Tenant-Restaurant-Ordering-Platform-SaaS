@@ -2,12 +2,16 @@ import type { MenuItem, ModifierGroup } from './demoCatalog';
 
 export type Selection = Readonly<Record<string,readonly string[]>>;
 export type CustomLine = Readonly<{
- key:string;itemId:string;optionIds:readonly string[];quantity:number;
+ key:string;itemId:string;optionIds:readonly string[];quantity:number;instructions:string;
 }>;
 export type CustomCart = Readonly<Record<string,CustomLine>>;
 
 export function selectedOptions(groups:readonly ModifierGroup[],selection:Selection) {
   return groups.flatMap(group=>group.options.filter(o=>selection[group.id]?.includes(o.id)));
+}
+export function selectionFromOptionIds(groups:readonly ModifierGroup[],optionIds:readonly string[]):Selection {
+ const selected=new Set(optionIds);
+ return Object.fromEntries(groups.map(group=>[group.id,group.options.filter(option=>selected.has(option.id)).map(option=>option.id)]));
 }
 export function validateSelection(groups:readonly ModifierGroup[],selection:Selection):boolean {
   const validGroupIds=new Set(groups.map(g=>g.id));
@@ -19,15 +23,24 @@ export function validateSelection(groups:readonly ModifierGroup[],selection:Sele
       new Set(selected).size===selected.length && selected.every(id=>permitted.has(id));
   });
 }
-export function customKey(itemId:string,optionIds:readonly string[]):string {
-  return JSON.stringify([itemId,...[...optionIds].sort()]);
+export function customKey(itemId:string,optionIds:readonly string[],instructions=''):string {
+ const note=instructions.trim();
+ return JSON.stringify([itemId,...[...optionIds].sort(),...(note?['note:'+note]:[])]);
 }
-export function addCustom(cart:CustomCart,item:MenuItem,selection:Selection):CustomCart {
+export function addCustom(cart:CustomCart,item:MenuItem,selection:Selection,quantity=1,instructions=''):CustomCart {
   if(!validateSelection(item.modifierGroups??[],selection))return cart;
+  if(!Number.isInteger(quantity)||quantity<1||quantity>20)return cart;
   const ids=selectedOptions(item.modifierGroups??[],selection).map(o=>o.id).sort();
-  const key=customKey(item.id,ids);
+  const cleanInstructions=instructions.trim();
+  if(cleanInstructions.length>300)return cart;
+  const key=customKey(item.id,ids,cleanInstructions);
   const prior=cart[key]?.quantity??0;
-  return {...cart,[key]:{key,itemId:item.id,optionIds:ids,quantity:Math.min(20,prior+1)}};
+  return {...cart,[key]:{key,itemId:item.id,optionIds:ids,quantity:Math.min(20,prior+quantity),instructions:cleanInstructions}};
+}
+export function editCustom(cart:CustomCart,oldKey:string,item:MenuItem,selection:Selection,quantity:number,instructions:string):CustomCart {
+  const next={...cart};
+  delete next[oldKey];
+  return addCustom(next,item,selection,quantity,instructions);
 }
 export function changeCustom(cart:CustomCart,key:string,delta:number):CustomCart {
   const existing=cart[key];
@@ -50,7 +63,7 @@ export function customLines(cart:CustomCart,menu:readonly MenuItem[]) {
     if(!validateSelection(groups,reconstructed))return [];
     const options=opts.filter((o):o is NonNullable<typeof o>=>!!o);
     const unit=item.priceCentavos+options.reduce((n,o)=>n+o.priceCentavos,0);
-    return [{...line,item,options,unitPriceCentavos:unit,totalCentavos:unit*line.quantity}];
+    return [{...line,instructions:line.instructions??'',item,options,unitPriceCentavos:unit,totalCentavos:unit*line.quantity}];
   });
 }
 export function customCount(cart:CustomCart,menu:readonly MenuItem[]) {

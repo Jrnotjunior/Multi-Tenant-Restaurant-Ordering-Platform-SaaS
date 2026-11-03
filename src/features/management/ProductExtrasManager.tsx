@@ -2,7 +2,7 @@ import {useState,type FormEvent} from 'react';
 import {centavosToPesoInput,pesoInputToCentavos} from './pricing';
 import {
  createModifierGroup,changeModifierGroup,createModifierOption,changeModifierOption,
- uploadMenuPhoto,publicMenuPhoto,type OwnerData,
+ updateModifierGroup,updateModifierOption,uploadMenuPhoto,publicMenuPhoto,type OwnerData,
 } from './menuService';
 
 type Run=(label:string,work:()=>Promise<unknown>)=>Promise<OwnerData|null|undefined>;
@@ -15,6 +15,13 @@ export function ProductExtrasManager({data,busy,run}:{data:OwnerData;busy:boolea
   const [selectedGroup,setSelectedGroup]=useState('');
   const [optionName,setOptionName]=useState('');
   const [optionPrice,setOptionPrice]=useState('0');
+  const [editingGroup,setEditingGroup]=useState('');
+  const [editingGroupName,setEditingGroupName]=useState('');
+  const [editingMinimum,setEditingMinimum]=useState('0');
+  const [editingMaximum,setEditingMaximum]=useState('1');
+  const [editingOption,setEditingOption]=useState('');
+  const [editingOptionName,setEditingOptionName]=useState('');
+  const [editingOptionPrice,setEditingOptionPrice]=useState('0');
   const [uploads,setUploads]=useState<Record<string,File|undefined>>({});
   const itemId=data.items.some(item=>item.id===selectedItem)?selectedItem:data.items[0]?.id??'';
   const groups=data.groups.filter(g=>g.item_id===itemId);
@@ -38,12 +45,12 @@ export function ProductExtrasManager({data,busy,run}:{data:OwnerData;busy:boolea
       .then(next=>{if(next){setOptionName('');setOptionPrice('0');}});
   }
 
-  if(!data.items.length)return <section className="mg-card"><h2>Photos and customizations</h2>
-    <p className="mg-muted">Add your first product to manage photos, sizes and add-ons.</p></section>;
+  if(!data.items.length)return <section className="mg-card"><h2>Menu customizations</h2>
+    <p className="mg-muted">Add a menu item first, then configure its choices, add-ons and special instructions here.</p></section>;
 
   return <section className="mg-card">
-    <div className="mg-card-title"><div><h2>Product photos and customizations</h2>
-      <p>Upload public menu photos, add size choices and configure optional extras.</p></div></div>
+    <div className="mg-card-title"><div><h2>Menu customizations</h2>
+      <p>Set choices and priced add-ons for each menu item. Customers can add special instructions when ordering.</p></div></div>
     <div className="mg-notice">Images are public restaurant marketing assets. Do not upload IDs, employee details or private documents. Accepted: JPEG, PNG or WebP, up to 3 MB.</div>
     <div className="mg-list">
       {data.items.map(item=><div className="mg-photo-row" key={item.id}>
@@ -66,8 +73,8 @@ export function ProductExtrasManager({data,busy,run}:{data:OwnerData;busy:boolea
       </div>)}
     </div>
 
-    <h3>Sizes and add-on groups</h3>
-    <p className="mg-muted">A group sets the minimum and maximum choices. For example, Size: choose 1, or Extra toppings: choose up to 3.</p>
+    <h3>Customization groups</h3>
+    <p className="mg-muted">Groups belong to the selected item. Use minimum 1 and maximum 1 for a required single choice; minimum 0 for optional add-ons.</p>
     <label className="mg-field mg-selector">Product
       <select value={itemId} onChange={event=>{setSelectedItem(event.target.value);setSelectedGroup('');}}>
         {data.items.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}
@@ -75,7 +82,7 @@ export function ProductExtrasManager({data,busy,run}:{data:OwnerData;busy:boolea
     </label>
     <form className="mg-form" onSubmit={addGroup}>
       <div className="mg-fields-two">
-        <label className="mg-field">New modifier group
+        <label className="mg-field">Group name
           <input required minLength={2} maxLength={100} value={groupName}
             onChange={e=>setGroupName(e.target.value)} placeholder="e.g. Choose your size"/></label>
         <div className="mg-fields-two">
@@ -87,25 +94,29 @@ export function ProductExtrasManager({data,busy,run}:{data:OwnerData;busy:boolea
               onChange={e=>setMaximum(e.target.value)}/></label>
         </div>
       </div>
-      <div className="mg-actions"><button type="submit" disabled={busy||!itemId||data.groups.filter(g=>g.item_id===itemId).length>=8}>Create inactive group</button></div>
+      <div className="mg-actions"><button type="submit" disabled={busy||!itemId||data.groups.filter(g=>g.item_id===itemId).length>=8}>Create hidden group</button></div>
     </form>
     <div className="mg-list">
       {groups.map(group=>{
         const activeCount=data.options.filter(o=>o.group_id===group.id&&o.is_active).length;
         const canPublish=activeCount>=group.min_select && activeCount>0;
         return <div className="mg-list-row" key={group.id}>
-          <div><strong>{group.name}</strong><span>Choose {group.min_select}–{group.max_select} · {activeCount} enabled options</span></div>
-          <label className="mg-toggle"><input type="checkbox" checked={group.is_active}
+          {editingGroup===group.id?<form className="mg-form" onSubmit={event=>{event.preventDefault();const min=Number(editingMinimum),max=Number(editingMaximum);if(!Number.isInteger(min)||!Number.isInteger(max)||min<0||max<1||min>max||max>20)return;void run('Edit customization group',()=>updateModifierGroup(data.tenant.id,group.id,editingGroupName,min,max)).then(next=>{if(next)setEditingGroup('');});}}>
+            <label className="mg-field">Group name<input required minLength={2} maxLength={100} value={editingGroupName} onChange={e=>setEditingGroupName(e.target.value)}/></label>
+            <div className="mg-fields-two"><label className="mg-field">Minimum<input type="number" min={0} max={20} value={editingMinimum} onChange={e=>setEditingMinimum(e.target.value)}/></label><label className="mg-field">Maximum<input type="number" min={1} max={20} value={editingMaximum} onChange={e=>setEditingMaximum(e.target.value)}/></label></div>
+            <div className="mg-actions"><button type="submit" disabled={busy||(group.is_active&&(activeCount===0||activeCount<Number(editingMinimum)))}>Save</button><button type="button" className="mg-secondary" onClick={()=>setEditingGroup('')}>Cancel</button></div>
+          </form>:<div><strong>{group.name}</strong><span>Choose {group.min_select}–{group.max_select} · {activeCount} enabled options</span></div>}
+          {editingGroup!==group.id&&<><button type="button" className="mg-secondary" onClick={()=>{setEditingGroup(group.id);setEditingGroupName(group.name);setEditingMinimum(String(group.min_select));setEditingMaximum(String(group.max_select));}}>Edit</button><label className="mg-toggle"><input type="checkbox" checked={group.is_active}
             disabled={busy||(!group.is_active&&!canPublish)}
             onChange={e=>void run('Group visibility',()=>changeModifierGroup(data.tenant.id,group.id,e.target.checked))}/>
-            Visible</label>
+            Visible</label></>}
         </div>;
       })}
       {!groups.length&&<p className="mg-muted">No modifier groups yet. Add one above.</p>}
     </div>
 
     {groups.length>0&&<>
-      <h3>Modifier options</h3>
+      <h3>Choices and add-ons</h3>
       <label className="mg-field mg-selector">Group
         <select value={groupId} onChange={e=>setSelectedGroup(e.target.value)}>
           {groups.map(group=><option value={group.id} key={group.id}>{group.name}</option>)}
@@ -119,17 +130,21 @@ export function ProductExtrasManager({data,busy,run}:{data:OwnerData;busy:boolea
             <input required inputMode="decimal" value={optionPrice}
               onChange={e=>setOptionPrice(e.target.value)} placeholder="0.00"/></label>
         </div>
-        <div className="mg-actions"><button type="submit" disabled={busy||options.length>=20||!groupId}>Create inactive option</button></div>
+        <div className="mg-actions"><button type="submit" disabled={busy||options.length>=20||!groupId}>Create hidden choice</button></div>
       </form>
       <div className="mg-list">
         {options.map(option=><div className="mg-list-row" key={option.id}>
-          <div><strong>{option.name}</strong><span>+₱{centavosToPesoInput(option.price_centavos)}</span></div>
-          <label className="mg-toggle"><input type="checkbox" checked={option.is_active} disabled={busy}
+          {editingOption===option.id?<form className="mg-form" onSubmit={event=>{event.preventDefault();const cents=pesoInputToCentavos(editingOptionPrice);if(cents===null)return;void run('Edit customization option',()=>updateModifierOption(data.tenant.id,option.id,editingOptionName,cents)).then(next=>{if(next)setEditingOption('');});}}>
+            <label className="mg-field">Option name<input required minLength={2} maxLength={100} value={editingOptionName} onChange={e=>setEditingOptionName(e.target.value)}/></label>
+            <label className="mg-field">Additional price (PHP)<input required inputMode="decimal" value={editingOptionPrice} onChange={e=>setEditingOptionPrice(e.target.value)}/></label>
+            <div className="mg-actions"><button type="submit" disabled={busy}>Save</button><button type="button" className="mg-secondary" onClick={()=>setEditingOption('')}>Cancel</button></div>
+          </form>:<div><strong>{option.name}</strong><span>+₱{centavosToPesoInput(option.price_centavos)}</span></div>}
+          {editingOption!==option.id&&<><button type="button" className="mg-secondary" onClick={()=>{setEditingOption(option.id);setEditingOptionName(option.name);setEditingOptionPrice(centavosToPesoInput(option.price_centavos));}}>Edit</button><label className="mg-toggle"><input type="checkbox" checked={option.is_active} disabled={busy||(option.is_active&&(groups.find(group=>group.id===groupId)?.min_select??0)>options.filter(candidate=>candidate.is_active).length-1)}
             onChange={e=>void run('Option visibility',()=>changeModifierOption(
-              data.tenant.id,option.id,e.target.checked))}/>Visible</label>
+              data.tenant.id,option.id,e.target.checked))}/>Visible</label></>}
         </div>)}
       </div>
     </>}
-    <p className="mg-hint">Groups and options start hidden. Activate options first, then enable the group. Disabling required options may make a published item uncustomizable; verify the storefront after changes. Checkout remains disabled.</p>
+    <p className="mg-hint">Groups and options start hidden. Activate options first, then show the group. Required groups must have enough active choices available or customers will not be able to add the item.</p>
   </section>;
 }

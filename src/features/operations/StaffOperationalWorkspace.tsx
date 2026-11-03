@@ -9,7 +9,7 @@ import './staff-workspace.css';
 import './rider-dashboard.css';
 import { buildRiderNavigationUrls } from './riderNavigation';
 
-type Item = { id: string; item_name: string; quantity: number; line_total_centavos: number; options?: { name?: string }[] };
+type Item = { id: string; item_name: string; quantity: number; line_total_centavos: number; options?: { name?: string }[]; special_instructions?: string };
 type Order = {
   id: string; order_number: number; branch_id: string; branch_name: string;
   order_type: 'delivery' | 'take_out' | 'pickup' | 'dine_in'; customer_name: string; customer_phone: string;
@@ -521,7 +521,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
                 <span className="rider-order-details-chevron" aria-hidden="true">{orderDetailsOpen ? '⌃' : '⌄'}</span>
               </button>
               {orderDetailsOpen && <>
-                <div className="rider-delivery-items">{order.items.map(item => <div className="rider-delivery-item" key={item.id}><span><strong>{item.quantity}×</strong> {item.item_name}</span><span>{money(item.line_total_centavos)}</span></div>)}</div>
+                <div className="rider-delivery-items">{order.items.map(item => <div className="rider-delivery-item" key={item.id}><span><strong>{item.quantity}×</strong> {item.item_name}{item.options?.length ? <small>{item.options.map(option=>option.name).filter(Boolean).join(', ')}</small> : null}{item.special_instructions&&<small>Note: {item.special_instructions}</small>}</span><span>{money(item.line_total_centavos)}</span></div>)}</div>
                 <div className="rider-delivery-subtotal"><span>Subtotal</span><strong>{money(order.subtotal_centavos)}</strong></div>
                 <div className="rider-delivery-fee"><span>Delivery fee</span><strong>{order.delivery_fee_centavos == null ? 'Pending' : money(order.delivery_fee_centavos)}</strong></div>
                 <div className="rider-delivery-total"><span>Order total</span><strong>{money(order.total_centavos)}</strong></div>
@@ -717,12 +717,12 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           {role === 'cashier' && order.order_status === 'pending_confirmation' && !maySendOrderToKitchen(order) && <p className="staff-notice is-error" role="note">This order must be paid before it can go to the kitchen. Unpaid cash is allowed only for delivery and pickup.</p>}
           {role === 'kitchen' ? <>
             {order.delivery_notes && <div className="staff-cashier-modal-note"><strong>Customer notes</strong><span>{order.delivery_notes}</span></div>}
-            <ul className="staff-cashier-modal-items staff-kitchen-modal-items">{(order.items ?? []).map(item => <li key={item.id}><span>{item.item_name}{item.options?.length ? <small>{item.options.map(option => option.name).filter(Boolean).join(', ')}</small> : null}</span><strong>× {item.quantity}</strong></li>)}</ul>
+            <ul className="staff-cashier-modal-items staff-kitchen-modal-items">{(order.items ?? []).map(item => <li key={item.id}><span>{item.item_name}{item.options?.length ? <small>{item.options.map(option => option.name).filter(Boolean).join(', ')}</small> : null}{item.special_instructions&&<small>Note: {item.special_instructions}</small>}</span><strong>× {item.quantity}</strong></li>)}</ul>
           </> : <>
             <div className="staff-cashier-modal-customer"><strong>Customer</strong><span>{order.customer_name}</span></div>
             {order.order_type === 'delivery' && order.delivery_address && <div className="staff-cashier-modal-note"><strong>Delivery address</strong><span>{order.delivery_address}</span></div>}
             {order.delivery_notes && <div className="staff-cashier-modal-note"><strong>Special Instructions</strong><span>{order.delivery_notes}</span></div>}
-            <ul className="staff-cashier-modal-items staff-cashier-order-items">{(order.items ?? []).map(item => <li key={item.id}><strong className="staff-cashier-item-quantity">{item.quantity} ×</strong><span className="staff-cashier-item-detail">{item.item_name}{item.options?.length ? <small>{item.options.map(option => option.name).filter(Boolean).join(', ')}</small> : null}</span><strong className="staff-cashier-item-price">{money(item.line_total_centavos)}</strong></li>)}</ul>
+            <ul className="staff-cashier-modal-items staff-cashier-order-items">{(order.items ?? []).map(item => <li key={item.id}><strong className="staff-cashier-item-quantity">{item.quantity} ×</strong><span className="staff-cashier-item-detail">{item.item_name}{item.options?.length ? <small>{item.options.map(option => option.name).filter(Boolean).join(', ')}</small> : null}{item.special_instructions&&<small>Note: {item.special_instructions}</small>}</span><strong className="staff-cashier-item-price">{money(item.line_total_centavos)}</strong></li>)}</ul>
             <div className="staff-cashier-modal-breakdown">
               <div><span>Subtotal</span><strong>{money(order.subtotal_centavos)}</strong></div>
               {order.order_type === 'delivery' && <div><span>Delivery fee</span><strong>{order.delivery_fee_centavos == null ? 'Pending' : money(order.delivery_fee_centavos)}</strong></div>}

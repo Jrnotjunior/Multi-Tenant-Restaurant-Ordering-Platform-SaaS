@@ -13,6 +13,7 @@ type OrderItem = {
   unit_price_centavos: number;
   line_total_centavos: number;
   options: { id?: string; name?: string; group_name?: string }[];
+  special_instructions?: string;
 };
 type CustomerOrder = {
   id: string;

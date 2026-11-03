@@ -3,6 +3,7 @@ type KitchenTicketItem = {
   item_name: string;
   quantity: number;
   options?: { name?: string }[];
+  special_instructions?: string;
 };
 
 export type KitchenTicketOrder = {
@@ -82,6 +83,7 @@ export function printKitchenTicket(printWindow: Window, order: KitchenTicketOrde
     appendTextElement(document, details, 'div', item.item_name, 'item-name');
     const options = item.options?.map(option => option.name?.trim()).filter((name): name is string => Boolean(name));
     if (options?.length) appendTextElement(document, details, 'div', options.join(', '), 'options');
+    if (item.special_instructions?.trim()) appendTextElement(document, details, 'div', 'Note: ' + item.special_instructions.trim(), 'options');
   }
 
   if (order.delivery_notes.trim()) {

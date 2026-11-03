@@ -1,23 +1,29 @@
 import { useEffect,useRef,useState,type FormEvent } from 'react';
 import { peso,type MenuItem } from './demoCatalog';
-import { selectedOptions,validateSelection,type Selection } from './customCart';
+import { selectedOptions,selectionFromOptionIds,validateSelection,type Selection } from './customCart';
 
-export function CustomizeDialog({item,onAdd,onClose}:{
-  item:MenuItem|null;onAdd:(item:MenuItem,selection:Selection)=>void;onClose:()=>void;
+export function CustomizeDialog({item,onSave,onClose,initialOptionIds=[],initialInstructions='',initialQuantity=1,editing=false}:{
+  item:MenuItem|null;onSave:(item:MenuItem,selection:Selection,quantity:number,instructions:string)=>void;onClose:()=>void;
+  initialOptionIds?:readonly string[];initialInstructions?:string;initialQuantity?:number;editing?:boolean;
 }) {
   const ref=useRef<HTMLDialogElement>(null);
   const [choices,setChoices]=useState<Selection>({});
+  const [quantity,setQuantity]=useState(1);
+  const [instructions,setInstructions]=useState('');
+  const optionIdsKey=initialOptionIds.join('|');
   useEffect(()=>{
     const dialog=ref.current;
     if(item) {
-      const defaults:Record<string,string[]>={};
+      const defaults:Record<string,readonly string[]>={...selectionFromOptionIds(item.modifierGroups??[],optionIdsKey?optionIdsKey.split('|'):[])};
       // A required single-option group can be selected immediately.
       for(const group of item.modifierGroups??[])
-        defaults[group.id]=group.minSelect===1 && group.options.length===1?[group.options[0].id]:[];
+        if(!defaults[group.id]?.length)defaults[group.id]=group.minSelect===1 && group.options.length===1?[group.options[0].id]:[];
       setChoices(defaults);
+      setQuantity(Math.max(1,Math.min(20,initialQuantity)));
+      setInstructions(initialInstructions);
       if(dialog&&!dialog.open)dialog.showModal();
     } else if(dialog?.open)dialog.close();
-  },[item]);
+  },[item,optionIdsKey,initialInstructions,initialQuantity]);
 
   function toggle(groupId:string,optionId:string,limit:number) {
     setChoices(previous=>{
@@ -30,7 +36,7 @@ export function CustomizeDialog({item,onAdd,onClose}:{
   function submit(event:FormEvent) {
     event.preventDefault();
     if(!item||!validateSelection(item.modifierGroups??[],choices))return;
-    onAdd(item,choices);onClose();
+    onSave(item,choices,quantity,instructions.trim());onClose();
   }
   const groups=item?.modifierGroups??[];
   const options=selectedOptions(groups,choices);
@@ -48,21 +54,29 @@ export function CustomizeDialog({item,onAdd,onClose}:{
         <div className="sf-custom-groups">
           {groups.map(group=><fieldset key={group.id} className="sf-custom-group">
             <legend>{group.name}</legend>
-            <p>{group.minSelect>0?'Choose at least '+group.minSelect:'Optional'} · Up to {group.maxSelect}</p>
+            <p>{group.minSelect>0?'Required · choose '+group.minSelect+(group.maxSelect>group.minSelect?'–'+group.maxSelect:''):'Optional · choose up to '+group.maxSelect}</p>
             {group.options.map(option=>{
               const selected=(choices[group.id]??[]).includes(option.id);
               return <label className={'sf-custom-choice'+(selected?' sf-custom-selected':'')} key={option.id}>
-                <input type={group.maxSelect===1?'radio':'checkbox'}
+                <input type={group.maxSelect===1&&group.minSelect>0?'radio':'checkbox'}
                   name={'modifier-'+group.id} checked={selected}
                   onChange={()=>toggle(group.id,option.id,group.maxSelect)}/>
                 <span>{option.name}</span><strong>{option.priceCentavos===0?'Included':'+'+peso(option.priceCentavos)}</strong>
               </label>;
             })}
           </fieldset>)}
+          <label className="sf-custom-instructions">Special instructions <span>Optional</span>
+            <textarea value={instructions} maxLength={300} rows={3} onChange={event=>setInstructions(event.target.value)} placeholder="e.g. No onions, sauce on the side…" />
+            <small>{instructions.length}/300</small>
+          </label>
         </div>
         <div className="sf-custom-footer">
           {!ready&&<p role="status">Complete the required choices to add this item.</p>}
-          <button type="submit" disabled={!ready}>Add to basket · {peso(unit)}</button>
+          <div className="sf-custom-quantity" aria-label="Quantity">
+            <span>Quantity</span>
+            <div><button type="button" aria-label="Decrease quantity" disabled={quantity<=1} onClick={()=>setQuantity(value=>Math.max(1,value-1))}>−</button><strong>{quantity}</strong><button type="button" aria-label="Increase quantity" disabled={quantity>=20} onClick={()=>setQuantity(value=>Math.min(20,value+1))}>+</button></div>
+          </div>
+          <button type="submit" disabled={!ready}>{editing?'Save changes':'Add to cart'} · {peso(unit*quantity)}</button>
         </div>
       </form>
     </>}

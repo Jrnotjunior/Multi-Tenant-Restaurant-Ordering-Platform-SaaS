@@ -35,7 +35,7 @@ type CheckoutPageProps = {
   restaurantSlug: string;
   itemCount: number;
   subtotalCentavos: number;
-  orderLines: readonly { name: string; quantity: number; totalCentavos: number }[];
+  orderLines: readonly { name: string; quantity: number; totalCentavos: number; details?: string }[];
   onBackToMenu: () => void;
   onPlaceOrder: (submission: CheckoutSubmission) => Promise<{ orderNumber: number; checkoutUrl?: string; trackingToken: string }>;
   trackingOnly?: boolean;
@@ -332,7 +332,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
       <section className="sf-checkout-total" aria-label="Order summary">
         <div className="sf-checkout-summary-heading"><span>Order summary</span></div>
         {orderLines.map((line, index) => <div className="sf-checkout-summary-line" key={line.name + '-' + index}>
-          <span>{line.quantity} × {line.name}</span><strong>{peso(line.totalCentavos)}</strong>
+          <span>{line.quantity} × {line.name}{line.details&&<small className="sf-checkout-line-details">{line.details}</small>}</span><strong>{peso(line.totalCentavos)}</strong>
         </div>)}
         <div className="sf-checkout-summary-subtotal"><span>Subtotal</span><strong>{peso(subtotalCentavos)}</strong></div>
         {loyaltyLoading && <p className="sf-checkout-optional">Checking available restaurant rewards…</p>}

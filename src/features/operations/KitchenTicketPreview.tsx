@@ -59,7 +59,7 @@ export function KitchenTicketPreview({ order, restaurantName, onClose }: Props) 
         </div>
         <ul className="staff-kitchen-ticket-items">{(order.items ?? []).map(item => <li key={item.id}>
           <strong>{item.quantity}×</strong>
-          <span>{item.item_name}{item.options?.length ? <small>{item.options.map(option => option.name).filter(Boolean).join(', ')}</small> : null}</span>
+          <span>{item.item_name}{item.options?.length ? <small>{item.options.map(option => option.name).filter(Boolean).join(', ')}</small> : null}{item.special_instructions&&<small>Note: {item.special_instructions}</small>}</span>
         </li>)}</ul>
         {order.delivery_notes.trim() && <div className="staff-kitchen-ticket-note"><strong>Special instructions</strong><span>{order.delivery_notes}</span></div>}
         <footer>Kitchen copy</footer>
