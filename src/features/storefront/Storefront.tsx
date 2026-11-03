@@ -794,7 +794,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     </main>
 
     {availabilityMessage && createPortal(
-      <div className="sf-checkout-backdrop sf-availability-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setAvailabilityMessage(''); }}>
+      <div className="sf-availability-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setAvailabilityMessage(''); }}>
         <section className="sf-availability-modal" role="alertdialog" aria-modal="true" aria-labelledby="sf-availability-title" aria-describedby="sf-availability-description">
           <div className="sf-availability-icon" aria-hidden="true">!</div>
           <h2 id="sf-availability-title">Store unavailable</h2>
