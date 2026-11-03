@@ -43,7 +43,7 @@ const staffRouteFor = (role: StaffWorkspaceRole, page: string) => {
   return '#restaurant/' + role + (base ? '/' + base : '');
 };
 const staffWorkspaceHref = (role: StaffWorkspaceRole) => normalizeAppBase(import.meta.env.BASE_URL) + staffRouteFor(role, '');
-const label = (value: string) => value.replaceAll('_', ' ');
+const label = (value: string) => value.replaceAll('_', ' ').replace(/\b\w/g, character => character.toUpperCase());
 const formatOrderNumber = (value: number | string) => `ORD-${String(value).trim().replace(/^ORD-/i, '').padStart(5, '0')}`;
 const typeLabel = (value: Order['order_type']) => ({ delivery: 'Delivery', take_out: 'Take-out', pickup: 'Pickup', dine_in: 'Dine-in' })[value];
 const roleCopy: Record<StaffWorkspaceRole, { eyebrow: string; title: string; intro: string; queue: string }> = {
