@@ -39,6 +39,7 @@ type CheckoutPageProps = {
   onBackToMenu: () => void;
   onPlaceOrder: (submission: CheckoutSubmission) => Promise<{ orderNumber: number; checkoutUrl?: string; trackingToken: string }>;
   trackingOnly?: boolean;
+  onlinePaymentsAvailable: boolean;
 };
 
 function OrderTypeSection({ value, onChange }: {
@@ -138,7 +139,7 @@ function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onS
 }
 
 /** Standalone checkout screen. It prepares details only; it does not place or charge an order. */
-export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orderLines, onBackToMenu, onPlaceOrder, trackingOnly = false }: CheckoutPageProps) {
+export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orderLines, onBackToMenu, onPlaceOrder, trackingOnly = false, onlinePaymentsAvailable }: CheckoutPageProps) {
   const [orderType, setOrderType] = useState<OrderType>('Delivery');
   const [customerFirstName, setCustomerFirstName] = useState('');
   const [customerLastName, setCustomerLastName] = useState('');
@@ -151,6 +152,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
   const [reviewed, setReviewed] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | ''>('');
+  useEffect(() => { if (!onlinePaymentsAvailable && paymentMethod === 'online') setPaymentMethod('cash'); }, [onlinePaymentsAvailable, paymentMethod]);
   const [submitting, setSubmitting] = useState(false);
   // A checkout must never inherit the previous order's tracking state. The
   // dedicated tracking view may restore its saved order; a new checkout starts
@@ -372,17 +374,19 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
             <span className="sf-payment-option-copy"><strong>{orderType === 'Delivery' ? 'Cash on delivery' : orderType === 'Pickup' ? 'Pay cash at pickup' : 'Pay cash at the counter'}</strong><small>{orderType === 'Delivery' ? 'Place your order now and pay the rider when your order arrives.' : orderType === 'Pickup' ? 'Place your order now and pay the cashier when you collect it.' : 'Place your order now and pay the cashier at the restaurant counter before preparation.'}</small></span>
             <input type="radio" name="paymentMethod" value="cash" checked={paymentMethod === 'cash'} onChange={() => setPaymentMethod('cash')} />
           </label>
-          <label className={'sf-payment-option' + (paymentMethod === 'online' ? ' is-selected' : '')}>
+          {onlinePaymentsAvailable && (<label className={'sf-payment-option' + (paymentMethod === 'online' ? ' is-selected' : '')}>
             <span className="sf-payment-option-icon" aria-hidden="true">↗</span>
             <span className="sf-payment-option-copy"><strong>Online Payment</strong><small>Pay securely through our online payment gateway.</small></span>
             <input type="radio" name="paymentMethod" value="online" checked={paymentMethod === 'online'} onChange={() => setPaymentMethod('online')} />
           </label>
+          )}
         </div>
         <p className="sf-payment-policy">By placing your order, you agree to our Cancellation &amp; Refund Policy.</p>
         {message && <p className="sf-checkout-page-message" role="status">{message}</p>}
         <div className="sf-payment-modal-actions">
           <button type="button" className="sf-payment-cancel" onClick={() => setPaymentModalOpen(false)}>Cancel</button>
           <button type="button" className="sf-payment-place-order" disabled={!paymentMethod || submitting} onClick={async () => {
+            if (paymentMethod === 'online' && !onlinePaymentsAvailable) { setMessage('Online payments are not currently available for this restaurant. Please choose cash.'); setPaymentMethod('cash'); return; }
             if (paymentMethod === 'online' && orderType === 'Delivery' && !deliveryQuote) { setMessage('Please wait for the delivery fee to be confirmed before online payment. No order has been placed.'); return; }
             const form = document.querySelector<HTMLFormElement>('.sf-checkout-page-form');
             if (!form) return;
