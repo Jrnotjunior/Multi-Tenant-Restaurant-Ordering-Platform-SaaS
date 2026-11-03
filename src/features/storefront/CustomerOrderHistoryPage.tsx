@@ -111,7 +111,7 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
           </header>
           <div className="sf-order-history-modal-content">
             <p>Status: <strong>{titleCaseLabel(selectedOrder.order_status)}</strong></p>
-            <p>Payment: {selectedOrder.payment_method === 'online' ? 'Online' : selectedOrder.payment_method ?? 'Cash'} · {titleCaseLabel(selectedOrder.payment_status)}{selectedOrder.refund_status && <> · Refund: {selectedOrder.refund_status}</>}</p>
+            <p>Payment: {titleCaseLabel(selectedOrder.payment_method || 'cash')} · {titleCaseLabel(selectedOrder.payment_status)}{selectedOrder.refund_status && <> · Refund: {titleCaseLabel(selectedOrder.refund_status)}</>}</p>
             <div className="sf-order-history-items"><h3>Items</h3>{selectedOrder.items?.map((item, index) => <p key={selectedOrder.order_id + item.name + index}>{item.quantity} × {item.name} <strong>{peso(item.total_centavos)}</strong></p>)}</div>
             <div className="sf-order-history-totals"><p>Subtotal <strong>{peso(selectedOrder.subtotal_centavos)}</strong></p>{selectedOrder.delivery_fee_centavos != null && <p>Delivery fee <strong>{peso(selectedOrder.delivery_fee_centavos)}</strong></p>}{selectedOrder.total_centavos != null && <p className="sf-order-history-grand-total">Total <strong>{peso(selectedOrder.total_centavos)}</strong></p>}</div>
           </div>
