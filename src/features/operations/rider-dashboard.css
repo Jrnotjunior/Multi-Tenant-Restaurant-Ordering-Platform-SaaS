@@ -179,7 +179,8 @@
 .rider-delivery-header{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin-bottom:1.5rem}
 .rider-delivery-header h1{margin:0;font-size:clamp(2rem,6vw,3.5rem);line-height:1;letter-spacing:-.04em}
 .rider-delivery-header>div>p{margin:.5rem 0 0;color:var(--color-muted,#64748b)}
-.rider-delivery-back{display:inline-block;margin-bottom:.65rem;color:var(--color-muted,#64748b);font-size:.82rem;font-weight:750;text-decoration:none}
+.rider-delivery-back{appearance:none;display:inline-flex;align-items:center;gap:.3rem;margin-bottom:.65rem;padding:0;border:0;background:transparent;color:var(--color-muted,#64748b);font:inherit;font-size:.82rem;font-weight:750;text-decoration:none;cursor:pointer}
+.rider-delivery-back:focus-visible{outline:2px solid var(--color-primary,#64748b);outline-offset:3px;border-radius:3px}
 .rider-delivery-header-actions{display:flex;align-items:center;gap:.65rem}
 .rider-delivery-status{display:inline-flex;align-items:center;min-height:36px;padding:0 .8rem;border-radius:999px;background:var(--surface-muted,#f1f5f9);color:var(--text,#172033);font-size:.8rem;font-weight:800}
 .rider-delivery-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.8fr);gap:1rem;align-items:start}

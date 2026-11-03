@@ -478,7 +478,6 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     );
     const hasOnRoad = activeDeliveries.some(order => ['out_for_delivery', 'arrived_at_customer'].includes(order.assignment_status ?? '') || order.order_status === 'out_for_delivery');
     const selectedRiderOrder = activeDeliveries.find(order => order.id === selectedRiderOrderId) ?? deliveryHistory.find(order => order.id === selectedRiderOrderId);
-    const selectedOrderIsHistory = Boolean(selectedRiderOrder && deliveryHistory.some(order => order.id === selectedRiderOrder.id));
     if (selectedRiderOrder) {
       const order = selectedRiderOrder;
       const status = order.assignment_status === 'arrived_at_customer' ? 'Arrived at customer' : order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'dispatched' ? 'Dispatched · ready to start' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : order.assignment_status === 'delivered' ? 'Delivered' : 'Assigned · waiting for dispatch';
@@ -486,7 +485,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       return <main className="rider-dashboard-page rider-delivery-page">
         <header className="rider-delivery-header">
           <div>
-            <a className="rider-delivery-back" href="#" onClick={(event) => { event.preventDefault(); setSelectedRiderOrderId(null); }}>{selectedOrderIsHistory ? '← Delivery history' : '← My deliveries'}</a>
+            <button className="rider-delivery-back" type="button" onClick={() => setSelectedRiderOrderId(null)}>← Back</button>
             <p className="rider-delivery-order-eyebrow">Delivery order</p>
             <h1 className="rider-delivery-order-number">{/^ORD-/i.test(String(order.order_number)) ? String(order.order_number) : `Order #${order.order_number}`}</h1>
             <p>Deliver this order to the customer.</p>
