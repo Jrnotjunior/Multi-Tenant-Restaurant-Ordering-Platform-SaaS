@@ -156,8 +156,8 @@ function OperationsDashboard({ tenantId, restaurantName, onNavigate }: Pick<Prop
   </main>;
 }
 
-export function OwnerSectionPage({ page, tenantId, onNavigate }: Props) {
-  if (page === 'dashboard') return <OperationsDashboard tenantId={tenantId} onNavigate={onNavigate} />;
+export function OwnerSectionPage({ page, tenantId, restaurantName, onNavigate }: Props) {
+  if (page === 'dashboard') return <OperationsDashboard tenantId={tenantId} restaurantName={restaurantName} onNavigate={onNavigate} />;
 
   return <main className="owner-content"><section className="owner-orders-empty">
     <h1>{ownerPageTitles[page]}</h1>
