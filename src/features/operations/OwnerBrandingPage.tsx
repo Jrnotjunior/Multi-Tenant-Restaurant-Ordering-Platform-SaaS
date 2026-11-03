@@ -28,6 +28,7 @@ export function OwnerBrandingPage({tenantId,restaurantName}:Props) {
   const [favicon,setFavicon]=useState<string|null>(null);
   const [logo,setLogo]=useState<string|null>(null);
   const [displayName,setDisplayName]=useState(restaurantName??'');
+  const [tagline,setTagline]=useState('');
   const [loading,setLoading]=useState(true);
   const [saving,setSaving]=useState(false);
   const [message,setMessage]=useState('');
@@ -56,7 +57,7 @@ export function OwnerBrandingPage({tenantId,restaurantName}:Props) {
         if(!active)return;
         const row=data as Brand & {favicon_path:string|null;social_links:SocialLinks;website_colors:Partial<WebsiteColors>};
         setDefaults(themeColors);
-        setBrand(row);setDisplayName(row.display_name??restaurantName??'');
+        setBrand(row);setDisplayName(row.display_name??restaurantName??'');setTagline(row.tagline??'');
         setSocial({...{facebook:'',instagram:'',tiktok:''},...(row.social_links??{})});
         setColors({...themeColors,...(row.website_colors??{})});
         setLogo(publicStorefrontLogo(row.logo_path));
@@ -97,7 +98,7 @@ export function OwnerBrandingPage({tenantId,restaurantName}:Props) {
     setSaving(true);setMessage('');
     try{
       const {error}=await supabase.from('tenant_storefronts').update({
-        display_name:displayName.trim(),social_links:social,website_colors:colors,
+        display_name:displayName.trim(),tagline:tagline.trim(),social_links:social,website_colors:colors,
         updated_at:new Date().toISOString()
       }).eq('tenant_id',tenantId);
       if(error)throw error;
@@ -125,6 +126,7 @@ export function OwnerBrandingPage({tenantId,restaurantName}:Props) {
             <button type="button" onClick={()=>logoInput.current?.click()}>Choose logo</button><input ref={logoInput} hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>void uploadImage(e,'logo')}/></div>
         </div>
         <label className="owner-branding-input">Restaurant display name<input value={displayName} maxLength={160} required onChange={e=>setDisplayName(e.target.value)}/></label>
+        <label className="owner-branding-input">Restaurant tagline<input value={tagline} maxLength={120} onChange={e=>setTagline(e.target.value)} placeholder="Enter your restaurant tagline"/></label>
       </section>}
       {tab==='social'&&<section className="owner-branding-panel owner-branding-social">
         {(['facebook','instagram','tiktok'] as const).map(key=><label key={key}>{key[0].toUpperCase()+key.slice(1)+' URL'}<input type="url" placeholder={'https://www.'+key+'.com/yourrestaurant'} value={social[key]} onChange={e=>setSocial({...social,[key]:e.target.value})}/></label>)}
