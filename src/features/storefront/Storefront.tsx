@@ -252,6 +252,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const [customizing,setCustomizing]=useState<{item:MenuItem;line?:CustomLine;legacyQuantity?:number}|null>(null);
   const [cartPage, setCartPage] = useState(() => initialCartPage || isStorefrontCartPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
   const [checkoutPage, setCheckoutPage] = useState(() => isStorefrontCheckoutPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
+  const [checkoutGateReady, setCheckoutGateReady] = useState(false);
   const [trackingPage, setTrackingPage] = useState(() => isStorefrontTrackingPath(routePathFromLocation(window.location.pathname, window.location.hash, baseUrl), baseUrl));
   const [hasTrackedOrder, setHasTrackedOrder] = useState(false);
   const [accountTrackingToken, setAccountTrackingToken] = useState<string | null>(null);
@@ -545,8 +546,10 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     window.scrollTo({ top: 0, behavior: 'auto' });
   }
 
-  function navigateCheckout(open: boolean) {
-    if (!resolvedSlug) { setCheckoutPage(open); setCartPage(false); return; }
+  async function navigateCheckout(open: boolean) {
+    if (open && !(await checkStoreAvailability())) return;
+    setCheckoutGateReady(!open);
+    if (!resolvedSlug) { setCheckoutPage(open); setCartPage(!open); return; }
     const nextHash = open ? storefrontCheckoutHash(resolvedSlug) : restaurantMenuHash(resolvedSlug);
     window.location.hash = nextHash.slice(1);
     setCheckoutPage(open);
@@ -555,6 +558,25 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     setAccountMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'auto' });
   }
+
+  // A checkout URL can be opened directly or restored after refresh, so
+  // re-check availability after the published branch has loaded as well.
+  useEffect(() => {
+    if (!checkoutPage || loadStatus !== 'ready' || !restaurant) return;
+    let cancelled = false;
+    setCheckoutGateReady(false);
+    void checkStoreAvailability().then(available => {
+      if (cancelled) return;
+      if (available) {
+        setCheckoutGateReady(true);
+      } else {
+        setCheckoutPage(false);
+        setCartPage(true);
+        if (resolvedSlug) window.location.hash = storefrontCartHash(resolvedSlug).slice(1);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [checkoutPage, loadStatus, restaurant?.slug, restaurant?.branchSlug, resolvedSlug]);
 
   function switchBranch(slug:string) {
     if(!restaurant || !catalog || slug === restaurant.branchSlug) return;
@@ -660,7 +682,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           onEditCustom={line=>setCustomizing({item:line.item,line})}
           onEditRegular={(item,legacyQuantity)=>setCustomizing({item,legacyQuantity})}
           close={() => navigateCart(false)} onCheckout={() => navigateCheckout(true)}/>
-      </CartPage> : checkoutPage ? <CheckoutPage
+      </CartPage> : checkoutPage && !checkoutGateReady ? <div className="sf-no-results" role="status"><h3>Checking store availability…</h3><p>Please wait while we confirm that this restaurant is accepting orders.</p></div> : checkoutPage ? <CheckoutPage
         restaurantSlug={resolvedSlug ?? requestedSlug ?? ''}
         itemCount={count}
         subtotalCentavos={subtotal}
