@@ -683,6 +683,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           onEditRegular={(item,legacyQuantity)=>setCustomizing({item,legacyQuantity})}
           close={() => navigateCart(false)} onCheckout={() => navigateCheckout(true)}/>
       </CartPage> : checkoutPage && !checkoutGateReady ? <div className="sf-no-results" role="status"><h3>Checking store availability…</h3><p>Please wait while we confirm that this restaurant is accepting orders.</p></div> : checkoutPage ? <CheckoutPage
+        onlinePaymentsAvailable={restaurant?.onlinePaymentsAvailable === true}
         restaurantSlug={resolvedSlug ?? requestedSlug ?? ''}
         itemCount={count}
         subtotalCentavos={subtotal}
