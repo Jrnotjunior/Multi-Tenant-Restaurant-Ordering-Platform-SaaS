@@ -1,6 +1,4 @@
 .rider-dashboard-page{position:relative;width:min(900px,calc(100% - 2rem));margin:0 auto;padding:2rem 0 4rem;color:var(--color-text)}
-.rider-dashboard-mobile-appbar{display:contents}
-.rider-dashboard-wordmark{display:none}
 .rider-dashboard-header{position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin-bottom:1.5rem;padding-right:3.5rem}
 .rider-dashboard-header h1{margin:0;font-family:var(--font-heading);font-size:clamp(2rem,6vw,3.2rem);line-height:1;letter-spacing:-.04em}
 .rider-dashboard-header>div>p:last-child{margin:.5rem 0 0;color:var(--color-muted)}
@@ -144,12 +142,8 @@
 @media(min-width:760px){.rider-dashboard-page .rider-order-detail{padding:1.5rem;gap:1.15rem}}
 @media(max-width:760px){
   .rider-dashboard-home-page{position:fixed;inset:0;z-index:1000;box-sizing:border-box;width:auto;height:auto;min-height:100dvh;max-width:none;margin:0;padding:0 0 calc(24px + env(safe-area-inset-bottom));overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;background:#fff;color:#101b2f}
-  .rider-dashboard-home-page .rider-dashboard-mobile-appbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;width:100%;height:64px;padding:env(safe-area-inset-top,0px) 18px 0;background:#101b2f;color:#fff}
-  .rider-dashboard-home-page .rider-dashboard-wordmark{display:flex;align-items:baseline;color:#fff;font-size:1.08rem;font-weight:800;letter-spacing:-.055em;line-height:1}
-  .rider-dashboard-home-page .rider-dashboard-wordmark strong{color:#ef3340;font-weight:900}
-  .rider-dashboard-home-page .rider-dashboard-account-menu{position:relative;inset:auto;z-index:21}
-  .rider-dashboard-home-page .rider-account-button{width:38px;height:38px;border-color:#ffffff38;background:transparent;color:#fff}
-  .rider-dashboard-home-page .rider-account-button:hover{border-color:#fff;background:#ffffff12}
+  .rider-dashboard-home-page .rider-dashboard-account-menu{position:relative;inset:auto;z-index:21;flex:0 0 auto}
+  .rider-dashboard-home-page .rider-account-button{width:38px;height:38px}
   .rider-dashboard-home-page .rider-account-dropdown{top:calc(100% + 8px)}
   .rider-dashboard-home-page .rider-dashboard-header{align-items:flex-start;gap:.75rem;margin:0;padding:20px 18px 18px}
   .rider-dashboard-home-page .rider-dashboard-header>div:first-child{min-width:0}
