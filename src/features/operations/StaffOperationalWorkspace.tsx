@@ -606,7 +606,6 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
                 <button className="rider-dashboard-card-open" type="button" onClick={() => { setSelectedRiderOrderId(order.id); setOrderDetailsOpen(false); setSwipeProgress(0); }} aria-label={'Open order ' + formatOrderNumber(order.order_number)}>
                   <span className="rider-dashboard-delivery-top">
                     <strong>{formatOrderNumber(order.order_number)}</strong>
-                    <span className={'rider-dashboard-status ' + (order.assignment_status === 'out_for_delivery' ? 'is-delivering' : '')}>{status}</span>
                   </span>
                   <span className="rider-dashboard-card-bottom">
                     <span className="rider-dashboard-card-copy"><strong className="rider-dashboard-card-customer">{order.customer_name}</strong><span className="rider-dashboard-card-address">{order.delivery_address || typeLabel(order.order_type)}</span></span>
