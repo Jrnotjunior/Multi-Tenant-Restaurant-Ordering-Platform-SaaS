@@ -34,10 +34,14 @@ Deno.serve(async(req:Request)=>{if(req.method==="OPTIONS")return new Response("o
    if(!tenant||tenant.status!=="active")return json({error:"This restaurant is unavailable. No order was placed."},409);
    const {data:storefront,error:storefrontError}=await admin.from("tenant_storefronts").select("status,online_payments").eq("tenant_id",tenant.id).maybeSingle();
    if(storefrontError)throw storefrontError;
-   const settings=storefront?.online_payments as {enabled?:boolean;methods?:Record<string,boolean>}|null;
+   const settings=storefront?.online_payments as {enabled?:boolean;provider_configured?:boolean;methods?:Record<string,boolean>}|null;
    const hasEnabledMethod=Object.values(settings?.methods??{}).some(value=>value===true);
-   if(storefront?.status!=="published"||settings?.enabled!==true||!hasEnabledMethod)
-     return json({error:"Online payment is not available for this restaurant. Please choose cash. No order was placed."},409);
+   const {data:merchant,error:merchantError}=await admin.from("tenant_paymongo_accounts")
+     .select("connection_status").eq("tenant_id",tenant.id).eq("environment","live").maybeSingle();
+   if(merchantError)throw merchantError;
+   if(storefront?.status!=="published"||settings?.enabled!==true||settings?.provider_configured!==true||
+      merchant?.connection_status!=="active"||!hasEnabledMethod)
+     return json({error:"Online payment is not available for this restaurant yet. Please choose cash. No order was placed."},409);
  }
  const loyaltyPointsToRedeem=Number(b.loyaltyPointsToRedeem??0);
  if(!Number.isSafeInteger(loyaltyPointsToRedeem)||loyaltyPointsToRedeem<0||loyaltyPointsToRedeem>2147483647)return json({error:"Choose a valid loyalty points amount."},400);
