@@ -66,11 +66,11 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
     setSignedIn(false);
     setName('Your account');
     setEmail('');
-    window.location.assign(base + 'account');
+    window.location.hash = '/account';
   };
 
-  const authHref = (mode: 'sign-in' | 'sign-up') => base + 'account/' + mode;
-  const protectedHref = (path: string) => signedIn ? base + path : authHref('sign-in');
+  const authHref = (mode: 'sign-in' | 'sign-up') => base + '#/account/' + mode;
+  const protectedHref = (path: string) => signedIn ? base + '#/' + path : authHref('sign-in');
 
   return <div className="sf-storefront sf-account-page">
     <a className="sf-skip-link" href="#customer-account-main">Skip to account content</a>
