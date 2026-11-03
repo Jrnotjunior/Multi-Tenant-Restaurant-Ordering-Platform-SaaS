@@ -130,6 +130,7 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
   const orderTypeLabel = dineIn ? 'Dine-in' : orderType.replaceAll('-', ' ').replace(/\\b\\w/g, x => x.toUpperCase());
   const normalizedPaymentStatus = (status?.payment_status ?? '').toLowerCase();
   const isPaymentPaid = ['paid', 'succeeded', 'completed'].includes(normalizedPaymentStatus);
+  const deliveryCodUnpaid = deliveryOrder && paymentMethod === 'cash' && ['unpaid', 'not_started', 'pending'].includes(normalizedPaymentStatus);
   const isPaymentRefunded = normalizedPaymentStatus === 'refunded';
   const paymentMethod = status?.payment_method ?? orderMeta.paymentMethod;
   const paidOnline = paymentMethod === 'online' && isPaymentPaid;
@@ -159,7 +160,7 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
       <header className="sf-tracking-order-heading">
         <span className="sf-tracking-eyebrow">{isCancelled ? 'ORDER CANCELLED' : dineInCashOrder ? 'DINE-IN · TELL THE CASHIER' : takeOutCashOrder ? 'TAKE-OUT · TELL THE CASHIER' : orderTypeLabel.toUpperCase()}</span>
         <h1>ORD-{orderNumText}</h1>
-        <p>{isCancelled ? cancellationMessage : dineInCashOrder ? 'Give this order number to the cashier to help them find your order.' : takeOutCashOrder ? 'Give this order number to the cashier to help them find your order.' : 'Your order status updates automatically.'}</p>
+        <p>{isCancelled ? cancellationMessage : dineInCashOrder ? 'Give this order number to the cashier to help them find your order.' : takeOutCashOrder ? 'Give this order number to the cashier to help them find your order.' : deliveryCodUnpaid ? 'Please pay your rider when you receive your order.' : 'Your order status updates automatically.'}</p>
       </header>
       {assignedRider && <section className="sf-tracking-rider" aria-label="Your delivery rider">
         <span className="sf-tracking-eyebrow">YOUR RIDER</span>
