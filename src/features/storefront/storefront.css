@@ -465,7 +465,7 @@
 .sf-menu-card.is-sold-out .sf-card-bottom{justify-content:flex-end}
 .sf-menu-card .sf-sold-out-badge:hover{background:var(--sf-soft);color:var(--sf-font-color)}
 @media(max-width:480px){.sf-menu-card.is-sold-out{grid-template-columns:112px minmax(0,1fr)!important;min-height:124px!important}.sf-menu-card.is-sold-out .sf-card-image{height:124px!important;min-height:124px!important}.sf-menu-card.is-sold-out .sf-card-details{padding:9px!important}.sf-menu-card.is-sold-out .sf-card-details h3{font-size:var(--sf-font-size-13)}}
-.sf-availability-backdrop{z-index:1100}
+.sf-availability-backdrop{position:fixed;inset:0;z-index:1100;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:16px;overflow-y:auto;background:rgba(24,18,16,.48)}
 .sf-availability-modal{width:min(100%,360px);box-sizing:border-box;padding:28px 24px 22px;border:1px solid var(--sf-border);border-radius:20px;background:var(--sf-product-card);color:var(--sf-font-color);text-align:center;box-shadow:0 24px 70px rgba(16,27,47,.24)}
 .sf-availability-icon{display:grid;place-items:center;width:48px;height:48px;margin:0 auto 14px;border-radius:50%;background:#fff1f2;border:1px solid #fecaca;color:#b42318;font-size:28px;font-weight:800}
 .sf-availability-modal h2{margin:0 0 8px;font-size:var(--sf-font-size-20);line-height:1.25;color:var(--sf-font-color)}
