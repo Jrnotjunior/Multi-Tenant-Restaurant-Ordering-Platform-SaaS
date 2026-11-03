@@ -12,20 +12,18 @@ type Props = {
 };
 
 export function OwnerAppShell({ groups, page, displayName, onNavigate, onSignOut, children }: Props) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const closeMobileNav = () => setMobileNavOpen(false);
 
-  return <div className={`owner-app${sidebarCollapsed ? ' owner-sidebar-collapsed' : ''}`}>
+  return <div className="owner-app">
     <div className="owner-layout">
       <aside id="owner-primary-navigation" className={`owner-sidebar${mobileNavOpen ? ' is-mobile-open' : ''}`} aria-label="Primary navigation">
         <div className="owner-sidebar-heading">
           <span className="owner-sidebar-brand" aria-label="Web2table">W<span>2</span>T</span>
-          <button type="button" className="owner-sidebar-collapse" aria-label={sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'} aria-expanded={!sidebarCollapsed} onClick={() => setSidebarCollapsed(value => !value)}>{sidebarCollapsed ? '›' : '‹'}</button>
         </div>
         <nav className="owner-sidebar-nav">
           {groups.map(group => <section className="owner-nav-group" key={group.label}><h2>{group.label}</h2>
-            {group.items.map(item => <button type="button" key={item.key} title={sidebarCollapsed ? item.label : undefined} className={page === item.key ? 'active' : ''} aria-current={page === item.key ? 'page' : undefined} onClick={() => { onNavigate(item.key); closeMobileNav(); }}><span className="owner-nav-icon" aria-hidden="true">{item.icon}</span><span className="owner-nav-label">{item.label}</span></button>)}
+            {group.items.map(item => <button type="button" key={item.key} className={page === item.key ? 'active' : ''} aria-current={page === item.key ? 'page' : undefined} onClick={() => { onNavigate(item.key); closeMobileNav(); }}><span className="owner-nav-icon" aria-hidden="true">{item.icon}</span><span className="owner-nav-label">{item.label}</span></button>)}
           </section>)}
         </nav>
         <div className="owner-support">♧　<span>Contact Customer Support</span></div>
