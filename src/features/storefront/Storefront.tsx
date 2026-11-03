@@ -206,7 +206,7 @@ function MenuCard({ item, quantity, add, customize, notify }: { item: MenuItem; 
     </div>
     <div className="sf-card-details" style={{display:'flex',flexDirection:'column',minWidth:0,padding:'10px 12px 9px'}}>
       <h3 style={{marginTop:0}}>{item.name}</h3>
-      <strong className="sf-sold-out-price">{peso(item.priceCentavos)}</strong>
+      <strong className={soldOut ? "sf-sold-out-price" : "sf-card-price"}>{peso(item.priceCentavos)}</strong>
       <p>{item.description}</p>
       <div className="sf-card-bottom" style={{marginTop:'auto',paddingTop:6}}>
         {soldOut
