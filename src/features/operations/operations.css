@@ -64,7 +64,8 @@
 .owner-nav-icon{width:17px;display:inline-flex;justify-content:center;align-items:center;color:#b8c7de;font-size:15px}
 .owner-support{margin-top:auto;border-top:1px solid #263754;padding:18px 11px 0;font-size:11px;color:#c2d1e9}
 .owner-main{min-width:0;min-height:100vh;margin-left:0;display:flex;flex-direction:column}
-.owner-topbar{height:64px;flex-shrink:0;background:#fff;border-bottom:1px solid #e2e8f1;display:flex;align-items:center;justify-content:flex-end;gap:11px;padding:0 24px}
+.owner-main-inner{box-sizing:border-box;width:100%;max-width:1060px;min-width:0;min-height:100vh;margin-inline:auto;padding-inline:clamp(18px,3.2vw,40px);display:flex;flex-direction:column}
+.owner-topbar{height:64px;flex-shrink:0;width:100%;box-sizing:border-box;background:#fff;border-bottom:1px solid #e2e8f1;display:flex;align-items:center;justify-content:flex-end;gap:11px;padding:0}
 .owner-live{font-size:11px;font-weight:750;color:#1c2b42;display:grid;grid-template-columns:9px auto;column-gap:8px;align-items:center;margin-right:8px}
 .owner-live i{width:8px;height:8px;background:#12a36c;border-radius:50%;grid-row:span 2}
 .owner-live small{font-size:10px;color:#657791;font-weight:450}
@@ -74,7 +75,7 @@
 .owner-account small{color:#657791;font-size:10px}
 .owner-account-caret{border:0;background:transparent;color:#526782;font-size:17px;cursor:pointer;padding:5px}
 .owner-content{box-sizing:border-box;width:100%;max-width:1060px;margin-inline:auto;padding:25px clamp(18px,3.2vw,44px) 55px;min-width:0;flex:1}
-.owner-main > .owner-content{box-sizing:border-box;width:100%;max-width:none;min-width:0;flex:1;margin:0;padding-left:16px;padding-right:16px}
+.owner-main-inner > .owner-content{box-sizing:border-box;width:100%;max-width:none;min-width:0;flex:1;margin:0;padding:25px 0 55px}
 .owner-order-tabs{display:flex;align-items:center;gap:23px;border-bottom:1px solid #dbe3ef;margin:0 0 27px;padding:0 0 0 0}
 .owner-order-tabs button{border:0;border-bottom:2px solid transparent;background:transparent;padding:7px 0 11px;color:#60718c;font:inherit;font-size:12px;cursor:pointer}
 .owner-order-tabs button.active{border-bottom-color:#13233c;color:#101B2F;font-weight:750}
@@ -170,7 +171,8 @@
   .owner-mobile-menu{display:inline-flex;flex-direction:column;justify-content:center;gap:4px;width:38px;height:38px;margin-right:auto;border:1px solid #e2e8f1;border-radius:9px;background:#fff;padding:9px;cursor:pointer}
   .owner-mobile-menu span{display:block;width:100%;height:2px;border-radius:2px;background:#101b2f}
   .owner-topbar{height:60px;padding-inline:clamp(12px,3vw,24px)}
-  .owner-main > .owner-content{width:100%;max-width:none;flex:1;padding-inline:clamp(16px,3vw,28px)}
+  .owner-main-inner{padding-inline:clamp(16px,3vw,28px)}
+  .owner-main-inner > .owner-content{width:100%;max-width:none;flex:1;padding-inline:0}
 }
 @media(max-width:650px){
   .owner-topbar{gap:8px;height:56px;padding-inline:12px}
@@ -181,7 +183,7 @@
   .owner-account strong{max-width:125px}
   .owner-account small{font-size:9px}
   .owner-account-caret{padding:4px}
-  .owner-content{padding:17px 14px 32px}
+  .owner-main-inner > .owner-content{padding:17px 0 32px}
   .owner-order-stats{grid-template-columns:1fr}
   .owner-order-stats article{min-height:78px}
 }
