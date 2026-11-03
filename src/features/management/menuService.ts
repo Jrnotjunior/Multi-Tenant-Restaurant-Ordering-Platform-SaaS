@@ -259,6 +259,21 @@ export async function adminTenants():Promise<Tenant[]> {
   check(error);
   return (data??[]) as Tenant[];
 }
+
+export type OnlinePaymentEntitlement = { tenant_id: string; enabled: boolean };
+export async function listOnlinePaymentEntitlements(): Promise<OnlinePaymentEntitlement[]> {
+  const db=requireClient();
+  const {data,error}=await db.rpc('system_admin_list_online_payment_entitlements');
+  check(error);
+  return (data??[]) as OnlinePaymentEntitlement[];
+}
+export async function setOnlinePaymentEntitlement(tenantId:string,enabled:boolean):Promise<string> {
+  const db=requireClient();
+  const {data,error}=await db.rpc('system_admin_set_online_payments',{p_tenant_id:tenantId,p_enabled:enabled});
+  check(error);
+  if(data!==true) throw new Error('The online-payment entitlement change was not confirmed.');
+  return tenantId;
+}
 export async function provisionRestaurant(slug:string,name:string,branchSlug:string,branchName:string):Promise<string> {
   const db=requireClient();
   const {data,error}=await db.rpc('admin_create_restaurant',{
