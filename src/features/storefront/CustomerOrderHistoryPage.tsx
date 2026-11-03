@@ -19,6 +19,7 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [cancellingOrderId, setCancellingOrderId] = useState('');
+  const [selectedOrder, setSelectedOrder] = useState<HistoryOrder | null>(null);
   useEffect(() => {
     let active = true;
     if (!supabase) { setMessage('Account services are not configured.'); setLoading(false); return; }
@@ -96,22 +97,30 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
       {loading && <p>Loading your orders…</p>}
       {message && <p role="status">{message} <a href={base + 'account/sign-in'}>Sign in</a></p>}
       {!loading && !message && orders.length === 0 && <p>You haven’t placed any orders while signed in yet.</p>}
-      {orders.map(order => <article className="sf-tracking-details" key={order.order_id}>
-        <div>
-          <span className="sf-tracking-eyebrow">{order.restaurant_name}</span>
-          <h2>Order #{String(order.order_number).padStart(5, '0')}</h2>
-          <p>{new Date(order.created_at).toLocaleString()} · {order.order_type.replaceAll('_', ' ')}</p>
-          <p>Status: <strong>{order.order_status.replaceAll('_', ' ')}</strong> · Payment: {order.payment_method === 'online' ? 'Online' : order.payment_method ?? 'Cash'} · {order.payment_status.replaceAll('_', ' ')}{order.refund_status && <> · Refund: {order.refund_status}</>}</p>
-          {order.items?.map((item, index) => <p key={order.order_id + item.name + index}>{item.quantity} × {item.name} — {peso(item.total_centavos)}</p>)}
-          <p>Subtotal: {peso(order.subtotal_centavos)}</p>
-          {order.delivery_fee_centavos != null && <p>Delivery fee: {peso(order.delivery_fee_centavos)}</p>}
-          {order.total_centavos != null && <p><strong>Total: {peso(order.total_centavos)}</strong></p>}
-        </div>
-        <div className="sf-order-history-actions">
-          <a href={base + 'order/' + encodeURIComponent(order.restaurant_slug) + '#track'}>Open restaurant</a>
-          {order.order_status === 'pending_confirmation' && <button type="button" className="sf-tracking-cancel-start" disabled={Boolean(cancellingOrderId)} onClick={() => void cancelOrder(order)}>{cancellingOrderId === order.order_id ? 'Cancelling…' : 'Cancel order'}</button>}
-        </div>
-      </article>)}
+      {orders.map(order => <button type="button" className="sf-order-history-row" key={order.order_id} onClick={() => setSelectedOrder(order)} aria-label={`View details for order number ${String(order.order_number).padStart(5, '0')}`}>
+        <span className="sf-order-history-row-number">Order #{String(order.order_number).padStart(5, '0')}</span>
+        <span className="sf-order-history-row-date">{new Date(order.created_at).toLocaleString()}</span>
+        <span className="sf-order-history-row-chevron" aria-hidden="true">›</span>
+      </button>)}
+      {selectedOrder && <div className="sf-order-history-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget && !cancellingOrderId) setSelectedOrder(null); }}>
+        <section className="sf-order-history-modal" role="dialog" aria-modal="true" aria-labelledby="sf-order-history-modal-title">
+          <header className="sf-order-history-modal-header">
+            <div><span className="sf-tracking-eyebrow">{selectedOrder.restaurant_name}</span><h2 id="sf-order-history-modal-title">Order #{String(selectedOrder.order_number).padStart(5, '0')}</h2><p>{new Date(selectedOrder.created_at).toLocaleString()} · {selectedOrder.order_type.replaceAll('_', ' ')}</p></div>
+            <button type="button" className="sf-order-history-modal-close" aria-label="Close order details" onClick={() => setSelectedOrder(null)}>×</button>
+          </header>
+          <div className="sf-order-history-modal-content">
+            <p>Status: <strong>{selectedOrder.order_status.replaceAll('_', ' ')}</strong></p>
+            <p>Payment: {selectedOrder.payment_method === 'online' ? 'Online' : selectedOrder.payment_method ?? 'Cash'} · {selectedOrder.payment_status.replaceAll('_', ' ')}{selectedOrder.refund_status && <> · Refund: {selectedOrder.refund_status}</>}</p>
+            <div className="sf-order-history-items"><h3>Items</h3>{selectedOrder.items?.map((item, index) => <p key={selectedOrder.order_id + item.name + index}>{item.quantity} × {item.name} <strong>{peso(item.total_centavos)}</strong></p>)}</div>
+            <div className="sf-order-history-totals"><p>Subtotal <strong>{peso(selectedOrder.subtotal_centavos)}</strong></p>{selectedOrder.delivery_fee_centavos != null && <p>Delivery fee <strong>{peso(selectedOrder.delivery_fee_centavos)}</strong></p>}{selectedOrder.total_centavos != null && <p className="sf-order-history-grand-total">Total <strong>{peso(selectedOrder.total_centavos)}</strong></p>}</div>
+          </div>
+          <footer className="sf-order-history-modal-actions">
+            <a href={base + 'order/' + encodeURIComponent(selectedOrder.restaurant_slug) + '#track'}>Open restaurant</a>
+            {selectedOrder.order_status === 'pending_confirmation' && <button type="button" className="sf-tracking-cancel-start" disabled={Boolean(cancellingOrderId)} onClick={() => void cancelOrder(selectedOrder)}>{cancellingOrderId === selectedOrder.order_id ? 'Cancelling…' : 'Cancel order'}</button>}
+            <button type="button" className="sf-order-history-modal-done" onClick={() => setSelectedOrder(null)}>Close details</button>
+          </footer>
+        </section>
+      </div>}
     </section>
     </main>
     <StorefrontFooter />
