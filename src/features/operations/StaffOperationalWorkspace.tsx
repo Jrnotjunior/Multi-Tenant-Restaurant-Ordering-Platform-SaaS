@@ -484,12 +484,10 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'arrive_customer' || item.action === 'collect_cod' || item.action === 'deliver');
       return <main className="rider-dashboard-page rider-delivery-page">
         <header className="rider-delivery-header">
-          <div>
-            <button className="rider-delivery-back" type="button" onClick={() => setSelectedRiderOrderId(null)}>← Back</button>
+          <button className="rider-delivery-back" type="button" onClick={() => setSelectedRiderOrderId(null)}>← Back</button>
+          <div className="rider-delivery-order-card">
             <p className="rider-delivery-order-eyebrow">Delivery order</p>
             <h1 className="rider-delivery-order-number">{formatOrderNumber(order.order_number)}</h1>
-          </div>
-          <div className="rider-delivery-header-actions">
           </div>
         </header>
                 {error && <div className="rider-dashboard-message" role="alert">{error}</div>}
