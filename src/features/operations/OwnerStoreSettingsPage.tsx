@@ -377,7 +377,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         <div className={`w2t-payment-methods${payments.enabled ? '' : ' is-disabled'}`}>
           {PAYMENT_METHODS.map(item => <div className="w2t-setting-switch-row" key={item.key}><span>{item.label}</span><Toggle label={item.label} checked={payments.methods[item.key]} disabled={saving || !payments.enabled} onChange={value => updateMethods(item.key, value)} /></div>)}
         </div>
-      </section><OwnerPayMongoOnboardingCard tenantId={tenantId} /></>}
+      </section>{payments.enabled ? <OwnerPayMongoOnboardingCard tenantId={tenantId} /> : <section className="w2t-settings-card"><h2>PayMongo Production Payments</h2><p className="w2t-settings-help">PayMongo merchant onboarding will become available after the System Administrator enables Online Payments for this restaurant.</p></section>}</>}
       {canSave && <div className="w2t-settings-actions"><button type="submit" disabled={saving}>{saveLabel}</button></div>}
     </form>
     {confirmOpen && <div className="w2t-settings-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="w2t-confirm-title"><div className="w2t-settings-confirm-modal">
