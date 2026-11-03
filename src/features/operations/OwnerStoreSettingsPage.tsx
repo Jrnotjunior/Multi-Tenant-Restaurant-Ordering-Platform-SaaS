@@ -4,7 +4,7 @@ import { MapboxDeliveryLocationPicker, type DeliveryLocationAddress } from './Ma
 import { MapPickerErrorBoundary } from './MapPickerErrorBoundary';
 import { OwnerPayMongoOnboardingCard } from './OwnerPayMongoOnboardingCard';
 
-type Tab = 'profile' | 'hours' | 'delivery' | 'cash' | 'rider' | 'payments';
+type Tab = 'profile' | 'hours' | 'delivery' | 'cash' | 'payments';
 type Obj = Record<string, unknown>;
 type DayKey = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 type DayHours = { isOpen: boolean; open: string; close: string };
@@ -23,7 +23,6 @@ type StorefrontRow = {
   opening_hours: Obj;
   delivery_pricing: Obj;
   cash_payment_options: Obj;
-  rider_assignment: Obj;
   online_payments: OnlinePayments;
   [key: string]: unknown;
 };
@@ -47,7 +46,7 @@ const PAYMENT_METHODS: Array<{ key: keyof OnlinePaymentMethods; label: string }>
 const tabs: Array<{ key: Tab; label: string }> = [
   { key: 'profile', label: 'Profile' }, { key: 'hours', label: 'Store status & hours' },
   { key: 'delivery', label: 'Delivery pricing' }, { key: 'cash', label: 'Cash Payment Options' },
-  { key: 'rider', label: 'Rider assignment' }, { key: 'payments', label: 'Online payments' },
+{ key: 'payments', label: 'Online payments' },
 ];
 
 function asObject(value: unknown): Obj {
@@ -172,7 +171,6 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [cash, setCash] = useState<Obj>({ cash_on_delivery_enabled: true, cash_on_pickup_enabled: true, cash_on_take_out_enabled: true });
-  const [rider, setRider] = useState<Obj>({ mode: 'manual', auto_assign: false, instructions: '' });
   const [payments, setPayments] = useState<OnlinePayments>({ enabled: false, methods: DEFAULT_METHODS, provider_configured: false });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -189,7 +187,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         if (tenantError) throw tenantError;
         if (tenant && typeof tenant.slug === 'string') setRestaurantSlug(tenant.slug);
         const { data, error } = await supabase.from('tenant_storefronts')
-          .select('tenant_id,display_name,restaurant_address,store_address,delivery_location_latitude,delivery_location_longitude,accepting_orders,opening_hours,delivery_pricing,cash_payment_options,rider_assignment,online_payments')
+          .select('tenant_id,display_name,restaurant_address,store_address,delivery_location_latitude,delivery_location_longitude,accepting_orders,opening_hours,delivery_pricing,cash_payment_options,online_payments')
           .eq('tenant_id', tenantId).maybeSingle();
         if (error) throw error;
         if (!data) throw new Error('No store settings exist for this restaurant yet.');
@@ -204,7 +202,6 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         setLatitude(typeof settings.delivery_location_latitude === 'number' ? settings.delivery_location_latitude : null);
         setLongitude(typeof settings.delivery_location_longitude === 'number' ? settings.delivery_location_longitude : null);
         setCash({ cash_on_delivery_enabled: true, cash_on_pickup_enabled: true, cash_on_take_out_enabled: true, ...asObject(settings.cash_payment_options) });
-        setRider({ mode: 'manual', auto_assign: false, ...asObject(settings.rider_assignment) });
         setPayments(normalizeOnlinePayments(settings.online_payments));
       } catch (reason) {
         if (active) setError(reason instanceof Error ? reason.message : 'Unable to load store settings.');
@@ -365,10 +362,6 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
           { key: 'cash_on_delivery_enabled', label: 'Accept Cash on Delivery' },
           { key: 'cash_on_pickup_enabled', label: 'Accept Cash for Pickup' },
         ].map(item => <div className="w2t-setting-switch-row" key={item.key}><span>{item.label}</span><Toggle label={item.label} checked={cash[item.key] !== false} disabled /></div>)}
-      </section>}
-      {activeTab === 'rider' && <section className="w2t-settings-card">
-        <div className="w2t-setting-switch-row"><span>Auto-assign delivery orders</span><Toggle label="Automatic rider assignment" checked={rider.auto_assign === true} disabled /></div>
-        <p className="w2t-settings-help">Rider assignment is controlled by the System Administrator. Contact the System Administrator to request a workflow change.</p>
       </section>}
       {activeTab === 'payments' && <><section className="w2t-settings-card">
         <div className="w2t-setting-switch-row w2t-setting-switch-row-top"><span><strong>Online Payments</strong><small>{payments.enabled ? 'Customers can pay online using the enabled methods below.' : 'Online payment is turned off for this restaurant.'} This setting is controlled by the System Administrator.</small></span><Toggle label="Online payments enabled" checked={payments.enabled} disabled /></div>
