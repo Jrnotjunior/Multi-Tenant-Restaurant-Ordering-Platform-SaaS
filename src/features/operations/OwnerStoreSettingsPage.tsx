@@ -256,6 +256,13 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         open: normalizeTime(hours[key].open, DEFAULT_DAY.open),
         close: normalizeTime(hours[key].close, DEFAULT_DAY.close),
       }])) as OperatingHours;
+      if (activeTab === 'hours') {
+        const invalidDay = DAYS.find(({ key }) => currentHours[key].isOpen && currentHours[key].open === currentHours[key].close);
+        if (invalidDay) throw new Error(`${invalidDay.label} opening and closing times cannot be the same. Turn the day off if the restaurant is closed.`);
+        if (acceptingOrders && !DAYS.some(({ key }) => currentHours[key].isOpen)) {
+          throw new Error('Turn on at least one operating day, or switch off Store is open.');
+        }
+      }
       const previousHours = asObject(row.opening_hours);
       const nextHours = { ...previousHours, timezone: typeof previousHours.timezone === 'string' ? previousHours.timezone : 'Asia/Manila', schedule: currentHours, exceptions: Array.isArray(previousHours.exceptions) ? previousHours.exceptions : [] };
       const previousDelivery = asObject(row.delivery_pricing);
