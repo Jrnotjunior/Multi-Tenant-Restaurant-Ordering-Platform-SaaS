@@ -91,12 +91,12 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
     </header>
     <main className="sf-order-tracking-page">
     <section className="sf-tracking-receipt" aria-live="polite">
-      <CustomerAccountBackLink href={base + 'account'} />
+      <CustomerAccountBackLink href={base + '#/account'} />
       <span className="sf-tracking-eyebrow">YOUR ACCOUNT</span>
       <h1>Order history</h1>
       <p>Your orders are saved to your Web2Table account and loaded from the database.</p>
       {loading && <p>Loading your orders…</p>}
-      {message && <p role="status">{message} <a href={base + 'account/sign-in'}>Sign in</a></p>}
+      {message && <p role="status">{message} <a href={base + '#/account/sign-in'}>Sign in</a></p>}
       {!loading && !message && orders.length === 0 && <p>You haven’t placed any orders while signed in yet.</p>}
       {orders.map(order => <button type="button" className="sf-order-history-row" key={order.order_id} onClick={() => setSelectedOrder(order)} aria-label={`View details for order number ${String(order.order_number).padStart(5, '0')}`}>
         <span className="sf-order-history-row-number">Order #{String(order.order_number).padStart(5, '0')}</span>
