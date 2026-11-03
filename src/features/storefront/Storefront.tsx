@@ -198,9 +198,13 @@ function CartContents({ cart, customized, menu, change, changeCustomized, onEdit
   </>;
 }
 
-function MenuCard({ item, customize, notify }: { item: MenuItem; customize:(item:MenuItem)=>void; notify:(message:string)=>void }) {
+function MenuCard({ item, customize, notify, checkAvailability }: { item: MenuItem; customize:(item:MenuItem)=>void; notify:(message:string)=>void; checkAvailability:()=>Promise<boolean> }) {
   const soldOut = item.isAvailable === false;
-  const tryAdd = () => { if (soldOut) { notify(`${item.name} is sold out and can’t be added to your cart.`); return; } customize(item); };
+  const tryAdd = async () => {
+    if (soldOut) { notify(`${item.name} is sold out and can’t be added to your cart.`); return; }
+    if (!(await checkAvailability())) return;
+    customize(item);
+  };
   return <article className={'sf-menu-card' + (soldOut ? ' is-sold-out' : '')} style={{display:'grid',gridTemplateColumns:'160px minmax(0,1fr)',minHeight:166,borderRadius:15}}>
     <div className="sf-card-image" style={{height:166,minHeight:166,alignSelf:'stretch'}}>
       <FoodArt item={item}/>
@@ -475,11 +479,35 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   }, [count]);
 
   const changeCustomized=(key:string,delta:number)=>setCustomized(previous=>changeCustom(previous,key,delta));
-  const saveCustomized=(item:MenuItem,selected:Selection,quantity:number,instructions:string)=>{
+  const checkStoreAvailability = async (): Promise<boolean> => {
+    if (!supabase || !restaurant?.slug || !restaurant.branchSlug) {
+      setAvailabilityMessage('We couldn’t verify whether this store is open. Please try again.');
+      return false;
+    }
+    const { data, error } = await supabase.rpc('check_storefront_order_availability', {
+      p_slug: restaurant.slug,
+      p_branch_slug: restaurant.branchSlug,
+    });
+    if (error) {
+      setAvailabilityMessage('We couldn’t verify whether this store is open. Please try again.');
+      return false;
+    }
+    const result = data as { available?: boolean; message?: string } | null;
+    if (result?.available !== true) {
+      setAvailabilityMessage(result?.message || 'Sorry, this store is currently closed. Please order during our operating hours.');
+      return false;
+    }
+    setAvailabilityMessage('');
+    return true;
+  };
+
+  const saveCustomized=async (item:MenuItem,selected:Selection,quantity:number,instructions:string):Promise<boolean>=>{
+    if (!(await checkStoreAvailability())) return false;
     setCustomized(previous=>customizing?.line
       ? editCustom(previous,customizing.line.key,item,selected,quantity,instructions)
       : addCustom(previous,item,selected,quantity,instructions));
     if(customizing?.legacyQuantity)setCart(previous=>updateCart(previous,item.id,-customizing.legacyQuantity!,menu));
+    return true;
   };
   const change = (itemId: string, delta: number) => {
     const item=menu.find(entry=>entry.id===itemId);
@@ -734,7 +762,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
             </div>
           </div>
           {results.length ? <div className="sf-menu-grid" style={{display:'grid',gridTemplateColumns:'minmax(0,1fr)',gap:12}}> 
-            {results.map((item) => <MenuCard item={item} customize={item=>setCustomizing({item})} notify={setAvailabilityMessage} key={item.id}/>)}
+            {results.map((item) => <MenuCard item={item} customize={item=>setCustomizing({item})} notify={setAvailabilityMessage} checkAvailability={checkStoreAvailability} key={item.id}/>)}
           </div> : menu.length === 0 ? <div className="sf-no-results sf-menu-coming-soon"><span aria-hidden="true">🍽️</span><h3>Menu coming soon</h3><p>{restaurant.name} is preparing its menu. Please check back soon.</p></div>
           : <div className="sf-no-results"><span aria-hidden="true">🔎</span><h3>Nothing on the menu matched</h3><p>Try another search or choose a different category.</p><button type="button" onClick={() => {setQuery('');setCategory('All');}}>Clear filters</button></div>}
         </div>
