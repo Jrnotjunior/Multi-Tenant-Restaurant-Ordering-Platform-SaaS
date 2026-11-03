@@ -262,7 +262,6 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const [checkoutMessage,setCheckoutMessage]=useState('');
   const [cartBarVisible, setCartBarVisible] = useState(false);
   const [availabilityMessage,setAvailabilityMessage]=useState('');
-  useEffect(() => { if (!availabilityMessage) return; const timer=window.setTimeout(()=>setAvailabilityMessage(''),3500); return ()=>window.clearTimeout(timer); }, [availabilityMessage]);
 
   useEffect(() => {
     if (!supabase) return;
@@ -743,7 +742,6 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
         </label>
       </section>}
 
-      {availabilityMessage && <div className="sf-availability-error" role="alert">{availabilityMessage}</div>}
       <div className="sf-layout" id="sf-menu">
         <div className="sf-catalog">
           <div className="sf-search-wrap">
@@ -772,6 +770,14 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       </>}
     </main>
 
+    {availabilityMessage && <div className="sf-checkout-backdrop sf-availability-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setAvailabilityMessage(''); }}>
+      <section className="sf-availability-modal" role="alertdialog" aria-modal="true" aria-labelledby="sf-availability-title" aria-describedby="sf-availability-description">
+        <div className="sf-availability-icon" aria-hidden="true">!</div>
+        <h2 id="sf-availability-title">Store unavailable</h2>
+        <p id="sf-availability-description">{availabilityMessage}</p>
+        <button type="button" className="sf-availability-confirm" onClick={() => setAvailabilityMessage('')} autoFocus>Okay</button>
+      </section>
+    </div>}
     <StorefrontFooter socialLinks={restaurant.socialLinks} />
 
     {checkoutOpen && <div className="sf-checkout-backdrop" role="presentation" onMouseDown={event => {if(event.target===event.currentTarget)setCheckoutOpen(false);}}>
