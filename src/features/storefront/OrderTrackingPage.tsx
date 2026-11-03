@@ -99,7 +99,6 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
   const cashPaymentAtCounter = (status?.payment_method ?? orderMeta.paymentMethod) === 'cash';
   const dineInCashOrder = dineIn && cashPaymentAtCounter;
   const takeOutCashOrder = orderType === 'take-out' && cashPaymentAtCounter;
-  const counterCashOrder = dineInCashOrder || takeOutCashOrder;
   const deliveryOrder = orderType === 'delivery';
   const stages = dineIn
     ? ['pending_confirmation', 'confirmed', 'preparing', 'ready_for_serve', 'served']
