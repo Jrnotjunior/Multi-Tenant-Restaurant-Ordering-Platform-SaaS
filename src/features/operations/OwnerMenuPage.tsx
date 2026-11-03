@@ -286,6 +286,10 @@ export function OwnerMenuPage({ tenantId }: Props) {
         {error && <div className="restaurant-dashboard-error" role="alert">{error}</div>}
 
         <div className="restaurant-menu-management-card">
+          <div className="restaurant-menu-section-header is-actions-only">
+            <button className="button restaurant-menu-add-button restaurant-compact-action" type="button" onClick={openAdd} disabled={loading}>+ Add Product</button>
+          </div>
+
           <div className="restaurant-menu-search">
             <label className="restaurant-menu-search-label" htmlFor="restaurant-product-search">Search products</label>
             <div className="restaurant-menu-search-input-wrap">
@@ -293,7 +297,6 @@ export function OwnerMenuPage({ tenantId }: Props) {
                 onChange={(event) => setSearchProduct(event.target.value)} placeholder="Search by product name, description, or category"/>
               {searchProduct && <button type="button" className="restaurant-menu-search-clear" onClick={() => setSearchProduct('')} aria-label="Clear product search">×</button>}
             </div>
-            <button className="button restaurant-menu-add-button restaurant-compact-action" type="button" onClick={openAdd} disabled={loading}>+ Add Product</button>
           </div>
 
           <div className="restaurant-menu-toolbar">
