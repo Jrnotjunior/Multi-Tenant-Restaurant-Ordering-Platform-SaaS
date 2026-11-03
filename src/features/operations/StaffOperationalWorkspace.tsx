@@ -481,7 +481,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     const selectedRiderOrder = activeDeliveries.find(order => order.id === selectedRiderOrderId) ?? deliveryHistory.find(order => order.id === selectedRiderOrderId);
     if (selectedRiderOrder) {
       const order = selectedRiderOrder;
-      const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'arrive_customer' || item.action === 'collect_cod' || item.action === 'deliver');
+      const status = order.assignment_status === 'arrived_at_customer' ? 'Arrived at customer' : order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'dispatched' ? 'Dispatched · ready to start' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : order.assignment_status === 'delivered' ? 'Delivered' : 'Assigned · waiting for dispatch';
       const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'arrive_customer' || item.action === 'collect_cod' || item.action === 'deliver');
       return <main className="rider-dashboard-page rider-delivery-page">
         <header className="rider-delivery-header">
@@ -493,7 +493,8 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           <div className="rider-delivery-header-actions">
           </div>
         </header>
-        {error && <div className="rider-dashboard-message" role="alert">{error}</div>}
+        <div className="rider-delivery-status-card"><span className="rider-delivery-status">{status}</span></div>
+        {error && <div className="rider-dashboard-message" role="alert">{error}</div>
         {notice && <div className="rider-dashboard-notice" role="status">{notice}</div>}
         <div className="rider-delivery-layout">
           <main className="rider-delivery-main">
