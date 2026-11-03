@@ -4,7 +4,7 @@ import { loadOwnerDataForTenant } from '../management/menuService';
 import type { OwnerPage } from './ownerWorkspaceConfig';
 import { ownerPageTitles } from './ownerWorkspaceConfig';
 
-type Props = { page: OwnerPage; tenantId: string; onNavigate: (page: OwnerPage) => void };
+type Props = { page: OwnerPage; tenantId: string; restaurantName: string | null; onNavigate: (page: OwnerPage) => void };
 type Order = {
   id: string; order_number: number; order_type: string; customer_name: string;
   subtotal_centavos: number; total_centavos: number | null; order_status: string;
@@ -60,7 +60,7 @@ function OrdersChart({ orders, timezone }: { orders: Order[]; timezone: string }
   </section>;
 }
 
-function OperationsDashboard({ tenantId, onNavigate }: Pick<Props, 'tenantId' | 'onNavigate'>) {
+function OperationsDashboard({ tenantId, restaurantName, onNavigate }: Pick<Props, 'tenantId' | 'restaurantName' | 'onNavigate'>) {
   const [data, setData] = useState<DashboardData>({ orders: [], menuItems: 0, teamMembers: 0, timezone: 'Asia/Manila' });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
