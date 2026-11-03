@@ -617,7 +617,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
             <BagIcon/><span className="sf-bag-label sf-visually-hidden">Cart</span>{count > 0 && <span className="sf-bag-count">{count}</span>}
           </button>
         </>}
-        <a href={baseUrl + 'account'} className="sf-account-button" aria-label="Open customer account" title="My account">
+        <a href={baseUrl + '#account'} className="sf-account-button" aria-label="Open customer account" title="My account">
           <AccountIcon/>
         </a>
       </>}
