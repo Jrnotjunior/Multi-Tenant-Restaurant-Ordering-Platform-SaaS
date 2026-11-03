@@ -46,7 +46,6 @@ export function OwnerEmployeesPage({tenantId}:{tenantId:string}){
   }catch(reason){setError(reason instanceof Error?reason.message:'Unable to change employee status.');}finally{setStaffBusy(null);}
  }
  return <main className="owner-content owner-employees">
-  <div className="employees-page-actions"><button className="employees-secondary" type="button" onClick={()=>void load()} disabled={loading}>Refresh</button></div>
   {(error||notice)&&<div className={'employees-alert '+(error?'is-error':'is-success')} role={error?'alert':'status'}>{error||notice}</div>}
   <section className="employees-panel"><div className="employees-panel-heading"><div><h2>Invite a team member</h2><p>They receive an email to finish setting up their account.</p></div><span className="employees-pill">MFA protected</span></div>
    <form className="employees-form" onSubmit={event=>void invite(event)}>
