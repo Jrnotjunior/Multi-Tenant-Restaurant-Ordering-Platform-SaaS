@@ -488,7 +488,6 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
             <button className="rider-delivery-back" type="button" onClick={() => setSelectedRiderOrderId(null)}>← Back</button>
             <p className="rider-delivery-order-eyebrow">Delivery order</p>
             <h1 className="rider-delivery-order-number">{/^ORD-/i.test(String(order.order_number)) ? String(order.order_number) : `Order #${order.order_number}`}</h1>
-            <p>Deliver this order to the customer.</p>
           </div>
           <div className="rider-delivery-header-actions">
             <span className="rider-delivery-status">{status}</span>
