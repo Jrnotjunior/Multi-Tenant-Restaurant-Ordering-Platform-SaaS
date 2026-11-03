@@ -1,5 +1,5 @@
 import { useCallback,useEffect,useState,type FormEvent } from 'react';
-import { adminTenants,listDeactivatedStaff,provisionRestaurant,removeDeactivatedStaff,sendOwnerInvitation,type DeactivatedStaff,type Tenant } from './menuService';
+import { adminTenants,listDeactivatedStaff,listOnlinePaymentEntitlements,setOnlinePaymentEntitlement,provisionRestaurant,removeDeactivatedStaff,sendOwnerInvitation,type DeactivatedStaff,type Tenant,type OnlinePaymentEntitlement } from './menuService';
 import './management.css';
 
 export function AdminDashboard(){
