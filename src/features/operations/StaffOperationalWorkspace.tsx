@@ -26,7 +26,7 @@ const maySendOrderToKitchen = (order: Order) => {
   const paymentStatus = order.payment_status.toLowerCase();
   const isPaid = ['paid', 'succeeded', 'completed'].includes(paymentStatus);
   const allowedCashOrder = order.payment_channel === 'other' &&
-    ['delivery', 'pickup'].includes(order.order_type) &&
+    ['delivery', 'pickup', 'take_out'].includes(order.order_type) &&
     ['not_started', 'pending'].includes(paymentStatus);
   return isPaid || allowedCashOrder;
 };
