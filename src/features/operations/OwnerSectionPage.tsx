@@ -116,11 +116,6 @@ function OperationsDashboard({ tenantId, onNavigate }: Pick<Props, 'tenantId' | 
   const recentOrders = data.orders.slice(0, 6);
 
   return <main className="owner-content owner-dashboard">
-    <div className="owner-dashboard-actions">
-      <button type="button" className="owner-dashboard-refresh" onClick={() => void load(true)} disabled={loading || refreshing}>
-        <span aria-hidden="true">↻</span>{refreshing ? 'Updating…' : 'Refresh'}
-      </button>
-    </div>
 
     {error && <div className="owner-dashboard-alert" role="alert"><span>{error}</span><button type="button" onClick={() => void load()}>Try again</button></div>}
 
