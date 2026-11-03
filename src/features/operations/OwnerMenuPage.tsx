@@ -3,6 +3,8 @@ import {
   deleteMenuItem, getOrCreateMenuCategory, loadOwnerDataForTenant, publicMenuPhoto,
   saveItem, setBranchItem, uploadMenuPhoto, type OwnerData, type Product,
 } from '../management/menuService';
+import { ProductExtrasManager } from '../management/ProductExtrasManager';
+import '../management/management.css';
 
 type Props = { tenantId: string; restaurantName: string | null };
 type ProductForm = { name: string; description: string; price: string; categoryName: string };
@@ -27,6 +29,7 @@ export function OwnerMenuPage({ tenantId }: Props) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState('');
   const [savingForm, setSavingForm] = useState(false);
+  const [savingCustomizations, setSavingCustomizations] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteProductTarget, setDeleteProductTarget] = useState<Product | null>(null);
 
@@ -75,7 +78,24 @@ export function OwnerMenuPage({ tenantId }: Props) {
 
   async function refreshMenu() {
     const next = await loadOwnerDataForTenant(tenantId);
+    ownerMenuCache.set(tenantId, next);
     setData(next);
+    return next;
+  }
+
+  async function runCustomizationChange(_label: string, work: () => Promise<unknown>) {
+    if (savingCustomizations) return null;
+    setSavingCustomizations(true);
+    setError('');
+    try {
+      await work();
+      return await refreshMenu();
+    } catch (reason) {
+      setError(formatError(reason));
+      return null;
+    } finally {
+      setSavingCustomizations(false);
+    }
   }
 
   function openAdd() {
@@ -326,6 +346,16 @@ export function OwnerMenuPage({ tenantId }: Props) {
                 </article>;
               })}
             </div>}
+        </div>
+
+        <div className="owner-menu-customization-settings">
+          <ProductExtrasManager
+            key={tenantId}
+            data={data}
+            busy={savingCustomizations || savingForm}
+            run={runCustomizationChange}
+            showPhotos={false}
+          />
         </div>
 
         {deleteProductTarget && <div className="restaurant-delete-modal-backdrop"

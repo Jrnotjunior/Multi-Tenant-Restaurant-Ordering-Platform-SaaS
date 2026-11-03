@@ -7,7 +7,7 @@ import {
 
 type Run=(label:string,work:()=>Promise<unknown>)=>Promise<OwnerData|null|undefined>;
 
-export function ProductExtrasManager({data,busy,run}:{data:OwnerData;busy:boolean;run:Run}) {
+export function ProductExtrasManager({data,busy,run,showPhotos=true}:{data:OwnerData;busy:boolean;run:Run;showPhotos?:boolean}) {
   const [selectedItem,setSelectedItem]=useState('');
   const [groupName,setGroupName]=useState('');
   const [minimum,setMinimum]=useState('0');
@@ -33,8 +33,9 @@ export function ProductExtrasManager({data,busy,run}:{data:OwnerData;busy:boolea
     if(!itemId)return;
     const min=Number(minimum),max=Number(maximum);
     if(!Number.isInteger(min)||!Number.isInteger(max)||min<0||min>max||max>20||max<1)return;
+    const existingIds=new Set(groups.map(group=>group.id));
     void run('Modifier group',()=>createModifierGroup(data.tenant.id,itemId,groupName,min,max))
-      .then(next=>{if(next)setGroupName('');});
+      .then(next=>{if(next){setGroupName('');const created=next.groups.find(group=>group.item_id===itemId&&!existingIds.has(group.id));if(created)setSelectedGroup(created.id);}});
   }
   function addOption(event:FormEvent) {
     event.preventDefault();
@@ -51,8 +52,7 @@ export function ProductExtrasManager({data,busy,run}:{data:OwnerData;busy:boolea
   return <section className="mg-card">
     <div className="mg-card-title"><div><h2>Menu customizations</h2>
       <p>Set choices and priced add-ons for each menu item. Customers can add special instructions when ordering.</p></div></div>
-    <div className="mg-notice">Images are public restaurant marketing assets. Do not upload IDs, employee details or private documents. Accepted: JPEG, PNG or WebP, up to 3 MB.</div>
-    <div className="mg-list">
+    {showPhotos&&<div className="mg-list">
       {data.items.map(item=><div className="mg-photo-row" key={item.id}>
         <div className="mg-photo-thumb">{publicMenuPhoto(item.image_path)?
           <img src={publicMenuPhoto(item.image_path)!} alt={item.name} loading="lazy"/>:
@@ -71,11 +71,11 @@ export function ProductExtrasManager({data,busy,run}:{data:OwnerData;busy:boolea
               .then(next=>{if(next)setUploads(previous=>({...previous,[item.id]:undefined}));});
           }}>Upload</button>
       </div>)}
-    </div>
+    </div>}
 
-    <h3>Customization groups</h3>
-    <p className="mg-muted">Groups belong to the selected item. Use minimum 1 and maximum 1 for a required single choice; minimum 0 for optional add-ons.</p>
-    <label className="mg-field mg-selector">Product
+    <h3>1. Create a customization group</h3>
+    <p className="mg-muted">Groups belong to one menu item. For a required single choice, set Minimum and Maximum to 1. For optional add-ons, set Minimum to 0. Groups and choices stay hidden until you turn them on below.</p>
+    <label className="mg-field mg-selector">Menu item
       <select value={itemId} onChange={event=>{setSelectedItem(event.target.value);setSelectedGroup('');}}>
         {data.items.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}
       </select>
@@ -94,7 +94,7 @@ export function ProductExtrasManager({data,busy,run}:{data:OwnerData;busy:boolea
               onChange={e=>setMaximum(e.target.value)}/></label>
         </div>
       </div>
-      <div className="mg-actions"><button type="submit" disabled={busy||!itemId||data.groups.filter(g=>g.item_id===itemId).length>=8}>Create hidden group</button></div>
+      <div className="mg-actions"><button type="submit" disabled={busy||!itemId||data.groups.filter(g=>g.item_id===itemId).length>=8}>Save group</button></div>
     </form>
     <div className="mg-list">
       {groups.map(group=>{
@@ -109,14 +109,14 @@ export function ProductExtrasManager({data,busy,run}:{data:OwnerData;busy:boolea
           {editingGroup!==group.id&&<><button type="button" className="mg-secondary" onClick={()=>{setEditingGroup(group.id);setEditingGroupName(group.name);setEditingMinimum(String(group.min_select));setEditingMaximum(String(group.max_select));}}>Edit</button><label className="mg-toggle"><input type="checkbox" checked={group.is_active}
             disabled={busy||(!group.is_active&&!canPublish)}
             onChange={e=>void run('Group visibility',()=>changeModifierGroup(data.tenant.id,group.id,e.target.checked))}/>
-            Visible</label></>}
+            Show to customers</label></>}
         </div>;
       })}
       {!groups.length&&<p className="mg-muted">No modifier groups yet. Add one above.</p>}
     </div>
 
     {groups.length>0&&<>
-      <h3>Choices and add-ons</h3>
+      <h3>2. Add choices and prices</h3>
       <label className="mg-field mg-selector">Group
         <select value={groupId} onChange={e=>setSelectedGroup(e.target.value)}>
           {groups.map(group=><option value={group.id} key={group.id}>{group.name}</option>)}
@@ -130,7 +130,7 @@ export function ProductExtrasManager({data,busy,run}:{data:OwnerData;busy:boolea
             <input required inputMode="decimal" value={optionPrice}
               onChange={e=>setOptionPrice(e.target.value)} placeholder="0.00"/></label>
         </div>
-        <div className="mg-actions"><button type="submit" disabled={busy||options.length>=20||!groupId}>Create hidden choice</button></div>
+        <div className="mg-actions"><button type="submit" disabled={busy||options.length>=20||!groupId}>Add choice</button></div>
       </form>
       <div className="mg-list">
         {options.map(option=><div className="mg-list-row" key={option.id}>
@@ -141,10 +141,10 @@ export function ProductExtrasManager({data,busy,run}:{data:OwnerData;busy:boolea
           </form>:<div><strong>{option.name}</strong><span>+₱{centavosToPesoInput(option.price_centavos)}</span></div>}
           {editingOption!==option.id&&<><button type="button" className="mg-secondary" onClick={()=>{setEditingOption(option.id);setEditingOptionName(option.name);setEditingOptionPrice(centavosToPesoInput(option.price_centavos));}}>Edit</button><label className="mg-toggle"><input type="checkbox" checked={option.is_active} disabled={busy||(option.is_active&&(groups.find(group=>group.id===groupId)?.min_select??0)>options.filter(candidate=>candidate.is_active).length-1)}
             onChange={e=>void run('Option visibility',()=>changeModifierOption(
-              data.tenant.id,option.id,e.target.checked))}/>Visible</label></>}
+              data.tenant.id,option.id,e.target.checked))}/>Available</label></>}
         </div>)}
       </div>
     </>}
-    <p className="mg-hint">Groups and options start hidden. Activate options first, then show the group. Required groups must have enough active choices available or customers will not be able to add the item.</p>
+    <p className="mg-hint">3. Turn on each choice under Available, then turn on Show to customers for its group. Only enabled groups and choices appear in the customer’s item-customization window. Required groups need at least the minimum number of available choices.</p>
   </section>;
 }

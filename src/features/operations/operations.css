@@ -409,6 +409,25 @@
 .restaurant-product-image-picker .button{justify-self:center}
 .restaurant-product-image-picker small{color:var(--color-muted,#526782);font-size:11px;text-align:center}
 .restaurant-product-form-actions{display:flex;justify-content:center;gap:10px;margin-top:4px}
+
+/* Menu customizations share the restaurant owner's light workspace styling. */
+.owner-menu-customization-settings .mg-card{margin:18px 0;padding:clamp(17px,3vw,26px);border:1px solid var(--color-border,#DCE3ED);border-radius:14px;background:var(--color-surface,#FFFFFF);color:var(--color-text,#101B2F)}
+.owner-menu-customization-settings .mg-card h2,.owner-menu-customization-settings .mg-card h3{color:var(--color-text,#101B2F)}
+.owner-menu-customization-settings .mg-card h3{margin-top:18px}
+.owner-menu-customization-settings .mg-card p,.owner-menu-customization-settings .mg-muted,.owner-menu-customization-settings .mg-hint{color:var(--color-muted,#526782)}
+.owner-menu-customization-settings .mg-field{color:var(--color-text,#101B2F)}
+.owner-menu-customization-settings .mg-field input,.owner-menu-customization-settings .mg-field textarea,.owner-menu-customization-settings .mg-field select{box-sizing:border-box;border-color:var(--color-border,#DCE3ED);background:#FFFFFF;color:var(--color-text,#101B2F)}
+.owner-menu-customization-settings .mg-card button{min-height:38px;border:1px solid var(--color-sidebar,#101B2F);border-radius:8px;background:var(--color-sidebar,#101B2F);color:#FFFFFF;padding:8px 12px;font:inherit;font-size:12px;font-weight:750;cursor:pointer}
+.owner-menu-customization-settings .mg-card button:disabled{opacity:.5;cursor:not-allowed}
+.owner-menu-customization-settings .mg-card button.mg-secondary{border-color:var(--color-border,#DCE3ED);background:#FFFFFF;color:var(--color-active,#263754)}
+.owner-menu-customization-settings .mg-list{border-color:var(--color-border,#DCE3ED)}
+.owner-menu-customization-settings .mg-list-row{border-color:var(--color-border,#DCE3ED)}
+.owner-menu-customization-settings .mg-list-row span,.owner-menu-customization-settings .mg-toggle{color:var(--color-muted,#526782)}
+.owner-menu-customization-settings .mg-toggle input{accent-color:var(--color-sidebar,#101B2F)}
+.owner-menu-customization-settings .mg-card .mg-notice{border-left-color:var(--color-sidebar,#101B2F);background:var(--color-page,#F7F9FC);color:var(--color-muted,#526782)}
+.owner-menu-customization-settings .mg-card .mg-notice a{color:var(--color-active,#263754)}
+.owner-menu-customization-settings .mg-card .mg-error{color:#991B1B}
+.owner-menu-customization-settings .mg-card .mg-success{color:#166534}
 .restaurant-product-form-actions .button{min-width:130px}
 .restaurant-product-category-hint{font-size:11px;font-weight:400;color:var(--color-muted,#526782);line-height:1.5}
 .restaurant-delete-modal-backdrop{position:fixed;inset:0;z-index:1100;display:flex;align-items:center;justify-content:center;padding:20px;background:#101B2F94;backdrop-filter:blur(3px)}
