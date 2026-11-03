@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react';
-
-type StorefrontSocialLinks = Readonly<{facebook:string;instagram:string;tiktok:string}>;
+import { useEffect, useState, type ReactNode } from 'react';
+import { getRememberedStorefrontSlug } from './appFavicon';
+import { loadDefaultPublishedMenu, loadPublishedMenu, type StorefrontSocialLinks } from './publishedMenu';
 
 type StorefrontHeaderProps = {
   logo: ReactNode;
@@ -26,16 +26,39 @@ export function CustomerAccountBackLink({ href }: { href: string }) {
   return <a className="sf-account-back-link" href={href}>&larr; Back</a>;
 }
 
-export function StorefrontFooter({ socialLinks = { facebook: '', instagram: '', tiktok: '' } }: { socialLinks?: StorefrontSocialLinks }) {
+const EMPTY_SOCIAL_LINKS: StorefrontSocialLinks = { facebook: '', instagram: '', tiktok: '' };
+
+export function StorefrontFooter({ socialLinks }: { socialLinks?: StorefrontSocialLinks }) {
+  const [resolvedSocialLinks, setResolvedSocialLinks] = useState<StorefrontSocialLinks>(socialLinks ?? EMPTY_SOCIAL_LINKS);
+
+  useEffect(() => {
+    if (socialLinks) {
+      setResolvedSocialLinks(socialLinks);
+      return;
+    }
+    let active = true;
+    void (async () => {
+      try {
+        const slug = getRememberedStorefrontSlug();
+        const catalog = slug ? await loadPublishedMenu(slug) : (await loadDefaultPublishedMenu())?.catalog ?? null;
+        if (active) setResolvedSocialLinks(catalog?.restaurant.socialLinks ?? EMPTY_SOCIAL_LINKS);
+      } catch {
+        // Footer links are optional; a lookup failure must never block account pages.
+        if (active) setResolvedSocialLinks(EMPTY_SOCIAL_LINKS);
+      }
+    })();
+    return () => { active = false; };
+  }, [socialLinks]);
+
   const links = [
-    { key: 'facebook', label: 'Facebook', url: socialLinks.facebook, icon: 'social-facebook.svg' },
-    { key: 'instagram', label: 'Instagram', url: socialLinks.instagram, icon: 'social-instagram.svg' },
-    { key: 'tiktok', label: 'TikTok', url: socialLinks.tiktok, icon: 'social-tiktok.svg' },
+    { key: 'facebook', label: 'Facebook', url: resolvedSocialLinks.facebook, icon: 'social-facebook.svg' },
+    { key: 'instagram', label: 'Instagram', url: resolvedSocialLinks.instagram, icon: 'social-instagram.svg' },
+    { key: 'tiktok', label: 'TikTok', url: resolvedSocialLinks.tiktok, icon: 'social-tiktok.svg' },
   ] as const;
   return (
     <footer className="sf-footer">
       <div className="sf-footer-inner">
-        <section className="sf-footer-social-section" aria-label="Follow Web2Table">
+        <section className="sf-footer-social-section" aria-label="Follow us on social media">
           <h2 className="sf-footer-heading">Follow Us</h2>
           <nav className="sf-footer-socials" aria-label="Social media links">
             {links.filter(link => link.url).map(link => (
