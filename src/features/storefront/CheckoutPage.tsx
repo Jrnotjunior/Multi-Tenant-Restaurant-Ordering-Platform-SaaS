@@ -141,8 +141,17 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | ''>('');
   const [submitting, setSubmitting] = useState(false);
-  const [trackingToken, setTrackingToken] = useState<string | null>(() => { try { return window.sessionStorage.getItem('web2table:latest-order-tracking'); } catch { return null; } });
-  const [trackedOrderNumber, setTrackedOrderNumber] = useState<number | null>(() => { try { const value = window.sessionStorage.getItem('web2table:latest-order-number'); return value ? Number(value) : null; } catch { return null; } });
+  // A checkout must never inherit the previous order's tracking state. The
+  // dedicated tracking view may restore its saved order; a new checkout starts
+  // clean and only tracks an order after this submission creates one.
+  const [trackingToken, setTrackingToken] = useState<string | null>(() => {
+    if (!trackingOnly) return null;
+    try { return window.sessionStorage.getItem('web2table:latest-order-tracking'); } catch { return null; }
+  });
+  const [trackedOrderNumber, setTrackedOrderNumber] = useState<number | null>(() => {
+    if (!trackingOnly) return null;
+    try { const value = window.sessionStorage.getItem('web2table:latest-order-number'); return value ? Number(value) : null; } catch { return null; }
+  });
   const [trackedStatus, setTrackedStatus] = useState<{ order_status: string; payment_status: string; updated_at: string } | null>(null);
   const [trackingError, setTrackingError] = useState('');
   const [deliveryQuote, setDeliveryQuote] = useState<{ feeCentavos: number; distanceMeters: number } | null>(null);
@@ -274,7 +283,7 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
     return () => { active = false; };
   }, [restaurantSlug]);
 
-  const paymentComplete = ['paid', 'succeeded', 'completed'].includes((trackedStatus?.payment_status ?? '').toLowerCase());
+  const paymentComplete = trackingOnly && ['paid', 'succeeded', 'completed'].includes((trackedStatus?.payment_status ?? '').toLowerCase());
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
