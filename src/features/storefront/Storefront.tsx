@@ -169,7 +169,6 @@ function CartContents({ cart, customized, menu, change, changeCustomized, onEdit
                 disabled={line.quantity>=20} onClick={()=>changeCustomized(line.key,1)}>+</button>
             </div>
             <button type="button" className="sf-cart-line-action" onClick={()=>onEditCustom(line)}>Edit</button>
-            <button type="button" className="sf-cart-remove" onClick={()=>changeCustomized(line.key,-line.quantity)}>Remove</button>
           </div>
           </div>
         </div>)}
@@ -184,7 +183,6 @@ function CartContents({ cart, customized, menu, change, changeCustomized, onEdit
           <div className="sf-cart-item-actions">
             <QuantityControl itemId={item.id} quantity={quantity} change={change}/>
             <button type="button" className="sf-cart-line-action" onClick={()=>onEditRegular(item,quantity)}>Customize</button>
-            <button type="button" className="sf-cart-remove" onClick={()=>change(item.id,-quantity)}>Remove</button>
           </div>
           </div>
         </div>)}
