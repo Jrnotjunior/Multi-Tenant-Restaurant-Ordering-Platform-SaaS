@@ -2,7 +2,8 @@ import {useState,type FormEvent,type SyntheticEvent} from 'react';
 import {centavosToPesoInput,pesoInputToCentavos} from './pricing';
 import {
  createModifierGroup,changeModifierGroup,createModifierOption,changeModifierOption,
- updateModifierGroup,updateModifierOption,uploadMenuPhoto,publicMenuPhoto,type OwnerData,
+ updateModifierGroup,updateModifierOption,deleteModifierGroup,deleteModifierOption,
+ uploadMenuPhoto,publicMenuPhoto,type OwnerData,
 } from './menuService';
 
 type Run=(label:string,work:()=>Promise<unknown>)=>Promise<OwnerData|null|undefined>;
@@ -51,6 +52,19 @@ export function ProductExtrasManager({data,busy,run,showPhotos=true}:{data:Owner
     else if(selectedGroup===id)setSelectedGroup('');
   }
 
+  function removeGroup(groupId:string,groupName:string,choiceCount:number) {
+    const detail=choiceCount?` and its ${choiceCount} ${choiceCount===1?'choice':'choices'}`:'';
+    if(!window.confirm(`Delete “${groupName}”${detail}? It will be removed from the customer menu. Existing orders keep their saved item details.`))return;
+    void run('Customization group deleted',()=>deleteModifierGroup(data.tenant.id,groupId))
+      .then(next=>{if(next&&selectedGroup===groupId)setSelectedGroup('');});
+  }
+
+  function removeOption(optionId:string,optionName:string,groupName:string,groupId:string,activeCount:number,wasActive:boolean) {
+    if(wasActive&&activeCount-1<(groups.find(group=>group.id===groupId)?.min_select??0))return;
+    if(!window.confirm(`Delete “${optionName}” from “${groupName}”? Existing orders keep their saved item details.`))return;
+    void run('Customization choice deleted',()=>deleteModifierOption(data.tenant.id,optionId));
+  }
+
   if(!data.items.length)return <section className="mg-card"><h2>Menu customizations</h2>
     <p className="mg-muted">Add a menu item first, then set up its choices and add-ons here.</p></section>;
 
@@ -92,6 +106,8 @@ export function ProductExtrasManager({data,busy,run,showPhotos=true}:{data:Owner
               disabled={busy||(!group.is_active&&!canPublish)}
               onChange={event=>void run('Customization visibility',()=>changeModifierGroup(data.tenant.id,group.id,event.target.checked))}/>
               Show to customers</label>
+            <button type="button" className="mg-delete" disabled={busy}
+              onClick={()=>removeGroup(group.id,group.name,options.length)}>Delete</button>
           </div>
           {selectedGroup===group.id&&<div className="mg-customization-group-body">
             {editingGroup===group.id?<form className="mg-form" onSubmit={event=>{event.preventDefault();const min=Number(editingMinimum),max=Number(editingMaximum);if(!Number.isInteger(min)||!Number.isInteger(max)||min<0||max<1||min>max||max>20)return;void run('Customization group',()=>updateModifierGroup(data.tenant.id,group.id,editingGroupName,min,max)).then(next=>{if(next)setEditingGroup('');});}}>
@@ -108,6 +124,9 @@ export function ProductExtrasManager({data,busy,run,showPhotos=true}:{data:Owner
                   <button type="button" className="mg-secondary" onClick={()=>{setEditingOption(option.id);setEditingOptionName(option.name);setEditingOptionPrice(centavosToPesoInput(option.price_centavos));}}>Edit</button>
                   <label className="mg-toggle"><input type="checkbox" checked={option.is_active} disabled={busy||(option.is_active&&group.min_select>options.filter(candidate=>candidate.is_active).length-1)}
                     onChange={event=>void run('Choice availability',()=>changeModifierOption(data.tenant.id,option.id,event.target.checked))}/>Available</label>
+                  <button type="button" className="mg-delete" disabled={busy||(option.is_active&&activeCount-1<group.min_select)}
+                    title={option.is_active&&activeCount-1<group.min_select?'Keep at least '+group.min_select+' available choices for this required group.':''}
+                    onClick={()=>removeOption(option.id,option.name,group.name,group.id,activeCount,option.is_active)}>Delete</button>
                 </>}
               </div>)}
               {!options.length&&<p className="mg-muted">No choices yet. Add the first one below.</p>}

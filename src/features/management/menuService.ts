@@ -347,6 +347,12 @@ export async function updateModifierGroup(tenantId:string,id:string,name:string,
  check(error);
  if(!data)throw Error('Modifier group was not updated.');
 }
+export async function deleteModifierGroup(tenantId:string,id:string) {
+ const db=requireClient();
+ const {data,error}=await db.rpc('delete_owner_modifier_group',{p_tenant_id:tenantId,p_group_id:id});
+ check(error);
+ if(data!==true)throw Error('Customization group was not deleted.');
+}
 export async function createModifierOption(tenantId:string,itemId:string,groupId:string,name:string,price:number) {
  const db=requireClient();
  const {data,error}=await db.from('menu_modifier_options').insert({
@@ -369,6 +375,12 @@ export async function updateModifierOption(tenantId:string,id:string,name:string
    .update({name:name.trim(),price_centavos:price}).eq('tenant_id',tenantId).eq('id',id).select('id').single();
  check(error);
  if(!data)throw Error('Modifier option was not updated.');
+}
+export async function deleteModifierOption(tenantId:string,id:string) {
+ const db=requireClient();
+ const {data,error}=await db.rpc('delete_owner_menu_modifier_option',{p_tenant_id:tenantId,p_option_id:id});
+ check(error);
+ if(data!==true)throw Error('Customization choice was not deleted.');
 }
 
 /** Public images are individually named; no overwrite/delete permission is granted. */
