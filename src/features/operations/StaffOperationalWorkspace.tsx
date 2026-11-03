@@ -481,7 +481,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     const selectedRiderOrder = activeDeliveries.find(order => order.id === selectedRiderOrderId) ?? deliveryHistory.find(order => order.id === selectedRiderOrderId);
     if (selectedRiderOrder) {
       const order = selectedRiderOrder;
-      const status = order.assignment_status === 'arrived_at_customer' ? 'Arrived at customer' : order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'dispatched' ? 'Dispatched · ready to start' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : order.assignment_status === 'delivered' ? 'Delivered' : 'Assigned · waiting for dispatch';
+      const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'arrive_customer' || item.action === 'collect_cod' || item.action === 'deliver');
       const button = actions(order).find(item => item.action === 'accept_delivery' || item.action === 'arrive_customer' || item.action === 'collect_cod' || item.action === 'deliver');
       return <main className="rider-dashboard-page rider-delivery-page">
         <header className="rider-delivery-header">
@@ -491,7 +491,6 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
             <h1 className="rider-delivery-order-number">{formatOrderNumber(order.order_number)}</h1>
           </div>
           <div className="rider-delivery-header-actions">
-            <span className="rider-delivery-status">{status}</span>
           </div>
         </header>
         {error && <div className="rider-dashboard-message" role="alert">{error}</div>}
@@ -562,7 +561,6 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
               </div>}
               {button?.action === 'collect_cod' && <p className="rider-delivery-helper">Collect {money(order.total_centavos)} from the customer before swiping. This confirms payment and marks the order delivered.</p>}
               {order.assignment_status === 'assigned' && <p className="rider-delivery-helper">Assigned by the dispatcher. Waiting for dispatch.</p>}
-              {order.assignment_status === 'dispatched' && <p className="rider-delivery-helper">The dispatcher sent this order to you. Start delivery when you are leaving with it.</p>}
             </section>
           </aside>
         </div>
