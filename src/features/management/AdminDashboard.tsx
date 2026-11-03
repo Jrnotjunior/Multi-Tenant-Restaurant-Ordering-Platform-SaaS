@@ -5,6 +5,8 @@ import './management.css';
 export function AdminDashboard(){
   const [tenants,setTenants]=useState<Tenant[]>([]);
   const [deactivatedStaff,setDeactivatedStaff]=useState<DeactivatedStaff[]>([]);
+  const [paymentEntitlements,setPaymentEntitlements]=useState<Record<string,boolean>>({});
+  const [paymentEntitlementsLoaded,setPaymentEntitlementsLoaded]=useState(false);
   const [restaurantName,setRestaurantName]=useState('');
   const [slug,setSlug]=useState('');
   const [branchName,setBranchName]=useState('');
@@ -16,9 +18,11 @@ export function AdminDashboard(){
   const [error,setError]=useState('');
 
   const refresh=useCallback(async()=>{
-    const [rows,staff]=await Promise.all([adminTenants(),listDeactivatedStaff()]);
+    const [rows,staff,entitlements]=await Promise.all([adminTenants(),listDeactivatedStaff(),listOnlinePaymentEntitlements()]);
     setTenants(rows);
     setDeactivatedStaff(staff);
+    setPaymentEntitlements(Object.fromEntries((entitlements as OnlinePaymentEntitlement[]).map(item=>[item.tenant_id,item.enabled])));
+    setPaymentEntitlementsLoaded(true);
     setInviteTenant((previous)=>rows.some(x=>x.id===previous)?previous:rows[0]?.id??'');
   },[]);
   useEffect(()=>{let live=true;void refresh().catch(e=>{if(live)setError(e instanceof Error?e.message:'Could not load system administration data');});
@@ -94,6 +98,19 @@ export function AdminDashboard(){
     <section className="mg-card"><h2>Registered restaurants</h2>
       <div className="mg-list">
         {tenants.map(t=><div className="mg-list-row" key={t.id}><strong>{t.name}</strong><span>/{t.slug}</span></div>)}
+        {!tenants.length&&<p className="mg-muted">No restaurant records yet.</p>}
+      </div>
+    </section>
+    <section className="mg-card">
+      <div className="mg-card-title"><div><h2>Online payment access</h2><p>Grant or revoke the restaurant's access to online payments. When enabled, the restaurant owner can choose the payment methods they accept.</p></div></div>
+      <div className="mg-list">
+        {tenants.map(t=><div className="mg-payment-entitlement-row" key={t.id}>
+          <div><strong>{t.name}</strong><span>/{t.slug}</span></div>
+          <div className="mg-payment-entitlement-control">
+            <span className={paymentEntitlements[t.id]?'mg-pill mg-live':'mg-pill'}>{paymentEntitlements[t.id]?'Enabled':'Not enabled'}</span>
+            <button type="button" className={paymentEntitlements[t.id]?'mg-secondary':'mg-payment-enable'} disabled={busy||!paymentEntitlementsLoaded} onClick={()=>void run(()=>setOnlinePaymentEntitlement(t.id,!paymentEntitlements[t.id]),()=>paymentEntitlements[t.id]?'Online payments disabled for '+t.name+'.':'Online payments enabled for '+t.name+'. The restaurant can now select its accepted methods.')}>{paymentEntitlements[t.id]?'Turn off':'Enable online payments'}</button>
+          </div>
+        </div>)}
         {!tenants.length&&<p className="mg-muted">No restaurant records yet.</p>}
       </div>
     </section>
