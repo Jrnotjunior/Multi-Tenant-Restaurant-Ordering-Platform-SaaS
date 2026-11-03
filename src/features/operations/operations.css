@@ -61,8 +61,8 @@
 .owner-nav-group button{width:100%;min-height:37px;border:0;border-radius:8px;background:transparent;color:#c2d1e9;display:flex;align-items:center;gap:12px;text-align:left;padding:8px 12px;font:inherit;font-size:12px;font-weight:650;cursor:pointer;margin:1px 0}
 .owner-nav-group button:hover{background:#1a2a43;color:#fff}
 .owner-nav-group button.active{background:#263a59;color:#fff;box-shadow:inset 2px 0 #29b7f0}
-.owner-nav-icon{width:17px;display:inline-flex;justify-content:center;align-items:center;color:#b8c7de;font-size:15px}
-.owner-support{margin-top:auto;border-top:1px solid #263754;padding:18px 11px 0;font-size:11px;color:#c2d1e9}
+.owner-nav-icon{width:18px;height:18px;flex:0 0 18px;display:inline-flex;justify-content:center;align-items:center;color:#b8c7de}
+.owner-support{margin-top:auto;border-top:1px solid #263754;padding:18px 11px 0;display:flex;align-items:center;gap:9px;font-size:11px;color:#c2d1e9}
 .owner-main{min-width:0;min-height:100vh;margin-left:0;display:flex;flex-direction:column}
 .owner-main-inner{box-sizing:border-box;width:100%;max-width:1060px;min-width:0;min-height:0;flex:1;margin-inline:auto;padding-inline:0;display:flex;flex-direction:column}
 .owner-topbar{height:64px;flex-shrink:0;width:100%;box-sizing:border-box;background:#fff;border-bottom:1px solid #e2e8f1;display:flex;align-items:center;justify-content:flex-end;gap:11px;padding:0}
