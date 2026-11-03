@@ -157,9 +157,9 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
   return <main className="sf-order-tracking-page">
     {trackingToken && status ? <section className="sf-tracking-receipt" aria-live="polite" aria-label="Live order tracking">
       <header className="sf-tracking-order-heading">
-        <span className="sf-tracking-eyebrow">{isCancelled ? 'ORDER CANCELLED' : dineInCashOrder ? 'DINE-IN · TELL THE CASHIER' : takeOutCashOrder ? 'TAKE-OUT · PAY AT COUNTER FIRST' : orderTypeLabel.toUpperCase()}</span>
+        <span className="sf-tracking-eyebrow">{isCancelled ? 'ORDER CANCELLED' : dineInCashOrder ? 'DINE-IN · TELL THE CASHIER' : takeOutCashOrder ? 'TAKE-OUT · TELL THE CASHIER' : orderTypeLabel.toUpperCase()}</span>
         <h1>ORD-{orderNumText}</h1>
-        <p>{isCancelled ? cancellationMessage : dineInCashOrder ? 'Give this order number to the cashier to help them find your order.' : takeOutCashOrder ? 'Please pay the cashier for your take-out order before the restaurant starts preparing it.' : 'Your order status updates automatically.'}</p>
+        <p>{isCancelled ? cancellationMessage : dineInCashOrder ? 'Give this order number to the cashier to help them find your order.' : takeOutCashOrder ? 'Give this order number to the cashier to help them find your order.' : 'Your order status updates automatically.'}</p>
       </header>
       {assignedRider && <section className="sf-tracking-rider" aria-label="Your delivery rider">
         <span className="sf-tracking-eyebrow">YOUR RIDER</span>
