@@ -113,7 +113,6 @@ export function OwnerReportingPage({ tenantId, page }: Props) {
         <option value="all">All branches</option>{branches.map(branch => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
       </select></label>
       </div>
-      <button type="button" className="owner-reporting-refresh" onClick={() => void load()} disabled={loading}>{loading ? 'Loading…' : 'Refresh'}</button>
     </div>
 
     {error && <p className="owner-reporting-alert" role="alert">{error}</p>}
