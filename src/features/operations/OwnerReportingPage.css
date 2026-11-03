@@ -21,4 +21,4 @@
 .owner-reporting-alert{padding:12px 14px;border:1px solid #fecaca;border-radius:9px;background:#fef2f2;color:#991b1b;font-size:13px}
 .owner-reporting-empty p{color:var(--color-muted,#64748b);font-size:13px}
 @media(max-width:900px){.owner-reporting-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-reporting-columns{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:560px){.owner-reporting-toolbar{align-items:stretch;flex-direction:column}.owner-reporting-refresh{align-self:flex-start}.owner-reporting-metrics{grid-template-columns:minmax(0,1fr)}.owner-reporting-filters label,.owner-reporting-filters select{width:100%}}
+@media(max-width:560px){.owner-reporting-toolbar{align-items:stretch;flex-direction:column}.owner-reporting-metrics{grid-template-columns:minmax(0,1fr)}.owner-reporting-filters label,.owner-reporting-filters select{width:100%}}
