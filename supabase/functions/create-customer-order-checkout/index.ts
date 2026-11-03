@@ -58,6 +58,27 @@ Deno.serve(async (request) => {
       return json({ error: "The restaurant must finalize this order total before online payment." }, 409);
     }
 
+    const { data: storefront, error: storefrontError } = await admin.from("tenant_storefronts")
+      .select("online_payments").eq("tenant_id", order.tenant_id).maybeSingle();
+    if (storefrontError) throw storefrontError;
+    const onlinePayments = storefront?.online_payments as {
+      enabled?: boolean;
+      methods?: { card?: boolean; gcash?: boolean; qrph?: boolean; grab_pay?: boolean; paymaya?: boolean; dob?: boolean; billease?: boolean };
+    } | null;
+    if (onlinePayments?.enabled !== true) {
+      return json({ error: "This restaurant is not currently accepting online payments." }, 409);
+    }
+    const methodMap: Array<[keyof NonNullable<typeof onlinePayments>["methods"], string]> = [
+      ["card", "card"], ["gcash", "gcash"], ["qrph", "qrph"],
+      ["grab_pay", "grab_pay"], ["paymaya", "paymaya"], ["dob", "dob"], ["billease", "billease"],
+    ];
+    const enabledPaymentTypes = methodMap
+      .filter(([key]) => onlinePayments.methods?.[key] === true)
+      .map(([, providerType]) => providerType);
+    if (!enabledPaymentTypes.length) {
+      return json({ error: "This restaurant has not selected any online payment methods yet." }, 409);
+    }
+
     const { data: account, error: accountError } = await admin.from("tenant_paymongo_accounts")
       .select("paymongo_account_id,connection_status").eq("tenant_id", order.tenant_id)
       .eq("environment", environment).maybeSingle();
@@ -105,7 +126,7 @@ Deno.serve(async (request) => {
     const payload = {
       data: { attributes: {
         line_items: [{ currency: order.currency || "PHP", amount, name: "Restaurant order #" + order.order_number, quantity: 1 }],
-        payment_method_types: ["gcash", "card", "paymaya"],
+        payment_method_types: enabledPaymentTypes,
         description: "Web2Table order #" + order.order_number,
         // Return to the established restaurant tracking route. The browser session retains
         // the tracking token saved before redirecting to PayMongo; the signed webhook remains
