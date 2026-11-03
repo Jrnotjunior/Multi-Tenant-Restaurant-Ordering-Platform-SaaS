@@ -141,7 +141,8 @@
 .rider-dashboard-page .rider-order-detail .rider-dashboard-primary-action:disabled{opacity:.55;cursor:not-allowed}
 @media(min-width:760px){.rider-dashboard-page .rider-order-detail{padding:1.5rem;gap:1.15rem}}
 @media(max-width:760px){
-  .rider-dashboard-home-page{position:fixed;inset:0;z-index:1000;box-sizing:border-box;width:auto;height:auto;min-height:100dvh;max-width:none;margin:0;padding:0 0 calc(24px + env(safe-area-inset-bottom));overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;background:#fff;color:#101b2f}
+  html:has(.rider-dashboard-home-page),body:has(.rider-dashboard-home-page),#root:has(.rider-dashboard-home-page){width:100%;min-height:100vh}
+  .rider-dashboard-home-page{position:fixed;inset:0;z-index:1000;box-sizing:border-box;width:auto;height:auto;min-height:100vh;min-block-size:max(100vh,100dvh);max-width:none;margin:0;padding:0 0 calc(24px + env(safe-area-inset-bottom));overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;background:#fff;color:#101b2f}
   .rider-dashboard-home-page .rider-dashboard-account-menu{position:relative;inset:auto;z-index:21;flex:0 0 auto}
   .rider-dashboard-home-page .rider-account-button{width:38px;height:38px}
   .rider-dashboard-home-page .rider-account-dropdown{top:calc(100% + 8px)}
