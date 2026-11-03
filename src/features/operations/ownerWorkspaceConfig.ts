@@ -4,18 +4,18 @@ export type OwnerNavItem = { key: OwnerPage; label: string; icon: string };
 export type OwnerNavGroup = { label: string; items: OwnerNavItem[] };
 
 export const ownerNavGroups: OwnerNavGroup[] = [
-  { label: 'OVERVIEW', items: [{ key: 'dashboard', label: 'Dashboard', icon: '▦' }] },
+  { label: 'OVERVIEW', items: [{ key: 'dashboard', label: 'Dashboard', icon: 'dashboard' }] },
   { label: 'OPERATIONS', items: [
-    { key: 'orders', label: 'Orders', icon: '▤' }, { key: 'menu', label: 'Menu', icon: '⚒' },
+    { key: 'orders', label: 'Orders', icon: 'orders' }, { key: 'menu', label: 'Menu', icon: 'menu' },
   ] },
-  { label: 'PEOPLE', items: [{ key: 'employees', label: 'Employees', icon: '♙' }] },
+  { label: 'PEOPLE', items: [{ key: 'employees', label: 'Employees', icon: 'employees' }] },
   { label: 'BUSINESS', items: [
-    { key: 'sales', label: 'Sales', icon: '⌁' }, { key: 'reports', label: 'Business Reports', icon: '▥' },
-    { key: 'loyalty', label: 'Loyalty', icon: '⚙' },
+    { key: 'sales', label: 'Sales', icon: 'sales' }, { key: 'reports', label: 'Business Reports', icon: 'reports' },
+    { key: 'loyalty', label: 'Loyalty', icon: 'loyalty' },
   ] },
-  { label: 'POS & COMPLIANCE', items: [{ key: 'fiscal', label: 'Fiscal & POS', icon: '▧' }] },
+  { label: 'POS & COMPLIANCE', items: [{ key: 'fiscal', label: 'Fiscal & POS', icon: 'pos' }] },
   { label: 'STORE', items: [
-    { key: 'settings', label: 'Store Settings', icon: '☼' }, { key: 'branding', label: 'Website & Branding', icon: '☷' },
+    { key: 'settings', label: 'Store Settings', icon: 'settings' }, { key: 'branding', label: 'Website & Branding', icon: 'website' },
   ] },
 ];
 
