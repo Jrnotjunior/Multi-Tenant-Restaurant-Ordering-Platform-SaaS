@@ -385,7 +385,7 @@
 .restaurant-menu-section-header h2{margin:0 0 4px;color:var(--color-text,#101B2F);font-family:var(--font-heading,Manrope,sans-serif);font-size:21px}
 .restaurant-menu-section-header p{margin:0;color:var(--color-muted,#526782);font-size:13px;line-height:1.5}
 .restaurant-menu-add-button{min-height:42px;white-space:nowrap;flex-shrink:0}
-.restaurant-menu-search{display:flex;align-items:center;gap:10px;margin:18px 0 14px}.restaurant-menu-search .restaurant-menu-add-button{margin-left:auto}
+.restaurant-menu-search{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;margin:18px 0 14px}.restaurant-menu-search .restaurant-menu-add-button{margin-left:auto;flex:0 0 auto}
 .restaurant-menu-search-input-wrap{position:relative;flex:1;max-width:360px}
 .restaurant-menu-search input{width:100%;box-sizing:border-box;border:1px solid var(--color-border,#DCE3ED);border-radius:10px;padding:11px 40px 11px 12px;font:inherit;font-size:13px;color:var(--color-text,#101B2F);background:var(--color-surface,#FFFFFF)}
 .restaurant-menu-search input:focus{outline:none;border-color:var(--color-active,#263754);box-shadow:0 0 0 3px #26375418}
