@@ -303,6 +303,8 @@
 .staff-cashier-order-summary{width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;border:1px solid var(--color-border,#DCE3ED);border-radius:12px;background:var(--color-surface,#fff);color:var(--color-text,#101B2F);text-align:left;font:inherit;cursor:pointer;transition:border-color .15s ease,box-shadow .15s ease}
 .staff-cashier-order-summary:hover{border-color:var(--color-primary,#9AAAC0);box-shadow:0 3px 12px #101b2f0a}
 .staff-cashier-summary-main,.staff-cashier-summary-payment{display:flex;align-items:center;gap:12px;min-width:0}
+.staff-kitchen-summary-main{align-items:flex-start;flex-direction:column;gap:4px}
+.staff-order-created-at{color:var(--color-muted,#526782);font-size:.78rem;font-weight:500;white-space:normal}
 .staff-cashier-summary-main strong{font-size:.94rem;font-weight:800;white-space:nowrap}
 .staff-cashier-summary-main>span{color:var(--color-muted,#526782);font-size:.86rem}
 .staff-cashier-summary-payment>span{padding:5px 10px;border-radius:999px;background:var(--color-page,#F1F4F8);color:var(--color-muted,#526782);font-size:.78rem;white-space:nowrap}
