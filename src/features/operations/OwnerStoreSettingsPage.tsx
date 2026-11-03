@@ -364,7 +364,6 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         {[
           { key: 'cash_on_delivery_enabled', label: 'Accept Cash on Delivery' },
           { key: 'cash_on_pickup_enabled', label: 'Accept Cash for Pickup' },
-          { key: 'cash_on_take_out_enabled', label: 'Accept Cash for Take-out' },
         ].map(item => <div className="w2t-setting-switch-row" key={item.key}><span>{item.label}</span><Toggle label={item.label} checked={cash[item.key] !== false} disabled /></div>)}
       </section>}
       {activeTab === 'rider' && <section className="w2t-settings-card">
