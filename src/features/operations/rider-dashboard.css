@@ -100,6 +100,9 @@
 .rider-dashboard-card-open{display:flex;flex-direction:column;gap:.45rem;width:100%;padding:.85rem;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;font:inherit}
 .rider-dashboard-card-open:focus-visible{outline:2px solid currentColor;outline-offset:-3px}
 .rider-dashboard-card-open .rider-dashboard-delivery-top{display:flex;justify-content:space-between;align-items:center;gap:.75rem;width:100%}
+.rider-dashboard-history-open{flex-direction:row;align-items:center;justify-content:space-between;gap:1rem}
+.rider-dashboard-history-open .rider-dashboard-delivery-main{flex:1;min-width:0}
+.rider-dashboard-history-open:focus-visible{outline-offset:-3px}
 .rider-dashboard-card-customer{font-size:.9rem}
 .rider-dashboard-card-address{font-size:.82rem;color:var(--muted,#64748b);overflow-wrap:anywhere}
 .rider-dashboard-card-open-hint{font-size:.75rem;color:var(--muted,#64748b);margin-top:.15rem}

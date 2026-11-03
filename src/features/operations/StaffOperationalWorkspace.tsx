@@ -478,6 +478,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     );
     const hasOnRoad = activeDeliveries.some(order => ['out_for_delivery', 'arrived_at_customer'].includes(order.assignment_status ?? '') || order.order_status === 'out_for_delivery');
     const selectedRiderOrder = activeDeliveries.find(order => order.id === selectedRiderOrderId) ?? deliveryHistory.find(order => order.id === selectedRiderOrderId);
+    const selectedOrderIsHistory = Boolean(selectedRiderOrder && deliveryHistory.some(order => order.id === selectedRiderOrder.id));
     if (selectedRiderOrder) {
       const order = selectedRiderOrder;
       const status = order.assignment_status === 'arrived_at_customer' ? 'Arrived at customer' : order.assignment_status === 'out_for_delivery' ? 'Out for delivery' : order.assignment_status === 'dispatched' ? 'Dispatched · ready to start' : order.assignment_status === 'accepted' ? 'Accepted · waiting for dispatch' : order.assignment_status === 'delivered' ? 'Delivered' : 'Assigned · waiting for dispatch';
@@ -485,7 +486,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       return <main className="rider-dashboard-page rider-delivery-page">
         <header className="rider-delivery-header">
           <div>
-            <a className="rider-delivery-back" href="#" onClick={(event) => { event.preventDefault(); setSelectedRiderOrderId(null); }}>← My deliveries</a>
+            <a className="rider-delivery-back" href="#" onClick={(event) => { event.preventDefault(); setSelectedRiderOrderId(null); }}>{selectedOrderIsHistory ? '← Delivery history' : '← My deliveries'}</a>
             <p className="rider-delivery-order-eyebrow">Delivery order</p>
             <h1 className="rider-delivery-order-number">{/^ORD-/i.test(String(order.order_number)) ? String(order.order_number) : `Order #${order.order_number}`}</h1>
             <p>Deliver this order to the customer.</p>
@@ -620,9 +621,11 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           <div className="rider-history-filter"><label htmlFor="rider-history-date">Delivery date</label><input id="rider-history-date" type="date" value={riderHistoryDate} max={new Date().toLocaleDateString('en-CA')} onChange={event => setRiderHistoryDate(event.target.value)} /><button type="button" onClick={() => setRiderHistoryDate('')}>All dates</button></div>
           {loading ? <div className="rider-dashboard-empty">Loading order history…</div> : shownHistory.length === 0 ?
             <div className="rider-dashboard-empty"><strong>{deliveryHistory.length ? 'No deliveries for this date' : 'No delivery history yet'}</strong><span>{deliveryHistory.length ? 'Choose another date or view all dates to see older deliveries.' : 'Completed deliveries will appear here.'}</span></div> :
-            <div className="rider-dashboard-list">{shownHistory.map(order => <article className="rider-dashboard-delivery-card rider-dashboard-history-card" key={order.id}>
-              <div className="rider-dashboard-delivery-main"><div className="rider-dashboard-delivery-top"><strong>Order #{order.order_number}</strong><span className="rider-dashboard-status is-delivered">Delivered</span></div><h3>{order.customer_name}</h3><p>Delivered on {new Intl.DateTimeFormat('en-PH',{dateStyle:'medium'}).format(new Date(order.created_at))}</p></div>
-              <div className="rider-dashboard-delivery-side"><strong>{money(order.total_centavos)}</strong><span aria-hidden="true">✓</span></div>
+            <div className="rider-dashboard-list">{shownHistory.map(order => <article className="rider-dashboard-delivery-card rider-dashboard-history-card rider-dashboard-delivery-card-clickable" key={order.id}>
+              <button className="rider-dashboard-card-open rider-dashboard-history-open" type="button" onClick={() => { setSelectedRiderOrderId(order.id); setOrderDetailsOpen(false); setSwipeProgress(0); }} aria-label={'Open delivered order ' + order.order_number}>
+                <span className="rider-dashboard-delivery-main"><span className="rider-dashboard-delivery-top"><strong>Order #{order.order_number}</strong><span className="rider-dashboard-status is-delivered">Delivered</span></span><strong className="rider-dashboard-card-customer">{order.customer_name}</strong><span className="rider-dashboard-card-address">Delivered on {new Intl.DateTimeFormat('en-PH',{dateStyle:'medium'}).format(new Date(order.created_at))}</span></span>
+                <span className="rider-dashboard-delivery-side"><strong>{money(order.total_centavos)}</strong><span aria-hidden="true">✓</span></span>
+              </button>
             </article>)}</div>}
         </>}
       </section>
