@@ -316,29 +316,6 @@ export async function removeDeactivatedStaff(tenantId:string,userId:string):Prom
 }
 
 
-/** Server RPCs enforce verified MFA, active owner membership, and tenant isolation. */
-export async function createOwnerBranch(tenantId:string,slug:string,name:string):Promise<string> {
-  const db=requireClient();
-  const {data,error}=await db.rpc('create_owner_branch',{
-    p_tenant_id:tenantId,p_slug:slug.trim().toLowerCase(),p_name:name.trim(),
-  });
-  check(error);
-  if(typeof data!=='string')throw new Error('Branch could not be created.');
-  return data;
-}
-
-export async function updateOwnerBranch(
-  tenantId:string,branchId:string,name:string,active:boolean
-):Promise<void> {
-  const db=requireClient();
-  const {data,error}=await db.rpc('update_owner_branch',{
-    p_tenant_id:tenantId,p_branch_id:branchId,p_name:name.trim(),p_active:active,
-  });
-  check(error);
-  if(data!==true)throw new Error('Branch change was not applied.');
-}
-
-
 export async function createModifierGroup(tenantId:string,itemId:string,name:string,min:number,max:number) {
  const db=requireClient();
  const {data,error}=await db.from('menu_modifier_groups').insert({

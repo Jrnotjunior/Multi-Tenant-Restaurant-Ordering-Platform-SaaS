@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { restaurantMenuPath } from '../../app/routes';
 import { centavosToPesoInput,pesoInputToCentavos } from './pricing';
 import {
-  createCategory,createOwnerBranch,updateOwnerBranch,loadOwnerData,ownerTenantChoices,saveBrand,saveItem,setBranchItem,
+  createCategory,loadOwnerData,ownerTenantChoices,saveBrand,saveItem,setBranchItem,
   setPublication,toggleCategory,uploadStorefrontLogo,clearStorefrontLogo,publicStorefrontLogo,type Brand,type OwnerData,type Product,type Tenant,
 } from './menuService';
 import './management.css';
@@ -21,9 +21,6 @@ export function OwnerDashboard({baseUrl}:{baseUrl:string}) {
   const [categoryName,setCategoryName]=useState('');
   const [draft,setDraft]=useState<ItemDraft>(blankItem());
   const [branchId,setBranchId]=useState('');
-  const [newBranchName,setNewBranchName]=useState('');
-  const [newBranchSlug,setNewBranchSlug]=useState('');
-  const [branchNameEdits,setBranchNameEdits]=useState<Record<string,string>>({});
   const [priceEdits,setPriceEdits]=useState<Record<string,string>>({});
   const [loading,setLoading]=useState(true);
   const [busy,setBusy]=useState(false);
@@ -117,24 +114,6 @@ export function OwnerDashboard({baseUrl}:{baseUrl:string}) {
       description:draft.description.trim(),price_centavos:cents,
       is_popular:draft.is_popular,status:draft.status,
     })).then(result=>{if(result)setDraft(blankItem(result.categories[0]?.id??''));});
-  }
-
-  function addBranch(event:FormEvent) {
-    event.preventDefault();
-    if(!data) return;
-    void run('Branch created (inactive)',()=>createOwnerBranch(
-      data.tenant.id,newBranchSlug,newBranchName
-    )).then(next=>{if(next){setNewBranchSlug('');setNewBranchName('');}});
-  }
-
-  function saveBranch(branch:{id:string;name:string;is_active:boolean},active:boolean) {
-    if(!data)return;
-    const name=(branchNameEdits[branch.id]??branch.name).trim();
-    if(name.length<2){setError('Branch name must contain at least 2 characters.');return;}
-    void run('Branch settings',()=>updateOwnerBranch(data.tenant.id,branch.id,name,active))
-      .then(next=>{if(next)setBranchNameEdits(prev=>{
-        const value={...prev};delete value[branch.id];return value;
-      });});
   }
 
   function savePriceOverride(itemId:string,previousAvailable:boolean,prior:number|null) {
@@ -286,45 +265,6 @@ export function OwnerDashboard({baseUrl}:{baseUrl:string}) {
           </div>)}
           {!data.items.length&&<p className="mg-muted">No products yet. Use the form above to add your first dish.</p>}
         </div>
-      </section>
-
-      <section className="mg-card">
-        <div className="mg-card-title">
-          <div><h2>Restaurant branches</h2>
-            <p>Add branches, rename them, or activate a branch when its menu is ready.</p></div>
-          <span className="mg-pill">{data.branches.length} / 20 branches</span>
-        </div>
-        <form className="mg-inline-form" onSubmit={addBranch}>
-          <label className="mg-field">Branch name
-            <input required minLength={2} maxLength={160} value={newBranchName}
-              placeholder="e.g. Makati"
-              onChange={event=>setNewBranchName(event.target.value)}/></label>
-          <label className="mg-field">Branch URL slug
-            <input required minLength={2} maxLength={64}
-              pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="makati"
-              value={newBranchSlug} onChange={event=>setNewBranchSlug(event.target.value.toLowerCase())}/></label>
-          <button type="submit" disabled={busy||data.branches.length>=20}>Add inactive branch</button>
-        </form>
-        <div className="mg-list">
-          {data.branches.map(branch=><div className="mg-branch-row" key={branch.id}>
-            <div className="mg-branch-meta">
-              <strong>/{branch.slug}</strong>
-              <span>{branch.id===data.brand.default_branch_id?'Default location':'Additional location'}</span>
-            </div>
-            <label className="mg-field mg-branch-name">Branch name
-              <input maxLength={160} minLength={2} value={branchNameEdits[branch.id]??branch.name}
-                onChange={event=>setBranchNameEdits({...branchNameEdits,[branch.id]:event.target.value})}/>
-            </label>
-            <div className="mg-branch-actions">
-              <label className="mg-toggle"><input type="checkbox" checked={branch.is_active}
-                disabled={busy||branch.id===data.brand.default_branch_id}
-                onChange={event=>saveBranch(branch,event.target.checked)}/> Active</label>
-              <button type="button" className="mg-secondary" disabled={busy}
-                onClick={()=>saveBranch(branch,branch.is_active)}>Save name</button>
-            </div>
-          </div>)}
-        </div>
-        <p className="mg-hint">Additional branches start inactive and have no available products. Activate only when configured. The initial branch remains the default and cannot be deactivated here.</p>
       </section>
 
       <ProductExtrasManager key={data.tenant.id} data={data} busy={busy} run={run}/>

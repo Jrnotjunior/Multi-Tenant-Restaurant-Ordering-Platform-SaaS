@@ -4,7 +4,7 @@ import { cartCount, cartLines, cartSubtotal, updateCart, type Cart } from './car
 import {addCustom,changeCustom,customCount,customLines,customSubtotal,editCustom,type CustomCart,type CustomLine,type Selection} from './customCart';
 import {CustomizeDialog} from './CustomizeDialog';
 import { filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
-import { branchSlugFromSearch, loadDefaultPublishedMenu, loadPublishedMenu, type StorefrontCatalog } from './publishedMenu';
+import { branchSlugFromDomainPath, branchSlugFromSearch, loadDefaultPublishedMenu, loadDomainPublishedMenu, loadPublishedMenu, type StorefrontCatalog } from './publishedMenu';
 import { isStorefrontCartPath, isStorefrontCheckoutPath, isStorefrontTrackingPath, normalizeAppBase, restaurantMenuHash, routePathFromLocation, storefrontCartHash, storefrontCheckoutHash, storefrontTrackingHash } from '../../app/routes';
 import { CartPage } from './CartPage';
 import { CheckoutPage, type CheckoutSubmission } from './CheckoutPage';
@@ -230,7 +230,15 @@ function MenuCard({ item, customize, notify, checkAvailability }: { item: MenuIt
 export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: {
   baseUrl: string; requestedSlug: string | null; initialCartPage?: boolean;
 }) {
-  const [selectedBranch, setSelectedBranch] = useState<string|null>(() => branchSlugFromSearch(window.location.search));
+  const [selectedBranch, setSelectedBranch] = useState<string|null>(() => {
+    const fromSearch=branchSlugFromSearch(window.location.search);
+    if(fromSearch!==null)return fromSearch;
+    const pathname=window.location.pathname;
+    const basePath=baseUrl.replace(/\/+$/,'');
+    const relative=basePath&&pathname.startsWith(basePath+'/')?pathname.slice(basePath.length+1):pathname.replace(/^\/+/, '');
+    if(relative.includes('/'))return null;
+    return branchSlugFromDomainPath(relative==='index.html'?'':relative);
+  });
   const [resolvedSlug, setResolvedSlug] = useState<string | null>(requestedSlug);
   // The root storefront can resolve to a tenant slug after loading. Use that same tenant key for the menu and its route-backed cart page.
   const cartStorageKey = 'web2table:cart:' + (resolvedSlug ?? requestedSlug ?? 'default') + ':' + (selectedBranch ?? 'default');
@@ -410,7 +418,10 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     setResolvedSlug(requestedSlug);
     const load = requestedSlug
       ? loadPublishedMenu(requestedSlug, selectedBranch).then((catalog) => catalog ? { slug: requestedSlug, catalog } : null)
-      : loadDefaultPublishedMenu(selectedBranch);
+      : loadDomainPublishedMenu(window.location.hostname,selectedBranch).then(domain=>
+        domain.matched
+          ? domain.slug&&domain.catalog?{slug:domain.slug,catalog:domain.catalog}:null
+          : loadDefaultPublishedMenu(selectedBranch));
     void load.then((result) => {
       if (!active) return;
       setResolvedSlug(result?.slug ?? requestedSlug);
@@ -426,8 +437,9 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     const channel = supabase
       .channel('storefront:' + resolvedSlug, { config: { private: false } })
       .on('broadcast', { event: 'menu_changed' }, () => {
-        const refresh = requestedSlug
-          ? loadPublishedMenu(requestedSlug, selectedBranch).then((catalog) => catalog ? { slug: requestedSlug, catalog } : null)
+        const activeSlug=requestedSlug??resolvedSlug;
+        const refresh = activeSlug
+          ? loadPublishedMenu(activeSlug, selectedBranch).then((catalog) => catalog ? { slug: activeSlug, catalog } : null)
           : loadDefaultPublishedMenu(selectedBranch);
         void refresh.then((result) => {
           if (!active) return;

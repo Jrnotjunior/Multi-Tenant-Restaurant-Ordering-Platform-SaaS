@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {branchSlugFromSearch,parsePublishedMenu} from '../src/features/storefront/publishedMenu';
+import {branchSlugFromDomainPath,branchSlugFromSearch,parsePublishedMenu} from '../src/features/storefront/publishedMenu';
 import {cartCount,cartSubtotal,updateCart} from '../src/features/storefront/cart';
 
 const payload={
@@ -32,6 +32,12 @@ describe('branch-specific customer menus',()=>{
    expect(branchSlugFromSearch('?branch=../admin')).toBe('');
    expect(branchSlugFromSearch('?branch=main&branch=makati')).toBe('');
    expect(branchSlugFromSearch('?branch=')).toBe('');
+ });
+ it('resolves clean branch paths for a shared custom domain',()=>{
+   expect(branchSlugFromDomainPath('/')).toBeNull();
+   expect(branchSlugFromDomainPath('/branch-a')).toBe('branch-a');
+   expect(branchSlugFromDomainPath('/branch-a/cart')).toBe('');
+   expect(branchSlugFromDomainPath('/../admin')).toBe('');
  });
 ;
 });
