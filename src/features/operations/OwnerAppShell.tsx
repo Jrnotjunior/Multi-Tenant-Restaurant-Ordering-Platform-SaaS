@@ -40,7 +40,12 @@ function OwnerNavIcon({ name }: { name: string }) {
 }
 
 function SupportIcon() {
-  return <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3.5 13v-1a8.5 8.5 0 0 1 17 0v1"/><rect x="3" y="12" width="4" height="7" rx="1.5"/><rect x="17" y="12" width="4" height="7" rx="1.5"/><path d="M17 19c-.7 1.4-2 2-4 2h-1"/></svg>;
+  return <svg className="owner-support-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M3 13v-1a9 9 0 0 1 18 0v1"/>
+    <path d="M3 12.5h3.5v6H5a2 2 0 0 1-2-2zM17.5 12.5H21v4a2 2 0 0 1-2 2h-1.5z"/>
+    <path d="M18 18.5v.3a3.2 3.2 0 0 1-3.2 3.2H13"/>
+    <path d="M11.5 22h2.2"/>
+  </svg>;
 }
 
 export function OwnerAppShell({ groups, page, displayName, onNavigate, onSignOut, children }: Props) {
