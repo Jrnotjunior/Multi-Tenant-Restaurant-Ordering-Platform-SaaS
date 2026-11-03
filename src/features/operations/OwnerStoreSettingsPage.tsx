@@ -37,7 +37,7 @@ const DAYS: Array<{ key: DayKey; label: string }> = [
 ];
 const DEFAULT_DAY: DayHours = { isOpen: true, open: '09:00', close: '21:00' };
 const DEFAULT_HOURS: OperatingHours = Object.fromEntries(DAYS.map(day => [day.key, { ...DEFAULT_DAY }])) as OperatingHours;
-const DEFAULT_METHODS: OnlinePaymentMethods = { card: false, gcash: true, qrph: true, grab_pay: true, paymaya: true, dob: true, billease: false };
+const DEFAULT_METHODS: OnlinePaymentMethods = { card: false, gcash: false, qrph: false, grab_pay: false, paymaya: false, dob: false, billease: false };
 const PAYMENT_METHODS: Array<{ key: keyof OnlinePaymentMethods; label: string }> = [
   { key: 'card', label: 'Card payments' }, { key: 'gcash', label: 'GCash' },
   { key: 'qrph', label: 'QR Ph' }, { key: 'grab_pay', label: 'GrabPay' },
@@ -89,11 +89,11 @@ function normalizeMethods(value: unknown): OnlinePaymentMethods {
   const source = asObject(value);
   return {
     card: source.card === true,
-    gcash: source.gcash !== false,
-    qrph: source.qrph !== false,
-    grab_pay: source.grab_pay !== false,
-    paymaya: source.paymaya !== false,
-    dob: source.dob !== false,
+    gcash: source.gcash === true,
+    qrph: source.qrph === true,
+    grab_pay: source.grab_pay === true,
+    paymaya: source.paymaya === true,
+    dob: source.dob === true,
     billease: source.billease === true,
   };
 }
@@ -373,7 +373,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
       {activeTab === 'payments' && <><section className="w2t-settings-card">
         <div className="w2t-setting-switch-row w2t-setting-switch-row-top"><span><strong>Online Payments</strong><small>{payments.enabled ? 'Customers can pay online using the enabled methods below.' : 'Online payment is turned off for this restaurant.'} This setting is controlled by the System Administrator.</small></span><Toggle label="Online payments enabled" checked={payments.enabled} disabled /></div>
         <h2 className="w2t-settings-subheading">Accepted Payment Methods</h2>
-        <p className="w2t-settings-help">Choose which payment methods this restaurant accepts. A method must also be supported by its connected payment account.</p>
+        <p className="w2t-settings-help">{payments.enabled ? 'Online payments are enabled by the System Administrator. Choose which supported methods this restaurant accepts.' : 'Online payments are currently disabled by the System Administrator. Once enabled, you can choose which supported methods this restaurant accepts.'} A method must also be supported by the connected PayMongo account.</p>
         <div className={`w2t-payment-methods${payments.enabled ? '' : ' is-disabled'}`}>
           {PAYMENT_METHODS.map(item => <div className="w2t-setting-switch-row" key={item.key}><span>{item.label}</span><Toggle label={item.label} checked={payments.methods[item.key]} disabled={saving || !payments.enabled} onChange={value => updateMethods(item.key, value)} /></div>)}
         </div>
