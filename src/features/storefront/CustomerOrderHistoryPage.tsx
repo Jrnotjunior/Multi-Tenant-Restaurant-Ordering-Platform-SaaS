@@ -12,6 +12,7 @@ type HistoryOrder = {
   subtotal_centavos: number; delivery_fee_centavos: number | null; total_centavos: number | null;
   items: HistoryItem[];
 };
+const titleCaseLabel = (value: string | null | undefined) => (value ?? '').replaceAll('_', ' ').trim().replace(/\b\p{L}/gu, character => character.toLocaleUpperCase());
 const peso = (value: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(value / 100);
 
 export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
@@ -105,12 +106,12 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
       {selectedOrder && <div className="sf-order-history-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget && !cancellingOrderId) setSelectedOrder(null); }}>
         <section className="sf-order-history-modal" role="dialog" aria-modal="true" aria-labelledby="sf-order-history-modal-title">
           <header className="sf-order-history-modal-header">
-            <div><span className="sf-tracking-eyebrow">{selectedOrder.restaurant_name}</span><h2 id="sf-order-history-modal-title">Order #{String(selectedOrder.order_number).padStart(5, '0')}</h2><p>{new Date(selectedOrder.created_at).toLocaleString()} · {selectedOrder.order_type.replaceAll('_', ' ')}</p></div>
+            <div><span className="sf-tracking-eyebrow">{selectedOrder.restaurant_name}</span><h2 id="sf-order-history-modal-title">Order #{String(selectedOrder.order_number).padStart(5, '0')}</h2><p>{new Date(selectedOrder.created_at).toLocaleString()} · {titleCaseLabel(selectedOrder.order_type)}</p></div>
             <button type="button" className="sf-order-history-modal-close" aria-label="Close order details" onClick={() => setSelectedOrder(null)}>×</button>
           </header>
           <div className="sf-order-history-modal-content">
-            <p>Status: <strong>{selectedOrder.order_status.replaceAll('_', ' ')}</strong></p>
-            <p>Payment: {selectedOrder.payment_method === 'online' ? 'Online' : selectedOrder.payment_method ?? 'Cash'} · {selectedOrder.payment_status.replaceAll('_', ' ')}{selectedOrder.refund_status && <> · Refund: {selectedOrder.refund_status}</>}</p>
+            <p>Status: <strong>{titleCaseLabel(selectedOrder.order_status)}</strong></p>
+            <p>Payment: {selectedOrder.payment_method === 'online' ? 'Online' : selectedOrder.payment_method ?? 'Cash'} · {titleCaseLabel(selectedOrder.payment_status)}{selectedOrder.refund_status && <> · Refund: {selectedOrder.refund_status}</>}</p>
             <div className="sf-order-history-items"><h3>Items</h3>{selectedOrder.items?.map((item, index) => <p key={selectedOrder.order_id + item.name + index}>{item.quantity} × {item.name} <strong>{peso(item.total_centavos)}</strong></p>)}</div>
             <div className="sf-order-history-totals"><p>Subtotal <strong>{peso(selectedOrder.subtotal_centavos)}</strong></p>{selectedOrder.delivery_fee_centavos != null && <p>Delivery fee <strong>{peso(selectedOrder.delivery_fee_centavos)}</strong></p>}{selectedOrder.total_centavos != null && <p className="sf-order-history-grand-total">Total <strong>{peso(selectedOrder.total_centavos)}</strong></p>}</div>
           </div>
