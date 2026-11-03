@@ -3,7 +3,7 @@ import { peso,type MenuItem } from './demoCatalog';
 import { selectedOptions,selectionFromOptionIds,validateSelection,type Selection } from './customCart';
 
 export function CustomizeDialog({item,onSave,onClose,initialOptionIds=[],initialInstructions='',initialQuantity=1,editing=false}:{
-  item:MenuItem|null;onSave:(item:MenuItem,selection:Selection,quantity:number,instructions:string)=>void;onClose:()=>void;
+  item:MenuItem|null;onSave:(item:MenuItem,selection:Selection,quantity:number,instructions:string)=>boolean|void|Promise<boolean|void>;onClose:()=>void;
   initialOptionIds?:readonly string[];initialInstructions?:string;initialQuantity?:number;editing?:boolean;
 }) {
   const ref=useRef<HTMLDialogElement>(null);
@@ -33,10 +33,11 @@ export function CustomizeDialog({item,onSave,onClose,initialOptionIds=[],initial
       return {...previous,[groupId]:next};
     });
   }
-  function submit(event:FormEvent) {
+  async function submit(event:FormEvent) {
     event.preventDefault();
     if(!item||!validateSelection(item.modifierGroups??[],choices))return;
-    onSave(item,choices,quantity,instructions.trim());onClose();
+    const saved = await onSave(item,choices,quantity,instructions.trim());
+    if (saved !== false) onClose();
   }
   const groups=item?.modifierGroups??[];
   const options=selectedOptions(groups,choices);
