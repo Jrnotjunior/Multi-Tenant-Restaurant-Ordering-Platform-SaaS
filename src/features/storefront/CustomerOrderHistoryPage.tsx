@@ -114,11 +114,7 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
             <div className="sf-order-history-items"><h3>Items</h3>{selectedOrder.items?.map((item, index) => <p key={selectedOrder.order_id + item.name + index}>{item.quantity} × {item.name} <strong>{peso(item.total_centavos)}</strong></p>)}</div>
             <div className="sf-order-history-totals"><p>Subtotal <strong>{peso(selectedOrder.subtotal_centavos)}</strong></p>{selectedOrder.delivery_fee_centavos != null && <p>Delivery fee <strong>{peso(selectedOrder.delivery_fee_centavos)}</strong></p>}{selectedOrder.total_centavos != null && <p className="sf-order-history-grand-total">Total <strong>{peso(selectedOrder.total_centavos)}</strong></p>}</div>
           </div>
-          <footer className="sf-order-history-modal-actions">
-            <a href={base + 'order/' + encodeURIComponent(selectedOrder.restaurant_slug) + '#track'}>Open restaurant</a>
-            {selectedOrder.order_status === 'pending_confirmation' && <button type="button" className="sf-tracking-cancel-start" disabled={Boolean(cancellingOrderId)} onClick={() => void cancelOrder(selectedOrder)}>{cancellingOrderId === selectedOrder.order_id ? 'Cancelling…' : 'Cancel order'}</button>}
-            <button type="button" className="sf-order-history-modal-done" onClick={() => setSelectedOrder(null)}>Close details</button>
-          </footer>
+          {selectedOrder.order_status === 'pending_confirmation' && <footer className="sf-order-history-modal-actions"><button type="button" className="sf-tracking-cancel-start" disabled={Boolean(cancellingOrderId)} onClick={() => void cancelOrder(selectedOrder)}>{cancellingOrderId === selectedOrder.order_id ? 'Cancelling…' : 'Cancel order'}</button></footer>}
         </section>
       </div>}
     </section>
