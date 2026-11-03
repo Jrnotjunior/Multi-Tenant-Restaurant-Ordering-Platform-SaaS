@@ -218,7 +218,7 @@
 .rider-delivery-action{display:flex;align-items:center;justify-content:center;width:100%;min-height:46px;margin-top:1rem;padding:.7rem 1rem;border:0;border-radius:.7rem;background:var(--text,#111827);color:#fff;font:inherit;font-size:.85rem;font-weight:800;cursor:pointer}
 .rider-delivery-action:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:800px){.rider-delivery-layout{grid-template-columns:1fr}.rider-delivery-progress-card{position:static}}
-@media(max-width:560px){.rider-delivery-page{width:calc(100% - 1rem);padding:1rem 0 2rem}.rider-delivery-header{align-items:center;flex-direction:column;text-align:center}.rider-delivery-header>div:first-child{width:100%}.rider-delivery-back{display:flex;width:100%;justify-content:center;box-sizing:border-box}.rider-delivery-header-actions{width:100%;justify-content:center}.rider-delivery-card{padding:1rem;border-radius:.8rem}.rider-delivery-header h1{font-size:2.25rem}.rider-order-details-card{padding:.25rem 1rem .75rem}}
+@media(max-width:560px){.rider-delivery-page{width:calc(100% - 1rem);padding:1rem 0 2rem}.rider-delivery-header{align-items:center;flex-direction:column;text-align:center}.rider-delivery-header>div:first-child{width:100%}.rider-delivery-back{display:flex;width:max-content;justify-content:flex-start;box-sizing:border-box}.rider-delivery-header-actions{width:100%;justify-content:center}.rider-delivery-card{padding:1rem;border-radius:.8rem}.rider-delivery-header h1{font-size:2.25rem}.rider-order-details-card{padding:.25rem 1rem .75rem}}
 
 
 /* Mobile rider delivery screen details based on the provided reference screenshot. */
