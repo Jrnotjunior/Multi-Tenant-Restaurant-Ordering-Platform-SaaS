@@ -10,8 +10,8 @@ type Run=(label:string,work:()=>Promise<unknown>)=>Promise<OwnerData|null|undefi
 export function ProductExtrasManager({data,busy,run,showPhotos=true}:{data:OwnerData;busy:boolean;run:Run;showPhotos?:boolean}) {
   const [selectedItem,setSelectedItem]=useState('');
   const [groupName,setGroupName]=useState('');
-  const [minimum,setMinimum]=useState('0');
-  const [maximum,setMaximum]=useState('1');
+  const [groupRequired,setGroupRequired]=useState(true);
+  const [allowMultiple,setAllowMultiple]=useState(false);
   const [selectedGroup,setSelectedGroup]=useState('');
   const [optionName,setOptionName]=useState('');
   const [optionPrice,setOptionPrice]=useState('0');
@@ -31,8 +31,7 @@ export function ProductExtrasManager({data,busy,run,showPhotos=true}:{data:Owner
   function addGroup(event:FormEvent) {
     event.preventDefault();
     if(!itemId)return;
-    const min=Number(minimum),max=Number(maximum);
-    if(!Number.isInteger(min)||!Number.isInteger(max)||min<0||min>max||max>20||max<1)return;
+    const min=groupRequired?1:0,max=allowMultiple?20:1;
     const existingIds=new Set(groups.map(group=>group.id));
     void run('Modifier group',()=>createModifierGroup(data.tenant.id,itemId,groupName,min,max))
       .then(next=>{if(next){setGroupName('');const created=next.groups.find(group=>group.item_id===itemId&&!existingIds.has(group.id));if(created)setSelectedGroup(created.id);}});
@@ -73,28 +72,24 @@ export function ProductExtrasManager({data,busy,run,showPhotos=true}:{data:Owner
       </div>)}
     </div>}
 
-    <h3>1. Create a customization group</h3>
-    <p className="mg-muted">Groups belong to one menu item. For a required single choice, set Minimum and Maximum to 1. For optional add-ons, set Minimum to 0. Groups and choices stay hidden until you turn them on below.</p>
+    <h3>Set up choices for a menu item</h3>
+    <p className="mg-muted">For example, create “Choose your rice” for Chicken Teriyaki Rice Bowl, then add Regular rice, Extra rice, and Garlic rice.</p>
     <label className="mg-field mg-selector">Menu item
       <select value={itemId} onChange={event=>{setSelectedItem(event.target.value);setSelectedGroup('');}}>
         {data.items.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}
       </select>
     </label>
     <form className="mg-form" onSubmit={addGroup}>
-      <div className="mg-fields-two">
-        <label className="mg-field">Group name
-          <input required minLength={2} maxLength={100} value={groupName}
-            onChange={e=>setGroupName(e.target.value)} placeholder="e.g. Choose your size"/></label>
-        <div className="mg-fields-two">
-          <label className="mg-field">Minimum
-            <input type="number" min={0} max={20} required value={minimum}
-              onChange={e=>setMinimum(e.target.value)}/></label>
-          <label className="mg-field">Maximum
-            <input type="number" min={1} max={20} required value={maximum}
-              onChange={e=>setMaximum(e.target.value)}/></label>
-        </div>
-      </div>
-      <div className="mg-actions"><button type="submit" disabled={busy||!itemId||data.groups.filter(g=>g.item_id===itemId).length>=8}>Save group</button></div>
+      <label className="mg-field">What should customers choose?
+        <input required minLength={2} maxLength={100} value={groupName}
+          onChange={e=>setGroupName(e.target.value)} placeholder="e.g. Choose your rice"/></label>
+      <fieldset className="mg-choice-mode">
+        <legend>Is a choice required?</legend>
+        <label><input type="radio" name="customization-required" checked={groupRequired} onChange={()=>setGroupRequired(true)}/><span><strong>Yes, required</strong><small>Customers must choose at least one.</small></span></label>
+        <label><input type="radio" name="customization-required" checked={!groupRequired} onChange={()=>setGroupRequired(false)}/><span><strong>No, optional</strong><small>Customers can skip this section.</small></span></label>
+      </fieldset>
+      <label className="mg-multiple-choice"><input type="checkbox" checked={allowMultiple} onChange={event=>setAllowMultiple(event.target.checked)}/><span>Allow customers to choose more than one</span></label>
+      <div className="mg-actions"><button type="submit" disabled={busy||!itemId||data.groups.filter(g=>g.item_id===itemId).length>=8}>Next: add choices</button></div>
     </form>
     <div className="mg-list">
       {groups.map(group=>{
@@ -105,7 +100,7 @@ export function ProductExtrasManager({data,busy,run,showPhotos=true}:{data:Owner
             <label className="mg-field">Group name<input required minLength={2} maxLength={100} value={editingGroupName} onChange={e=>setEditingGroupName(e.target.value)}/></label>
             <div className="mg-fields-two"><label className="mg-field">Minimum<input type="number" min={0} max={20} value={editingMinimum} onChange={e=>setEditingMinimum(e.target.value)}/></label><label className="mg-field">Maximum<input type="number" min={1} max={20} value={editingMaximum} onChange={e=>setEditingMaximum(e.target.value)}/></label></div>
             <div className="mg-actions"><button type="submit" disabled={busy||(group.is_active&&(activeCount===0||activeCount<Number(editingMinimum)))}>Save</button><button type="button" className="mg-secondary" onClick={()=>setEditingGroup('')}>Cancel</button></div>
-          </form>:<div><strong>{group.name}</strong><span>Choose {group.min_select}–{group.max_select} · {activeCount} enabled options</span></div>}
+          </form>:<div><strong>{group.name}</strong><span>{group.min_select===1&&group.max_select===1?'Required · choose 1':group.min_select===0?'Optional · choose up to '+group.max_select:'Required · choose '+group.min_select+' to '+group.max_select} · {activeCount} available choices</span></div>}
           {editingGroup!==group.id&&<><button type="button" className="mg-secondary" onClick={()=>{setEditingGroup(group.id);setEditingGroupName(group.name);setEditingMinimum(String(group.min_select));setEditingMaximum(String(group.max_select));}}>Edit</button><label className="mg-toggle"><input type="checkbox" checked={group.is_active}
             disabled={busy||(!group.is_active&&!canPublish)}
             onChange={e=>void run('Group visibility',()=>changeModifierGroup(data.tenant.id,group.id,e.target.checked))}/>
@@ -116,8 +111,9 @@ export function ProductExtrasManager({data,busy,run,showPhotos=true}:{data:Owner
     </div>
 
     {groups.length>0&&<>
-      <h3>2. Add choices and prices</h3>
-      <label className="mg-field mg-selector">Group
+      <h3>Add choices and prices</h3>
+      <p className="mg-muted">Add choices like “Regular rice” or “Extra rice.” Enter 0 for an included choice. New choices are available immediately; the group stays hidden until you show it to customers.</p>
+      <label className="mg-field mg-selector">Editing choices for
         <select value={groupId} onChange={e=>setSelectedGroup(e.target.value)}>
           {groups.map(group=><option value={group.id} key={group.id}>{group.name}</option>)}
         </select></label>
@@ -145,6 +141,6 @@ export function ProductExtrasManager({data,busy,run,showPhotos=true}:{data:Owner
         </div>)}
       </div>
     </>}
-    <p className="mg-hint">3. Turn on each choice under Available, then turn on Show to customers for its group. Only enabled groups and choices appear in the customer’s item-customization window. Required groups need at least the minimum number of available choices.</p>
+    <p className="mg-hint">After adding your choices, turn on Show to customers for the group. Then check the item in your customer menu.</p>
   </section>;
 }

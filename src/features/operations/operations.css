@@ -428,6 +428,16 @@
 .owner-menu-customization-settings .mg-card .mg-notice a{color:var(--color-active,#263754)}
 .owner-menu-customization-settings .mg-card .mg-error{color:#991B1B}
 .owner-menu-customization-settings .mg-card .mg-success{color:#166534}
+.owner-menu-customization-settings .mg-choice-mode{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0;padding:0;border:0}
+.owner-menu-customization-settings .mg-choice-mode legend{margin-bottom:8px;color:var(--color-text,#101B2F);font-size:12px;font-weight:750}
+.owner-menu-customization-settings .mg-choice-mode label{display:flex;align-items:flex-start;gap:10px;min-width:0;padding:13px;border:1px solid var(--color-border,#DCE3ED);border-radius:10px;background:#fff;color:var(--color-text,#101B2F);cursor:pointer}
+.owner-menu-customization-settings .mg-choice-mode label:has(input:checked){border-color:var(--color-sidebar,#101B2F);box-shadow:0 0 0 1px var(--color-sidebar,#101B2F)}
+.owner-menu-customization-settings .mg-choice-mode input,.owner-menu-customization-settings .mg-multiple-choice input{flex:0 0 auto;margin:2px 0 0;accent-color:var(--color-sidebar,#101B2F)}
+.owner-menu-customization-settings .mg-choice-mode span{display:grid;gap:4px}
+.owner-menu-customization-settings .mg-choice-mode strong{font-size:12px}
+.owner-menu-customization-settings .mg-choice-mode small{color:var(--color-muted,#526782);font-size:11px;line-height:1.45}
+.owner-menu-customization-settings .mg-multiple-choice{display:flex;align-items:center;gap:9px;color:var(--color-text,#101B2F);font-size:12px;font-weight:650}
+@media(max-width:650px){.owner-menu-customization-settings .mg-choice-mode{grid-template-columns:1fr}.owner-menu-customization-settings .mg-list-row{flex-wrap:wrap;justify-content:flex-start}.owner-menu-customization-settings .mg-list-row>div{flex:1 1 100%}}
 .restaurant-product-form-actions .button{min-width:130px}
 .restaurant-product-category-hint{font-size:11px;font-weight:400;color:var(--color-muted,#526782);line-height:1.5}
 .restaurant-delete-modal-backdrop{position:fixed;inset:0;z-index:1100;display:flex;align-items:center;justify-content:center;padding:20px;background:#101B2F94;backdrop-filter:blur(3px)}

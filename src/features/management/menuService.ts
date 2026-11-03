@@ -351,7 +351,7 @@ export async function createModifierOption(tenantId:string,itemId:string,groupId
  const db=requireClient();
  const {data,error}=await db.from('menu_modifier_options').insert({
   tenant_id:tenantId,item_id:itemId,group_id:groupId,name:name.trim(),
-  price_centavos:price,is_active:false,
+  price_centavos:price,is_active:true,
  }).select('id').single();
  check(error);
  if(!data)throw Error('Modifier option was not created.');
