@@ -28,6 +28,17 @@ async function linkCustomerOrder(admin:any,orderId:string,trackingToken:string,c
 
 Deno.serve(async(req:Request)=>{if(req.method==="OPTIONS")return new Response("ok",{headers:corsHeaders});if(req.method!=="POST")return json({error:"Method not allowed."},405);try{const url=Deno.env.get("SUPABASE_URL")??"",key=serviceKey();if(!url||!key)return json({error:"Ordering service is not configured."},500);const admin=createClient(url,key,{auth:{autoRefreshToken:false,persistSession:false}}),b=await req.json(),slug=String(b.restaurantSlug??"").trim().toLowerCase();if(!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)||slug.length<3||slug.length>64)return json({error:"Choose a valid restaurant."},400);
  const paymentMethod=String(b.paymentMethod??"");if(!["cash","online"].includes(paymentMethod))return json({error:"Choose a valid payment method."},400);
+ if(paymentMethod==="online"){
+   const {data:tenant,error:tenantError}=await admin.from("tenants").select("id,status").eq("slug",slug).maybeSingle();
+   if(tenantError)throw tenantError;
+   if(!tenant||tenant.status!=="active")return json({error:"This restaurant is unavailable. No order was placed."},409);
+   const {data:storefront,error:storefrontError}=await admin.from("tenant_storefronts").select("status,online_payments").eq("tenant_id",tenant.id).maybeSingle();
+   if(storefrontError)throw storefrontError;
+   const settings=storefront?.online_payments as {enabled?:boolean;methods?:Record<string,boolean>}|null;
+   const hasEnabledMethod=Object.values(settings?.methods??{}).some(value=>value===true);
+   if(storefront?.status!=="published"||settings?.enabled!==true||!hasEnabledMethod)
+     return json({error:"Online payment is not available for this restaurant. Please choose cash. No order was placed."},409);
+ }
  const loyaltyPointsToRedeem=Number(b.loyaltyPointsToRedeem??0);
  if(!Number.isSafeInteger(loyaltyPointsToRedeem)||loyaltyPointsToRedeem<0||loyaltyPointsToRedeem>2147483647)return json({error:"Choose a valid loyalty points amount."},400);
  const authorization=req.headers.get("Authorization")??"";
