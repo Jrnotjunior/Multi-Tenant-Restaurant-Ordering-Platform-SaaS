@@ -30,6 +30,7 @@ export function OwnerAppShell({ groups, page, displayName, onNavigate, onSignOut
       </aside>
       {mobileNavOpen && <button type="button" className="owner-mobile-backdrop" aria-label="Close navigation" onClick={closeMobileNav} />}
       <div className="owner-main">
+        <div className="owner-main-inner">
         <header className="owner-topbar">
           <button type="button" className="owner-mobile-menu" aria-label="Open navigation" aria-controls="owner-primary-navigation" aria-expanded={mobileNavOpen} onClick={() => setMobileNavOpen(true)}><span/><span/><span/></button>
           <span className="owner-live"><i/>Live<small>System Online</small></span>
@@ -38,6 +39,7 @@ export function OwnerAppShell({ groups, page, displayName, onNavigate, onSignOut
           <button aria-label="Sign out" className="owner-account-caret" onClick={onSignOut}>⌄</button>
         </header>
         {children}
+        </div>
       </div>
     </div>
   </div>;
