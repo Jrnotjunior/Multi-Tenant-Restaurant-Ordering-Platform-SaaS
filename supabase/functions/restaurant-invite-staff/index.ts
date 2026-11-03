@@ -37,12 +37,14 @@ Deno.serve(async (req: Request) => {
     const email=typeof body?.email==="string"?body.email.trim().toLowerCase():"";
     const firstName=typeof body?.first_name==="string"?body.first_name.trim():"";
     const lastName=typeof body?.last_name==="string"?body.last_name.trim():"";
+    const phone=typeof body?.phone==="string"?body.phone.trim():"";
     const fullName=[firstName,lastName].filter(Boolean).join(" ");
     const role=body?.role;
     const branchId=typeof body?.branch_id==="string"?body.branch_id:"";
     const tenantId=typeof body?.tenant_id==="string"?body.tenant_id:"";
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||email.length>254) return respond(req,400,{error:"Enter a valid staff email address."});
     if(!firstName||firstName.length>60||!lastName||lastName.length>60) return respond(req,400,{error:"Enter both a first name and a last name (up to 60 characters each)."});
+    if(!/^09\\d{9}$/.test(phone)) return respond(req,400,{error:"Enter a valid 11-digit mobile number starting with 09."});
     if(!["cashier","kitchen","dispatcher","rider"].includes(role)) return respond(req,400,{error:"Choose cashier, kitchen, dispatcher, or rider."});
     const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if(!uuid.test(branchId)||!uuid.test(tenantId)) return respond(req,400,{error:"Choose a restaurant branch."});
@@ -67,7 +69,7 @@ Deno.serve(async (req: Request) => {
     const {data:sent,error:sendError}=await adminClient.auth.admin.inviteUserByEmail(email,{
       redirectTo:(()=>{const target=new URL(APP_URL);target.searchParams.set("type","invite");return target.toString();})(),
       data:{
-        first_name:firstName,last_name:lastName,full_name:fullName,name:fullName,
+        first_name:firstName,last_name:lastName,full_name:fullName,name:fullName,phone,phone_number:phone,
         invitation_type:"restaurant_staff",invitation_label:"RESTAURANT TEAM INVITATION",
         invitation_role:roleLabels[role]??"staff member",account_setup:"your staff account",
         restaurant_name:tenant.name,restaurant_slug:tenant.slug,branch_name:branch.name,branch_slug:branch.slug,
