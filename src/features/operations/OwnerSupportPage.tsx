@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ownerSupportService, type OwnerSupportMessage, type OwnerSupportTicket } from './ownerSupportService';
+import { ownerSupportService, type OwnerSupportAttachment, type OwnerSupportMessage, type OwnerSupportTicket } from './ownerSupportService';
 import './OwnerSupportPage.css';
 
 const statusLabels: Record<OwnerSupportTicket['status'], string> = {
@@ -15,6 +15,8 @@ export function OwnerSupportPage() {
   const [tickets, setTickets] = useState<OwnerSupportTicket[]>([]);
   const [selected, setSelected] = useState<OwnerSupportTicket | null>(null);
   const [messages, setMessages] = useState<OwnerSupportMessage[]>([]);
+  const [attachments, setAttachments] = useState<OwnerSupportAttachment[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [requestType, setRequestType] = useState<'incident' | 'request_item'>('incident');
   const [subject, setSubject] = useState('');
