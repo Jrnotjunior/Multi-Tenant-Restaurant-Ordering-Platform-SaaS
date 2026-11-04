@@ -56,6 +56,10 @@ export function OwnerAppShell({ groups, page, displayName, onNavigate, onSignOut
             {group.items.map(item => <button type="button" key={item.key} className={page === item.key ? 'active' : ''} aria-current={page === item.key ? 'page' : undefined} onClick={() => { onNavigate(item.key); closeMobileNav(); }}><span className="owner-nav-icon" aria-hidden="true"><OwnerNavIcon name={item.icon}/></span><span className="owner-nav-label">{item.label}</span></button>)}
           </section>)}
         </nav>
+        <button type="button" className="owner-support" aria-current={page === 'support' ? 'page' : undefined} onClick={() => { onNavigate('support'); closeMobileNav(); }}>
+          <span className="owner-support-icon" aria-hidden="true"><OwnerNavIcon name="support"/></span>
+          <span>Customer Support</span>
+        </button>
       </aside>
       {mobileNavOpen && <button type="button" className="owner-mobile-backdrop" aria-label="Close navigation" onClick={closeMobileNav} />}
       <div className="owner-main">
