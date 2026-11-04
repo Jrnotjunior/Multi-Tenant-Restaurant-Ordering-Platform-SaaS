@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {branchSlugFromDomainPath,branchSlugFromSearch,parsePublishedMenu} from '../src/features/storefront/publishedMenu';
+import {branchSlugFromDomainPath,branchSlugFromSearch,needsBranchSelection,parsePublishedMenu} from '../src/features/storefront/publishedMenu';
 import {cartCount,cartSubtotal,updateCart} from '../src/features/storefront/cart';
 
 const payload={
@@ -38,6 +38,13 @@ describe('branch-specific customer menus',()=>{
    expect(branchSlugFromDomainPath('/branch-a')).toBe('branch-a');
    expect(branchSlugFromDomainPath('/branch-a/cart')).toBe('');
    expect(branchSlugFromDomainPath('/../admin')).toBe('');
+ });
+ it('requires a branch choice before showing a menu when the URL does not identify one',()=>{
+   const branches=[{slug:'main',name:'Main'},{slug:'makati',name:'Makati'}];
+   expect(needsBranchSelection(null,branches)).toBe(true);
+   expect(needsBranchSelection('main',branches)).toBe(false);
+   expect(needsBranchSelection(null,branches.slice(0,1))).toBe(true);
+   expect(needsBranchSelection(null,[])).toBe(false);
  });
 ;
 });

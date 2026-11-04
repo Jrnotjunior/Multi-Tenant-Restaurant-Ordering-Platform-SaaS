@@ -4,7 +4,7 @@ import { cartCount, cartLines, cartSubtotal, updateCart, type Cart } from './car
 import {addCustom,changeCustom,customCount,customLines,customSubtotal,editCustom,type CustomCart,type CustomLine,type Selection} from './customCart';
 import {CustomizeDialog} from './CustomizeDialog';
 import { filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
-import { branchSlugFromDomainPath, branchSlugFromSearch, loadDefaultPublishedMenu, loadDomainPublishedMenu, loadPublishedMenu, type StorefrontCatalog } from './publishedMenu';
+import { branchSlugFromDomainPath, branchSlugFromSearch, loadDefaultPublishedMenu, loadDomainPublishedMenu, loadPublishedMenu, needsBranchSelection, type StorefrontCatalog } from './publishedMenu';
 import { isStorefrontCartPath, isStorefrontCheckoutPath, isStorefrontTrackingPath, normalizeAppBase, restaurantMenuHash, routePathFromLocation, storefrontCartHash, storefrontCheckoutHash, storefrontTrackingHash } from '../../app/routes';
 import { CartPage } from './CartPage';
 import { CheckoutPage, type CheckoutSubmission } from './CheckoutPage';
@@ -239,6 +239,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     if(relative.includes('/'))return null;
     return branchSlugFromDomainPath(relative==='index.html'?'':relative);
   });
+  const [customDomainMatched,setCustomDomainMatched]=useState(false);
   const [resolvedSlug, setResolvedSlug] = useState<string | null>(requestedSlug);
   // The root storefront can resolve to a tenant slug after loading. Use that same tenant key for the menu and its route-backed cart page.
   const cartStorageKey = 'web2table:cart:' + (resolvedSlug ?? requestedSlug ?? 'default') + ':' + (selectedBranch ?? 'default');
@@ -416,12 +417,19 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     setLoadStatus('loading');
     setRemoteCatalog(null);
     setResolvedSlug(requestedSlug);
-    const load = requestedSlug
-      ? loadPublishedMenu(requestedSlug, selectedBranch).then((catalog) => catalog ? { slug: requestedSlug, catalog } : null)
-      : loadDomainPublishedMenu(window.location.hostname,selectedBranch).then(domain=>
-        domain.matched
-          ? domain.slug&&domain.catalog?{slug:domain.slug,catalog:domain.catalog}:null
-          : loadDefaultPublishedMenu(selectedBranch));
+    const load = loadDomainPublishedMenu(window.location.hostname,selectedBranch).then(domain=>{
+      if(!active)return null;
+      setCustomDomainMatched(domain.matched);
+      if(domain.matched) {
+        if(requestedSlug&&requestedSlug!==domain.slug)return null;
+        return domain.slug&&domain.catalog?{slug:domain.slug,catalog:domain.catalog}:null;
+      }
+      if(requestedSlug) {
+        return loadPublishedMenu(requestedSlug,selectedBranch)
+          .then(catalog=>catalog?{slug:requestedSlug,catalog}:null);
+      }
+      return loadDefaultPublishedMenu(selectedBranch);
+    });
     void load.then((result) => {
       if (!active) return;
       setResolvedSlug(result?.slug ?? requestedSlug);
@@ -530,7 +538,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
 
   function navigateHashRoute(hash: string) {
     const url = new URL(window.location.href);
-    url.pathname = normalizeAppBase(baseUrl);
+    if(!customDomainMatched)url.pathname = normalizeAppBase(baseUrl);
     url.hash = hash.replace(/^#/, '');
     window.history.pushState({}, '', url.pathname + url.search + url.hash);
     window.dispatchEvent(new PopStateEvent('popstate'));
@@ -591,13 +599,13 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   }, [checkoutPage, loadStatus, restaurant?.slug, restaurant?.branchSlug, resolvedSlug]);
 
   function switchBranch(slug:string) {
-    if(!restaurant || !catalog || slug === restaurant.branchSlug) return;
+    if(!restaurant || !catalog || (slug===restaurant.branchSlug&&selectedBranch===slug)) return;
     // The backend is authoritative about active branches. A query parameter
     // merely chooses a branch and never authorizes a tenant or a payment.
     if(!catalog?.branches.some(b => b.slug === slug)) return;
     const url=new URL(window.location.href);
     url.searchParams.set('branch',slug);
-    url.pathname = normalizeAppBase(baseUrl);
+    if(!customDomainMatched)url.pathname = normalizeAppBase(baseUrl);
     url.hash = restaurantMenuHash(slug).slice(1);
     window.history.pushState({},'',url.pathname+url.search+url.hash);
     window.dispatchEvent(new PopStateEvent('popstate'));
@@ -665,6 +673,40 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     '--sf-red': websiteColors.primaryButton,
     '--sf-red-dark': websiteColors.secondaryButton,
   } as CSSProperties;
+  if(needsBranchSelection(selectedBranch,catalog.branches)) {
+    const accountHref=customDomainMatched?'#/account':baseUrl+'#/account';
+    return <div className={'sf-storefront'+tenantFontClass} style={storefrontTheme}>
+      <StorefrontHeader
+        logo={<a href={customDomainMatched?'#':baseUrl} className="sf-logo" aria-label={restaurant.name+' home'}>
+          {restaurant.logoUrl
+            ? <img className="sf-logo-image" src={restaurant.logoUrl} alt={restaurant.name+' logo'} width={46} height={46}/>
+            : <span className="sf-logo-mark">{restaurant.initials}</span>}
+        </a>}
+        actions={<a href={accountHref} className="sf-account-button" aria-label="Open customer account" title="My account"><AccountIcon/></a>}
+      />
+      <main className="sf-main sf-main-branch-choice">
+        <section className="sf-branch-landing" aria-labelledby="sf-branch-landing-title">
+          <span className="sf-section-kicker">ORDER FROM {restaurant.name.toLocaleUpperCase()}</span>
+          <h1 id="sf-branch-landing-title">Choose your branch</h1>
+          <p>Menus, item availability, and prices may vary by location. Choose where you’d like to order from.</p>
+          <div className="sf-branch-landing-list">
+            {catalog.branches.map(branch=><button
+              type="button"
+              className="sf-branch-landing-option"
+              key={branch.slug}
+              aria-label={'Choose '+branch.name+' branch'}
+              onClick={()=>switchBranch(branch.slug)}
+            >
+              <span className="sf-branch-landing-pin" aria-hidden="true">⌖</span>
+              <span className="sf-branch-landing-copy"><strong>{branch.name}</strong><small>View this branch’s menu</small></span>
+              <span className="sf-branch-landing-arrow" aria-hidden="true">→</span>
+            </button>)}
+          </div>
+        </section>
+      </main>
+      <StorefrontFooter socialLinks={restaurant.socialLinks}/>
+    </div>;
+  }
   return <div className={'sf-storefront' + tenantFontClass} style={storefrontTheme}>
     <StorefrontHeader
       logo={<a href={menuUrl} className="sf-logo" aria-label={restaurant.name + " menu"}>

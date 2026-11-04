@@ -226,6 +226,11 @@ export function branchSlugFromDomainPath(pathname:string):string|null {
   return path.length<=64&&/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(path)?path:'';
 }
 
+/** Require a branch choice whenever the entry URL does not identify one. */
+export function needsBranchSelection(selectedBranch:string|null,branches:readonly BranchChoice[]):boolean {
+  return selectedBranch===null&&branches.length>0;
+}
+
 
 /**
  * Resolve the platform root to its first published storefront.
