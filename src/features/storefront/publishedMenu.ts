@@ -140,7 +140,7 @@ export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
     || (fontFamily!==undefined && !['modern','rounded','classic'].includes(String(fontFamily)))
     || (branchSlug !== undefined && (!validText(branchSlug,64) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(branchSlug)))
     || (branches !== undefined && (!Array.isArray(branches) || branches.length > 20))
-    || typeof cashOnDeliveryEnabled !== 'boolean' || typeof cashOnPickupEnabled !== 'boolean' || typeof cashOnTakeOutEnabled !== 'boolean'
+    || (cashOnDeliveryEnabled !== undefined && typeof cashOnDeliveryEnabled !== 'boolean') || (cashOnPickupEnabled !== undefined && typeof cashOnPickupEnabled !== 'boolean') || (cashOnTakeOutEnabled !== undefined && typeof cashOnTakeOutEnabled !== 'boolean')
     || !Array.isArray(categories) || categories.length > 40
     || !Array.isArray(items) || items.length > 200) {
     throw new Error('Invalid published storefront data');
@@ -189,7 +189,7 @@ export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
   const initials = name.split(/\s+/).slice(0,2).map((word) => word.charAt(0)).join('').toUpperCase();
   const normalizedWebsiteColors = Object.fromEntries(WEBSITE_COLOR_KEYS.map(key => [key, websiteColors[key] as string])) as WebsiteColors;
   return {
-    restaurant: {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors:normalizedWebsiteColors,socialLinks:validateSocialLinks(socialLinks),logoUrl:getLogoUrl(logoPath),faviconUrl:getFaviconUrl(faviconPath),fontFamily:(fontFamily==='rounded'||fontFamily==='classic'?fontFamily:'modern'),branchName,branchSlug:typeof branchSlug==='string'?branchSlug:'',onlinePaymentsAvailable:onlinePaymentsAvailable===true,cashOnDeliveryEnabled,cashOnPickupEnabled,cashOnTakeOutEnabled,initials},
+    restaurant: {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors:normalizedWebsiteColors,socialLinks:validateSocialLinks(socialLinks),logoUrl:getLogoUrl(logoPath),faviconUrl:getFaviconUrl(faviconPath),fontFamily:(fontFamily==='rounded'||fontFamily==='classic'?fontFamily:'modern'),branchName,branchSlug:typeof branchSlug==='string'?branchSlug:'',onlinePaymentsAvailable:onlinePaymentsAvailable===true,cashOnDeliveryEnabled:cashOnDeliveryEnabled !== false,cashOnPickupEnabled:cashOnPickupEnabled !== false,cashOnTakeOutEnabled:cashOnTakeOutEnabled !== false,initials},
     branches:branchChoices,
     categories:['All',...categories.map((entry:Row) => entry.name as string)],
     menu,
