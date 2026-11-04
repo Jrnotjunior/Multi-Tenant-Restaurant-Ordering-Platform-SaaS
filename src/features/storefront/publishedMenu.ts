@@ -25,6 +25,7 @@ export type StorefrontCatalog = Readonly<{
     onlinePaymentsAvailable: boolean;
     cashOnDeliveryEnabled: boolean;
     cashOnPickupEnabled: boolean;
+    cashOnTakeOutEnabled: boolean;
   };
   categories: readonly string[];
   menu: readonly MenuItem[];
@@ -128,7 +129,7 @@ function getFaviconUrl(path:unknown):string|null {
 export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
   if (value === null) return null;
   if (!record(value)) throw new Error('Invalid published storefront response');
-  const {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors,socialLinks,logoPath,faviconPath,fontFamily,branchName,branchSlug,branches,categories,items,onlinePaymentsAvailable,cashOnDeliveryEnabled,cashOnPickupEnabled} = value;
+  const {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors,socialLinks,logoPath,faviconPath,fontFamily,branchName,branchSlug,branches,categories,items,onlinePaymentsAvailable,cashOnDeliveryEnabled,cashOnPickupEnabled,cashOnTakeOutEnabled} = value;
   if (!validText(slug,64) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)
     || !validText(name,160) || !validText(heroHeading,90)
     || !validText(heroEmphasis,90) || !validText(branchName,160)
@@ -139,7 +140,7 @@ export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
     || (fontFamily!==undefined && !['modern','rounded','classic'].includes(String(fontFamily)))
     || (branchSlug !== undefined && (!validText(branchSlug,64) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(branchSlug)))
     || (branches !== undefined && (!Array.isArray(branches) || branches.length > 20))
-    || typeof cashOnDeliveryEnabled !== 'boolean' || typeof cashOnPickupEnabled !== 'boolean'
+    || typeof cashOnDeliveryEnabled !== 'boolean' || typeof cashOnPickupEnabled !== 'boolean' || typeof cashOnTakeOutEnabled !== 'boolean'
     || !Array.isArray(categories) || categories.length > 40
     || !Array.isArray(items) || items.length > 200) {
     throw new Error('Invalid published storefront data');
@@ -188,7 +189,7 @@ export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
   const initials = name.split(/\s+/).slice(0,2).map((word) => word.charAt(0)).join('').toUpperCase();
   const normalizedWebsiteColors = Object.fromEntries(WEBSITE_COLOR_KEYS.map(key => [key, websiteColors[key] as string])) as WebsiteColors;
   return {
-    restaurant: {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors:normalizedWebsiteColors,socialLinks:validateSocialLinks(socialLinks),logoUrl:getLogoUrl(logoPath),faviconUrl:getFaviconUrl(faviconPath),fontFamily:(fontFamily==='rounded'||fontFamily==='classic'?fontFamily:'modern'),branchName,branchSlug:typeof branchSlug==='string'?branchSlug:'',onlinePaymentsAvailable:onlinePaymentsAvailable===true,cashOnDeliveryEnabled,cashOnPickupEnabled,initials},
+    restaurant: {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors:normalizedWebsiteColors,socialLinks:validateSocialLinks(socialLinks),logoUrl:getLogoUrl(logoPath),faviconUrl:getFaviconUrl(faviconPath),fontFamily:(fontFamily==='rounded'||fontFamily==='classic'?fontFamily:'modern'),branchName,branchSlug:typeof branchSlug==='string'?branchSlug:'',onlinePaymentsAvailable:onlinePaymentsAvailable===true,cashOnDeliveryEnabled,cashOnPickupEnabled,cashOnTakeOutEnabled,initials},
     branches:branchChoices,
     categories:['All',...categories.map((entry:Row) => entry.name as string)],
     menu,
@@ -202,10 +203,12 @@ export async function loadPublishedMenu(slug:string,branchSlug:string|null=null)
   const {data,error} = await supabase.rpc('get_branch_storefront',{p_slug:slug,p_branch_slug:branchSlug});
   if (error) throw new Error('Published menu service unavailable');
   if (!data) return null;
+  const {data:cashOptions,error:cashOptionsError}=await supabase.rpc('get_public_cash_payment_options',{p_slug:slug,p_branch_slug:branchSlug});
+  if(cashOptionsError||!record(cashOptions))throw new Error('Published payment options service unavailable');
   const {data:assets,error:assetsError} = await supabase.rpc('get_public_storefront_favicon',{p_slug:slug});
   if (assetsError) throw new Error('Published storefront assets service unavailable');
   const assetRow = record(assets) ? assets : {};
-  return parsePublishedMenu({...data,faviconPath:assetRow.faviconPath ?? null});
+  return parsePublishedMenu({...data,...cashOptions,faviconPath:assetRow.faviconPath ?? null});
 }
 
 /** Resolve the current verified custom domain, then use the same branch-aware menu RPC. */
