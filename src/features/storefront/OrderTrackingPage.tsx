@@ -6,6 +6,7 @@ const peso = (centavos: number) => new Intl.NumberFormat('en-PH', { style: 'curr
 
 type TrackedItem = { name: string; quantity: number; total_centavos: number; unit_price_centavos?: number; options?: { name?: string }[]; special_instructions?: string };
 type TrackedStatus = { order_status: string; assignment_status?: string | null; rider_name?: string | null; rider_phone?: string | null; payment_status: string; payment_method?: string; refund_status?: 'pending' | 'refunded' | 'failed' | null; order_type?: string; updated_at: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null };
+type TrackedBranchLocation = { branchName: string; branchAddress: string };
 
 export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingToken?: string | null }) {
   const [storedTrackingToken] = useState<string | null>(() => {
@@ -16,6 +17,7 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
     try { const value = window.sessionStorage.getItem('web2table:latest-order-number'); return value ? Number(value) : null; } catch { return null; }
   });
   const [status, setStatus] = useState<TrackedStatus | null>(null);
+  const [branchLocation, setBranchLocation] = useState<TrackedBranchLocation | null>(null);
   const [error, setError] = useState('');
   const [cancelError, setCancelError] = useState('');
   const [cancelConfirmationOpen, setCancelConfirmationOpen] = useState(false);
@@ -38,7 +40,10 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
       // a missed or rejected callback cannot leave a verified payment as unpaid.
       await supabase!.functions.invoke('reconcile-customer-order-payment', { body: { trackingToken } }).catch(() => undefined);
       if (!active) return;
-      const { data, error: rpcError } = await supabase!.rpc('track_customer_order', { p_tracking_token: trackingToken });
+      const [{ data, error: rpcError }, { data: locationData }] = await Promise.all([
+        supabase!.rpc('track_customer_order', { p_tracking_token: trackingToken }),
+        supabase!.rpc('get_customer_order_branch_location', { p_tracking_token: trackingToken }),
+      ]);
       if (!active) return;
       if (rpcError) { setError('Live tracking is reconnecting. We will keep trying.'); return; }
       const result = data as { found?: boolean; order_number?: number; order_status?: string; assignment_status?: string | null; rider_name?: string | null; rider_phone?: string | null; payment_status?: string; payment_method?: string; refund_status?: TrackedStatus['refund_status']; order_type?: string; updated_at?: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null } | null;
@@ -49,6 +54,10 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
       setError('');
       setOrderNumber(Number(result.order_number));
       setStatus({ order_status: result.order_status, assignment_status: result.assignment_status, rider_name: result.rider_name, rider_phone: result.rider_phone, payment_status: result.payment_status, payment_method: result.payment_method, refund_status: result.refund_status, order_type: result.order_type, updated_at: result.updated_at, items: result.items ?? [], subtotal_centavos: result.subtotal_centavos, delivery_fee_centavos: result.delivery_fee_centavos, total_centavos: result.total_centavos });
+      const location = locationData as { branchName?: unknown; branchAddress?: unknown } | null;
+      setBranchLocation(typeof location?.branchName === 'string' && typeof location.branchAddress === 'string'
+        ? { branchName: location.branchName, branchAddress: location.branchAddress }
+        : null);
     };
     void refresh();
     const channel = supabase.channel('order-tracking:' + trackingToken)
@@ -162,6 +171,10 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
         <h1>ORD-{orderNumText}</h1>
         <p>{isCancelled ? cancellationMessage : dineInCashOrder ? 'Give this order number to the cashier to help them find your order.' : takeOutCashOrder ? 'Give this order number to the cashier to help them find your order.' : deliveryCodUnpaid ? 'Please pay your rider when you receive your order.' : 'Your order status updates automatically.'}</p>
       </header>
+      {!deliveryOrder && branchLocation?.branchAddress && <section className="sf-checkout-selected-address" aria-label="Order branch location">
+        <span className="sf-checkout-selected-address-label">{orderType === 'pickup' ? 'PICKUP LOCATION' : orderType === 'take-out' ? 'TAKE-OUT LOCATION' : 'RESTAURANT LOCATION'}</span>
+        <strong>{branchLocation.branchName} · {branchLocation.branchAddress}</strong>
+      </section>}
       {assignedRider && <section className="sf-tracking-rider" aria-label="Your delivery rider">
         <span className="sf-tracking-eyebrow">YOUR RIDER</span>
         <h2>Hi, my name is {status?.rider_name}.</h2>

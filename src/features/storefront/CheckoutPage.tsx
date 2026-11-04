@@ -34,8 +34,6 @@ function storefrontMapHeaderStyle(): CSSProperties {
 type CheckoutPageProps = {
   restaurantSlug: string;
   branchSlug: string;
-  branchName: string;
-  branchAddress: string;
   itemCount: number;
   subtotalCentavos: number;
   orderLines: readonly { name: string; quantity: number; totalCentavos: number; details?: string }[];
@@ -142,7 +140,7 @@ function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onS
 }
 
 /** Standalone checkout screen. It prepares details only; it does not place or charge an order. */
-export function CheckoutPage({ restaurantSlug, branchSlug, branchName, branchAddress, itemCount, subtotalCentavos, orderLines, onBackToMenu, onPlaceOrder, trackingOnly = false, onlinePaymentsAvailable }: CheckoutPageProps) {
+export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCentavos, orderLines, onBackToMenu, onPlaceOrder, trackingOnly = false, onlinePaymentsAvailable }: CheckoutPageProps) {
   const [orderType, setOrderType] = useState<OrderType>('Delivery');
   const [customerFirstName, setCustomerFirstName] = useState('');
   const [customerLastName, setCustomerLastName] = useState('');
@@ -331,10 +329,6 @@ export function CheckoutPage({ restaurantSlug, branchSlug, branchName, branchAdd
 
     {!paymentComplete && <form className="sf-checkout-page-form" onSubmit={handleSubmit}>
       <OrderTypeSection value={orderType} onChange={type => { setOrderType(type); setMessage(''); setReviewed(false); }} />
-      {orderType !== 'Delivery' && branchAddress && <section className="sf-checkout-selected-address" aria-label="Selected branch location">
-        <span className="sf-checkout-selected-address-label">{orderType === 'Pickup' ? 'PICKUP LOCATION' : orderType === 'Take-out' ? 'TAKE-OUT LOCATION' : 'RESTAURANT LOCATION'}</span>
-        <strong>{branchName} · {branchAddress}</strong>
-      </section>}
       <CustomerInformation firstName={customerFirstName} lastName={customerLastName} phone={customerPhone} onFirstNameChange={setCustomerFirstName} onLastNameChange={setCustomerLastName} onPhoneChange={setCustomerPhone} />
       <DeliveryAddressSection orderType={orderType} value={deliveryAddress} onSelect={address => { setDeliveryAddress(address); setStreetAddress(address.address); }} streetAddress={streetAddress} onStreetAddressChange={setStreetAddress} restaurantSlug={restaurantSlug} savedAddresses={savedAddresses} savedAddressesLoading={savedAddressesLoading} onChooseSavedAddress={id => { const saved = savedAddresses.find(address => address.id === id); if (!saved) return; setDeliveryAddress({ formattedAddress: [saved.address_line, saved.barangay, saved.city].filter(Boolean).join(', '), address: saved.address_line, city: saved.city, barangay: saved.barangay, placeId: saved.geocoding_place_id ?? '', latitude: saved.latitude, longitude: saved.longitude }); setStreetAddress(saved.address_line); setMessage(''); }} />
 
