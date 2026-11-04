@@ -249,6 +249,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   );
   const [category, setCategory] = useState<Category>('All');
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const [branchDropdownOpen, setBranchDropdownOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [customerSignedIn, setCustomerSignedIn] = useState(false);
@@ -844,12 +845,19 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           <h2>Ordering from {restaurant.branchName}</h2>
           <p>The menu is shared across branches; availability and prices may vary by branch. Switching branches clears your cart.</p>
         </div>
-        <label>Restaurant branch
-          <select aria-label="Restaurant branch" value={restaurant.branchSlug}
-            onChange={(event)=>switchBranch(event.target.value)}>
-            {catalog.branches.map(branch=><option key={branch.slug} value={branch.slug}>{branch.name}</option>)}
-          </select>
-        </label>
+        <div className="sf-branch-picker">
+          <span className="sf-branch-picker-label">Restaurant branch</span>
+          <div className="sf-branch-picker-control">
+            <button type="button" className="sf-branch-picker-trigger" aria-label="Restaurant branch" aria-haspopup="listbox" aria-expanded={branchDropdownOpen} onClick={()=>setBranchDropdownOpen(open=>!open)}>
+              <span>{restaurant.branchName}</span><span className="sf-branch-picker-chevron" aria-hidden="true">⌄</span>
+            </button>
+            {branchDropdownOpen && <div className="sf-branch-picker-options" role="listbox" aria-label="Restaurant branches">
+              {catalog.branches.map(branch=><button type="button" role="option" aria-selected={restaurant.branchSlug===branch.slug} className={'sf-branch-picker-option'+(restaurant.branchSlug===branch.slug?' is-selected':'')} key={branch.slug} onClick={()=>{setBranchDropdownOpen(false);switchBranch(branch.slug);}}>
+                <span>{branch.name}</span>{restaurant.branchSlug===branch.slug&&<span aria-hidden="true">✓</span>}
+              </button>)}
+            </div>}
+          </div>
+        </div>
       </section>}
 
       <div className="sf-layout" id="sf-menu">
