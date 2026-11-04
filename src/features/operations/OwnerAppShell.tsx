@@ -63,7 +63,7 @@ export function OwnerAppShell({ groups, page, displayName, onNavigate, onSignOut
             {group.items.map(item => <button type="button" key={item.key} className={page === item.key ? 'active' : ''} aria-current={page === item.key ? 'page' : undefined} onClick={() => { onNavigate(item.key); closeMobileNav(); }}><span className="owner-nav-icon" aria-hidden="true"><OwnerNavIcon name={item.icon}/></span><span className="owner-nav-label">{item.label}</span></button>)}
           </section>)}
         </nav>
-        <div className="owner-support"><SupportIcon/><span>Contact Customer Support</span></div>
+        <a className="owner-support" href="https://tickets.web2table.io/" target="_blank" rel="noopener noreferrer"><SupportIcon/><span>Contact Customer Support</span></a>
       </aside>
       {mobileNavOpen && <button type="button" className="owner-mobile-backdrop" aria-label="Close navigation" onClick={closeMobileNav} />}
       <div className="owner-main">
