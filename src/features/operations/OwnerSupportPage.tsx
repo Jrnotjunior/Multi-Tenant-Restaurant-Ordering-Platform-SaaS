@@ -125,7 +125,7 @@ export function OwnerSupportPage() {
     {notice && <p className="owner-support-notice" role="status">{notice}</p>}
 
     {showForm ? <form className="owner-support-form" onSubmit={createTicket}>
-      <div className="owner-support-form-heading"><div><h2>Submit a support request</h2><p>Choose the type that best describes what you need.</p></div><button type="button" className="owner-support-secondary" onClick={() => setShowForm(false)}>Back to requests</button></div>
+      <div className="owner-support-form-heading"><div><h2>Submit a support request</h2><p>Choose the type that best describes what you need.</p></div></div>
       <label>Request type<select value={requestType} onChange={event => setRequestType(event.target.value as typeof requestType)}><option value="incident">Incident</option><option value="request_item">Request Item (RITM)</option></select></label>
       <label>Subject<input required minLength={5} maxLength={180} value={subject} onChange={event => setSubject(event.target.value)} placeholder="Briefly describe what you need help with"/></label>
       <label>Description<textarea required minLength={10} maxLength={10000} rows={6} value={description} onChange={event => setDescription(event.target.value)} placeholder="Provide details that will help our support team understand your request."/></label>
