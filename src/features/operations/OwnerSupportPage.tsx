@@ -48,11 +48,11 @@ export function OwnerSupportPage() {
   }, []);
 
   useEffect(() => {
-    if (!selected) { setMessages([]); return; }
+    if (!selected) { setMessages([]); setAttachments([]); return; }
     let active = true;
-    ownerSupportService.listMessages(selected.id)
-      .then(rows => { if (active) setMessages(rows); })
-      .catch(reason => { if (active) setError(reason instanceof Error ? reason.message : 'Unable to load conversation.'); });
+    Promise.all([ownerSupportService.listMessages(selected.id), ownerSupportService.listAttachments(selected.id)])
+      .then(([rows, files]) => { if (active) { setMessages(rows); setAttachments(files); } })
+      .catch(reason => { if (active) setError(reason instanceof Error ? reason.message : 'Unable to load conversation and attachments.'); });
     return () => { active = false; };
   }, [selected?.id]);
 
