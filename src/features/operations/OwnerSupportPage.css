@@ -15,8 +15,12 @@
 .owner-support-form input,.owner-support-form select,.owner-support-form textarea,.owner-support-conversation textarea{width:100%;border:1px solid #d8dee7;border-radius:8px;padding:11px 12px;background:#fff;color:#17212f;font:inherit;font-size:14px;min-width:0}
 .owner-support-form textarea,.owner-support-conversation textarea{resize:vertical;line-height:1.5}
 .owner-support-form-actions{display:flex;justify-content:flex-end;gap:10px;padding-top:4px}
-.owner-support-list-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.owner-support-list-heading{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:14px}
+.owner-support-list-heading>div{display:grid;gap:2px}
 .owner-support-list-heading span{font-size:12px;color:#697586}
+.owner-support-form-heading{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.owner-support-form-heading>div{min-width:0}
+@media(max-width:560px){.owner-support-list-heading,.owner-support-form-heading{align-items:flex-start;flex-direction:column}}
 .owner-support-ticket-row{display:flex;width:100%;align-items:center;gap:16px;padding:17px 4px;border:0;border-top:1px solid #edf0f4;background:transparent;text-align:left;color:inherit;cursor:pointer}
 .owner-support-ticket-row:hover{background:#f8fafc}
 .owner-support-ticket-main{display:grid;gap:5px;flex:1;min-width:0}
