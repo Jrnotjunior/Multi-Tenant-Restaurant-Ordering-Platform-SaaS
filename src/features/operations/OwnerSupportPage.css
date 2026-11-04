@@ -8,7 +8,7 @@
 .owner-support-primary:disabled{opacity:.55;cursor:wait}
 .owner-support-secondary{border:1px solid #d9dee6;background:#fff;color:#253247}
 .owner-support-form,.owner-support-list,.owner-support-detail{border:1px solid #e4e8ee;border-radius:14px;background:#fff;padding:24px}
-.owner-support-form{display:grid;gap:18px;max-width:780px}
+.owner-support-form{display:grid;gap:18px;width:100%;max-width:none;box-sizing:border-box}
 .owner-support-form-heading h2,.owner-support-list-heading h2,.owner-support-conversation h3,.owner-support-description h3{margin:0 0 6px;font-size:17px;font-weight:650}
 .owner-support-form-heading p{margin:0;color:#697586;font-size:13px}
 .owner-support-form label,.owner-support-conversation form label{display:grid;gap:7px;font-size:13px;font-weight:600;color:#344054}
