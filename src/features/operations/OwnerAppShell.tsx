@@ -67,7 +67,7 @@ export function OwnerAppShell({ groups, page, displayName, onNavigate, onSignOut
         <header className="owner-topbar">
           <button type="button" className="owner-mobile-menu" aria-label="Open navigation" aria-controls="owner-primary-navigation" aria-expanded={mobileNavOpen} onClick={() => setMobileNavOpen(true)}><span/><span/><span/></button>
           <span className="owner-account"><strong>{displayName}</strong></span>
-          <button type="button" aria-label="Sign out" title="Sign out" className="owner-account-caret" onClick={onSignOut}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></button>
+          <button type="button" aria-label="Sign out" title="Sign out" className="owner-account-caret" onClick={onSignOut}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg></button>
         </header>
         {children}
         </div>
