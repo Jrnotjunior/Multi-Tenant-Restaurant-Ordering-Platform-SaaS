@@ -17,7 +17,6 @@ export const ownerNavGroups: OwnerNavGroup[] = [
   { label: 'STORE', items: [
     { key: 'settings', label: 'Store Settings', icon: 'settings' }, { key: 'branding', label: 'Website & Branding', icon: 'website' },
   ] },
-  { label: 'SUPPORT', items: [{ key: 'support', label: 'Customer Support', icon: 'support' }] },
 ];
 
 export const ownerPageTitles: Record<OwnerPage, string> = {
