@@ -41,7 +41,6 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
   const [membership, setMembership] = useState<Membership | null>(cachedWorkspace?.membership ?? null);
   const [restaurantName, setRestaurantName] = useState<string | null>(cachedWorkspace?.restaurantName ?? null);
   const [displayName, setDisplayName] = useState(cachedWorkspace?.displayName ?? 'Store Owner');
-  const [accountEmail, setAccountEmail] = useState('');
   const [ownerPage, setOwnerPage] = useState<OwnerPage>(() => ownerPageFromHash());
   const [visitedOwnerPages, setVisitedOwnerPages] = useState<Set<OwnerPage>>(() => new Set<OwnerPage>([ownerPageFromHash()]));
   const [posIntegrationActive, setPosIntegrationActive] = useState<boolean | null>(null);
@@ -111,7 +110,6 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
         if (authError) throw authError;
         if (!authData.user) throw new Error('Sign in again to access your restaurant workspace.');
         const userId = authData.user.id;
-        setAccountEmail(authData.user.email ?? '');
         if (active && cachedWorkspace?.userId !== userId) setLoading(true);
         const { data, error: membershipError } = await supabase
           .from('tenant_memberships').select('tenant_id,role')
@@ -218,7 +216,7 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
     return <OwnerSectionPage page={page} tenantId={membership.tenant_id} restaurantName={restaurantName} onNavigate={navigateOwnerPage} />;
   };
 
-  return <OwnerAppShell baseUrl={baseUrl} groups={visibleOwnerNavGroups} page={ownerPage} displayName={displayName} email={accountEmail} onNavigate={navigateOwnerPage} onSignOut={signOut}>
+  return <OwnerAppShell baseUrl={baseUrl} groups={visibleOwnerNavGroups} page={ownerPage} displayName={displayName} onNavigate={navigateOwnerPage} onSignOut={signOut}>
     {visibleOwnerNavGroups.flatMap(group => group.items).filter(item => visitedOwnerPages.has(item.key)).map(item => (
       <div key={item.key} style={{ display: ownerPage === item.key ? 'contents' : 'none' }} aria-hidden={ownerPage !== item.key}>
         {renderOwnerPage(item.key)}
