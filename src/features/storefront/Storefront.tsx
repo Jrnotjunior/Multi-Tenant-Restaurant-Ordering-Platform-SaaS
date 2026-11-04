@@ -759,6 +759,8 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
         onlinePaymentsAvailable={restaurant?.onlinePaymentsAvailable === true}
         restaurantSlug={resolvedSlug ?? requestedSlug ?? ''}
         branchSlug={restaurant?.branchSlug ?? ''}
+        branchName={restaurant?.branchName ?? ''}
+        branchAddress={restaurant?.storeAddress ?? ''}
         itemCount={count}
         subtotalCentavos={subtotal}
         orderLines={[
