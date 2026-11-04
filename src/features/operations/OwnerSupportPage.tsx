@@ -71,6 +71,41 @@ export function OwnerSupportPage() {
     } finally { setSaving(false); }
   };
 
+  const uploadFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!selected || !file) return;
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf', 'text/plain'];
+    if (!allowed.includes(file.type)) { setError('Choose a JPG, PNG, WEBP, GIF, PDF, or TXT file.'); return; }
+    if (file.size < 1 || file.size > 10 * 1024 * 1024) { setError('Attachments must be 10 MB or smaller.'); return; }
+    setUploading(true); setError(''); setNotice('');
+    try {
+      await ownerSupportService.uploadAttachment(selected.id, file);
+      setAttachments(await ownerSupportService.listAttachments(selected.id));
+      setNotice('Attachment uploaded successfully.');
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Unable to upload attachment.');
+    } finally { setUploading(false); }
+  };
+
+  const openAttachment = async (file: OwnerSupportAttachment) => {
+    setError('');
+    try {
+      const url = await ownerSupportService.getAttachmentUrl(file.storage_path);
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.click();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Unable to open attachment.');
+    }
+  };
+
+  const formatFileSize = (bytes: number) => bytes < 1024 * 1024
+    ? `${Math.max(1, Math.round(bytes / 1024))} KB`
+    : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+
   const sendReply = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!selected || !reply.trim()) return;
