@@ -15,6 +15,7 @@ export function OwnerSupportPage() {
   const [tickets, setTickets] = useState<OwnerSupportTicket[]>([]);
   const [selected, setSelected] = useState<OwnerSupportTicket | null>(null);
   const [messages, setMessages] = useState<OwnerSupportMessage[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [requestType, setRequestType] = useState<'incident' | 'request_item'>('incident');
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
@@ -34,6 +35,9 @@ export function OwnerSupportPage() {
 
   useEffect(() => {
     let active = true;
+    ownerSupportService.getCurrentUserId()
+      .then(id => { if (active) setCurrentUserId(id); })
+      .catch(reason => { if (active) setError(reason instanceof Error ? reason.message : 'Unable to verify your account.'); });
     ownerSupportService.listTickets()
       .then(rows => { if (active) setTickets(rows); })
       .catch(reason => { if (active) setError(reason instanceof Error ? reason.message : 'Unable to load support requests.'); })
@@ -98,7 +102,7 @@ export function OwnerSupportPage() {
       <button type="button" className="owner-support-back" onClick={() => setSelected(null)}>← All requests</button>
       <div className="owner-support-ticket-title"><div><span className="owner-support-ticket-number">{selected.request_number ?? 'Support request'}</span><h2>{selected.subject}</h2><p>{typeLabels[selected.request_type]} · Submitted {formatDate(selected.created_at)}</p></div><span className={`owner-support-status is-${selected.status}`}>{statusLabels[selected.status]}</span></div>
       <div className="owner-support-description"><h3>Request details</h3><p>{selected.description}</p></div>
-      <div className="owner-support-conversation"><h3>Conversation</h3>{messages.length === 0 ? <p className="owner-support-empty">No replies yet. Our support team will respond here.</p> : messages.map(message => <article className="owner-support-message" key={message.id}><div><strong>{message.sender_user_id === selected.id ? 'You' : 'Support team'}</strong><time>{formatDate(message.created_at)}</time></div><p>{message.message}</p></article>)}
+      <div className="owner-support-conversation"><h3>Conversation</h3>{messages.length === 0 ? <p className="owner-support-empty">No replies yet. Our support team will respond here.</p> : messages.map(message => <article className="owner-support-message" key={message.id}><div><strong>{message.sender_user_id === currentUserId ? 'You' : 'Support team'}</strong><time>{formatDate(message.created_at)}</time></div><p>{message.message}</p></article>)}
         <form onSubmit={sendReply}><label htmlFor="owner-support-reply">Your reply</label><textarea id="owner-support-reply" rows={3} value={reply} onChange={event => setReply(event.target.value)} placeholder="Write a message to the support team…" required/><button className="owner-support-primary" disabled={saving || !reply.trim()}>{saving ? 'Sending…' : 'Send reply'}</button></form>
       </div>
     </div> : <div className="owner-support-list">
