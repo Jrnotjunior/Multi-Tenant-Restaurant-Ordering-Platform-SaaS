@@ -1,4 +1,4 @@
-.owner-support-page{display:grid;gap:24px;padding:28px 32px 40px;color:var(--owner-text,#17212f)}
+.owner-support-page{display:grid;gap:24px;width:100%;box-sizing:border-box;padding:28px 0 40px;color:var(--owner-text,#17212f)}
 .owner-support-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
 .owner-support-heading h1{margin:4px 0 8px;font-size:28px;line-height:1.2;font-weight:650}
 .owner-support-heading p{margin:0;color:var(--owner-muted,#687386);font-size:14px}
