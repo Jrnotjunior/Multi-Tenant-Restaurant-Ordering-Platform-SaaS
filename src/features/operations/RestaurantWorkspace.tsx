@@ -217,10 +217,15 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
   };
 
   return <OwnerAppShell baseUrl={baseUrl} groups={visibleOwnerNavGroups} page={ownerPage} displayName={displayName} onNavigate={navigateOwnerPage} onSignOut={signOut}>
-    {[...visibleOwnerNavGroups.flatMap(group => group.items), { key: 'support' as OwnerPage }].filter(item => visitedOwnerPages.has(item.key)).map(item => (
+    {visibleOwnerNavGroups.flatMap(group => group.items).filter(item => visitedOwnerPages.has(item.key)).map(item => (
       <div key={item.key} style={{ display: ownerPage === item.key ? 'contents' : 'none' }} aria-hidden={ownerPage !== item.key}>
         {renderOwnerPage(item.key)}
       </div>
     ))}
+    {visitedOwnerPages.has('support') && (
+      <div key="support" style={{ display: ownerPage === 'support' ? 'contents' : 'none' }} aria-hidden={ownerPage !== 'support'}>
+        <OwnerSupportPage />
+      </div>
+    )}
   </OwnerAppShell>;
 }
