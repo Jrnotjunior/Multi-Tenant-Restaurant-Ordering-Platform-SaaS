@@ -45,6 +45,17 @@ Deno.serve(async(req:Request)=>{if(req.method==="OPTIONS")return new Response("o
       merchant?.connection_status!=="active"||!hasEnabledMethod)
      return json({error:"Online payment is not available for this restaurant yet. Please choose cash. No order was placed."},409);
  }
+ const type=String(b.orderType??"");if(!["delivery","take_out","pickup","dine_in"].includes(type))return json({error:"Choose a valid order type."},400);
+ const {data:tenantForCash,error:cashTenantError}=await admin.from("tenants").select("id,status").eq("slug",slug).maybeSingle();
+ if(cashTenantError)throw cashTenantError;
+ if(!tenantForCash||tenantForCash.status!=="active")return json({error:"This restaurant is unavailable. No order was placed."},409);
+ if(paymentMethod==="cash"){
+   const {data:cashStore,error:cashStoreError}=await admin.from("tenant_storefronts").select("cash_payment_options").eq("tenant_id",tenantForCash.id).maybeSingle();
+   if(cashStoreError)throw cashStoreError;
+   const options=(cashStore?.cash_payment_options??{}) as Record<string,unknown>;
+   const cashEnabled=type==="delivery"?options.cash_on_delivery_enabled!==false:type==="pickup"?options.cash_on_pickup_enabled!==false:type==="take_out"?options.cash_on_take_out_enabled!==false:options.cash_on_pickup_enabled!==false;
+   if(!cashEnabled)return json({error:type==="delivery"?"Cash on Delivery is not available for this restaurant. Please choose another payment method.":"Cash payment is not available for this order type. Please choose another payment method.",noOrderPlaced:true},409);
+ }
  const loyaltyPointsToRedeem=Number(b.loyaltyPointsToRedeem??0);
  if(!Number.isSafeInteger(loyaltyPointsToRedeem)||loyaltyPointsToRedeem<0||loyaltyPointsToRedeem>2147483647)return json({error:"Choose a valid loyalty points amount."},400);
  const authorization=req.headers.get("Authorization")??"";
@@ -52,7 +63,7 @@ Deno.serve(async(req:Request)=>{if(req.method==="OPTIONS")return new Response("o
  let customerUserId:string|null=null;
  if(bearer){const {data:authData,error:authError}=await admin.auth.getUser(bearer);if(!authError&&authData.user)customerUserId=authData.user.id;}
  if(loyaltyPointsToRedeem>0&&!customerUserId)return json({error:"Sign in to redeem loyalty points. No order was placed."},401);
- const type=String(b.orderType??"");if(!["delivery","take_out","pickup","dine_in"].includes(type))return json({error:"Choose a valid order type."},400);const id=String(b.idempotencyKey??"");if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))return json({error:"A valid checkout key is required."},400);
+ const id=String(b.idempotencyKey??"");if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))return json({error:"A valid checkout key is required."},400);
  const q=type==="delivery"?await quote(admin,slug,String(b.branchSlug??""),Number(b.latitude),Number(b.longitude)):null;
  const {data:result,error}=await admin.rpc("create_customer_order",{p_restaurant_slug:slug,p_branch_slug:String(b.branchSlug??""),p_customer_name:String(b.customerName??""),p_customer_phone:String(b.customerPhone??""),p_delivery_address:String(b.deliveryAddress??""),p_delivery_notes:String(b.deliveryNotes??""),p_idempotency_key:id,p_order_type:type,p_items:b.items,p_delivery_latitude:type==="delivery"?Number(b.latitude):null,p_delivery_longitude:type==="delivery"?Number(b.longitude):null});if(error)return json({error:error.message||"Order could not be placed."},400);if(!result?.success||!result.order_id)return json({error:"The server did not confirm this order."},500);
  // Persist the customer's explicit selection by the returned order ID, then verify it.
