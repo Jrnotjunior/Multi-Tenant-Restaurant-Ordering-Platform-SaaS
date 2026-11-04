@@ -121,15 +121,11 @@ export function OwnerSupportPage() {
   };
 
   return <section className="owner-support-page">
-    <header className="owner-support-heading">
-      <div><p className="owner-support-eyebrow">HELP & SUPPORT</p><h1>Customer Support</h1><p>Submit a request and communicate directly with the Web2table support team.</p></div>
-      <button type="button" className="owner-support-primary" onClick={() => { setShowForm(value => !value); setSelected(null); setError(''); }}>{showForm ? 'Back to requests' : '＋ New request'}</button>
-    </header>
     {error && <p className="owner-support-alert" role="alert">{error}</p>}
     {notice && <p className="owner-support-notice" role="status">{notice}</p>}
 
     {showForm ? <form className="owner-support-form" onSubmit={createTicket}>
-      <div className="owner-support-form-heading"><h2>Submit a support request</h2><p>Choose the type that best describes what you need.</p></div>
+      <div className="owner-support-form-heading"><div><h2>Submit a support request</h2><p>Choose the type that best describes what you need.</p></div><button type="button" className="owner-support-secondary" onClick={() => setShowForm(false)}>Back to requests</button></div>
       <label>Request type<select value={requestType} onChange={event => setRequestType(event.target.value as typeof requestType)}><option value="incident">Incident</option><option value="request_item">Request Item (RITM)</option></select></label>
       <label>Subject<input required minLength={5} maxLength={180} value={subject} onChange={event => setSubject(event.target.value)} placeholder="Briefly describe what you need help with"/></label>
       <label>Description<textarea required minLength={10} maxLength={10000} rows={6} value={description} onChange={event => setDescription(event.target.value)} placeholder="Provide details that will help our support team understand your request."/></label>
@@ -148,7 +144,7 @@ export function OwnerSupportPage() {
         <form onSubmit={sendReply}><label htmlFor="owner-support-reply">Your reply</label><textarea id="owner-support-reply" rows={3} value={reply} onChange={event => setReply(event.target.value)} placeholder="Write a message to the support team…" required/><button className="owner-support-primary" disabled={saving || !reply.trim()}>{saving ? 'Sending…' : 'Send reply'}</button></form>
       </div>
     </div> : <div className="owner-support-list">
-      <div className="owner-support-list-heading"><h2>Your requests</h2><span>{tickets.length} total</span></div>
+      <div className="owner-support-list-heading"><div><h2>Your requests</h2><span>{tickets.length} total</span></div><button type="button" className="owner-support-primary" onClick={() => { setShowForm(true); setSelected(null); setError(''); }}>＋ New request</button></div>
       {loading ? <p className="owner-support-empty">Loading your requests…</p> : tickets.length === 0 ? <div className="owner-support-empty-state"><span>◎</span><h3>No support requests yet</h3><p>When you submit an Incident or Request Item, you can follow its progress here.</p><button type="button" className="owner-support-secondary" onClick={() => setShowForm(true)}>Create your first request</button></div> : tickets.map(ticket => <button type="button" className="owner-support-ticket-row" key={ticket.id} onClick={() => { setSelected(ticket); setError(''); setNotice(''); }}><span className="owner-support-ticket-main"><strong>{ticket.subject}</strong><small>{ticket.request_number} · {typeLabels[ticket.request_type]} · {formatDate(ticket.created_at)}</small></span><span className={`owner-support-status is-${ticket.status}`}>{statusLabels[ticket.status]}</span><span aria-hidden="true">›</span></button>)}
     </div>}
   </section>;
