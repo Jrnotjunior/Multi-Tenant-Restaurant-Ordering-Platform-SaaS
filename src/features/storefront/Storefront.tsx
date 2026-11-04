@@ -831,6 +831,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       <section className="sf-hero" aria-label="Restaurant introduction">
         <h1>{restaurant.name}</h1>
         {restaurant.tagline?.trim() && <p>{restaurant.tagline}</p>}
+        {catalog.branches.length <= 1 && restaurant.storeAddress && <p className="sf-branch-address"><strong>{restaurant.branchName}</strong> · {restaurant.storeAddress}</p>}
       </section>
 
 
@@ -839,6 +840,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
         <div>
           <span className="sf-section-kicker">SELECT YOUR BRANCH</span>
           <h2>Ordering from {restaurant.branchName}</h2>
+          {restaurant.storeAddress && <p className="sf-branch-address">{restaurant.storeAddress}</p>}
           <p>Menus, availability and prices may vary by branch. Switching branches clears your cart.</p>
         </div>
         <label>Restaurant branch

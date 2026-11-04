@@ -343,7 +343,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
     <form className="w2t-settings-form" onSubmit={(event: FormEvent) => { event.preventDefault(); if (canSave) setConfirmOpen(true); }}>
       {activeTab === 'profile' && <section className="w2t-settings-card" role="tabpanel">
         <p className="w2t-settings-help w2t-settings-profile-intro">Update the customer-facing profile for {row.display_name ?? restaurantName ?? 'your restaurant'}.</p>
-        <label className="w2t-setting-field"><span>Restaurant address</span><input type="text" maxLength={500} value={restaurantAddress} disabled={saving} placeholder="Enter the address customers should see" onChange={event => { setRestaurantAddress(event.target.value); setMessage(''); setError(''); }} /><small>This is the pickup address shown to customers. Set delivery routing location under Delivery pricing.</small></label>
+        <label className="w2t-setting-field"><span>Restaurant business address</span><input type="text" maxLength={500} value={restaurantAddress} disabled={saving} placeholder="Enter the restaurant's general business address" onChange={event => { setRestaurantAddress(event.target.value); setMessage(''); setError(''); }} /><small>Customer ordering pages show the selected branch’s address. Set each branch’s pickup and delivery origin under Delivery pricing.</small></label>
       </section>}
       {activeTab === 'hours' && <>
         <section className="w2t-settings-card">
