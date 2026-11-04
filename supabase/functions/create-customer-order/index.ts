@@ -53,7 +53,7 @@ Deno.serve(async(req:Request)=>{if(req.method==="OPTIONS")return new Response("o
    const {data:cashStore,error:cashStoreError}=await admin.from("tenant_storefronts").select("cash_payment_options").eq("tenant_id",tenantForCash.id).maybeSingle();
    if(cashStoreError)throw cashStoreError;
    const options=(cashStore?.cash_payment_options??{}) as Record<string,unknown>;
-   const cashEnabled=type==="delivery"?options.cash_on_delivery_enabled!==false:type==="pickup"?options.cash_on_pickup_enabled!==false:type==="take_out"?options.cash_on_take_out_enabled!==false:options.cash_on_pickup_enabled!==false;
+   const cashEnabled=type==="delivery"?options.cash_on_delivery_enabled!==false:type==="pickup"?options.cash_on_pickup_enabled!==false:type==="take_out"?options.cash_on_take_out_enabled!==false:true;
    if(!cashEnabled)return json({error:type==="delivery"?"Cash on Delivery is not available for this restaurant. Please choose another payment method.":"Cash payment is not available for this order type. Please choose another payment method.",noOrderPlaced:true},409);
  }
  const loyaltyPointsToRedeem=Number(b.loyaltyPointsToRedeem??0);
