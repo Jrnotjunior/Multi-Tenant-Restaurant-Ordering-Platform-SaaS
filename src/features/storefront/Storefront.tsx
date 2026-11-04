@@ -417,21 +417,37 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     setLoadStatus('loading');
     setRemoteCatalog(null);
     setResolvedSlug(requestedSlug);
+    // Older branch-picker builds incorrectly wrote the branch slug into
+    // #/order/:restaurantSlug. Keep those already-shared/saved links working.
+    const legacyBranchRoute = requestedSlug !== null
+      && selectedBranch !== null
+      && requestedSlug === selectedBranch;
+    const platformStorefrontHost = ['app.web2table.io','jrnotjunior.github.io']
+      .includes(window.location.hostname.toLowerCase());
     const load = loadDomainPublishedMenu(window.location.hostname,selectedBranch).then(domain=>{
       if(!active)return null;
       setCustomDomainMatched(domain.matched);
       if(domain.matched) {
-        if(requestedSlug&&requestedSlug!==domain.slug)return null;
+        if(requestedSlug&&requestedSlug!==domain.slug&&!legacyBranchRoute)return null;
         return domain.slug&&domain.catalog?{slug:domain.slug,catalog:domain.catalog}:null;
       }
       if(requestedSlug) {
         return loadPublishedMenu(requestedSlug,selectedBranch)
-          .then(catalog=>catalog?{slug:requestedSlug,catalog}:null);
+          .then(catalog=>catalog
+            ?{slug:requestedSlug,catalog}
+            :legacyBranchRoute&&platformStorefrontHost?loadDefaultPublishedMenu(selectedBranch):null);
       }
       return loadDefaultPublishedMenu(selectedBranch);
     });
     void load.then((result) => {
       if (!active) return;
+      if(result&&legacyBranchRoute&&requestedSlug!==result.slug) {
+        const url=new URL(window.location.href);
+        const routeMatch=window.location.hash.match(/^#\/order\/[^/]+(\/cart|\/checkout|\/track)?$/);
+        url.hash=restaurantMenuHash(result.slug)+(routeMatch?.[1]??'');
+        window.history.replaceState({},'',url.pathname+url.search+url.hash);
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }
       setResolvedSlug(result?.slug ?? requestedSlug);
       setRemoteCatalog(result?.catalog ?? null);
       setLoadStatus(result ? 'ready' : 'unavailable');
