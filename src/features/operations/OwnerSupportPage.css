@@ -35,3 +35,18 @@
 .owner-support-conversation form{display:grid;gap:9px;margin-top:20px}.owner-support-conversation form .owner-support-primary{justify-self:end}
 .owner-support-alert,.owner-support-notice{padding:12px 14px;border-radius:8px;font-size:13px}.owner-support-alert{background:#fff1f0;color:#b42318}.owner-support-notice{background:#ecfdf3;color:#027a48}
 @media(max-width:700px){.owner-support-page{padding:20px 16px 32px;gap:18px}.owner-support-heading{flex-direction:column}.owner-support-heading h1{font-size:24px}.owner-support-form,.owner-support-list,.owner-support-detail{padding:17px}.owner-support-ticket-row{gap:9px}.owner-support-ticket-main small{line-height:1.5}.owner-support-ticket-title{flex-direction:column}}
+
+.owner-support-attachments{display:grid;gap:12px;margin:18px 0;padding:16px;border:1px solid #e4e8ee;border-radius:10px;background:#fbfcfd}
+.owner-support-attachments-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.owner-support-attachments-heading h4{margin:0;font-size:13px;font-weight:650}
+.owner-support-attachments-heading>span{color:#697586;font-size:11px}
+.owner-support-attachments ul{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.owner-support-attachments li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #edf0f4}
+.owner-support-attachments li>span{display:grid;gap:4px;min-width:0}
+.owner-support-attachments li strong{overflow-wrap:anywhere;font-size:13px;font-weight:600}
+.owner-support-attachments li small{color:#697586;font-size:11px}
+.owner-support-file-link{flex:none;border:0;background:transparent;color:#2457a6;font:inherit;font-size:12px;font-weight:650;cursor:pointer}
+.owner-support-upload{display:inline-flex;align-items:center;justify-content:center;justify-self:start;min-height:38px;padding:0 13px;border:1px dashed #aeb8c6;border-radius:8px;color:#344054;font-size:12px;font-weight:650;cursor:pointer}
+.owner-support-upload input{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;clip-path:inset(50%)}
+.owner-support-upload:focus-within{outline:2px solid #98a2b3;outline-offset:2px}
+@media(max-width:700px){.owner-support-attachments-heading{align-items:flex-start;flex-direction:column}.owner-support-attachments li{align-items:flex-start}}
