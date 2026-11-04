@@ -342,6 +342,7 @@
 .sf-auth-form button:disabled{opacity:.65;cursor:wait}
 .sf-auth-switch{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--sf-border);text-align:center;color:var(--sf-font-color);font-size:var(--sf-font-size-auth-switch)}
 .sf-auth-switch a{color:var(--sf-primary-button);font-weight:800;text-decoration:underline}
+.sf-auth-privacy-checkbox{display:flex!important;grid-template-columns:18px minmax(0,1fr)!important;align-items:flex-start;gap:9px!important;margin:2px 0 0;color:var(--sf-muted)!important;font-size:var(--sf-font-size-auth-link)!important;font-weight:500!important;line-height:1.5}.sf-auth-privacy-checkbox input{width:16px;min-width:16px;height:16px;min-height:16px;margin:1px 0 0;padding:0;accent-color:var(--sf-primary-button);cursor:pointer}.sf-auth-privacy-checkbox a{color:var(--sf-primary-button);font-weight:750;text-decoration:underline}.sf-auth-form button[type=submit]:disabled{opacity:.48;cursor:not-allowed;box-shadow:none}
 .sf-auth-legal{margin:18px 0 0;color:var(--sf-muted);font-size:var(--sf-font-size-auth-link);line-height:1.55;text-align:center}
 .sf-auth-message{margin:0;padding:12px;border-radius:9px;background:#fff0ef;color:#8c1824;font-size:var(--sf-font-size-auth-input);line-height:1.5;overflow-wrap:anywhere}
 .sf-auth-success{background:#effaf2;color:#23613a}
