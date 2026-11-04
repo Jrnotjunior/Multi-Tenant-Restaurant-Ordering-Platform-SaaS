@@ -757,6 +757,8 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           close={() => navigateCart(false)} onCheckout={() => navigateCheckout(true)}/>
       </CartPage> : checkoutPage && !checkoutGateReady ? <div className="sf-no-results" role="status"><h3>Checking store availability…</h3><p>Please wait while we confirm that this restaurant is accepting orders.</p></div> : checkoutPage ? <CheckoutPage
         onlinePaymentsAvailable={restaurant?.onlinePaymentsAvailable === true}
+        cashOnDeliveryEnabled={restaurant?.cashOnDeliveryEnabled === true}
+        cashOnPickupEnabled={restaurant?.cashOnPickupEnabled === true}
         restaurantSlug={resolvedSlug ?? requestedSlug ?? ''}
         branchSlug={restaurant?.branchSlug ?? ''}
         itemCount={count}
