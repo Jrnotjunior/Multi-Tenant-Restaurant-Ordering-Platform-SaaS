@@ -206,7 +206,7 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
   const renderOwnerPage = (page: OwnerPage) => {
     if (page === 'orders') return <OwnerOrdersPage tenantId={membership.tenant_id} filter={orderFilter} onFilterChange={setOrderFilter} />;
     if (page === 'menu') return <OwnerMenuPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
-    if (page === 'settings') return <OwnerStoreSettingsPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
+    if (page === 'settings') return <OwnerStoreSettingsPage tenantId={membership.tenant_id} />;
     if (page === 'branding') return <OwnerBrandingPage tenantId={membership.tenant_id} restaurantName={restaurantName} />;
     if (page === 'employees') return <OwnerEmployeesPage tenantId={membership.tenant_id} />;
     if (page === 'loyalty') return <OwnerLoyaltyPage tenantId={membership.tenant_id} />;

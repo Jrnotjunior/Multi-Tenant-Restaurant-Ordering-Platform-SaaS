@@ -4,7 +4,7 @@ import { MapboxDeliveryLocationPicker, type DeliveryLocationAddress } from './Ma
 import { MapPickerErrorBoundary } from './MapPickerErrorBoundary';
 import { OwnerPayMongoOnboardingCard } from './OwnerPayMongoOnboardingCard';
 
-type Tab = 'profile' | 'hours' | 'delivery' | 'cash' | 'payments';
+type Tab = 'hours' | 'delivery' | 'cash' | 'payments';
 type Obj = Record<string, unknown>;
 type DayKey = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 type DayHours = { isOpen: boolean; open: string; close: string };
@@ -16,19 +16,13 @@ type BranchDeliveryRow = { id:string; slug:string; name:string; is_active:boolea
 type StorefrontRow = {
   tenant_id: string;
   default_branch_id: string;
-  display_name: string | null;
-  restaurant_address: string | null;
-  store_address: string | null;
-  delivery_location_latitude: number | null;
-  delivery_location_longitude: number | null;
   accepting_orders: boolean | null;
   opening_hours: Obj;
-  delivery_pricing: Obj;
   cash_payment_options: Obj;
   online_payments: OnlinePayments;
   [key: string]: unknown;
 };
-type Props = { tenantId: string; restaurantName: string | null };
+type Props = { tenantId: string };
 
 const DAYS: Array<{ key: DayKey; label: string }> = [
   { key: 'monday', label: 'Monday' }, { key: 'tuesday', label: 'Tuesday' },
@@ -46,7 +40,7 @@ const PAYMENT_METHODS: Array<{ key: keyof OnlinePaymentMethods; label: string }>
   { key: 'billease', label: 'Buy Now, Pay Later (BillEase)' },
 ];
 const tabs: Array<{ key: Tab; label: string }> = [
-  { key: 'profile', label: 'Profile' }, { key: 'hours', label: 'Store status & hours' },
+  { key: 'hours', label: 'Store status & hours' },
   { key: 'delivery', label: 'Delivery pricing' }, { key: 'cash', label: 'Cash Payment Options' },
 { key: 'payments', label: 'Online payments' },
 ];
@@ -161,13 +155,12 @@ function Toggle({ label, checked, onChange, disabled = false, small = false }: {
   return <button type="button" role="switch" aria-label={label} aria-checked={checked} className={`w2t-toggle ${checked ? 'is-on' : ''}${small ? ' w2t-toggle-small' : ''}`} disabled={disabled} onClick={() => onChange?.(!checked)}><span /></button>;
 }
 
-export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>('profile');
+export function OwnerStoreSettingsPage({ tenantId }: Props) {
+  const [activeTab, setActiveTab] = useState<Tab>('delivery');
   const [row, setRow] = useState<StorefrontRow | null>(null);
   const [restaurantSlug, setRestaurantSlug] = useState('');
   const [branches, setBranches] = useState<BranchDeliveryRow[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState('');
-  const [restaurantAddress, setRestaurantAddress] = useState('');
   const [acceptingOrders, setAcceptingOrders] = useState(false);
   const [hours, setHours] = useState<OperatingHours>(DEFAULT_HOURS);
   const [delivery, setDelivery] = useState<DeliveryForm>({ baseFee: '0', distanceIncrementMeters: '500', feePerIncrement: '10', maxDistanceKm: '10' });
@@ -192,14 +185,13 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         if (tenantError) throw tenantError;
         if (tenant && typeof tenant.slug === 'string') setRestaurantSlug(tenant.slug);
         const { data, error } = await supabase.from('tenant_storefronts')
-          .select('tenant_id,default_branch_id,display_name,restaurant_address,store_address,delivery_location_latitude,delivery_location_longitude,accepting_orders,opening_hours,delivery_pricing,cash_payment_options,online_payments')
+          .select('tenant_id,default_branch_id,accepting_orders,opening_hours,cash_payment_options,online_payments')
           .eq('tenant_id', tenantId).maybeSingle();
         if (error) throw error;
         if (!data) throw new Error('No store settings exist for this restaurant yet.');
         if (!active) return;
         const settings = data as unknown as StorefrontRow;
         setRow(settings);
-        setRestaurantAddress(settings.restaurant_address ?? '');
         setAcceptingOrders(settings.accepting_orders !== false);
         setHours(normalizeHours(settings.opening_hours));
         const {data:branchRows,error:branchError}=await supabase.from('branches')
@@ -296,10 +288,9 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
       const changes: Obj = {
         updated_at: new Date().toISOString(),
       };
-      if (activeTab === 'profile') Object.assign(changes, { restaurant_address: restaurantAddress.trim() || null });
       if (activeTab === 'hours') Object.assign(changes, { accepting_orders: acceptingOrders, opening_hours: nextHours });
       if (activeTab === 'payments') Object.assign(changes, { online_payments: nextPayments });
-      if (!['profile', 'hours', 'delivery', 'payments'].includes(activeTab)) return;
+      if (!['hours', 'delivery', 'payments'].includes(activeTab)) return;
 
       if(activeTab==='delivery') {
         const {data:pickupSaved,error:pickupError}=await supabase.rpc('update_owner_branch_pickup_address',{
@@ -336,7 +327,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
     }
   }
 
-  const canSave = ['profile', 'hours', 'delivery', 'payments'].includes(activeTab);
+  const canSave = ['hours', 'delivery', 'payments'].includes(activeTab);
   const saveLabel = saving ? 'Saving…' : 'Save';
   if (loading) return <main className="owner-content"><section className="owner-orders-empty"><h1>Store Settings</h1><p>Loading store settings…</p></section></main>;
   if (!row) return <main className="owner-content"><section className="owner-orders-empty"><h1>Store Settings</h1><p role="alert">{error || 'Store settings could not be loaded.'}</p></section></main>;
@@ -349,10 +340,6 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
     {error && <div className="w2t-settings-feedback error" role="alert"><strong>Couldn't complete that action</strong><p>{error}</p></div>}
     {message && <div className="w2t-settings-feedback success" role="status"><strong>Changes saved</strong><p>{message}</p></div>}
     <form className="w2t-settings-form" onSubmit={(event: FormEvent) => { event.preventDefault(); if (canSave) setConfirmOpen(true); }}>
-      {activeTab === 'profile' && <section className="w2t-settings-card" role="tabpanel">
-        <p className="w2t-settings-help w2t-settings-profile-intro">Update the customer-facing profile for {row.display_name ?? restaurantName ?? 'your restaurant'}.</p>
-        <label className="w2t-setting-field"><span>Restaurant business address</span><input type="text" maxLength={500} value={restaurantAddress} disabled={saving} placeholder="Enter the restaurant's general business address" onChange={event => { setRestaurantAddress(event.target.value); setMessage(''); setError(''); }} /><small>For branch-specific pickup details, manually enter each branch’s exact pickup address under Delivery pricing. Its map pin is separate and is used only for delivery fee calculations.</small></label>
-      </section>}
       {activeTab === 'hours' && <>
         <section className="w2t-settings-card">
           <div className="w2t-setting-switch-row"><span><strong>{acceptingOrders ? 'Store is open' : 'Store is manually closed'}</strong><small>Turn off to close ordering immediately. Turn it back on to use your operating hours.</small></span><Toggle label="Store accepting orders" checked={acceptingOrders} disabled={saving} onChange={value => { setAcceptingOrders(value); setMessage(''); setError(''); }} /></div>
