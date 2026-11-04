@@ -11,6 +11,7 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
@@ -27,6 +28,13 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
     { label: 'One special character (!@#$…)', valid: /[^A-Za-z0-9]/.test(password) },
   ];
   const passwordMeetsStandard = passwordRules.every(rule => rule.valid);
+  const signUpDetailsComplete = firstName.trim().length > 0
+    && lastName.trim().length > 0
+    && /^09\d{9}$/.test(phone.replace(/\D/g, '').replace(/^63(?=9\d{9}$)/, '0'))
+    && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+    && passwordMeetsStandard
+    && privacyAccepted;
+  const submitDisabled = busy || (isSignUp && !signUpDetailsComplete);
   const normalizedPhone = phone.replace(/\D/g, '').replace(/^63(?=9\d{9}$)/, '0');
   const base = normalizeAppBase(baseUrl);
   const backToMenu = resolvedRestaurantSlug ? restaurantMenuPath(resolvedRestaurantSlug, baseUrl) : base;
@@ -54,6 +62,10 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
     setMessage('');
     setSuccess(false);
 
+    if (isSignUp && !signUpDetailsComplete) {
+      setMessage('Complete all required fields, meet the password requirements, and accept the Privacy Notice to continue.');
+      return;
+    }
     if (!supabase) {
       setMessage('Account services are not configured yet. Please try again later.');
       return;
@@ -190,9 +202,9 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
         </label>}
         {!isSignUp && !resetMode && <button className="sf-auth-text-button" type="button" onClick={() => { setResetMode(true); setMessage(''); setSuccess(false); }}>Forgot password?</button>}
         {message && <p className={success ? 'sf-auth-message sf-auth-success' : 'sf-auth-message'} role="status">{message}</p>}
-        <button type="submit" disabled={busy}>{busy ? 'Please wait…' : resetMode ? 'Send reset link' : isSignUp ? 'Sign Up' : 'Sign in'}</button>
+        {isSignUp && <label className="sf-auth-privacy-checkbox"><input type="checkbox" name="privacyAccepted" checked={privacyAccepted} onChange={event => setPrivacyAccepted(event.target.checked)} /><span>I have read and acknowledge the <a href={base + '#privacy'} target="_blank" rel="noreferrer">Privacy Notice</a>.</span></label>}
+        <button type="submit" disabled={submitDisabled}>{busy ? 'Please wait…' : resetMode ? 'Send reset link' : isSignUp ? 'Sign Up' : 'Sign in'}</button>
       </form>
-      {isSignUp && <p className="sf-auth-legal">By creating an account, you acknowledge our <a href={base + '#privacy'}>Privacy Notice</a>.</p>}
       <p className="sf-auth-switch">
         {resetMode ? <button className="sf-auth-text-button" type="button" onClick={() => { setResetMode(false); setMessage(''); setSuccess(false); }}>Back to sign in</button> : <>{isSignUp ? 'Already have an account? ' : 'New customer? '}<a href={base + (isSignUp ? 'account/sign-in' : 'account/sign-up') + (resolvedRestaurantSlug ? '?restaurant=' + encodeURIComponent(resolvedRestaurantSlug) : '')}>{isSignUp ? 'Sign In' : 'Sign Up'}</a></>}
       </p>
