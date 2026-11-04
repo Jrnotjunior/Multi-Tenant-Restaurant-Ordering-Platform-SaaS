@@ -41,6 +41,8 @@ type CheckoutPageProps = {
   onPlaceOrder: (submission: CheckoutSubmission) => Promise<{ orderNumber: number; checkoutUrl?: string; trackingToken: string }>;
   trackingOnly?: boolean;
   onlinePaymentsAvailable: boolean;
+  cashOnDeliveryEnabled: boolean;
+  cashOnPickupEnabled: boolean;
 };
 
 function OrderTypeSection({ value, onChange }: {
@@ -140,7 +142,7 @@ function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onS
 }
 
 /** Standalone checkout screen. It prepares details only; it does not place or charge an order. */
-export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCentavos, orderLines, onBackToMenu, onPlaceOrder, trackingOnly = false, onlinePaymentsAvailable }: CheckoutPageProps) {
+export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCentavos, orderLines, onBackToMenu, onPlaceOrder, trackingOnly = false, onlinePaymentsAvailable, cashOnDeliveryEnabled, cashOnPickupEnabled }: CheckoutPageProps) {
   const [orderType, setOrderType] = useState<OrderType>('Delivery');
   const [customerFirstName, setCustomerFirstName] = useState('');
   const [customerLastName, setCustomerLastName] = useState('');
@@ -153,7 +155,11 @@ export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCe
   const [reviewed, setReviewed] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | ''>('');
-  useEffect(() => { if (!onlinePaymentsAvailable && paymentMethod === 'online') setPaymentMethod('cash'); }, [onlinePaymentsAvailable, paymentMethod]);
+  useEffect(() => {
+    const cashAvailable = orderType === 'Delivery' ? cashOnDeliveryEnabled : orderType === 'Pickup' ? cashOnPickupEnabled : cashOnPickupEnabled;
+    if (paymentMethod === 'online' && !onlinePaymentsAvailable) setPaymentMethod('');
+    if (paymentMethod === 'cash' && !cashAvailable) setPaymentMethod('');
+  }, [onlinePaymentsAvailable, cashOnDeliveryEnabled, cashOnPickupEnabled, orderType, paymentMethod]);
   const [submitting, setSubmitting] = useState(false);
   // A checkout must never inherit the previous order's tracking state. The
   // dedicated tracking view may restore its saved order; a new checkout starts
@@ -370,11 +376,11 @@ export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCe
         <h2 id="sf-payment-modal-title">Choose your payment method</h2>
         <p className="sf-payment-modal-description">Select how you would like to pay for this order.</p>
         <div className="sf-payment-options">
-          <label className={'sf-payment-option' + (paymentMethod === 'cash' ? ' is-selected' : '')}>
+          {(orderType === 'Delivery' ? cashOnDeliveryEnabled : cashOnPickupEnabled) && <label className={'sf-payment-option' + (paymentMethod === 'cash' ? ' is-selected' : '')}>
             <span className="sf-payment-option-icon" aria-hidden="true">₱</span>
             <span className="sf-payment-option-copy"><strong>{orderType === 'Delivery' ? 'Cash on delivery' : orderType === 'Pickup' ? 'Pay cash at pickup' : 'Pay cash at the counter'}</strong><small>{orderType === 'Delivery' ? 'Place your order now and pay the rider when your order arrives.' : orderType === 'Pickup' ? 'Place your order now and pay the cashier when you collect it.' : 'Place your order now and pay the cashier at the restaurant counter before preparation.'}</small></span>
             <input type="radio" name="paymentMethod" value="cash" checked={paymentMethod === 'cash'} onChange={() => setPaymentMethod('cash')} />
-          </label>
+          </label>}
           {onlinePaymentsAvailable && (<label className={'sf-payment-option' + (paymentMethod === 'online' ? ' is-selected' : '')}>
             <span className="sf-payment-option-icon" aria-hidden="true">↗</span>
             <span className="sf-payment-option-copy"><strong>Online Payment</strong><small>Pay securely through our online payment gateway.</small></span>
@@ -387,6 +393,8 @@ export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCe
         <div className="sf-payment-modal-actions">
           <button type="button" className="sf-payment-cancel" onClick={() => setPaymentModalOpen(false)}>Cancel</button>
           <button type="button" className="sf-payment-place-order" disabled={!paymentMethod || submitting} onClick={async () => {
+            if (paymentMethod === 'cash' && !(orderType === 'Delivery' ? cashOnDeliveryEnabled : cashOnPickupEnabled)) { setMessage('This cash payment method is not available for this order type. Please choose another payment method.'); setPaymentMethod(''); return; }
+            if (!paymentMethod) { setMessage('Choose an available payment method.'); return; }
             if (paymentMethod === 'online' && !onlinePaymentsAvailable) { setMessage('Online payments are not currently available for this restaurant. Please choose cash.'); setPaymentMethod('cash'); return; }
             if (paymentMethod === 'online' && orderType === 'Delivery' && !deliveryQuote) { setMessage('Please wait for the delivery fee to be confirmed before online payment. No order has been placed.'); return; }
             const form = document.querySelector<HTMLFormElement>('.sf-checkout-page-form');
