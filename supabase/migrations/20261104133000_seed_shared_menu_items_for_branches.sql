@@ -1,6 +1,5 @@
--- The menu catalog is tenant-wide. Give every branch an assignment for each
--- menu item so storefronts can show the shared catalog and kitchen staff can
--- control availability independently per branch.
+-- The menu catalog is tenant-wide. Every branch starts with the shared menu
+-- available; kitchen staff can mark individual items sold out per branch.
 
 CREATE OR REPLACE FUNCTION private.seed_branch_menu_items_for_branch()
 RETURNS trigger
@@ -10,7 +9,7 @@ SET search_path TO ''
 AS $function$
 BEGIN
   INSERT INTO public.branch_menu_items(tenant_id, branch_id, item_id, is_available)
-  SELECT NEW.tenant_id, NEW.id, item.id, false
+  SELECT NEW.tenant_id, NEW.id, item.id, true
   FROM public.menu_items AS item
   WHERE item.tenant_id = NEW.tenant_id
   ON CONFLICT (tenant_id, branch_id, item_id) DO NOTHING;
@@ -26,7 +25,7 @@ SET search_path TO ''
 AS $function$
 BEGIN
   INSERT INTO public.branch_menu_items(tenant_id, branch_id, item_id, is_available)
-  SELECT NEW.tenant_id, branch.id, NEW.id, false
+  SELECT NEW.tenant_id, branch.id, NEW.id, true
   FROM public.branches AS branch
   WHERE branch.tenant_id = NEW.tenant_id
   ON CONFLICT (tenant_id, branch_id, item_id) DO NOTHING;
@@ -48,7 +47,7 @@ AFTER INSERT ON public.menu_items
 FOR EACH ROW EXECUTE FUNCTION private.seed_branch_menu_items_for_menu_item();
 
 INSERT INTO public.branch_menu_items(tenant_id, branch_id, item_id, is_available)
-SELECT item.tenant_id, branch.id, item.id, false
+SELECT item.tenant_id, branch.id, item.id, true
 FROM public.menu_items AS item
 JOIN public.branches AS branch ON branch.tenant_id = item.tenant_id
 ON CONFLICT (tenant_id, branch_id, item_id) DO NOTHING;
