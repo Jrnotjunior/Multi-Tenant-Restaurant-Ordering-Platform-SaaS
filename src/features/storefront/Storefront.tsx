@@ -759,6 +759,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
         onlinePaymentsAvailable={restaurant?.onlinePaymentsAvailable === true}
         cashOnDeliveryEnabled={restaurant?.cashOnDeliveryEnabled === true}
         cashOnPickupEnabled={restaurant?.cashOnPickupEnabled === true}
+        cashOnTakeOutEnabled={restaurant?.cashOnTakeOutEnabled === true}
         restaurantSlug={resolvedSlug ?? requestedSlug ?? ''}
         branchSlug={restaurant?.branchSlug ?? ''}
         itemCount={count}
