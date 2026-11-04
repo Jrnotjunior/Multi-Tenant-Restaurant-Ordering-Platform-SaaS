@@ -238,8 +238,6 @@
 .sf-branch-selector{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:17px 22px;border:1px solid var(--sf-border);border-radius:15px;margin:-31px 0 45px;background:var(--sf-product-card);box-shadow:0 5px 20px #101B2F08}
 .sf-branch-selector h2{margin:5px 0;color:var(--sf-font-color);letter-spacing:-.03em;font-size:var(--sf-font-size-19);line-height:1.2}
 .sf-branch-selector p{margin:5px 0 0;color:var(--sf-muted);font-size:var(--sf-font-size-11);line-height:1.5}
-.sf-branch-selector .sf-branch-address,.sf-hero .sf-branch-address{font-size:var(--sf-font-size-13);overflow-wrap:anywhere}
-.sf-hero .sf-branch-address{margin-top:10px;color:var(--sf-muted)}
 .sf-branch-selector label{display:flex;flex-direction:column;gap:6px;color:var(--sf-font-color);font-size:var(--sf-font-size-11);font-weight:750;min-width:195px}
 .sf-branch-selector select{height:46px;border-radius:10px;background:var(--sf-page-background);color:var(--sf-font-color);border:1px solid var(--sf-border);padding:0 12px;min-width:0;font-size:var(--sf-font-size-14);font-weight:700}
 .sf-branch-selector select:focus-visible{outline:3px solid var(--sf-primary-button);outline-offset:2px}
