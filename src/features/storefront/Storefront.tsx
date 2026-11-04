@@ -839,7 +839,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
         <div>
           <span className="sf-section-kicker">SELECT YOUR BRANCH</span>
           <h2>Ordering from {restaurant.branchName}</h2>
-          <p>Menus, availability and prices may vary by branch. Switching branches clears your cart.</p>
+          <p>The menu is shared across branches; availability and prices may vary by branch. Switching branches clears your cart.</p>
         </div>
         <label>Restaurant branch
           <select aria-label="Restaurant branch" value={restaurant.branchSlug}
