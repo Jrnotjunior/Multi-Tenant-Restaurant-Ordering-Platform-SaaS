@@ -606,7 +606,10 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     const url=new URL(window.location.href);
     url.searchParams.set('branch',slug);
     if(!customDomainMatched)url.pathname = normalizeAppBase(baseUrl);
-    url.hash = restaurantMenuHash(slug).slice(1);
+    // The route identifies the restaurant; the query parameter identifies its
+    // branch. Putting the branch slug in /order/:slug makes the storefront
+    // look up a tenant literally named after that branch (for example "main").
+    url.hash = restaurantMenuHash(restaurant.slug).slice(1);
     window.history.pushState({},'',url.pathname+url.search+url.hash);
     window.dispatchEvent(new PopStateEvent('popstate'));
     setSelectedBranch(slug);
