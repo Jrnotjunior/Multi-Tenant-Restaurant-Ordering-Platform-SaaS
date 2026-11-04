@@ -252,7 +252,7 @@
 .w2t-hours-head{color:#657791;font-size:11px;font-weight:750}
 .w2t-hours-row input[type=time]{box-sizing:border-box;width:100%;min-width:0;border:1px solid #d5dfed;border-radius:8px;padding:9px;background:#fff;color:#101B2F;font:inherit;font-size:12px}
 .w2t-hours-row input[type=checkbox]{width:17px;height:17px;accent-color:#101B2F}
-.w2t-settings-actions{display:flex;justify-content:flex-end;margin:2px 0 18px}
+.w2t-settings-actions{display:flex;justify-content:flex-end;margin:2px 0 18px}.w2t-payment-settings-actions{margin:20px 0 0}
 .w2t-settings-actions button{border:0;border-radius:9px;background:#111f37;color:#fff;padding:11px 18px;font-size:12px;font-weight:750;cursor:pointer}
 .w2t-settings-actions button:disabled{opacity:.55;cursor:wait}
 .w2t-settings-feedback{margin:10px 0;padding:12px 14px;border-radius:8px;font-size:12px;line-height:1.5}
