@@ -45,6 +45,12 @@ export type OwnerSupportMessage = {
 };
 
 export const ownerSupportService = {
+  async getCurrentUserId() {
+    if (!supabase) throw new Error('Web2table authentication is unavailable.');
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) throw new Error('Unable to verify your signed-in account.');
+    return data.user.id;
+  },
   async listTickets() {
     const result = await invoke<{ tickets: OwnerSupportTicket[] }>('list_tickets');
     return result.tickets;
