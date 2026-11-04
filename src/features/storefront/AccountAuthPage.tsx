@@ -192,6 +192,7 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
         {message && <p className={success ? 'sf-auth-message sf-auth-success' : 'sf-auth-message'} role="status">{message}</p>}
         <button type="submit" disabled={busy}>{busy ? 'Please wait…' : resetMode ? 'Send reset link' : isSignUp ? 'Sign Up' : 'Sign in'}</button>
       </form>
+      {isSignUp && <p className="sf-auth-privacy-note">By creating an account, you acknowledge our <a href={base + '#privacy'}>Privacy Notice</a>.</p>}
       <p className="sf-auth-switch">
         {resetMode ? <button className="sf-auth-text-button" type="button" onClick={() => { setResetMode(false); setMessage(''); setSuccess(false); }}>Back to sign in</button> : <>{isSignUp ? 'Already have an account? ' : 'New customer? '}<a href={base + (isSignUp ? 'account/sign-in' : 'account/sign-up') + (resolvedRestaurantSlug ? '?restaurant=' + encodeURIComponent(resolvedRestaurantSlug) : '')}>{isSignUp ? 'Sign In' : 'Sign Up'}</a></>}
       </p>
