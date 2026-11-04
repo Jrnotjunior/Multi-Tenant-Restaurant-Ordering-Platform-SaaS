@@ -22,7 +22,6 @@ export type StorefrontCatalog = Readonly<{
     fontFamily: 'modern' | 'rounded' | 'classic';
     branchName: string;
     branchSlug: string;
-    storeAddress: string;
     onlinePaymentsAvailable: boolean;
   };
   categories: readonly string[];
@@ -127,11 +126,10 @@ function getFaviconUrl(path:unknown):string|null {
 export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
   if (value === null) return null;
   if (!record(value)) throw new Error('Invalid published storefront response');
-  const {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors,socialLinks,logoPath,faviconPath,fontFamily,branchName,branchSlug,storeAddress,branches,categories,items,onlinePaymentsAvailable} = value;
+  const {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors,socialLinks,logoPath,faviconPath,fontFamily,branchName,branchSlug,branches,categories,items,onlinePaymentsAvailable} = value;
   if (!validText(slug,64) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)
     || !validText(name,160) || !validText(heroHeading,90)
     || !validText(heroEmphasis,90) || !validText(branchName,160)
-    || (storeAddress !== undefined && storeAddress !== null && (typeof storeAddress !== 'string' || storeAddress.length > 500))
     || typeof tagline !== 'string' || tagline.length > 300
     || typeof primaryColor !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(primaryColor)
     || !record(websiteColors) || !WEBSITE_COLOR_KEYS.every(key => typeof websiteColors[key] === 'string' && /^#[0-9a-fA-F]{6}$/.test(websiteColors[key] as string))
@@ -187,7 +185,7 @@ export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
   const initials = name.split(/\s+/).slice(0,2).map((word) => word.charAt(0)).join('').toUpperCase();
   const normalizedWebsiteColors = Object.fromEntries(WEBSITE_COLOR_KEYS.map(key => [key, websiteColors[key] as string])) as WebsiteColors;
   return {
-    restaurant: {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors:normalizedWebsiteColors,socialLinks:validateSocialLinks(socialLinks),logoUrl:getLogoUrl(logoPath),faviconUrl:getFaviconUrl(faviconPath),fontFamily:(fontFamily==='rounded'||fontFamily==='classic'?fontFamily:'modern'),branchName,branchSlug:typeof branchSlug==='string'?branchSlug:'',storeAddress:typeof storeAddress==='string'?storeAddress.trim():'',onlinePaymentsAvailable:onlinePaymentsAvailable===true,initials},
+    restaurant: {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors:normalizedWebsiteColors,socialLinks:validateSocialLinks(socialLinks),logoUrl:getLogoUrl(logoPath),faviconUrl:getFaviconUrl(faviconPath),fontFamily:(fontFamily==='rounded'||fontFamily==='classic'?fontFamily:'modern'),branchName,branchSlug:typeof branchSlug==='string'?branchSlug:'',onlinePaymentsAvailable:onlinePaymentsAvailable===true,initials},
     branches:branchChoices,
     categories:['All',...categories.map((entry:Row) => entry.name as string)],
     menu,
@@ -198,17 +196,13 @@ export async function loadPublishedMenu(slug:string,branchSlug:string|null=null)
   if (!supabase) throw new Error('Menu service is not configured');
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return null;
   if(branchSlug!==null && (branchSlug.length<2 || branchSlug.length>64 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(branchSlug))) return null;
-  const [{data,error},{data:storeAddress,error:addressError}] = await Promise.all([
-    supabase.rpc('get_branch_storefront',{p_slug:slug,p_branch_slug:branchSlug}),
-    supabase.rpc('get_public_branch_address',{p_slug:slug,p_branch_slug:branchSlug}),
-  ]);
+  const {data,error} = await supabase.rpc('get_branch_storefront',{p_slug:slug,p_branch_slug:branchSlug});
   if (error) throw new Error('Published menu service unavailable');
-  if (addressError) throw new Error('Published branch address service unavailable');
   if (!data) return null;
   const {data:assets,error:assetsError} = await supabase.rpc('get_public_storefront_favicon',{p_slug:slug});
   if (assetsError) throw new Error('Published storefront assets service unavailable');
   const assetRow = record(assets) ? assets : {};
-  return parsePublishedMenu({...data,storeAddress:typeof storeAddress==='string'?storeAddress:null,faviconPath:assetRow.faviconPath ?? null});
+  return parsePublishedMenu({...data,faviconPath:assetRow.faviconPath ?? null});
 }
 
 /** Resolve the current verified custom domain, then use the same branch-aware menu RPC. */

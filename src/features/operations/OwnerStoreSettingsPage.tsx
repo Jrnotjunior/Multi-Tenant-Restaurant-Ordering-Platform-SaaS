@@ -12,7 +12,7 @@ type OperatingHours = Record<DayKey, DayHours>;
 type OnlinePaymentMethods = { card: boolean; gcash: boolean; qrph: boolean; grab_pay: boolean; paymaya: boolean; dob: boolean; billease: boolean };
 type OnlinePayments = { enabled: boolean; methods: OnlinePaymentMethods; provider_configured: boolean; [key: string]: unknown };
 type DeliveryForm = { baseFee: string; distanceIncrementMeters: string; feePerIncrement: string; maxDistanceKm: string };
-type BranchDeliveryRow = { id:string; slug:string; name:string; is_active:boolean; store_address:string|null; delivery_location_latitude:number|null; delivery_location_longitude:number|null; delivery_pricing:Obj };
+type BranchDeliveryRow = { id:string; slug:string; name:string; is_active:boolean; pickup_address:string|null; store_address:string|null; delivery_location_latitude:number|null; delivery_location_longitude:number|null; delivery_pricing:Obj };
 type StorefrontRow = {
   tenant_id: string;
   default_branch_id: string;
@@ -171,6 +171,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
   const [acceptingOrders, setAcceptingOrders] = useState(false);
   const [hours, setHours] = useState<OperatingHours>(DEFAULT_HOURS);
   const [delivery, setDelivery] = useState<DeliveryForm>({ baseFee: '0', distanceIncrementMeters: '500', feePerIncrement: '10', maxDistanceKm: '10' });
+  const [pickupAddress, setPickupAddress] = useState('');
   const [storeAddress, setStoreAddress] = useState('');
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
@@ -202,7 +203,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         setAcceptingOrders(settings.accepting_orders !== false);
         setHours(normalizeHours(settings.opening_hours));
         const {data:branchRows,error:branchError}=await supabase.from('branches')
-          .select('id,slug,name,is_active,store_address,delivery_location_latitude,delivery_location_longitude,delivery_pricing')
+          .select('id,slug,name,is_active,pickup_address,store_address,delivery_location_latitude,delivery_location_longitude,delivery_pricing')
           .eq('tenant_id',tenantId).order('name');
         if(branchError)throw branchError;
         const safeBranches=(branchRows??[]) as BranchDeliveryRow[];
@@ -225,6 +226,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
     const branch=branches.find(item=>item.id===selectedBranchId);
     if(!branch)return;
     setDelivery(normalizeDelivery(branch.delivery_pricing));
+    setPickupAddress(branch.pickup_address??'');
     setStoreAddress(branch.store_address??'');
     setLatitude(typeof branch.delivery_location_latitude==='number'?branch.delivery_location_latitude:null);
     setLongitude(typeof branch.delivery_location_longitude==='number'?branch.delivery_location_longitude:null);
@@ -259,6 +261,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
       const parsedMaxDistanceKm = Number(delivery.maxDistanceKm);
       if (activeTab === 'delivery') {
         if (!selectedBranchId) throw new Error('Choose a branch before saving its delivery settings.');
+        if (pickupAddress.trim().length < 3 || pickupAddress.trim().length > 500) throw new Error('Enter the exact pickup address customers should use.');
         if (!Number.isFinite(parsedBase) || parsedBase < 0 || !Number.isFinite(parsedDistance) || parsedDistance <= 0 ||
           !Number.isFinite(parsedPerIncrement) || parsedPerIncrement < 0 || !Number.isFinite(parsedMaxDistanceKm) || parsedMaxDistanceKm <= 0) {
           throw new Error('Enter valid delivery pricing values. Fees cannot be negative and distances must be greater than zero.');
@@ -299,6 +302,11 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
       if (!['profile', 'hours', 'delivery', 'payments'].includes(activeTab)) return;
 
       if(activeTab==='delivery') {
+        const {data:pickupSaved,error:pickupError}=await supabase.rpc('update_owner_branch_pickup_address',{
+          p_tenant_id:tenantId,p_branch_id:selectedBranchId,p_pickup_address:pickupAddress.trim(),
+        });
+        if(pickupError)throw pickupError;
+        if(pickupSaved!==true)throw new Error('The branch pickup address was not saved.');
         const {data,error}=await supabase.rpc('update_owner_branch_delivery_settings',{
           p_tenant_id:tenantId,p_branch_id:selectedBranchId,p_store_address:storeAddress.trim(),
           p_latitude:latitude,p_longitude:longitude,p_delivery_pricing:nextDelivery,
@@ -306,7 +314,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         if(error)throw error;
         if(data!==true)throw new Error('Branch delivery settings were not saved.');
         setBranches(current=>current.map(branch=>branch.id===selectedBranchId?{
-          ...branch,store_address:storeAddress.trim(),delivery_location_latitude:latitude,
+          ...branch,pickup_address:pickupAddress.trim(),store_address:storeAddress.trim(),delivery_location_latitude:latitude,
           delivery_location_longitude:longitude,delivery_pricing:nextDelivery,
         }:branch));
         setMessage('Branch delivery settings saved successfully.');
@@ -343,7 +351,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
     <form className="w2t-settings-form" onSubmit={(event: FormEvent) => { event.preventDefault(); if (canSave) setConfirmOpen(true); }}>
       {activeTab === 'profile' && <section className="w2t-settings-card" role="tabpanel">
         <p className="w2t-settings-help w2t-settings-profile-intro">Update the customer-facing profile for {row.display_name ?? restaurantName ?? 'your restaurant'}.</p>
-        <label className="w2t-setting-field"><span>Restaurant business address</span><input type="text" maxLength={500} value={restaurantAddress} disabled={saving} placeholder="Enter the restaurant's general business address" onChange={event => { setRestaurantAddress(event.target.value); setMessage(''); setError(''); }} /><small>Customer ordering pages show the selected branch’s address. Set each branch’s pickup and delivery origin under Delivery pricing.</small></label>
+        <label className="w2t-setting-field"><span>Restaurant business address</span><input type="text" maxLength={500} value={restaurantAddress} disabled={saving} placeholder="Enter the restaurant's general business address" onChange={event => { setRestaurantAddress(event.target.value); setMessage(''); setError(''); }} /><small>For branch-specific pickup details, manually enter each branch’s exact pickup address under Delivery pricing. Its map pin is separate and is used only for delivery fee calculations.</small></label>
       </section>}
       {activeTab === 'hours' && <>
         <section className="w2t-settings-card">
@@ -361,12 +369,13 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         </section>
       </>}
       {activeTab === 'delivery' && <section className="w2t-settings-card">
-        <h2>Branch delivery setup</h2>
-        <p className="w2t-settings-help">Choose a branch to set its own map origin and delivery pricing. Only the System Administrator can create a branch; inactive branches become available to customers after the administrator activates them.</p>
+        <h2>Branch pickup and delivery setup</h2>
+        <p className="w2t-settings-help">Enter the exact pickup address manually. The map pin below is only used to calculate delivery distance and fees. Only the System Administrator can create a branch; inactive branches become available after the administrator activates them.</p>
         <label className="w2t-setting-field"><span>Configure branch</span><select value={selectedBranchId} disabled={saving||branches.length===0} onChange={event=>{setSelectedBranchId(event.target.value);setMessage('');setError('');}}>
           {branches.length===0&&<option value="">No branches available</option>}
           {branches.map(branch=><option key={branch.id} value={branch.id}>{branch.name}{branch.is_active?'':' · Inactive'}</option>)}
         </select></label>
+        <label className="w2t-setting-field"><span>Exact pickup address</span><input type="text" required minLength={3} maxLength={500} value={pickupAddress} disabled={saving||branches.length===0} placeholder="Type the complete address customers should use for pickup" onChange={event=>{setPickupAddress(event.target.value);setMessage('');setError('');}} /><small>Type this address yourself. It is shown to customers on the order tracking page; Mapbox does not fill it.</small></label>
         <h2>Delivery pricing</h2>
         <div className="w2t-settings-grid">
           <label className="w2t-setting-field"><span>Base delivery fee (₱)</span><input type="text" inputMode="decimal" pattern="[0-9]*([.][0-9]+)?" value={delivery.baseFee} disabled={saving} onChange={event => updateDelivery('baseFee', event.target.value)} /></label>
@@ -376,7 +385,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         </div>
         <p className="w2t-settings-help">Example: ₱10 per 500 meters means 1.2 km = 3 distance increments. The base fee is added on top.</p>
         <section className="w2t-delivery-location" aria-labelledby="w2t-delivery-location-heading">
-          <div className="w2t-delivery-location-header"><div><span className="w2t-delivery-location-kicker">Delivery setup</span><h2 id="w2t-delivery-location-heading">{branches.find(branch=>branch.id===selectedBranchId)?.name??'Branch'} address</h2><p>Set this branch’s exact map location. Customer delivery distance and fees are calculated from this point.</p></div><span className="w2t-route-origin">Route origin</span></div>
+          <div className="w2t-delivery-location-header"><div><span className="w2t-delivery-location-kicker">Delivery calculation only</span><h2 id="w2t-delivery-location-heading">{branches.find(branch=>branch.id===selectedBranchId)?.name??'Branch'} map pin</h2><p>Set the route origin used only to calculate customer delivery distance and fees. This does not set the pickup address.</p></div><span className="w2t-route-origin">Route origin</span></div>
           <MapPickerErrorBoundary>
             <MapboxDeliveryLocationPicker restaurantSlug={restaurantSlug} variant="restaurant" disabled={saving} initialLatitude={latitude} initialLongitude={longitude}
               onSelect={(selected: DeliveryLocationAddress) => {
@@ -386,7 +395,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
                 setMessage(''); setError('');
               }} />
           </MapPickerErrorBoundary>
-          <label className="w2t-setting-field w2t-delivery-address"><span>Delivery address</span><input type="text" maxLength={500} value={storeAddress} disabled={saving} placeholder="Select on the map or enter the store address" onChange={event => { setStoreAddress(event.target.value); setMessage(''); setError(''); }} /></label>
+          <label className="w2t-setting-field w2t-delivery-address"><span>Map origin label (reference only)</span><input type="text" maxLength={500} value={storeAddress} disabled={saving} placeholder="Filled from map selection" onChange={event => { setStoreAddress(event.target.value); setMessage(''); setError(''); }} /><small>This reference label is not shown to pickup customers.</small></label>
           {latitude !== null && longitude !== null && <p className="w2t-location-coordinates"><span />Saved location: {latitude.toFixed(6)}, {longitude.toFixed(6)}</p>}
         </section>
       </section>}
