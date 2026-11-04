@@ -32,20 +32,13 @@ function OwnerNavIcon({ name }: { name: string }) {
       return <svg viewBox="0 0 24 24" width="18" height="18" {...common}><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M7 6.5h.01M10 6.5h.01M7 13h4v4H7zM14 13h3M14 16h3"/></svg>;
     case 'settings':
       return <svg viewBox="0 0 24 24" width="18" height="18" {...common}><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/><path d="m19.4 13.5 1.1 1.9-2 3.4-2.2-.1-1.4 1.2-.4 2h-4l-.5-2-1.7-1.1-2 .1-2-3.4 1.1-1.9-.2-2-1.2-1.6 2-3.4 2.1.1 1.7-1.1.5-2h4l.4 2 1.7 1.1 2.1-.1 2 3.4-1.2 1.6z"/></svg>;
+    case 'support':
+      return <svg viewBox="0 0 24 24" width="18" height="18" {...common}><path d="M3 13v-1a9 9 0 0 1 18 0v1"/><path d="M3 12.5h3.5v6H5a2 2 0 0 1-2-2zM17.5 12.5H21v4a2 2 0 0 1-2 2h-1.5z"/><path d="M18 18.5v.3a3.2 3.2 0 0 1-3.2 3.2H13"/></svg>;
     case 'website':
       return <svg viewBox="0 0 24 24" width="18" height="18" {...common}><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 8h18M7 6h.01M10 6h.01M8 20v-7h8v7M11 13v3h2v-3M6 11h2M16 11h2"/></svg>;
     default:
       return null;
   }
-}
-
-function SupportIcon() {
-  return <svg className="owner-support-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M3 13v-1a9 9 0 0 1 18 0v1"/>
-    <path d="M3 12.5h3.5v6H5a2 2 0 0 1-2-2zM17.5 12.5H21v4a2 2 0 0 1-2 2h-1.5z"/>
-    <path d="M18 18.5v.3a3.2 3.2 0 0 1-3.2 3.2H13"/>
-    <path d="M11.5 22h2.2"/>
-  </svg>;
 }
 
 export function OwnerAppShell({ groups, page, displayName, onNavigate, onSignOut, children }: Props) {
@@ -63,7 +56,6 @@ export function OwnerAppShell({ groups, page, displayName, onNavigate, onSignOut
             {group.items.map(item => <button type="button" key={item.key} className={page === item.key ? 'active' : ''} aria-current={page === item.key ? 'page' : undefined} onClick={() => { onNavigate(item.key); closeMobileNav(); }}><span className="owner-nav-icon" aria-hidden="true"><OwnerNavIcon name={item.icon}/></span><span className="owner-nav-label">{item.label}</span></button>)}
           </section>)}
         </nav>
-        <a className="owner-support" href="https://tickets.web2table.io/" target="_blank" rel="noopener noreferrer"><SupportIcon/><span>Contact Customer Support</span></a>
       </aside>
       {mobileNavOpen && <button type="button" className="owner-mobile-backdrop" aria-label="Close navigation" onClick={closeMobileNav} />}
       <div className="owner-main">

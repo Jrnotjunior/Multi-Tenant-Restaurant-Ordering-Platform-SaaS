@@ -13,6 +13,7 @@ import { OwnerReportingPage } from './OwnerReportingPage';
 import { OwnerLoyaltyPage } from './OwnerLoyaltyPage';
 import { OwnerEmployeesPage } from './OwnerEmployeesPage';
 import { OwnerFiscalPage } from './OwnerFiscalPage';
+import { OwnerSupportPage } from './OwnerSupportPage';
 import { ownerNavGroups, type OwnerPage } from './ownerWorkspaceConfig';
 import { loadPosIntegration } from '../management/posIntegrationService';
 import { supabase } from '../../lib/supabase';
@@ -26,7 +27,7 @@ let cachedWorkspace: CachedWorkspace | null = null;
 
 const ownerPages = new Set<OwnerPage>([
   'dashboard', 'orders', 'menu', 'employees',
-  'sales', 'reports', 'loyalty', 'settings', 'branding', 'fiscal',
+  'sales', 'reports', 'loyalty', 'settings', 'branding', 'fiscal', 'support',
 ]);
 
 function ownerPageFromHash(): OwnerPage {
@@ -211,6 +212,7 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
     if (page === 'loyalty') return <OwnerLoyaltyPage tenantId={membership.tenant_id} />;
     if (page === 'sales' || page === 'reports') return <OwnerReportingPage tenantId={membership.tenant_id} page={page} />;
     if (page === 'fiscal') return <OwnerFiscalPage />;
+    if (page === 'support') return <OwnerSupportPage />;
     return <OwnerSectionPage page={page} tenantId={membership.tenant_id} restaurantName={restaurantName} onNavigate={navigateOwnerPage} />;
   };
 
