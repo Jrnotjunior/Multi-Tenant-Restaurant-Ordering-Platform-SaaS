@@ -12,8 +12,10 @@ type OperatingHours = Record<DayKey, DayHours>;
 type OnlinePaymentMethods = { card: boolean; gcash: boolean; qrph: boolean; grab_pay: boolean; paymaya: boolean; dob: boolean; billease: boolean };
 type OnlinePayments = { enabled: boolean; methods: OnlinePaymentMethods; provider_configured: boolean; [key: string]: unknown };
 type DeliveryForm = { baseFee: string; distanceIncrementMeters: string; feePerIncrement: string; maxDistanceKm: string };
+type BranchDeliveryRow = { id:string; slug:string; name:string; is_active:boolean; store_address:string|null; delivery_location_latitude:number|null; delivery_location_longitude:number|null; delivery_pricing:Obj };
 type StorefrontRow = {
   tenant_id: string;
+  default_branch_id: string;
   display_name: string | null;
   restaurant_address: string | null;
   store_address: string | null;
@@ -163,6 +165,8 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('profile');
   const [row, setRow] = useState<StorefrontRow | null>(null);
   const [restaurantSlug, setRestaurantSlug] = useState('');
+  const [branches, setBranches] = useState<BranchDeliveryRow[]>([]);
+  const [selectedBranchId, setSelectedBranchId] = useState('');
   const [restaurantAddress, setRestaurantAddress] = useState('');
   const [acceptingOrders, setAcceptingOrders] = useState(false);
   const [hours, setHours] = useState<OperatingHours>(DEFAULT_HOURS);
@@ -187,7 +191,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         if (tenantError) throw tenantError;
         if (tenant && typeof tenant.slug === 'string') setRestaurantSlug(tenant.slug);
         const { data, error } = await supabase.from('tenant_storefronts')
-          .select('tenant_id,display_name,restaurant_address,store_address,delivery_location_latitude,delivery_location_longitude,accepting_orders,opening_hours,delivery_pricing,cash_payment_options,online_payments')
+          .select('tenant_id,default_branch_id,display_name,restaurant_address,store_address,delivery_location_latitude,delivery_location_longitude,accepting_orders,opening_hours,delivery_pricing,cash_payment_options,online_payments')
           .eq('tenant_id', tenantId).maybeSingle();
         if (error) throw error;
         if (!data) throw new Error('No store settings exist for this restaurant yet.');
@@ -197,10 +201,14 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         setRestaurantAddress(settings.restaurant_address ?? '');
         setAcceptingOrders(settings.accepting_orders !== false);
         setHours(normalizeHours(settings.opening_hours));
-        setDelivery(normalizeDelivery(settings.delivery_pricing));
-        setStoreAddress(settings.store_address ?? '');
-        setLatitude(typeof settings.delivery_location_latitude === 'number' ? settings.delivery_location_latitude : null);
-        setLongitude(typeof settings.delivery_location_longitude === 'number' ? settings.delivery_location_longitude : null);
+        const {data:branchRows,error:branchError}=await supabase.from('branches')
+          .select('id,slug,name,is_active,store_address,delivery_location_latitude,delivery_location_longitude,delivery_pricing')
+          .eq('tenant_id',tenantId).order('name');
+        if(branchError)throw branchError;
+        const safeBranches=(branchRows??[]) as BranchDeliveryRow[];
+        setBranches(safeBranches);
+        const initialBranch=safeBranches.find(branch=>branch.id===settings.default_branch_id)??safeBranches[0];
+        if(initialBranch)setSelectedBranchId(initialBranch.id);
         setCash({ cash_on_delivery_enabled: true, cash_on_pickup_enabled: true, cash_on_take_out_enabled: true, ...asObject(settings.cash_payment_options) });
         setPayments(normalizeOnlinePayments(settings.online_payments));
       } catch (reason) {
@@ -212,6 +220,15 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
     void loadSettings();
     return () => { active = false; };
   }, [tenantId]);
+
+  useEffect(()=>{
+    const branch=branches.find(item=>item.id===selectedBranchId);
+    if(!branch)return;
+    setDelivery(normalizeDelivery(branch.delivery_pricing));
+    setStoreAddress(branch.store_address??'');
+    setLatitude(typeof branch.delivery_location_latitude==='number'?branch.delivery_location_latitude:null);
+    setLongitude(typeof branch.delivery_location_longitude==='number'?branch.delivery_location_longitude:null);
+  },[branches,selectedBranchId]);
 
   useEffect(() => {
     if (!message && !error) return;
@@ -241,11 +258,13 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
       const parsedPerIncrement = Number(delivery.feePerIncrement);
       const parsedMaxDistanceKm = Number(delivery.maxDistanceKm);
       if (activeTab === 'delivery') {
+        if (!selectedBranchId) throw new Error('Choose a branch before saving its delivery settings.');
         if (!Number.isFinite(parsedBase) || parsedBase < 0 || !Number.isFinite(parsedDistance) || parsedDistance <= 0 ||
           !Number.isFinite(parsedPerIncrement) || parsedPerIncrement < 0 || !Number.isFinite(parsedMaxDistanceKm) || parsedMaxDistanceKm <= 0) {
           throw new Error('Enter valid delivery pricing values. Fees cannot be negative and distances must be greater than zero.');
         }
-        if ((latitude === null) !== (longitude === null)) throw new Error('Select an exact store location on the map before saving delivery settings.');
+        if (latitude === null || longitude === null) throw new Error('Select an exact branch location on the map before saving delivery settings.');
+        if (!storeAddress.trim()) throw new Error('Select the branch address on the map before saving delivery settings.');
       }
 
       const currentHours = Object.fromEntries(DAYS.map(({ key }) => [key, {
@@ -262,9 +281,8 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
       }
       const previousHours = asObject(row.opening_hours);
       const nextHours = { ...previousHours, timezone: typeof previousHours.timezone === 'string' ? previousHours.timezone : 'Asia/Manila', schedule: currentHours, exceptions: Array.isArray(previousHours.exceptions) ? previousHours.exceptions : [] };
-      const previousDelivery = asObject(row.delivery_pricing);
       const nextDelivery = {
-        ...previousDelivery,
+        ...asObject(branches.find(branch=>branch.id===selectedBranchId)?.delivery_pricing),
         base_fee: parsedBase,
         currency: 'PHP',
         distance_increment_meters: Math.round(parsedDistance),
@@ -277,14 +295,24 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
       };
       if (activeTab === 'profile') Object.assign(changes, { restaurant_address: restaurantAddress.trim() || null });
       if (activeTab === 'hours') Object.assign(changes, { accepting_orders: acceptingOrders, opening_hours: nextHours });
-      if (activeTab === 'delivery') Object.assign(changes, {
-        store_address: storeAddress.trim() || null,
-        delivery_location_latitude: latitude,
-        delivery_location_longitude: longitude,
-        delivery_pricing: nextDelivery,
-      });
       if (activeTab === 'payments') Object.assign(changes, { online_payments: nextPayments });
       if (!['profile', 'hours', 'delivery', 'payments'].includes(activeTab)) return;
+
+      if(activeTab==='delivery') {
+        const {data,error}=await supabase.rpc('update_owner_branch_delivery_settings',{
+          p_tenant_id:tenantId,p_branch_id:selectedBranchId,p_store_address:storeAddress.trim(),
+          p_latitude:latitude,p_longitude:longitude,p_delivery_pricing:nextDelivery,
+        });
+        if(error)throw error;
+        if(data!==true)throw new Error('Branch delivery settings were not saved.');
+        setBranches(current=>current.map(branch=>branch.id===selectedBranchId?{
+          ...branch,store_address:storeAddress.trim(),delivery_location_latitude:latitude,
+          delivery_location_longitude:longitude,delivery_pricing:nextDelivery,
+        }:branch));
+        setMessage('Branch delivery settings saved successfully.');
+        setConfirmOpen(false);
+        return;
+      }
 
       const { data, error } = await supabase.from('tenant_storefronts').update(changes)
         .eq('tenant_id', tenantId).select('tenant_id').maybeSingle();
@@ -333,6 +361,12 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         </section>
       </>}
       {activeTab === 'delivery' && <section className="w2t-settings-card">
+        <h2>Branch delivery setup</h2>
+        <p className="w2t-settings-help">Choose a branch to set its own map origin and delivery pricing. Only the System Administrator can create a branch; inactive branches become available to customers after the administrator activates them.</p>
+        <label className="w2t-setting-field"><span>Configure branch</span><select value={selectedBranchId} disabled={saving||branches.length===0} onChange={event=>{setSelectedBranchId(event.target.value);setMessage('');setError('');}}>
+          {branches.length===0&&<option value="">No branches available</option>}
+          {branches.map(branch=><option key={branch.id} value={branch.id}>{branch.name}{branch.is_active?'':' · Inactive'}</option>)}
+        </select></label>
         <h2>Delivery pricing</h2>
         <div className="w2t-settings-grid">
           <label className="w2t-setting-field"><span>Base delivery fee (₱)</span><input type="text" inputMode="decimal" pattern="[0-9]*([.][0-9]+)?" value={delivery.baseFee} disabled={saving} onChange={event => updateDelivery('baseFee', event.target.value)} /></label>
@@ -342,7 +376,7 @@ export function OwnerStoreSettingsPage({ tenantId, restaurantName }: Props) {
         </div>
         <p className="w2t-settings-help">Example: ₱10 per 500 meters means 1.2 km = 3 distance increments. The base fee is added on top.</p>
         <section className="w2t-delivery-location" aria-labelledby="w2t-delivery-location-heading">
-          <div className="w2t-delivery-location-header"><div><span className="w2t-delivery-location-kicker">Delivery setup</span><h2 id="w2t-delivery-location-heading">Store address</h2><p>Set the exact location delivery orders should route from. Distance and fees are calculated from this point.</p></div><span className="w2t-route-origin">Route origin</span></div>
+          <div className="w2t-delivery-location-header"><div><span className="w2t-delivery-location-kicker">Delivery setup</span><h2 id="w2t-delivery-location-heading">{branches.find(branch=>branch.id===selectedBranchId)?.name??'Branch'} address</h2><p>Set this branch’s exact map location. Customer delivery distance and fees are calculated from this point.</p></div><span className="w2t-route-origin">Route origin</span></div>
           <MapPickerErrorBoundary>
             <MapboxDeliveryLocationPicker restaurantSlug={restaurantSlug} variant="restaurant" disabled={saving} initialLatitude={latitude} initialLongitude={longitude}
               onSelect={(selected: DeliveryLocationAddress) => {

@@ -378,6 +378,7 @@
 .restaurant-page{width:100%;min-width:0;color:var(--color-text,#101B2F);font-family:var(--font-body,Inter,sans-serif)}
 .restaurant-menu-page{--color-primary:var(--color-sidebar,#101B2F);--color-primary-hover:var(--color-active,#263754);--color-primary-text:#FFFFFF;--color-background:var(--color-page,#F7F9FC);--radius-lg:12px;--radius-md:8px}
 .restaurant-menu-management-card{border:1px solid var(--color-border,#DCE3ED);border-radius:14px;padding:20px;margin-top:0;background:var(--color-surface,#FFFFFF)}
+.restaurant-menu-branch-choice{display:flex;align-items:center;gap:12px;margin:0 0 6px;color:var(--color-text,#101B2F);font-weight:700}.restaurant-menu-branch-choice select{min-width:200px;padding:9px 12px;border:1px solid var(--color-border,#DCE3ED);border-radius:8px;background:#fff;color:inherit;font:inherit}.restaurant-menu-branch-help{margin:0 0 18px;color:var(--color-muted,#667085);font-size:.88rem}
 .restaurant-menu-section-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
 .restaurant-menu-section-header.is-actions-only{justify-content:flex-end}
 .restaurant-menu-section-header>div{min-width:0}

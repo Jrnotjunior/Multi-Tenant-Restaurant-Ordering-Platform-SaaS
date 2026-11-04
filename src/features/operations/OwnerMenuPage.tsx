@@ -18,6 +18,7 @@ const ownerMenuCache = new Map<string, OwnerData>();
 export function OwnerMenuPage({ tenantId }: Props) {
   const [data, setData] = useState<OwnerData | null>(() => ownerMenuCache.get(tenantId) ?? null);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedBranchId, setSelectedBranchId] = useState('');
   const [showUnavailable, setShowUnavailable] = useState(true);
   const [searchProduct, setSearchProduct] = useState('');
   const [loading, setLoading] = useState(() => !ownerMenuCache.has(tenantId));
@@ -56,8 +57,13 @@ export function OwnerMenuPage({ tenantId }: Props) {
   const products = (data?.items ?? []).filter((item) => item.status !== 'archived');
   const activeBranches = (data?.branches ?? []).filter((branch) => branch.is_active);
   const defaultBranch = data?.branches.find((branch) => branch.id === data?.brand.default_branch_id);
+  const selectedBranch=activeBranches.find(branch=>branch.id===selectedBranchId)??defaultBranch;
+  useEffect(()=>{
+    const branchIds=(data?.branches??[]).filter(branch=>branch.is_active).map(branch=>branch.id);
+    if(defaultBranch&&(!selectedBranchId||!branchIds.includes(selectedBranchId)))setSelectedBranchId(defaultBranch.id);
+  },[data?.branches,defaultBranch?.id,selectedBranchId]);
   const branchAssignment = (product: Product) => data?.assignments.find(
-    (assignment) => assignment.branch_id === defaultBranch?.id && assignment.item_id === product.id,
+    (assignment) => assignment.branch_id === selectedBranch?.id && assignment.item_id === product.id,
   );
   const isAvailable = (product: Product) => {
     const category = categories.find((item) => item.id === product.category_id);
@@ -184,11 +190,9 @@ export function OwnerMenuPage({ tenantId }: Props) {
         setIsAddingProduct(false);
       }
 
-      for (const branch of activeBranches) {
-        const existing = data.assignments.find((assignment) => assignment.branch_id === branch.id && assignment.item_id === itemId);
-        const available = existing ? existing.is_available : true;
-        await setBranchItem(tenantId, branch.id, itemId, available, existing?.price_override_centavos ?? null);
-      }
+      if(!selectedBranch?.is_active)throw new Error('Choose an active branch before assigning this menu item.');
+      const existing=data.assignments.find(assignment=>assignment.branch_id===selectedBranch.id&&assignment.item_id===itemId);
+      await setBranchItem(tenantId,selectedBranch.id,itemId,existing?.is_available??true,existing?.price_override_centavos??null);
       if (imageFile) await uploadMenuPhoto(tenantId, itemId, imageFile);
       await refreshMenu();
       setEditingProduct(null);
@@ -205,15 +209,11 @@ export function OwnerMenuPage({ tenantId }: Props) {
   }
 
   async function toggleAvailability(product: Product) {
-    if (!data || !defaultBranch || !defaultBranch.is_active) {
-      setError('The default restaurant branch is not active. Ask the System Administrator to check branch settings.');
+    if (!data || !selectedBranch || !selectedBranch.is_active) {
+      setError('Choose an active branch before changing menu availability.');
       return;
     }
     const makeAvailable = !isAvailable(product);
-    if (makeAvailable && activeBranches.length === 0) {
-      setError('There is no active branch available for this product.');
-      return;
-    }
     setSavingId(product.id);
     setError('');
     try {
@@ -223,10 +223,8 @@ export function OwnerMenuPage({ tenantId }: Props) {
         name: product.name, description: product.description, category_id: product.category_id,
         price_centavos: product.price_centavos, is_popular: product.is_popular, status: 'published',
       });
-      for (const branch of activeBranches) {
-        const existing = data.assignments.find((assignment) => assignment.branch_id === branch.id && assignment.item_id === product.id);
-        await setBranchItem(tenantId, branch.id, product.id, makeAvailable, existing?.price_override_centavos ?? null);
-      }
+      const existing=data.assignments.find(assignment=>assignment.branch_id===selectedBranch.id&&assignment.item_id===product.id);
+      await setBranchItem(tenantId,selectedBranch.id,product.id,makeAvailable,existing?.price_override_centavos??null);
       await refreshMenu();
     } catch (reason) {
       setError(formatError(reason));
@@ -286,6 +284,12 @@ export function OwnerMenuPage({ tenantId }: Props) {
         {error && <div className="restaurant-dashboard-error" role="alert">{error}</div>}
 
         <div className="restaurant-menu-management-card">
+          <label className="restaurant-menu-branch-choice">Manage menu for branch
+            <select value={selectedBranch?.id??''} onChange={event=>setSelectedBranchId(event.target.value)} disabled={activeBranches.length===0}>
+              {activeBranches.map(branch=><option key={branch.id} value={branch.id}>{branch.name}</option>)}
+            </select>
+          </label>
+          <p className="restaurant-menu-branch-help">Availability changes apply only to {selectedBranch?.name??'the selected branch'}.</p>
           <div className="restaurant-menu-search">
             <label className="restaurant-menu-search-label" htmlFor="restaurant-product-search">Search products</label>
             <div className="restaurant-menu-search-input-wrap">

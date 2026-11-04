@@ -33,6 +33,7 @@ function storefrontMapHeaderStyle(): CSSProperties {
 
 type CheckoutPageProps = {
   restaurantSlug: string;
+  branchSlug: string;
   itemCount: number;
   subtotalCentavos: number;
   orderLines: readonly { name: string; quantity: number; totalCentavos: number; details?: string }[];
@@ -139,7 +140,7 @@ function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onS
 }
 
 /** Standalone checkout screen. It prepares details only; it does not place or charge an order. */
-export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orderLines, onBackToMenu, onPlaceOrder, trackingOnly = false, onlinePaymentsAvailable }: CheckoutPageProps) {
+export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCentavos, orderLines, onBackToMenu, onPlaceOrder, trackingOnly = false, onlinePaymentsAvailable }: CheckoutPageProps) {
   const [orderType, setOrderType] = useState<OrderType>('Delivery');
   const [customerFirstName, setCustomerFirstName] = useState('');
   const [customerLastName, setCustomerLastName] = useState('');
@@ -261,12 +262,12 @@ export function CheckoutPage({ restaurantSlug, itemCount, subtotalCentavos, orde
     setDeliveryQuote(null);
     if (orderType !== 'Delivery' || !deliveryAddress || deliveryAddress.latitude === null || deliveryAddress.longitude === null || !supabase) { setQuotingDelivery(false); return; }
     setQuotingDelivery(true);
-    void supabase.functions.invoke('delivery-pricing', { body: { action: 'quote', restaurantSlug, latitude: deliveryAddress.latitude, longitude: deliveryAddress.longitude } })
+    void supabase.functions.invoke('delivery-pricing', { body: { action: 'quote', restaurantSlug, branchSlug, latitude: deliveryAddress.latitude, longitude: deliveryAddress.longitude } })
       .then(({ data, error }) => { if (error) throw error; const result = data as { success?: boolean; feeCentavos?: number; distanceMeters?: number; error?: string } | null; if (!result?.success || !Number.isFinite(result.feeCentavos) || !Number.isFinite(result.distanceMeters)) throw new Error(result?.error || 'Unable to calculate the delivery fee.'); if (active) setDeliveryQuote({ feeCentavos: Number(result.feeCentavos), distanceMeters: Number(result.distanceMeters) }); })
       .catch((error: unknown) => { if (active) { setDeliveryQuote(null); setMessage(error instanceof Error ? error.message : 'Unable to calculate the delivery fee.'); } })
       .finally(() => { if (active) setQuotingDelivery(false); });
     return () => { active = false; };
-  }, [orderType, deliveryAddress?.latitude, deliveryAddress?.longitude, restaurantSlug]);
+  }, [orderType, deliveryAddress?.latitude, deliveryAddress?.longitude, restaurantSlug, branchSlug]);
   useEffect(() => {
     let active = true;
     setLoyalty(null);

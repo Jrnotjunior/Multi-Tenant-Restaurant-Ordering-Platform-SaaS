@@ -48,7 +48,7 @@ async function drivingDistance(originLongitude: number, originLatitude: number, 
   return distance;
 }
 
-async function quote(admin: any, slug: string, latitude: number, longitude: number) {
+async function quote(admin: any, slug: string, branchSlug: string, latitude: number, longitude: number) {
   if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90 || !Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
     throw new Error("Choose a valid delivery location on the map.");
   }
@@ -58,6 +58,10 @@ async function quote(admin: any, slug: string, latitude: number, longitude: numb
   if (tenantError) throw tenantError;
   if (!tenant || tenant.status !== "active") throw new Error("This restaurant is unavailable.");
 
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(branchSlug) || branchSlug.length < 2 || branchSlug.length > 64) {
+    throw new Error("Choose a valid restaurant branch.");
+  }
+
   const { data: storefront, error: storefrontError } = await admin
     .from("tenant_storefronts")
     .select("status,delivery_pricing,delivery_location_latitude,delivery_location_longitude")
@@ -65,14 +69,24 @@ async function quote(admin: any, slug: string, latitude: number, longitude: numb
   if (storefrontError) throw storefrontError;
   if (!storefront || storefront.status !== "published") throw new Error("This restaurant is not accepting online orders.");
 
-  const originLatitude = Number(storefront.delivery_location_latitude);
-  const originLongitude = Number(storefront.delivery_location_longitude);
-  if (storefront.delivery_location_latitude === null || storefront.delivery_location_longitude === null ||
+  const { data: branch, error: branchError } = await admin
+    .from("branches")
+    .select("store_address,delivery_pricing,delivery_location_latitude,delivery_location_longitude")
+    .eq("tenant_id", tenant.id)
+    .eq("slug", branchSlug)
+    .eq("is_active", true)
+    .maybeSingle();
+  if (branchError) throw branchError;
+  if (!branch) throw new Error("This restaurant branch is unavailable.");
+
+  const originLatitude = Number(branch.delivery_location_latitude);
+  const originLongitude = Number(branch.delivery_location_longitude);
+  if (branch.delivery_location_latitude === null || branch.delivery_location_longitude === null ||
       !Number.isFinite(originLatitude) || !Number.isFinite(originLongitude)) {
-    throw new Error("The restaurant has not configured its delivery location yet.");
+    throw new Error("This branch has not configured its delivery location yet.");
   }
 
-  const pricing = storefront.delivery_pricing ?? {};
+  const pricing = branch.delivery_pricing ?? {};
   const baseFee = Number(pricing.base_fee);
   const incrementMeters = Number(pricing.distance_increment_meters);
   const feePerIncrement = Number(pricing.fee_per_increment);
@@ -106,11 +120,15 @@ Deno.serve(async (request: Request) => {
     const admin = createClient(supabaseUrl, key, { auth: { autoRefreshToken: false, persistSession: false } });
     const body = await request.json();
     const slug = String(body.restaurantSlug ?? "").trim().toLowerCase();
+    const branchSlug = String(body.branchSlug ?? "").trim().toLowerCase();
     if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) || slug.length < 3 || slug.length > 64) {
       return json({ error: "Choose a valid restaurant." }, 400);
     }
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(branchSlug) || branchSlug.length < 2 || branchSlug.length > 64) {
+      return json({ error: "Choose a valid restaurant branch." }, 400);
+    }
 
-    const result = await quote(admin, slug, Number(body.latitude), Number(body.longitude));
+    const result = await quote(admin, slug, branchSlug, Number(body.latitude), Number(body.longitude));
     return json({ success: true, feeCentavos: result.feeCentavos, distanceMeters: result.distanceMeters });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to calculate delivery pricing.";
