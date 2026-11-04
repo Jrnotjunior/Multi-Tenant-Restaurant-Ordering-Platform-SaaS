@@ -234,6 +234,19 @@
 .sf-storefront .sf-hero{background:var(--sf-hero-color)}
 
 
+.sf-branch-picker{display:flex;flex-direction:column;gap:6px;min-width:240px;max-width:300px}
+.sf-branch-picker-label{color:var(--sf-font-color);font-size:var(--sf-font-size-11);font-weight:750}
+.sf-branch-picker-control{position:relative;width:100%;min-width:0}
+.sf-branch-picker-trigger{display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box;width:100%;min-height:46px;padding:0 14px;border:1px solid var(--sf-border);border-radius:11px;background:var(--sf-page-background);color:var(--sf-font-color);font:inherit;font-size:var(--sf-font-size-14);font-weight:700;text-align:left;cursor:pointer;transition:border-color .15s ease,box-shadow .15s ease}
+.sf-branch-picker-trigger:hover,.sf-branch-picker-trigger[aria-expanded=true]{border-color:var(--sf-primary-button)}
+.sf-branch-picker-trigger:focus-visible{outline:3px solid color-mix(in srgb,var(--sf-primary-button) 24%,transparent);outline-offset:2px}
+.sf-branch-picker-chevron{flex:0 0 auto;color:var(--sf-muted);font-size:18px;line-height:1}
+.sf-branch-picker-options{position:absolute;top:calc(100% + 7px);left:0;right:0;z-index:80;display:grid;gap:3px;max-height:min(260px,45vh);overflow-y:auto;padding:5px;border:1px solid var(--sf-border);border-radius:12px;background:var(--sf-product-card);box-shadow:0 12px 28px rgba(16,27,47,.16)}
+.sf-branch-picker-option{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:42px;padding:9px 11px;border:0;border-radius:8px;background:transparent;color:var(--sf-font-color);font:inherit;font-size:var(--sf-font-size-13);font-weight:550;text-align:left;cursor:pointer}
+.sf-branch-picker-option:hover,.sf-branch-picker-option.is-selected{background:var(--sf-page-background)}
+.sf-branch-picker-option.is-selected{font-weight:750;color:var(--sf-primary-button)}
+.sf-branch-picker-option:focus-visible{outline:2px solid var(--sf-primary-button);outline-offset:-2px}
+@media(max-width:680px){.sf-branch-picker{width:100%;max-width:none;min-width:0}.sf-branch-picker-trigger{min-height:49px}}
 /* Mobile-first, accessible branch chooser. */
 .sf-branch-selector{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:17px 22px;border:1px solid var(--sf-border);border-radius:15px;margin:-31px 0 45px;background:var(--sf-product-card);box-shadow:0 5px 20px #101B2F08}
 .sf-branch-selector h2{margin:5px 0;color:var(--sf-font-color);letter-spacing:-.03em;font-size:var(--sf-font-size-19);line-height:1.2}
