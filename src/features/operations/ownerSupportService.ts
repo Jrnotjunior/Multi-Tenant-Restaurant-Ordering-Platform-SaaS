@@ -35,6 +35,17 @@ export type OwnerSupportTicket = {
   updated_at: string;
 };
 
+export type OwnerSupportAttachment = {
+  id: string;
+  ticket_id: string;
+  message_id: string | null;
+  file_name: string;
+  content_type: string;
+  file_size: number;
+  storage_path: string;
+  created_at: string;
+};
+
 export type OwnerSupportMessage = {
   id: string;
   ticket_id: string;
@@ -67,6 +78,32 @@ export const ownerSupportService = {
   async listMessages(ticketId: string) {
     const result = await invoke<{ messages: OwnerSupportMessage[] }>('list_messages', { ticket_id: ticketId });
     return result.messages;
+  },
+  async listAttachments(ticketId: string) {
+    const result = await invoke<{ attachments: OwnerSupportAttachment[] }>('list_attachments', { ticket_id: ticketId });
+    return result.attachments;
+  },
+  async uploadAttachment(ticketId: string, file: File) {
+    if (!supabase) throw new Error('Web2table authentication is unavailable.');
+    const { data, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !data.session?.access_token) throw new Error('Your session has expired. Please sign in again.');
+    const { data: result, error } = await ticketClient.functions.invoke('support-owner-portal', {
+      body: file,
+      headers: {
+        Authorization: `Bearer ${data.session.access_token}`,
+        'x-action': 'upload_attachment',
+        'x-ticket-id': ticketId,
+        'x-file-name': encodeURIComponent(file.name),
+        'Content-Type': file.type,
+      },
+    });
+    if (error) throw new Error(error.message || 'Attachment upload failed.');
+    if (result?.error) throw new Error(result.error);
+    return result.attachment as OwnerSupportAttachment;
+  },
+  async getAttachmentUrl(storagePath: string) {
+    const result = await invoke<{ signed_url: string }>('create_attachment_url', { storage_path: storagePath });
+    return result.signed_url;
   },
   async sendMessage(ticketId: string, message: string) {
     const result = await invoke<{ message: OwnerSupportMessage }>('send_message', { ticket_id: ticketId, message });
