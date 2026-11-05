@@ -257,7 +257,7 @@ export function OwnerStoreSettingsPage({ tenantId }: Props) {
         if (!selectedBranchId) throw new Error('Choose a branch before saving its delivery settings.');
         if (pickupAddress.trim().length < 3 || pickupAddress.trim().length > 500) throw new Error('Enter the exact pickup address customers should use.');
         const normalizedContactPhone = contactPhone.replace(/[\s()-]/g, '');
-        if (normalizedContactPhone && !/^(?:09\d{9}|[+]639\d{9})$/.test(normalizedContactPhone)) throw new Error('Enter a valid Philippine mobile number (09XXXXXXXXX or +639XXXXXXXXX).');
+        if (normalizedContactPhone && !/^09\d{9}$/.test(normalizedContactPhone)) throw new Error('Enter an 11-digit Philippine mobile number starting with 09 (09XXXXXXXXX).');
         if (!Number.isFinite(parsedBase) || parsedBase < 0 || !Number.isFinite(parsedDistance) || parsedDistance <= 0 ||
           !Number.isFinite(parsedPerIncrement) || parsedPerIncrement < 0 || !Number.isFinite(parsedMaxDistanceKm) || parsedMaxDistanceKm <= 0) {
           throw new Error('Enter valid delivery pricing values. Fees cannot be negative and distances must be greater than zero.');
@@ -372,7 +372,7 @@ export function OwnerStoreSettingsPage({ tenantId }: Props) {
           {branches.map(branch=><option key={branch.id} value={branch.id}>{branch.name}{branch.is_active?'':' · Inactive'}</option>)}
         </select></label>
         <label className="w2t-setting-field"><span>Exact pickup address</span><input type="text" required minLength={3} maxLength={500} value={pickupAddress} disabled={saving||branches.length===0} placeholder="Type the complete address customers should use for pickup" onChange={event=>{setPickupAddress(event.target.value);setMessage('');setError('');}} /><small>Type this address yourself. It is shown to customers on the order tracking page; Mapbox does not fill it.</small></label>
-        <label className="w2t-setting-field"><span>Branch mobile number for pickup customers</span><input type="tel" inputMode="tel" autoComplete="tel" maxLength={16} value={contactPhone} disabled={saving||branches.length===0} placeholder="09XXXXXXXXX or +639XXXXXXXXX" onChange={event=>{setContactPhone(event.target.value.slice(0,16));setMessage('');setError('');}} /><small>Shown only on customer tracking pages for Pickup orders. Each branch has its own contact number.</small></label>
+        <label className="w2t-setting-field"><span>Branch mobile number for pickup customers</span><input type="tel" inputMode="numeric" autoComplete="tel" maxLength={11} value={contactPhone} disabled={saving||branches.length===0} placeholder="09XXXXXXXXX (11 digits)" onChange={event=>{setContactPhone(event.target.value.replace(/\D/g, '').slice(0,11));setMessage('');setError('');}} /><small>Shown only on customer tracking pages for Pickup orders. Each branch has its own contact number.</small></label>
         <h2>Delivery pricing</h2>
         <div className="w2t-settings-grid">
           <label className="w2t-setting-field"><span>Base delivery fee (₱)</span><input type="text" inputMode="decimal" pattern="[0-9]*([.][0-9]+)?" value={delivery.baseFee} disabled={saving} onChange={event => updateDelivery('baseFee', event.target.value)} /></label>
