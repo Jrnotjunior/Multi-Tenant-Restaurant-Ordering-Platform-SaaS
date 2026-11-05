@@ -181,6 +181,7 @@ export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCe
   const [trackingError, setTrackingError] = useState('');
   const [deliveryQuote, setDeliveryQuote] = useState<{ feeCentavos: number; distanceMeters: number } | null>(null);
   const [quotingDelivery, setQuotingDelivery] = useState(false);
+  const [outsideDeliveryArea, setOutsideDeliveryArea] = useState(false);
   const [loyalty, setLoyalty] = useState<{ enabled: boolean; pointsBalance: number; rewardPoints: number; rewardAmountCentavos: number } | null>(null);
   const [loyaltyPointsToRedeem, setLoyaltyPointsToRedeem] = useState(0);
   const [loyaltyLoading, setLoyaltyLoading] = useState(false);
@@ -271,10 +272,26 @@ export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCe
   useEffect(() => {
     let active = true;
     setDeliveryQuote(null);
+    setOutsideDeliveryArea(false);
     if (orderType !== 'Delivery' || !deliveryAddress || deliveryAddress.latitude === null || deliveryAddress.longitude === null || !supabase) { setQuotingDelivery(false); return; }
     setQuotingDelivery(true);
     void supabase.functions.invoke('delivery-pricing', { body: { action: 'quote', restaurantSlug, branchSlug, latitude: deliveryAddress.latitude, longitude: deliveryAddress.longitude } })
-      .then(({ data, error }) => { if (error) throw error; const result = data as { success?: boolean; feeCentavos?: number; distanceMeters?: number; error?: string } | null; if (!result?.success || !Number.isFinite(result.feeCentavos) || !Number.isFinite(result.distanceMeters)) throw new Error(result?.error || 'Unable to calculate the delivery fee.'); if (active) setDeliveryQuote({ feeCentavos: Number(result.feeCentavos), distanceMeters: Number(result.distanceMeters) }); })
+      .then(async ({ data, error }) => {
+        let result = data as { success?: boolean; feeCentavos?: number; distanceMeters?: number; error?: string } | null;
+        // Supabase returns a generic FunctionsHttpError for non-2xx responses.
+        // Read the response body so customers see the actual delivery policy.
+        if (error && 'context' in error && error.context instanceof Response) {
+          const body = await error.context.clone().json().catch(() => null);
+          if (body && typeof body === 'object') result = body as typeof result;
+        }
+        if (result?.error && /outside the restaurant delivery area/i.test(result.error)) {
+          if (active) { setOutsideDeliveryArea(true); setMessage(''); }
+          return;
+        }
+        if (error) throw new Error(result?.error || 'Unable to check this delivery address. Please try again.');
+        if (!result?.success || !Number.isFinite(result.feeCentavos) || !Number.isFinite(result.distanceMeters)) throw new Error(result?.error || 'Unable to calculate the delivery fee.');
+        if (active) { setDeliveryQuote({ feeCentavos: Number(result.feeCentavos), distanceMeters: Number(result.distanceMeters) }); setMessage(''); }
+      })
       .catch((error: unknown) => { if (active) { setDeliveryQuote(null); setMessage(error instanceof Error ? error.message : 'Unable to calculate the delivery fee.'); } })
       .finally(() => { if (active) setQuotingDelivery(false); });
     return () => { active = false; };
@@ -408,6 +425,12 @@ export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCe
         <div className="sf-checkout-summary-grand-total"><span>Total</span><strong>{peso(Math.max(0, (orderType === 'Delivery' ? subtotalCentavos + (deliveryQuote?.feeCentavos ?? 0) : subtotalCentavos) - (loyalty && loyaltyPointsToRedeem > 0 ? (loyaltyPointsToRedeem / loyalty.rewardPoints) * loyalty.rewardAmountCentavos : 0)))}</strong></div>{orderType === 'Delivery' && deliveryQuote && <p className="sf-checkout-optional">Driving distance: {(deliveryQuote.distanceMeters / 1000).toFixed(1)} km. The server validates the fee again when placing the order.</p>}
       </section>
 
+      {outsideDeliveryArea && orderType === 'Delivery' && <section className="sf-checkout-section" role="alert" aria-label="Outside delivery area">
+        <strong>This address is outside the restaurant's delivery area.</strong>
+        <p>If you would still like to order, you can choose <strong>Pickup</strong> and arrange for a third-party courier to collect the food from the restaurant.</p>
+        <p><strong>Important reminder:</strong> You are responsible for booking, paying, and coordinating your own courier. The restaurant prepares each order fresh and made to order. Once the food has been properly handed over to your chosen courier, the restaurant is not responsible for spoilage or damage caused during third-party transport, without limiting your rights under applicable consumer law.</p>
+        <button type="button" className="sf-checkout-submit" onClick={() => { setOrderType('Pickup'); setMessage(''); setReviewed(false); setPaymentModalOpen(false); }}>Switch to Pickup</button>
+      </section>}
       {message && <p className="sf-checkout-page-message" role="status">{message}</p>}
       <button className="sf-checkout-submit" type="submit" disabled={itemCount === 0 || (orderType === 'Delivery' && (!deliveryQuote || quotingDelivery))}>Choose Payment Options</button>
     </form>}
