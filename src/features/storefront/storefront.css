@@ -583,7 +583,7 @@
 .sf-account-page .sf-header{background:var(--sf-footer-background);border-bottom:1px solid color-mix(in srgb,var(--sf-footer-font) 18%,transparent)}
 .sf-account-page .sf-header-inner{min-height:0}
 .sf-account-page .sf-logo{color:var(--sf-footer-font)}
-.sf-account-page .sf-account-button{color:var(--sf-footer-font)!important}
+.sf-account-page .sf-account-button{color:var(--sf-header-icon)}
 .sf-account-main{flex:1 0 auto;padding-top:clamp(28px,5vw,58px);padding-bottom:clamp(36px,6vw,72px)}
 .sf-account-hero{padding:clamp(22px,4vw,36px);background:var(--sf-product-card);border:1px solid var(--sf-border);border-radius:18px;box-shadow:0 8px 28px rgba(16,27,47,.045);overflow-wrap:anywhere}
 .sf-account-hero h1{margin:12px 0 7px;font-size:clamp(28px,4vw,40px);line-height:1.12;letter-spacing:-.055em;color:var(--sf-font-color)}
