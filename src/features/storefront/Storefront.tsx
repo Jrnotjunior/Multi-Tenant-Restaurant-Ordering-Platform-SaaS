@@ -701,7 +701,9 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     '--sf-red-dark': websiteColors.secondaryButton,
   } as CSSProperties;
   if(needsBranchSelection(selectedBranch,catalog.branches)) {
-    const accountHref=customDomainMatched?'#/account':baseUrl+'#/account';
+    // Keep account navigation on the current storefront document. The hash router
+    // handles this route without a document navigation or page refresh.
+    const accountHref='#/account';
     return <div className={'sf-storefront sf-storefront-branch-selection'+tenantFontClass} style={storefrontTheme}>
       <StorefrontHeader
         logo={<a href={customDomainMatched?'#':baseUrl} className="sf-logo" aria-label={restaurant.name+' home'}>
