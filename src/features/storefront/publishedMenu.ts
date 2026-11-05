@@ -3,8 +3,9 @@ import { supabase } from '../../lib/supabase';
 
 export type BranchChoice = Readonly<{slug:string;name:string}>;
 export type StorefrontSocialLinks = Readonly<{facebook:string;instagram:string;tiktok:string}>;
-export type WebsiteColors = Readonly<{pageBackground:string;headerColor:string;footerBackground:string;footerFont:string;heroColor:string;productCard:string;fontColor:string;headerIcon:string;primaryButton:string;primaryButtonFont:string;secondaryButton:string;secondaryButtonFont:string}>;
-const WEBSITE_COLOR_KEYS: Array<keyof WebsiteColors> = ['pageBackground','headerColor','footerBackground','footerFont','heroColor','productCard','fontColor','headerIcon','primaryButton','primaryButtonFont','secondaryButton','secondaryButtonFont'];
+export type WebsiteColors = Readonly<{pageBackground:string;headerColor:string;footerBackground:string;footerFont:string;heroColor:string;heroFontColor:string;productCard:string;fontColor:string;headerIcon:string;primaryButton:string;primaryButtonFont:string;secondaryButton:string;secondaryButtonFont:string}>;
+const WEBSITE_COLOR_KEYS: Array<keyof WebsiteColors> = ['pageBackground','headerColor','footerBackground','footerFont','heroColor','heroFontColor','productCard','fontColor','headerIcon','primaryButton','primaryButtonFont','secondaryButton','secondaryButtonFont'];
+const REQUIRED_WEBSITE_COLOR_KEYS: Array<keyof WebsiteColors> = WEBSITE_COLOR_KEYS.filter(key => key !== 'heroFontColor');
 export type StorefrontCatalog = Readonly<{
   branches: readonly BranchChoice[];
   restaurant: {
@@ -135,7 +136,7 @@ export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
     || !validText(heroEmphasis,90) || !validText(branchName,160)
     || typeof tagline !== 'string' || tagline.length > 300
     || typeof primaryColor !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(primaryColor)
-    || !record(websiteColors) || !WEBSITE_COLOR_KEYS.every(key => typeof websiteColors[key] === 'string' && /^#[0-9a-fA-F]{6}$/.test(websiteColors[key] as string))
+    || !record(websiteColors) || !REQUIRED_WEBSITE_COLOR_KEYS.every(key => typeof websiteColors[key] === 'string' && /^#[0-9a-fA-F]{6}$/.test(websiteColors[key] as string)) || (websiteColors.heroFontColor !== undefined && (typeof websiteColors.heroFontColor !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(websiteColors.heroFontColor)))
     || (logoPath!==null && logoPath!==undefined && typeof logoPath!=='string')
     || (fontFamily!==undefined && !['modern','rounded','classic'].includes(String(fontFamily)))
     || (branchSlug !== undefined && (!validText(branchSlug,64) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(branchSlug)))
@@ -187,7 +188,7 @@ export function parsePublishedMenu(value: unknown): StorefrontCatalog | null {
     };
   });
   const initials = name.split(/\s+/).slice(0,2).map((word) => word.charAt(0)).join('').toUpperCase();
-  const normalizedWebsiteColors = Object.fromEntries(WEBSITE_COLOR_KEYS.map(key => [key, websiteColors[key] as string])) as WebsiteColors;
+  const normalizedWebsiteColors = Object.fromEntries(WEBSITE_COLOR_KEYS.map(key => [key, (key === 'heroFontColor' ? websiteColors.heroFontColor ?? websiteColors.fontColor : websiteColors[key]) as string])) as WebsiteColors;
   return {
     restaurant: {slug,name,tagline,heroHeading,heroEmphasis,primaryColor,websiteColors:normalizedWebsiteColors,socialLinks:validateSocialLinks(socialLinks),logoUrl:getLogoUrl(logoPath),faviconUrl:getFaviconUrl(faviconPath),fontFamily:(fontFamily==='rounded'||fontFamily==='classic'?fontFamily:'modern'),branchName,branchSlug:typeof branchSlug==='string'?branchSlug:'',onlinePaymentsAvailable:onlinePaymentsAvailable===true,cashOnDeliveryEnabled:cashOnDeliveryEnabled !== false,cashOnPickupEnabled:cashOnPickupEnabled !== false,cashOnTakeOutEnabled:cashOnTakeOutEnabled !== false,initials},
     branches:branchChoices,
