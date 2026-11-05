@@ -783,4 +783,4 @@
 /* Customer account navigation uses one persistent shell; screen-level chrome is intentionally suppressed. */
 .sf-customer-account-content .sf-header,
 .sf-customer-account-content .sf-footer{display:none}
-.sf-customer-account-content .sf-storefront{min-height:0;background:transparent}
+.sf-customer-account-content .sf-storefront{display:contents;min-height:0;background:transparent}
