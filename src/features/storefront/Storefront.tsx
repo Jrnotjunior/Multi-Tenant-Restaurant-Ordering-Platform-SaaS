@@ -487,7 +487,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
 
   useEffect(() => {
     if (!remoteCatalog?.restaurant.name) return;
-    document.title = `${remoteCatalog.restaurant.name} | Web2Table`;
+    document.title = remoteCatalog.restaurant.name;
   }, [remoteCatalog?.restaurant.name]);
 
   useEffect(() => {
