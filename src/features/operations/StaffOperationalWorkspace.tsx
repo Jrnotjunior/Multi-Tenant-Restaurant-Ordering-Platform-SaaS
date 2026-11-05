@@ -19,14 +19,14 @@ type Order = {
 };
 type Rider = { user_id: string; display_name: string | null };
 type Props = { tenantId: string; role: StaffWorkspaceRole; restaurantName: string | null };
-type StaffOrderAction = 'confirm' | 'cancel' | 'complete_handoff' | 'mark_ready' | 'dispatch' | 'accept_delivery' | 'arrive_customer' | 'collect_cod' | 'deliver';
+type StaffOrderAction = 'confirm' | 'cancel' | 'complete_handoff' | 'mark_ready' | 'dispatch' | 'accept_delivery' | 'arrive_customer' | 'collect_cod' | 'collect_cash_payment' | 'deliver';
 type StaffOrderActionButton = { action: StaffOrderAction; label: string; primary: boolean };
 const money = (value: number | null) => value == null ? 'Total not finalized' : new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(value / 100);
 const mayCashierConfirmOrder = (order: Order) => {
   const paymentStatus = order.payment_status.toLowerCase();
   const isPaid = ['paid', 'succeeded', 'completed'].includes(paymentStatus);
   const allowedCashOrder = order.payment_channel === 'other' &&
-    ['delivery', 'pickup', 'take_out', 'dine_in'].includes(order.order_type) &&
+    ['delivery', 'pickup', 'take_out'].includes(order.order_type) &&
     ['not_started', 'pending'].includes(paymentStatus);
   return isPaid || allowedCashOrder;
 };
@@ -456,9 +456,19 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   }
 
   function actions(order: Order): StaffOrderActionButton[] {
-    if (role === 'cashier' && order.order_status === 'pending_confirmation') return [
-      { action: 'confirm', label: 'Confirm order', primary: true }, { action: 'cancel', label: 'Cancel order', primary: false },
-    ];
+    if (role === 'cashier' && order.order_status === 'pending_confirmation') {
+      const unpaidDineInCash = order.order_type === 'dine_in' &&
+        order.payment_channel === 'other' &&
+        ['not_started', 'pending'].includes(order.payment_status.toLowerCase());
+      if (unpaidDineInCash) return [
+        { action: 'collect_cash_payment', label: 'Collect cash payment', primary: true },
+        { action: 'cancel', label: 'Cancel order', primary: false },
+      ];
+      return [
+        { action: 'confirm', label: 'Confirm order', primary: true },
+        { action: 'cancel', label: 'Cancel order', primary: false },
+      ];
+    }
     if (role === 'cashier' && order.order_status === 'ready_for_pickup') return [{ action: 'complete_handoff', label: 'Complete handoff', primary: true }];
     if (role === 'kitchen' && order.order_status === 'preparing') return [{ action: 'mark_ready', label: 'Mark ready', primary: true }];
     if (role === 'dispatcher' && order.order_type === 'delivery' && order.order_status === 'ready_for_dispatch' && order.assigned_rider_user_id && order.assignment_status !== 'dispatched') return [{ action: 'dispatch', label: 'Dispatch order', primary: true }];
@@ -714,7 +724,8 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
           <button type="button" className="staff-cashier-modal-close" aria-label="Close order details" onClick={() => setSelectedCashierOrderId(null)}>×</button>
           <header><h2 id="staff-cashier-modal-title">ORD-{String(order.order_number).padStart(5, '0')}</h2><p>{order.order_status === 'ready_for_dispatch' ? null : <>{label(order.order_status)} · </>}{new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium' }).format(new Date(order.created_at)) + ' · ' + new Intl.DateTimeFormat('en-PH', { timeStyle: 'short' }).format(new Date(order.created_at))}</p></header>
           <p className="staff-cashier-modal-meta">{role === 'kitchen' ? typeLabel(order.order_type) : <>{typeLabel(order.order_type)} · {order.payment_channel === 'online' ? 'Online' : 'Cash'} · {['paid','succeeded','completed'].includes(order.payment_status.toLowerCase()) ? 'Paid' : 'Unpaid'}</>}</p>
-          {role === 'cashier' && order.order_status === 'pending_confirmation' && !mayCashierConfirmOrder(order) && <p className="staff-notice is-error" role="note">Only Cash on Delivery (COD) orders may enter the kitchen while unpaid. All other orders must be paid before preparation.</p>}
+          {role === 'cashier' && order.order_status === 'pending_confirmation' && order.order_type === 'dine_in' && order.payment_channel === 'other' && !['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase()) && <p className="staff-notice" role="note">Collect the customer's cash payment and record it here before confirming this dine-in order. The order can enter preparation only after payment is marked paid.</p>}
+          {role === 'cashier' && order.order_status === 'pending_confirmation' && !mayCashierConfirmOrder(order) && !(order.order_type === 'dine_in' && order.payment_channel === 'other' && ['not_started', 'pending'].includes(order.payment_status.toLowerCase())) && <p className="staff-notice is-error" role="note">This order must be paid before it can be confirmed and sent to the kitchen.</p>}
           {role === 'kitchen' ? <>
             {order.delivery_notes && <div className="staff-cashier-modal-note"><strong>Customer notes</strong><span>{order.delivery_notes}</span></div>}
             <ul className="staff-cashier-modal-items staff-kitchen-modal-items">{(order.items ?? []).map(item => <li key={item.id}><span>{item.item_name}{item.options?.length ? <small>{item.options.map(option => option.name).filter(Boolean).join(', ')}</small> : null}{item.special_instructions&&<small>Note: {item.special_instructions}</small>}</span><strong>× {item.quantity}</strong></li>)}</ul>
