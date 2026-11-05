@@ -689,6 +689,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     '--sf-footer-background': websiteColors.footerBackground,
     '--sf-footer-font': websiteColors.footerFont,
     '--sf-hero-color': websiteColors.heroColor,
+    '--sf-hero-font-color': websiteColors.heroFontColor ?? websiteColors.fontColor,
     '--sf-product-card': websiteColors.productCard,
     '--sf-font-color': websiteColors.fontColor,
     '--sf-header-icon': websiteColors.headerIcon,
