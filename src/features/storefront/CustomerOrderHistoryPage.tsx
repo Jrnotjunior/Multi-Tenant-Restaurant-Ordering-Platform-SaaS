@@ -18,7 +18,7 @@ const titleCaseLabel = (value: string | null | undefined) => (value ?? '').repla
 const peso = (value: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(value / 100);
 
 export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
-  const { style: storefrontTheme, fontClass, isLoading: themeLoading } = useCustomerStorefrontTheme();
+  const { style: storefrontTheme, fontClass, isLoading: themeLoading, logoUrl, restaurantName, restaurantInitials } = useCustomerStorefrontTheme();
   const [orders, setOrders] = useState<HistoryOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
@@ -87,9 +87,8 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
   return <div className={"sf-storefront sf-account-page sf-account-shell"+fontClass} style={storefrontTheme}>
     <header className="sf-header">
       <div className="sf-header-inner">
-        <a href={base} className="sf-logo sf-account-brand" aria-label="Web2Table storefront">
-          <img className="sf-logo-image" src="https://wvibrchebfwirbgkcnbr.supabase.co/storage/v1/object/public/web2table-assets/web2table.png" alt="Web2Table" width={46} height={46} />
-          <span>Web2Table</span>
+        <a href={base} className="sf-logo sf-account-brand" aria-label={(restaurantName ?? "Restaurant") + " storefront"}>
+          {logoUrl ? <img className="sf-logo-image" src={logoUrl} alt={(restaurantName ?? "Restaurant") + " logo"} width={46} height={46} /> : <span className="sf-logo-mark">{restaurantInitials ?? "R"}</span>}
         </a>
       </div>
     </header>
