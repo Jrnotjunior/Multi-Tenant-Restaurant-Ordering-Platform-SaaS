@@ -428,7 +428,7 @@
 
 
 /* Dedicated checkout page */
-.sf-checkout-page{width:100%;max-width:620px;box-sizing:border-box;margin:0 auto;padding:clamp(20px,4vw,34px) 16px 40px;background:var(--sf-product-card);border:1px solid var(--sf-border);border-radius:18px;box-shadow:0 8px 28px rgba(16,27,47,.035)}
+.sf-checkout-page{width:100%;max-width:620px;box-sizing:border-box;margin:0 auto;padding:clamp(20px,4vw,34px) 16px 40px;background:var(--sf-page-background);border:1px solid var(--sf-border);border-radius:18px;box-shadow:0 8px 28px rgba(16,27,47,.035)}
 .sf-checkout-page-intro{margin-bottom:19px}
 .sf-checkout-page-intro h1{max-width:none;margin:7px 0 8px;font-size:clamp(26px,4vw,34px);line-height:1.12;letter-spacing:-.045em;font-weight:800}
 .sf-checkout-page-intro p{max-width:none;margin:0;color:var(--sf-muted);font-size:var(--sf-font-size-14);line-height:1.6}
