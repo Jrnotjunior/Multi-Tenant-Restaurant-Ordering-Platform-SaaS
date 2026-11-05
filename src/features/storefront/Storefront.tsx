@@ -701,7 +701,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   } as CSSProperties;
   if(needsBranchSelection(selectedBranch,catalog.branches)) {
     const accountHref=customDomainMatched?'#/account':baseUrl+'#/account';
-    return <div className={'sf-storefront'+tenantFontClass} style={storefrontTheme}>
+    return <div className={'sf-storefront sf-storefront-branch-selection'+tenantFontClass} style={storefrontTheme}>
       <StorefrontHeader
         logo={<a href={customDomainMatched?'#':baseUrl} className="sf-logo" aria-label={restaurant.name+' home'}>
           {restaurant.logoUrl
