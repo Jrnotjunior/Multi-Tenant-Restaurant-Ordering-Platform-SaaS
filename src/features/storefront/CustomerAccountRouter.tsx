@@ -40,14 +40,14 @@ export function CustomerAccountRouter({ baseUrl }: { baseUrl: string }) {
   }, []);
 
   const visible = (route: AccountRoute) => activeRoute === route;
-  const styleFor = (route: AccountRoute) => ({ display: visible(route) ? undefined : 'none' });
+  const styleFor = (route: AccountRoute) => ({ display: visible(route) ? 'contents' : 'none' });
 
   return <CustomerAccountShell baseUrl={baseUrl}>
     {visitedRoutes.has('home') && <div style={styleFor('home')} aria-hidden={!visible('home')}><CustomerAccountPage baseUrl={baseUrl} /></div>}
     {visitedRoutes.has('orders') && <div style={styleFor('orders')} aria-hidden={!visible('orders')}><CustomerOrderHistoryPage baseUrl={baseUrl} /></div>}
     {visitedRoutes.has('addresses') && <div style={styleFor('addresses')} aria-hidden={!visible('addresses')}><CustomerSavedAddressesPage baseUrl={baseUrl} /></div>}
     {visitedRoutes.has('loyalty') && <div style={styleFor('loyalty')} aria-hidden={!visible('loyalty')}><CustomerLoyaltyPage baseUrl={baseUrl} /></div>}
-    {(['legal', 'privacy', 'terms', 'refunds'] as const).some(route => visitedRoutes.has(route)) && <div style={{ display: ['legal', 'privacy', 'terms', 'refunds'].includes(activeRoute) ? undefined : 'none' }} aria-hidden={!['legal', 'privacy', 'terms', 'refunds'].includes(activeRoute)}>
+    {(['legal', 'privacy', 'terms', 'refunds'] as const).some(route => visitedRoutes.has(route)) && <div style={{ display: ['legal', 'privacy', 'terms', 'refunds'].includes(activeRoute) ? 'contents' : 'none' }} aria-hidden={!['legal', 'privacy', 'terms', 'refunds'].includes(activeRoute)}>
       <LegalPoliciesPage route={activeRoute === 'privacy' ? '#privacy' : activeRoute === 'terms' ? '#terms' : activeRoute === 'refunds' ? '#refunds' : '#legal'} />
     </div>}
   </CustomerAccountShell>;
