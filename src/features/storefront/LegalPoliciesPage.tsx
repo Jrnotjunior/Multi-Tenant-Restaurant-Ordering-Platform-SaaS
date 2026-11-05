@@ -4,13 +4,11 @@ import { CustomerAccountBackLink, StorefrontFooter } from './StorefrontChrome';
 import './storefront.css';
 import './LegalPoliciesPage.css';
 import { useCustomerStorefrontTheme } from './useCustomerStorefrontTheme';
-import { CustomerAccountLoading } from './CustomerAccountLoading';
 
 
 function CustomerPageShell({ children }: { children: ReactNode }) {
   const base = import.meta.env.BASE_URL;
-  const { style: storefrontTheme, fontClass, isLoading: themeLoading, logoUrl, restaurantName, restaurantInitials } = useCustomerStorefrontTheme();
-  if (themeLoading) return <CustomerAccountLoading />;
+  const { style: storefrontTheme, fontClass, logoUrl, restaurantName, restaurantInitials } = useCustomerStorefrontTheme();
   return <div className={"sf-storefront sf-account-page sf-legal-shell"+fontClass} style={storefrontTheme}>
     <a className="sf-skip-link" href="#customer-legal-title">Skip to page content</a>
     <header className="sf-header">
