@@ -30,9 +30,9 @@ function CustomerPageShell({ children }: { children: ReactNode }) {
   </div>;
 }
 const policies = [
-  { href: '#privacy', title: 'Privacy Notice', description: 'Learn how personal information is collected, used, and protected.', icon: 'shield' },
-  { href: '#terms', title: 'Terms & Conditions', description: 'Review the terms for using this storefront and placing orders.', icon: 'document' },
-  { href: '#refunds', title: 'Refund & Cancellation Policy', description: 'Understand order cancellation, refund requests, and order issues.', icon: 'refresh' },
+  { href: '#/account/legal/privacy', title: 'Privacy Notice', description: 'Learn how personal information is collected, used, and protected.', icon: 'shield' },
+  { href: '#/account/legal/terms', title: 'Terms & Conditions', description: 'Review the terms for using this storefront and placing orders.', icon: 'document' },
+  { href: '#/account/legal/refunds', title: 'Refund & Cancellation Policy', description: 'Understand order cancellation, refund requests, and order issues.', icon: 'refresh' },
 ] as const;
 
 function PolicyIcon({ type }: { type: (typeof policies)[number]['icon'] }) {
@@ -42,7 +42,7 @@ function PolicyIcon({ type }: { type: (typeof policies)[number]['icon'] }) {
 }
 
 export function LegalPoliciesPage({ route = '#legal' }: { route?: string }) {
-  const accountUrl = normalizeAppBase(import.meta.env.BASE_URL) + '#/account';
+  const accountUrl = normalizeAppBase(import.meta.env.BASE_URL) + '#/account/legal';
   const details = {
     '#privacy': {
       eyebrow: 'Data Privacy', title: 'Privacy Notice',
