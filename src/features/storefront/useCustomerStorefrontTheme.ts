@@ -3,7 +3,7 @@ import { getRememberedStorefrontSlug } from './appFavicon';
 import { loadDefaultPublishedMenu, loadPublishedMenu } from './publishedMenu';
 import type { WebsiteColors } from './publishedMenu';
 
-type CustomerTheme = { style: CSSProperties; fontClass: string; isLoading: boolean };
+type CustomerTheme = { style: CSSProperties; fontClass: string; isLoading: boolean; logoUrl: string | null; restaurantName: string | null; restaurantInitials: string | null };
 
 function toStorefrontStyle(colors: WebsiteColors): CSSProperties {
   return {
@@ -26,7 +26,7 @@ function toStorefrontStyle(colors: WebsiteColors): CSSProperties {
 }
 
 export function useCustomerStorefrontTheme(restaurantSlug?: string | null): CustomerTheme {
-  const [theme, setTheme] = useState<CustomerTheme>({ style: {}, fontClass: ' sf-font-modern', isLoading: true });
+  const [theme, setTheme] = useState<CustomerTheme>({ style: {}, fontClass: ' sf-font-modern', isLoading: true, logoUrl: null, restaurantName: null, restaurantInitials: null });
 
   useEffect(() => {
     let active = true;
@@ -43,7 +43,7 @@ export function useCustomerStorefrontTheme(restaurantSlug?: string | null): Cust
           : catalog.restaurant.fontFamily === 'rounded'
             ? ' sf-font-rounded'
             : ' sf-font-modern';
-        setTheme({ style: toStorefrontStyle(catalog.restaurant.websiteColors), fontClass, isLoading: false });
+        setTheme({ style: toStorefrontStyle(catalog.restaurant.websiteColors), fontClass, isLoading: false, logoUrl: catalog.restaurant.logoUrl, restaurantName: catalog.restaurant.name, restaurantInitials: catalog.restaurant.initials });
       } catch {
         // Keep the public account usable with storefront defaults if theme lookup fails.
         if (active) setTheme(current => ({ ...current, isLoading: false }));
