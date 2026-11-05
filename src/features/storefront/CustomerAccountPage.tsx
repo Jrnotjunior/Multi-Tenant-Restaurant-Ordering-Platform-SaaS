@@ -12,15 +12,13 @@ type CustomerProfile = {
   full_name?: string;
 };
 
-const WEB2TABLE_LOGO = 'https://wvibrchebfwirbgkcnbr.supabase.co/storage/v1/object/public/web2table-assets/web2table.png';
-
 export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
   const [name, setName] = useState('Your account');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [signedIn, setSignedIn] = useState(false);
   const [message, setMessage] = useState('');
-  const { style: storefrontTheme, fontClass: tenantFontClass, isLoading: themeLoading } = useCustomerStorefrontTheme();
+  const { style: storefrontTheme, fontClass: tenantFontClass, isLoading: themeLoading, logoUrl, restaurantName, restaurantInitials } = useCustomerStorefrontTheme();
   const base = normalizeAppBase(baseUrl);
 
   useEffect(() => {
@@ -80,8 +78,10 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
   return <div className={"sf-storefront sf-account-page" + tenantFontClass} style={storefrontTheme}>
     <a className="sf-skip-link" href="#customer-account-main">Skip to account content</a>
     <StorefrontHeader
-      logo={<a href={base} className="sf-logo" aria-label="Web2Table storefront">
-        <img className="sf-logo-image" src={WEB2TABLE_LOGO} alt="Web2Table" width={46} height={46} />
+      logo={<a href={base} className="sf-logo" aria-label={(restaurantName ?? "Restaurant") + " storefront"}>
+        {logoUrl
+          ? <img className="sf-logo-image" src={logoUrl} alt={(restaurantName ?? "Restaurant") + " logo"} width={46} height={46} />
+          : <span className="sf-logo-mark">{restaurantInitials ?? "R"}</span>}
       </a>}
       actions={<>
         {signedIn
