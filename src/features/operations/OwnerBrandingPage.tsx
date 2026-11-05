@@ -11,8 +11,8 @@ type WebsiteColors = {
   primaryButton:string; primaryButtonFont:string; secondaryButton:string; secondaryButtonFont:string;
 };
 const colorLabels: {key:keyof WebsiteColors;label:string}[] = [
-  {key:'pageBackground',label:'Page background'},{key:'headerColor',label:'Header color'},
-  {key:'footerBackground',label:'Footer background color'},{key:'footerFont',label:'Footer font color'},
+  {key:'pageBackground',label:'Page background'},
+  {key:'footerBackground',label:'Header & Footer color'},{key:'footerFont',label:'Footer font color'},
   {key:'heroColor',label:'Hero section color'},{key:'productCard',label:'Product card color'},
   {key:'fontColor',label:'Font color'},{key:'headerIcon',label:'Header icon color'},
   {key:'primaryButton',label:'Primary button color'},{key:'primaryButtonFont',label:'Primary button font color'},
@@ -56,10 +56,12 @@ export function OwnerBrandingPage({tenantId,restaurantName}:Props) {
         if(error) throw error;
         if(!active)return;
         const row=data as Brand & {favicon_path:string|null;social_links:SocialLinks;website_colors:Partial<WebsiteColors>};
-        setDefaults(themeColors);
+        const sharedThemeColors = {...themeColors, headerColor: themeColors.footerBackground};
+        setDefaults(sharedThemeColors);
         setBrand(row);setDisplayName(row.display_name??restaurantName??'');setTagline(row.tagline??'');
         setSocial({...{facebook:'',instagram:'',tiktok:''},...(row.social_links??{})});
-        setColors({...themeColors,...(row.website_colors??{})});
+        const tenantColors = {...themeColors,...(row.website_colors??{})};
+        setColors({...tenantColors, headerColor: tenantColors.footerBackground});
         setLogo(publicStorefrontLogo(row.logo_path));
         setFavicon(row.favicon_path ? supabase.storage.from('storefront-logos').getPublicUrl(row.favicon_path).data.publicUrl : null);
       } catch(e){if(active)setMessage(e instanceof Error?e.message:'Could not load branding settings.');}
@@ -98,7 +100,8 @@ export function OwnerBrandingPage({tenantId,restaurantName}:Props) {
     setSaving(true);setMessage('');
     try{
       const {error}=await supabase.from('tenant_storefronts').update({
-        display_name:displayName.trim(),tagline:tagline.trim(),social_links:social,website_colors:colors,
+        display_name:displayName.trim(),tagline:tagline.trim(),social_links:social,
+        website_colors:{...colors,headerColor:colors.footerBackground},
         updated_at:new Date().toISOString()
       }).eq('tenant_id',tenantId);
       if(error)throw error;
@@ -134,7 +137,7 @@ export function OwnerBrandingPage({tenantId,restaurantName}:Props) {
       {tab==='colors'&&<section className="owner-branding-panel">
         <div className="owner-branding-toolbar"><button type="button" onClick={()=>window.open('/?preview=branding','_blank','noopener,noreferrer')}>See Live Preview</button></div>
         <div className="owner-branding-colors">{colorLabels.map(({key,label})=><label key={key}>{label}<span className="owner-branding-color-control"><input aria-label={label} type="color" value={colors[key]} onChange={e=>setColors({...colors,[key]:e.target.value})}/><input aria-label={label+' hex value'} value={colors[key]} maxLength={7} pattern="^#[0-9a-fA-F]{6}$" onChange={e=>setColors({...colors,[key]:e.target.value})}/></span></label>)}</div>
-        <div className="owner-branding-actions"><button type="button" onClick={()=>{if(defaults)setColors({...defaults});}}>Back to Default</button><button type="submit" disabled={saving}>{saving?'Saving…':'Save'}</button></div>
+        <div className="owner-branding-actions"><button type="button" onClick={()=>{if(defaults)setColors({...defaults,headerColor:defaults.footerBackground});}}>Back to Default</button><button type="submit" disabled={saving}>{saving?'Saving…':'Save'}</button></div>
       </section>}
       {tab!=='colors'&&<div className="owner-branding-actions"><button type="submit" disabled={saving}>{saving?'Saving…':'Save'}</button></div>}
       {message&&<p className="owner-branding-message" role="status">{message}</p>}
