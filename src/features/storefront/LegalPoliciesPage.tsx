@@ -4,13 +4,15 @@ import { CustomerAccountBackLink, StorefrontFooter } from './StorefrontChrome';
 import './storefront.css';
 import './LegalPoliciesPage.css';
 import { useCustomerStorefrontTheme } from './useCustomerStorefrontTheme';
+import { CustomerAccountLoading } from './CustomerAccountLoading';
 
 
 const WEB2TABLE_LOGO = 'https://wvibrchebfwirbgkcnbr.supabase.co/storage/v1/object/public/web2table-assets/web2table.png';
 
 function CustomerPageShell({ children }: { children: ReactNode }) {
   const base = import.meta.env.BASE_URL;
-  const { style: storefrontTheme, fontClass } = useCustomerStorefrontTheme();
+  const { style: storefrontTheme, fontClass, isLoading: themeLoading } = useCustomerStorefrontTheme();
+  if (themeLoading) return <CustomerAccountLoading />;
   return <div className={"sf-storefront sf-account-page sf-legal-shell"+fontClass} style={storefrontTheme}>
     <a className="sf-skip-link" href="#customer-legal-title">Skip to page content</a>
     <header className="sf-header">
