@@ -23,7 +23,13 @@ export function StorefrontHeader({ logo, actions }: StorefrontHeaderProps) {
 }
 
 export function CustomerAccountBackLink({ href }: { href: string }) {
-  return <a className="sf-account-back-link" href={href}>&larr; Back</a>;
+  return (
+    <a className="sf-account-back-link" href={href} aria-label="Back" title="Back">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M19 12H5m7 7-7-7 7-7" />
+      </svg>
+    </a>
+  );
 }
 
 const EMPTY_SOCIAL_LINKS: StorefrontSocialLinks = { facebook: '', instagram: '', tiktok: '' };
