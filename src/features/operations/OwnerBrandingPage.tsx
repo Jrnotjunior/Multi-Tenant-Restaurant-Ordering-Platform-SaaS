@@ -14,7 +14,7 @@ const colorLabels: {key:keyof WebsiteColors;label:string}[] = [
   {key:'pageBackground',label:'Page background'},
   {key:'footerBackground',label:'Header & Footer color'},{key:'footerFont',label:'Footer font color'},
   {key:'heroColor',label:'Hero section color'},{key:'productCard',label:'Product card color'},
-  {key:'fontColor',label:'Font color'},{key:'headerIcon',label:'Header icon color'},
+  {key:'fontColor',label:'Font color'},{key:'headerIcon',label:'Icon color'},
   {key:'primaryButton',label:'Primary button color'},{key:'primaryButtonFont',label:'Primary button font color'},
   {key:'secondaryButton',label:'Secondary button color'},{key:'secondaryButtonFont',label:'Secondary button font color'},
 ];
