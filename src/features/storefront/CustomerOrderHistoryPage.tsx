@@ -4,6 +4,7 @@ import { normalizeAppBase } from '../../app/routes';
 import { CustomerAccountBackLink, StorefrontFooter } from './StorefrontChrome';
 import './storefront.css';
 import { useCustomerStorefrontTheme } from './useCustomerStorefrontTheme';
+import { CustomerAccountLoading } from './CustomerAccountLoading';
 
 type HistoryItem = { name: string; quantity: number; total_centavos: number };
 type HistoryOrder = {
@@ -17,7 +18,7 @@ const titleCaseLabel = (value: string | null | undefined) => (value ?? '').repla
 const peso = (value: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(value / 100);
 
 export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
-  const { style: storefrontTheme, fontClass } = useCustomerStorefrontTheme();
+  const { style: storefrontTheme, fontClass, isLoading: themeLoading } = useCustomerStorefrontTheme();
   const [orders, setOrders] = useState<HistoryOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
@@ -82,6 +83,7 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
     }
   }
   const base = normalizeAppBase(baseUrl);
+  if (loading || themeLoading) return <CustomerAccountLoading />;
   return <div className={"sf-storefront sf-account-page sf-account-shell"+fontClass} style={storefrontTheme}>
     <header className="sf-header">
       <div className="sf-header-inner">
@@ -97,7 +99,6 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
       <span className="sf-tracking-eyebrow">YOUR ACCOUNT</span>
       <h1>Order history</h1>
       <p>Your orders are saved to your Web2Table account and loaded from the database.</p>
-      {loading && <p>Loading your orders…</p>}
       {message && <p role="status">{message} <a href={base + '#/account/sign-in'}>Sign in</a></p>}
       {!loading && !message && orders.length === 0 && <p>You haven’t placed any orders while signed in yet.</p>}
       {orders.map(order => <button type="button" className="sf-order-history-row" key={order.order_id} onClick={() => setSelectedOrder(order)} aria-label={`View details for order number ${String(order.order_number).padStart(5, '0')}`}>
