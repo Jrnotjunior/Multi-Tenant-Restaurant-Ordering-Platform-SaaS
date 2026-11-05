@@ -1,8 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2.58.0";
-import { isTenantOnlinePaymentEligible } from "../_shared/onlinePayments.ts";
 const corsHeaders = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, apikey, x-client-info, content-type","Access-Control-Allow-Methods":"POST, OPTIONS"};
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {status,headers:{...corsHeaders,"Content-Type":"application/json","Cache-Control":"no-store"}});
 function serviceKey(){try{const v=JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")??"{}");return v.default??Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";}catch{return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";}}
+function isTenantOnlinePaymentEligible(settings:{enabled?:boolean;methods?:Record<string,boolean>}|null){return settings?.enabled===true&&Object.values(settings.methods??{}).some(value=>value===true);}
 async function quote(admin:any,slug:string,branchSlug:string,lat:number,lon:number){
  if(!Number.isFinite(lat)||lat < -90||lat>90||!Number.isFinite(lon)||lon < -180||lon>180)throw new Error("Choose a valid delivery location on the map.");
  const {data:t,error:te}=await admin.from("tenants").select("id,status").eq("slug",slug).maybeSingle();if(te)throw te;if(!t||t.status!=="active")throw new Error("This restaurant is unavailable.");
@@ -31,6 +31,18 @@ async function linkCustomerOrder(admin:any,orderId:string,trackingToken:string,c
 
 Deno.serve(async(req:Request)=>{if(req.method==="OPTIONS")return new Response("ok",{headers:corsHeaders});if(req.method!=="POST")return json({error:"Method not allowed."},405);try{const url=Deno.env.get("SUPABASE_URL")??"",key=serviceKey();if(!url||!key)return json({error:"Ordering service is not configured."},500);const admin=createClient(url,key,{auth:{autoRefreshToken:false,persistSession:false}}),b=await req.json(),slug=String(b.restaurantSlug??"").trim().toLowerCase();if(!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)||slug.length<3||slug.length>64)return json({error:"Choose a valid restaurant."},400);
  const paymentMethod=String(b.paymentMethod??"");if(!["cash","online"].includes(paymentMethod))return json({error:"Choose a valid payment method."},400);
+ const type=String(b.orderType??"");if(!["delivery","take_out","pickup","dine_in"].includes(type))return json({error:"Choose a valid order type."},400);
+ if(paymentMethod==="cash"){
+   const {data:tenant,error:tenantError}=await admin.from("tenants").select("id,status").eq("slug",slug).maybeSingle();
+   if(tenantError)throw tenantError;
+   if(!tenant||tenant.status!=="active")return json({error:"This restaurant is unavailable. No order was placed."},409);
+   const {data:storefront,error:storefrontError}=await admin.from("tenant_storefronts").select("status,cash_payment_options").eq("tenant_id",tenant.id).maybeSingle();
+   if(storefrontError)throw storefrontError;
+   const cash=storefront?.cash_payment_options as Record<string,unknown>|null;
+   const option=type==="delivery"?"cash_on_delivery_enabled":type==="pickup"?"cash_on_pickup_enabled":type==="take_out"?"cash_on_take_out_enabled":null;
+   if(storefront?.status!=="published"||!option||cash?.[option]!==true)
+     return json({error:"Cash payment is not enabled for this order type at this restaurant. No order was placed."},409);
+ }
  if(paymentMethod==="online"){
    const {data:tenant,error:tenantError}=await admin.from("tenants").select("id,status").eq("slug",slug).maybeSingle();
    if(tenantError)throw tenantError;
@@ -39,7 +51,7 @@ Deno.serve(async(req:Request)=>{if(req.method==="OPTIONS")return new Response("o
    if(storefrontError)throw storefrontError;
    const settings=storefront?.online_payments as {enabled?:boolean;methods?:Record<string,boolean>}|null;
    if(storefront?.status!=="published"||!isTenantOnlinePaymentEligible(settings))
-     return json({error:"Online payment is not available for this restaurant yet. Please choose cash. No order was placed."},409);
+     return json({error:"Online payment is not available for this restaurant yet. Choose another enabled payment method. No order was placed."},409);
  }
  const loyaltyPointsToRedeem=Number(b.loyaltyPointsToRedeem??0);
  if(!Number.isSafeInteger(loyaltyPointsToRedeem)||loyaltyPointsToRedeem<0||loyaltyPointsToRedeem>2147483647)return json({error:"Choose a valid loyalty points amount."},400);
@@ -48,7 +60,7 @@ Deno.serve(async(req:Request)=>{if(req.method==="OPTIONS")return new Response("o
  let customerUserId:string|null=null;
  if(bearer){const {data:authData,error:authError}=await admin.auth.getUser(bearer);if(!authError&&authData.user)customerUserId=authData.user.id;}
  if(loyaltyPointsToRedeem>0&&!customerUserId)return json({error:"Sign in to redeem loyalty points. No order was placed."},401);
- const type=String(b.orderType??"");if(!["delivery","take_out","pickup","dine_in"].includes(type))return json({error:"Choose a valid order type."},400);const id=String(b.idempotencyKey??"");if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))return json({error:"A valid checkout key is required."},400);
+ const id=String(b.idempotencyKey??"");if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))return json({error:"A valid checkout key is required."},400);
  const q=type==="delivery"?await quote(admin,slug,String(b.branchSlug??""),Number(b.latitude),Number(b.longitude)):null;
  const {data:result,error}=await admin.rpc("create_customer_order",{p_restaurant_slug:slug,p_branch_slug:String(b.branchSlug??""),p_customer_name:String(b.customerName??""),p_customer_phone:String(b.customerPhone??""),p_delivery_address:String(b.deliveryAddress??""),p_delivery_notes:String(b.deliveryNotes??""),p_idempotency_key:id,p_order_type:type,p_items:b.items,p_delivery_latitude:type==="delivery"?Number(b.latitude):null,p_delivery_longitude:type==="delivery"?Number(b.longitude):null});if(error)return json({error:error.message||"Order could not be placed."},400);if(!result?.success||!result.order_id)return json({error:"The server did not confirm this order."},500);
  // Persist the customer's explicit selection by the returned order ID, then verify it.

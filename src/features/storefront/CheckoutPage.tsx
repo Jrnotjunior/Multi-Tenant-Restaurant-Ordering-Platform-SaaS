@@ -153,7 +153,15 @@ export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCe
   const [reviewed, setReviewed] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | ''>('');
-  useEffect(() => { if (!onlinePaymentsAvailable && paymentMethod === 'online') setPaymentMethod('cash'); }, [onlinePaymentsAvailable, paymentMethod]);
+  const [currentOnlinePaymentsAvailable, setCurrentOnlinePaymentsAvailable] = useState(onlinePaymentsAvailable);
+  const [currentCashPaymentOptions, setCurrentCashPaymentOptions] = useState<{ cash_on_delivery_enabled: boolean; cash_on_pickup_enabled: boolean; cash_on_take_out_enabled: boolean } | null>(null);
+  const [paymentOptionsLoaded, setPaymentOptionsLoaded] = useState(false);
+  const [checkingPaymentOptions, setCheckingPaymentOptions] = useState(false);
+  const [paymentOptionsError, setPaymentOptionsError] = useState('');
+  useEffect(() => { setCurrentOnlinePaymentsAvailable(onlinePaymentsAvailable); }, [onlinePaymentsAvailable]);
+  useEffect(() => {
+    if (!currentOnlinePaymentsAvailable && paymentMethod === 'online') setPaymentMethod('');
+  }, [currentOnlinePaymentsAvailable, paymentMethod]);
   const [submitting, setSubmitting] = useState(false);
   // A checkout must never inherit the previous order's tracking state. The
   // dedicated tracking view may restore its saved order; a new checkout starts
@@ -298,11 +306,50 @@ export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCe
   }, [restaurantSlug]);
 
   const paymentComplete = trackingOnly && ['paid', 'succeeded', 'completed'].includes((trackedStatus?.payment_status ?? '').toLowerCase());
+  const cashPaymentAvailable = orderType === 'Delivery'
+    ? currentCashPaymentOptions?.cash_on_delivery_enabled === true
+    : orderType === 'Pickup'
+      ? currentCashPaymentOptions?.cash_on_pickup_enabled === true
+      : orderType === 'Take-out'
+        ? currentCashPaymentOptions?.cash_on_take_out_enabled === true
+        : false;
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage('');
     setPaymentModalOpen(true);
+    setCheckingPaymentOptions(true);
+    setPaymentOptionsLoaded(false);
+    setCurrentCashPaymentOptions(null);
+    setCurrentOnlinePaymentsAvailable(false);
+    setPaymentMethod('');
+    setPaymentOptionsError('');
+    try {
+      if (!supabase) throw new Error('Payment availability service is unavailable.');
+      const { data, error } = await supabase.rpc('get_branch_payment_options', {
+        p_slug: restaurantSlug,
+        p_branch_slug: branchSlug,
+      });
+      if (error) throw error;
+      const latest = data as { onlinePaymentsAvailable?: unknown; cashPaymentOptions?: unknown } | null;
+      if (!latest || typeof latest.onlinePaymentsAvailable !== 'boolean' || !latest.cashPaymentOptions || typeof latest.cashPaymentOptions !== 'object') {
+        throw new Error('The branch returned incomplete payment settings.');
+      }
+      const cash = latest.cashPaymentOptions as Record<string, unknown>;
+      const available = latest.onlinePaymentsAvailable === true;
+      setCurrentCashPaymentOptions({
+        cash_on_delivery_enabled: cash.cash_on_delivery_enabled === true,
+        cash_on_pickup_enabled: cash.cash_on_pickup_enabled === true,
+        cash_on_take_out_enabled: cash.cash_on_take_out_enabled === true,
+      });
+      setCurrentOnlinePaymentsAvailable(available);
+      setPaymentOptionsLoaded(true);
+    } catch {
+      setCurrentOnlinePaymentsAvailable(false);
+      setPaymentOptionsError('We could not verify this branch’s payment options. Close this window and try again.');
+    } finally {
+      setCheckingPaymentOptions(false);
+    }
   }
 
   if (trackingOnly) return <main className="sf-checkout-page sf-order-tracking-page">
@@ -370,24 +417,27 @@ export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCe
         <h2 id="sf-payment-modal-title">Choose your payment method</h2>
         <p className="sf-payment-modal-description">Select how you would like to pay for this order.</p>
         <div className="sf-payment-options">
-          <label className={'sf-payment-option' + (paymentMethod === 'cash' ? ' is-selected' : '')}>
+          {paymentOptionsLoaded && cashPaymentAvailable && <label className={'sf-payment-option' + (paymentMethod === 'cash' ? ' is-selected' : '')}>
             <span className="sf-payment-option-icon" aria-hidden="true">₱</span>
             <span className="sf-payment-option-copy"><strong>{orderType === 'Delivery' ? 'Cash on delivery' : orderType === 'Pickup' ? 'Pay cash at pickup' : 'Pay cash at the counter'}</strong><small>{orderType === 'Delivery' ? 'Place your order now and pay the rider when your order arrives.' : orderType === 'Pickup' ? 'Place your order now and pay the cashier when you collect it.' : 'Place your order now and pay the cashier at the restaurant counter before preparation.'}</small></span>
             <input type="radio" name="paymentMethod" value="cash" checked={paymentMethod === 'cash'} onChange={() => setPaymentMethod('cash')} />
-          </label>
-          {onlinePaymentsAvailable && (<label className={'sf-payment-option' + (paymentMethod === 'online' ? ' is-selected' : '')}>
+          </label>}
+          {paymentOptionsLoaded && currentOnlinePaymentsAvailable && (<label className={'sf-payment-option' + (paymentMethod === 'online' ? ' is-selected' : '')}>
             <span className="sf-payment-option-icon" aria-hidden="true">↗</span>
             <span className="sf-payment-option-copy"><strong>Online Payment</strong><small>Pay securely through our online payment gateway.</small></span>
             <input type="radio" name="paymentMethod" value="online" checked={paymentMethod === 'online'} onChange={() => setPaymentMethod('online')} />
           </label>
           )}
         </div>
+        {checkingPaymentOptions && <p className="sf-checkout-optional" role="status">Checking this branch’s payment options…</p>}
+        {paymentOptionsError && <p className="sf-checkout-page-message" role="alert">{paymentOptionsError}</p>}
+        {paymentOptionsLoaded && !cashPaymentAvailable && !currentOnlinePaymentsAvailable && <p className="sf-checkout-page-message" role="status">No payment methods are enabled for {orderType.toLowerCase()} at this branch. Contact the restaurant.</p>}
         <p className="sf-payment-policy">By placing your order, you agree to our Cancellation &amp; Refund Policy.</p>
         {message && <p className="sf-checkout-page-message" role="status">{message}</p>}
         <div className="sf-payment-modal-actions">
           <button type="button" className="sf-payment-cancel" onClick={() => setPaymentModalOpen(false)}>Cancel</button>
-          <button type="button" className="sf-payment-place-order" disabled={!paymentMethod || submitting} onClick={async () => {
-            if (paymentMethod === 'online' && !onlinePaymentsAvailable) { setMessage('Online payments are not currently available for this restaurant. Please choose cash.'); setPaymentMethod('cash'); return; }
+          <button type="button" className="sf-payment-place-order" disabled={!paymentMethod || submitting || checkingPaymentOptions || !paymentOptionsLoaded || Boolean(paymentOptionsError)} onClick={async () => {
+            if (paymentMethod === 'online' && !currentOnlinePaymentsAvailable) { setMessage('Online payments are not currently available for this restaurant. Please choose another enabled method.'); setPaymentMethod(''); return; }
             if (paymentMethod === 'online' && orderType === 'Delivery' && !deliveryQuote) { setMessage('Please wait for the delivery fee to be confirmed before online payment. No order has been placed.'); return; }
             const form = document.querySelector<HTMLFormElement>('.sf-checkout-page-form');
             if (!form) return;
