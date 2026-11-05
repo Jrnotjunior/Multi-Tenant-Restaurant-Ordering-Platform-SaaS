@@ -597,10 +597,10 @@
 .sf-account-page .sf-account-dashboard-card>span{align-self:center;flex:0 0 auto;margin-left:10px}
 @media(max-width:760px){.sf-account-main{padding:18px 14px 30px}.sf-account-page .sf-account-dashboard-grid{grid-template-columns:1fr;gap:10px}.sf-account-page .sf-account-dashboard-card{min-height:100px;padding:17px}.sf-account-page .sf-account-hero{padding:22px 18px}.sf-account-page .sf-header-inner{width:100%;padding:10px 14px}}
 
-.sf-account-back-link{display:inline-flex;align-items:center;min-height:36px;margin:0 0 22px;padding:0 12px;border:1px solid var(--sf-border);border-radius:9px;background:var(--sf-product-card);color:var(--sf-font-color);font-size:var(--sf-font-size-13);font-weight:700;text-decoration:none}
+.sf-account-back-link{display:inline-flex;align-items:center;min-height:36px;margin:0 0 22px;padding:0 12px;border:1px solid var(--sf-secondary-button);border-radius:9px;background:var(--sf-secondary-button);color:var(--sf-secondary-button-font);font-size:var(--sf-font-size-13);font-weight:700;text-decoration:none}
 .sf-account-back-link:hover{background:var(--sf-page-background)}
 .sf-account-back-link:focus-visible{outline:2px solid var(--sf-primary-button);outline-offset:3px}
-.sf-address-form,.sf-address-list{margin-top:16px;padding:clamp(14px,2.5vw,22px);border:1px solid var(--sf-border);border-radius:16px;background:var(--sf-product-card)}
+.sf-address-form,.sf-address-list{margin-top:16px;padding:clamp(14px,2.5vw,22px);border:1px solid var(--sf-border);border-radius:16px;background:var(--sf-page-background)}
 .sf-address-form h2,.sf-address-list h2{margin:0 0 14px;font-size:var(--sf-font-size-18);line-height:1.3;color:var(--sf-font-color)}
 .sf-address-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}
 .sf-address-form-grid label{display:flex;flex-direction:column;gap:5px;font-size:var(--sf-font-size-12);font-weight:650;color:var(--sf-font-color)}
@@ -611,22 +611,22 @@
 .sf-address-form-actions,.sf-address-card-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:13px}
 .sf-address-card-actions{width:100%}
 .sf-address-card-actions button{flex:1 1 0;min-width:0}
-.sf-address-form-actions button,.sf-address-card-actions button{min-height:38px;padding:8px 13px;border:1px solid var(--sf-border);border-radius:9px;background:var(--sf-primary-button);color:var(--sf-primary-button-font);font:inherit;font-size:var(--sf-font-size-13);font-weight:700;cursor:pointer}
+.sf-address-form-actions button,.sf-address-card-actions button{min-height:38px;padding:8px 13px;border:1px solid var(--sf-primary-button);border-radius:9px;background:var(--sf-primary-button);color:var(--sf-primary-button-font);font:inherit;font-size:var(--sf-font-size-13);font-weight:700;cursor:pointer}
 .sf-address-form-actions>button:first-child{flex:1 1 100%;width:100%}
 .sf-address-form-actions .sf-address-secondary{flex:1 1 100%;width:100%}
 .sf-address-form-actions button:disabled{opacity:.6;cursor:wait}
-.sf-address-form-actions .sf-address-secondary,.sf-address-card-actions button{background:var(--sf-product-card);color:var(--sf-font-color)}
+.sf-address-form-actions .sf-address-secondary,.sf-address-card-actions button{border-color:var(--sf-secondary-button);background:var(--sf-secondary-button);color:var(--sf-secondary-button-font)}
 .sf-address-card{padding:16px 0;border-top:1px solid var(--sf-border);overflow-wrap:anywhere}
 .sf-address-card-heading{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .sf-address-card-heading h3{margin:0;font-size:var(--sf-font-size-16)}
 .sf-address-default-badge{padding:3px 8px;border-radius:99px;background:var(--sf-secondary-button);color:var(--sf-secondary-button-font);font-size:var(--sf-font-size-11);font-weight:700}
 .sf-address-card p{margin:4px 0;font-size:var(--sf-font-size-13);color:var(--sf-muted)}
 .sf-address-card-actions .sf-address-danger{color:#b42318}
-.sf-loyalty-balance{display:flex;flex-direction:column;align-items:flex-start;gap:5px;margin-top:22px;padding:18px;border-radius:13px;background:var(--sf-footer-background);color:var(--sf-footer-font)}
+.sf-loyalty-balance{display:flex;flex-direction:column;align-items:flex-start;gap:5px;margin-top:22px;padding:18px;border:1px solid var(--sf-border);border-radius:13px;background:var(--sf-page-background);color:var(--sf-font-color)}
 .sf-loyalty-balance span,.sf-loyalty-balance small{font-size:var(--sf-font-size-12)}
 .sf-loyalty-balance strong{font-size:clamp(30px,5vw,42px);line-height:1.1}
 .sf-loyalty-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
-.sf-loyalty-stats article{display:flex;flex-direction:column;gap:8px;padding:18px;border:1px solid var(--sf-border);border-radius:13px;background:var(--sf-product-card)}
+.sf-loyalty-stats article{display:flex;flex-direction:column;gap:8px;padding:18px;border:1px solid var(--sf-border);border-radius:13px;background:var(--sf-page-background)}
 .sf-loyalty-stats span{font-size:var(--sf-font-size-12);color:var(--sf-muted)}
 .sf-loyalty-stats strong{font-size:var(--sf-font-size-22)}
 .sf-loyalty-transaction{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;border-top:1px solid var(--sf-border)}
@@ -677,7 +677,7 @@
 /* Shared guest and signed-in customer account actions. */
 .sf-account-auth-action{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 13px;border:1px solid var(--sf-primary-button);border-radius:9px;background:var(--sf-primary-button);color:var(--sf-primary-button-font);font:inherit;font-size:var(--sf-font-size-13);font-weight:750;text-decoration:none}
 .sf-account-auth-action:hover{opacity:.88}
-.sf-account-auth-action.sf-account-auth-secondary{background:var(--sf-product-card);color:var(--sf-font-color);border-color:var(--sf-border)}
+.sf-account-auth-action.sf-account-auth-secondary{background:var(--sf-secondary-button);color:var(--sf-secondary-button-font);border-color:var(--sf-secondary-button)}
 
 
 /* Address map opens on demand so the mobile form stays compact. */
