@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { normalizeAppBase, restaurantMenuPath } from '../../app/routes';
 import { loadPublishedMenu } from './publishedMenu';
 import { useCustomerStorefrontTheme } from './useCustomerStorefrontTheme';
+import { CustomerAccountLoading } from './CustomerAccountLoading';
 
 type AuthMode = 'sign-in' | 'sign-up';
 
@@ -20,7 +21,7 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
   const [resetMode, setResetMode] = useState(false);
   const [resolvedRestaurantSlug, setResolvedRestaurantSlug] = useState<string | null>(restaurantSlug);
   const [configuredLogoUrl, setConfiguredLogoUrl] = useState<string | null>(null);
-  const { style: storefrontTheme, fontClass } = useCustomerStorefrontTheme(resolvedRestaurantSlug);
+  const { style: storefrontTheme, fontClass, isLoading: themeLoading } = useCustomerStorefrontTheme(resolvedRestaurantSlug);
   const isSignUp = mode === 'sign-up';
   const passwordRules = [
     { label: 'At least 8 characters', valid: password.length >= 8 },
@@ -162,6 +163,8 @@ export function AccountAuthPage({ mode, baseUrl, restaurantSlug }: { mode: AuthM
       setBusy(false);
     }
   }
+
+  if (themeLoading) return <CustomerAccountLoading />;
 
   return <main className={"sf-auth-page sf-storefront"+fontClass} style={storefrontTheme}>
     <section className="sf-auth-card" aria-labelledby="sf-auth-title">
