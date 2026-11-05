@@ -753,7 +753,7 @@
 
 
 /* Compact order history rows; full order information lives in the detail dialog. */
-.sf-order-history-row{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:6px;width:100%;margin-top:10px;padding:15px 44px 15px 16px;border:1px solid var(--sf-border);border-radius:11px;background:var(--sf-product-card);color:var(--sf-font-color);text-align:left;cursor:pointer;font:inherit;transition:border-color .15s ease,background-color .15s ease}
+.sf-order-history-row{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:6px;width:100%;margin-top:10px;padding:15px 44px 15px 16px;border:1px solid var(--sf-border);border-radius:11px;background:var(--sf-page-background);color:var(--sf-font-color);text-align:left;cursor:pointer;font:inherit;transition:border-color .15s ease,background-color .15s ease}
 .sf-order-history-row:hover{border-color:var(--sf-primary-button)}
 .sf-order-history-row:focus-visible{outline:2px solid var(--sf-primary-button);outline-offset:2px}
 .sf-order-history-row-number{font-size:var(--sf-font-size-15);font-weight:800;line-height:1.4}
