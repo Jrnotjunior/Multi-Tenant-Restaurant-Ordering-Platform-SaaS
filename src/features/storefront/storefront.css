@@ -597,10 +597,10 @@
 .sf-account-page .sf-account-dashboard-card>span{align-self:center;flex:0 0 auto;margin-left:10px}
 @media(max-width:760px){.sf-account-main{padding:18px 14px 30px}.sf-account-page .sf-account-dashboard-grid{grid-template-columns:1fr;gap:10px}.sf-account-page .sf-account-dashboard-card{min-height:100px;padding:17px}.sf-account-page .sf-account-hero{padding:22px 18px}.sf-account-page .sf-header-inner{width:100%;padding:10px 14px}}
 
-.sf-account-back-link{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;min-width:40px;margin:0 0 22px;padding:0;border:1px solid var(--sf-secondary-button);border-radius:50%;background:var(--sf-secondary-button);color:var(--sf-secondary-button-font);text-decoration:none;transition:background-color .15s ease,transform .15s ease}
+.sf-account-back-link{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;min-width:40px;margin:0 0 22px;padding:0;border:0;border-radius:0;background:transparent;color:var(--sf-header-icon);text-decoration:none;transition:opacity .15s ease,transform .15s ease}
 .sf-account-back-link svg{display:block;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.sf-account-back-link:hover{background:var(--sf-page-background);transform:translateX(-1px)}
-.sf-account-back-link:focus-visible{outline:2px solid var(--sf-primary-button);outline-offset:3px}
+.sf-account-back-link:hover{opacity:.75;transform:translateX(-1px)}
+.sf-account-back-link:focus-visible{outline:2px solid var(--sf-header-icon);outline-offset:3px}
 .sf-address-form,.sf-address-list{margin-top:16px;padding:clamp(14px,2.5vw,22px);border:1px solid var(--sf-border);border-radius:16px;background:var(--sf-page-background)}
 .sf-address-form h2,.sf-address-list h2{margin:0 0 14px;font-size:var(--sf-font-size-18);line-height:1.3;color:var(--sf-font-color)}
 .sf-address-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}
