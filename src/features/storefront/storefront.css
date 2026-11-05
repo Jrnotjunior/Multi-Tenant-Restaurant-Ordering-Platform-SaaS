@@ -379,7 +379,7 @@
 
 .sf-password-checklist{display:grid;gap:6px;list-style:none;margin:9px 0 2px;padding:0;font-size:var(--sf-font-size-12);line-height:1.4;color:var(--sf-muted)}
 .sf-password-checklist li{display:flex;align-items:center;gap:8px;min-width:0}
-.sf-password-check-icon{display:inline-flex;flex:0 0 16px;width:16px;height:16px;align-items:center;justify-content:center;border:1px solid #c8c1bc;border-radius:50%;font-size:var(--sf-font-size-10);font-weight:800;color:#817975}
+.sf-password-check-icon{display:inline-flex;flex:0 0 16px;width:16px;height:16px;align-items:center;justify-content:center;border:1px solid #c8c1bc;border-radius:50%;font-size:var(--sf-font-size-10);font-weight:800;color:var(--sf-muted)}
 .sf-password-checklist li.is-valid{color:#247548}
 .sf-password-checklist li.is-valid .sf-password-check-icon{border-color:#247548;background:#eaf7ef;color:#247548}
 
@@ -684,7 +684,7 @@
 .sf-address-location-copy h3{margin:0;font-size:var(--sf-font-size-13);line-height:1.35;color:var(--sf-font-color)}
 .sf-address-location-copy p{margin:3px 0 0;font-size:var(--sf-font-size-11);line-height:1.4;color:var(--sf-muted)}
 .sf-address-map-open{flex:0 0 auto;min-height:38px;padding:8px 11px;border:1px solid var(--sf-border);border-radius:9px;background:var(--sf-primary-button);color:var(--sf-primary-button-font);font:inherit;font-size:var(--sf-font-size-12);font-weight:700;cursor:pointer}
-.sf-address-map-selected{margin:10px 0 0;color:var(--sf-muted-font-color);font-size:var(--sf-font-size-13)}
+.sf-address-map-selected{margin:10px 0 0;color:var(--sf-muted);font-size:var(--sf-font-size-13)}
 .sf-address-map-overlay{position:fixed;inset:0;z-index:10000;display:flex;align-items:stretch;justify-content:center;padding:0;background:rgba(15,23,42,.6);height:100dvh;height:100svh;overflow:hidden}
 .sf-address-map-dialog{width:min(100%,760px);height:100%;height:100dvh;height:100svh;max-height:100%;display:flex;flex-direction:column;overflow:hidden;background:var(--sf-page-background);padding-bottom:env(safe-area-inset-bottom);box-sizing:border-box}
 .sf-address-map-dialog-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:var(--sf-header-color);color:var(--sf-header-icon);border-bottom:1px solid var(--sf-border);flex:0 0 auto}
