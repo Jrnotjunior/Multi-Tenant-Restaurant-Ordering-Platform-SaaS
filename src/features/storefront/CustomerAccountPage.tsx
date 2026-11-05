@@ -116,7 +116,7 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
           <span aria-hidden="true">›</span>
         </a>
       </div>
-      <a className="sf-tracking-details sf-account-dashboard-card sf-account-legal-card" href={base + '#legal'}>
+      <a className="sf-tracking-details sf-account-dashboard-card sf-account-legal-card" href={base + '#/account/legal'}>
         <div><span className="sf-tracking-eyebrow">INFORMATION</span><h2>Legal</h2><p>View privacy, terms, and refund policies.</p></div>
         <span aria-hidden="true">›</span>
       </a>
