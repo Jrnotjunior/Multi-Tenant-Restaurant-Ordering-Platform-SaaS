@@ -296,7 +296,7 @@
 .sf-custom-instructions small{justify-self:end;font-size:var(--sf-font-size-10);font-weight:500;color:var(--sf-muted)}
 .sf-custom-quantity{display:flex;align-items:center;justify-content:space-between;margin:0 0 13px;font-size:var(--sf-font-size-13);font-weight:750}
 .sf-custom-quantity>div{display:flex;align-items:center;gap:15px;border:1px solid var(--sf-border);border-radius:999px;padding:3px 7px}
-.sf-custom-quantity>div button{width:32px;min-height:32px;border:0;border-radius:50%;background:var(--sf-page-background);color:var(--sf-font-color);font-size:19px;font-weight:700;cursor:pointer}
+.sf-custom-quantity>div button{width:32px;min-height:32px;border:0;border-radius:50%;background:var(--sf-secondary-button);color:var(--sf-secondary-button-font);font-size:19px;font-weight:700;cursor:pointer}
 .sf-custom-quantity>div button:disabled{opacity:.45;cursor:not-allowed}
 .sf-custom-footer .sf-custom-quantity>div button{width:32px;min-height:32px;padding:0;border-radius:50%;font-size:19px}
 .sf-cart-line-action{border:1px solid var(--sf-border);border-radius:7px;background:var(--sf-product-card);color:var(--sf-primary-button);font:inherit;font-size:var(--sf-font-size-10);font-weight:750;padding:5px 9px;cursor:pointer}
