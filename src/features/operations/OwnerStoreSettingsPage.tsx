@@ -12,7 +12,7 @@ type OperatingHours = Record<DayKey, DayHours>;
 type OnlinePaymentMethods = { card: boolean; gcash: boolean; qrph: boolean; grab_pay: boolean; paymaya: boolean; dob: boolean; billease: boolean };
 type OnlinePayments = { enabled: boolean; methods: OnlinePaymentMethods; provider_configured: boolean; [key: string]: unknown };
 type DeliveryForm = { baseFee: string; distanceIncrementMeters: string; feePerIncrement: string; maxDistanceKm: string };
-type BranchDeliveryRow = { id:string; slug:string; name:string; is_active:boolean; pickup_address:string|null; store_address:string|null; delivery_location_latitude:number|null; delivery_location_longitude:number|null; delivery_pricing:Obj };
+type BranchDeliveryRow = { id:string; slug:string; name:string; is_active:boolean; pickup_address:string|null; contact_phone:string|null; store_address:string|null; delivery_location_latitude:number|null; delivery_location_longitude:number|null; delivery_pricing:Obj };
 type StorefrontRow = {
   tenant_id: string;
   default_branch_id: string;
@@ -165,6 +165,7 @@ export function OwnerStoreSettingsPage({ tenantId }: Props) {
   const [hours, setHours] = useState<OperatingHours>(DEFAULT_HOURS);
   const [delivery, setDelivery] = useState<DeliveryForm>({ baseFee: '0', distanceIncrementMeters: '500', feePerIncrement: '10', maxDistanceKm: '10' });
   const [pickupAddress, setPickupAddress] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
   const [storeAddress, setStoreAddress] = useState('');
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
@@ -195,7 +196,7 @@ export function OwnerStoreSettingsPage({ tenantId }: Props) {
         setAcceptingOrders(settings.accepting_orders !== false);
         setHours(normalizeHours(settings.opening_hours));
         const {data:branchRows,error:branchError}=await supabase.from('branches')
-          .select('id,slug,name,is_active,pickup_address,store_address,delivery_location_latitude,delivery_location_longitude,delivery_pricing')
+          .select('id,slug,name,is_active,pickup_address,contact_phone,store_address,delivery_location_latitude,delivery_location_longitude,delivery_pricing')
           .eq('tenant_id',tenantId).order('name');
         if(branchError)throw branchError;
         const safeBranches=(branchRows??[]) as BranchDeliveryRow[];
@@ -219,6 +220,7 @@ export function OwnerStoreSettingsPage({ tenantId }: Props) {
     if(!branch)return;
     setDelivery(normalizeDelivery(branch.delivery_pricing));
     setPickupAddress(branch.pickup_address??'');
+    setContactPhone(branch.contact_phone??'');
     setStoreAddress(branch.store_address??'');
     setLatitude(typeof branch.delivery_location_latitude==='number'?branch.delivery_location_latitude:null);
     setLongitude(typeof branch.delivery_location_longitude==='number'?branch.delivery_location_longitude:null);
@@ -254,6 +256,8 @@ export function OwnerStoreSettingsPage({ tenantId }: Props) {
       if (activeTab === 'delivery') {
         if (!selectedBranchId) throw new Error('Choose a branch before saving its delivery settings.');
         if (pickupAddress.trim().length < 3 || pickupAddress.trim().length > 500) throw new Error('Enter the exact pickup address customers should use.');
+        const normalizedContactPhone = contactPhone.replace(/[\\s()-]/g, '');
+        if (normalizedContactPhone && !/^(?:09\\d{9}|\\+639\\d{9})$/.test(normalizedContactPhone)) throw new Error('Enter a valid Philippine mobile number (09XXXXXXXXX or +639XXXXXXXXX).');
         if (!Number.isFinite(parsedBase) || parsedBase < 0 || !Number.isFinite(parsedDistance) || parsedDistance <= 0 ||
           !Number.isFinite(parsedPerIncrement) || parsedPerIncrement < 0 || !Number.isFinite(parsedMaxDistanceKm) || parsedMaxDistanceKm <= 0) {
           throw new Error('Enter valid delivery pricing values. Fees cannot be negative and distances must be greater than zero.');
@@ -298,6 +302,11 @@ export function OwnerStoreSettingsPage({ tenantId }: Props) {
         });
         if(pickupError)throw pickupError;
         if(pickupSaved!==true)throw new Error('The branch pickup address was not saved.');
+        const {data:contactSaved,error:contactError}=await supabase.rpc('update_owner_branch_contact_phone',{
+          p_tenant_id:tenantId,p_branch_id:selectedBranchId,p_contact_phone:contactPhone.trim() || null,
+        });
+        if(contactError)throw contactError;
+        if(contactSaved!==true)throw new Error('The branch contact number was not saved.');
         const {data,error}=await supabase.rpc('update_owner_branch_delivery_settings',{
           p_tenant_id:tenantId,p_branch_id:selectedBranchId,p_store_address:storeAddress.trim(),
           p_latitude:latitude,p_longitude:longitude,p_delivery_pricing:nextDelivery,
@@ -305,7 +314,7 @@ export function OwnerStoreSettingsPage({ tenantId }: Props) {
         if(error)throw error;
         if(data!==true)throw new Error('Branch delivery settings were not saved.');
         setBranches(current=>current.map(branch=>branch.id===selectedBranchId?{
-          ...branch,pickup_address:pickupAddress.trim(),store_address:storeAddress.trim(),delivery_location_latitude:latitude,
+          ...branch,pickup_address:pickupAddress.trim(),contact_phone:contactPhone.trim() || null,store_address:storeAddress.trim(),delivery_location_latitude:latitude,
           delivery_location_longitude:longitude,delivery_pricing:nextDelivery,
         }:branch));
         setMessage('Branch delivery settings saved successfully.');
@@ -363,6 +372,7 @@ export function OwnerStoreSettingsPage({ tenantId }: Props) {
           {branches.map(branch=><option key={branch.id} value={branch.id}>{branch.name}{branch.is_active?'':' · Inactive'}</option>)}
         </select></label>
         <label className="w2t-setting-field"><span>Exact pickup address</span><input type="text" required minLength={3} maxLength={500} value={pickupAddress} disabled={saving||branches.length===0} placeholder="Type the complete address customers should use for pickup" onChange={event=>{setPickupAddress(event.target.value);setMessage('');setError('');}} /><small>Type this address yourself. It is shown to customers on the order tracking page; Mapbox does not fill it.</small></label>
+        <label className="w2t-setting-field"><span>Branch mobile number for pickup customers</span><input type="tel" inputMode="tel" autoComplete="tel" maxLength={16} value={contactPhone} disabled={saving||branches.length===0} placeholder="09XXXXXXXXX or +639XXXXXXXXX" onChange={event=>{setContactPhone(event.target.value.slice(0,16));setMessage('');setError('');}} /><small>Shown only on customer tracking pages for Pickup orders. Each branch has its own contact number.</small></label>
         <h2>Delivery pricing</h2>
         <div className="w2t-settings-grid">
           <label className="w2t-setting-field"><span>Base delivery fee (₱)</span><input type="text" inputMode="decimal" pattern="[0-9]*([.][0-9]+)?" value={delivery.baseFee} disabled={saving} onChange={event => updateDelivery('baseFee', event.target.value)} /></label>
