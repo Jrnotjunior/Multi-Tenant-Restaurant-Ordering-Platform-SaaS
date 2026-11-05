@@ -1,8 +1,7 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { normalizeAppBase } from '../../app/routes';
-import { getRememberedStorefrontSlug } from './appFavicon';
-import { loadDefaultPublishedMenu, loadPublishedMenu } from './publishedMenu';
+import { useCustomerStorefrontTheme } from './useCustomerStorefrontTheme';
 import './storefront.css';
 import { StorefrontFooter, StorefrontHeader } from './StorefrontChrome';
 
@@ -20,42 +19,8 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
   const [loading, setLoading] = useState(true);
   const [signedIn, setSignedIn] = useState(false);
   const [message, setMessage] = useState('');
-  const [storefrontTheme, setStorefrontTheme] = useState<CSSProperties>({});
-  const [tenantFontClass, setTenantFontClass] = useState('');
+  const { style: storefrontTheme, fontClass: tenantFontClass } = useCustomerStorefrontTheme();
   const base = normalizeAppBase(baseUrl);
-
-  useEffect(() => {
-    let active = true;
-    void (async () => {
-      try {
-        const slug = getRememberedStorefrontSlug();
-        const catalog = slug ? await loadPublishedMenu(slug) : (await loadDefaultPublishedMenu())?.catalog ?? null;
-        if (!active || !catalog) return;
-        const colors = catalog.restaurant.websiteColors;
-        setStorefrontTheme({
-          '--sf-page-background': colors.pageBackground,
-          '--sf-header-color': colors.footerBackground,
-          '--sf-footer-background': colors.footerBackground,
-          '--sf-footer-font': colors.footerFont,
-          '--sf-hero-color': colors.heroColor,
-          '--sf-hero-font-color': colors.heroFontColor ?? colors.fontColor,
-          '--sf-product-card': colors.productCard,
-          '--sf-font-color': colors.fontColor,
-          '--sf-header-icon': colors.headerIcon,
-          '--sf-primary-button': colors.primaryButton,
-          '--sf-primary-button-font': colors.primaryButtonFont,
-          '--sf-secondary-button': colors.secondaryButton,
-          '--sf-secondary-button-font': colors.secondaryButtonFont,
-          '--sf-red': colors.primaryButton,
-          '--sf-red-dark': colors.secondaryButton,
-        } as CSSProperties);
-        setTenantFontClass(catalog.restaurant.fontFamily === 'classic' ? ' sf-font-classic' : catalog.restaurant.fontFamily === 'rounded' ? ' sf-font-rounded' : ' sf-font-modern');
-      } catch {
-        // Account access remains available if optional tenant theme lookup fails.
-      }
-    })();
-    return () => { active = false; };
-  }, []);
 
   useEffect(() => {
     let active = true;
