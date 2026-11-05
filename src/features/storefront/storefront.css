@@ -126,7 +126,7 @@
 .sf-layout{display:block;scroll-margin-top:103px}
 .sf-catalog{min-width:0}
 .sf-section-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:15px;margin:0 0 23px}
-.sf-section-kicker{display:block;color:var(--sf-primary-button);font-size:var(--sf-font-size-10);font-weight:850;letter-spacing:.18em}
+.sf-section-kicker{display:block;color:var(--sf-muted);font-size:var(--sf-font-size-10);font-weight:850;letter-spacing:.18em}
 .sf-section-heading h2{font-size:var(--sf-font-size-section-title);margin:7px 0 5px;line-height:1.12;letter-spacing:-.055em;color:var(--sf-font-color)}
 .sf-section-heading p{font-size:var(--sf-font-size-13);margin:0;color:var(--sf-muted)}
 .sf-menu-count{font-size:var(--sf-font-size-11);background:var(--sf-page-background);border-radius:100px;padding:7px 10px;color:var(--sf-font-color);white-space:nowrap;font-weight:700}
