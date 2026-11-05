@@ -28,7 +28,7 @@ export function CustomerLoyaltyPage({baseUrl}:{baseUrl:string}){
  setTransactions(ledgerRows.map(t=>({...t,restaurantName:names.get(t.tenant_id)??'Restaurant rewards'})));
  setLoading(false);
  })();return()=>{live=false;};},[base]);
- if(loading||themeLoading)return <CustomerAccountLoading />;
+ if(themeLoading)return <CustomerAccountLoading />;
  return <div className={"sf-storefront sf-account-page sf-account-shell"+fontClass} style={storefrontTheme}>
   <StorefrontHeader
    logo={<a href={base} className="sf-logo sf-account-brand" aria-label={(restaurantName??"Restaurant")+" storefront"}>
@@ -42,7 +42,7 @@ export function CustomerLoyaltyPage({baseUrl}:{baseUrl:string}){
    </section>
    {message&&<p role="status" className="sf-account-message">{message}</p>}
    <div className="sf-loyalty-stats"><article><span>Lifetime earned</span><strong>{loading?'—':earned.toLocaleString()}</strong></article><article><span>Lifetime redeemed</span><strong>{loading?'—':redeemed.toLocaleString()}</strong></article></div>
-   <section className="sf-address-list"><h2>Points activity</h2>{transactions.length===0?<p>No points activity yet. When you earn or redeem points, your activity will appear here.</p>:transactions.map(t=><article className="sf-loyalty-transaction" key={t.id}><div><strong>{t.description||t.transaction_type.replace('_',' ')}</strong><small>{t.restaurantName} · {new Date(t.created_at).toLocaleString()}</small></div><strong className={t.points_change>0?'sf-points-positive':'sf-points-negative'}>{t.points_change>0?'+':''}{t.points_change.toLocaleString()} pts</strong></article>)}</section>
+   <section className="sf-address-list"><h2>Points activity</h2>{loading?<p role="status">Loading points activity…</p>:transactions.length===0?<p>No points activity yet. When you earn or redeem points, your activity will appear here.</p>:transactions.map(t=><article className="sf-loyalty-transaction" key={t.id}><div><strong>{t.description||t.transaction_type.replace('_',' ')}</strong><small>{t.restaurantName} · {new Date(t.created_at).toLocaleString()}</small></div><strong className={t.points_change>0?'sf-points-positive':'sf-points-negative'}>{t.points_change>0?'+':''}{t.points_change.toLocaleString()} pts</strong></article>)}</section>
   </main>
   <StorefrontFooter />
  </div>;
