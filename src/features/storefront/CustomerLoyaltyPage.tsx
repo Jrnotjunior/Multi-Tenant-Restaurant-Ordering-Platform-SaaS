@@ -4,9 +4,10 @@ import { normalizeAppBase } from '../../app/routes';
 import { CustomerAccountBackLink, StorefrontFooter, StorefrontHeader } from './StorefrontChrome';
 import './storefront.css';
 import { useCustomerStorefrontTheme } from './useCustomerStorefrontTheme';
+import { CustomerAccountLoading } from './CustomerAccountLoading';
 type Tx={id:string;tenant_id:string;points_change:number;transaction_type:string;description:string;created_at:string;restaurantName?:string};
 export function CustomerLoyaltyPage({baseUrl}:{baseUrl:string}){
- const {style:storefrontTheme,fontClass}=useCustomerStorefrontTheme();
+ const {style:storefrontTheme,fontClass,isLoading:themeLoading}=useCustomerStorefrontTheme();
  const base=normalizeAppBase(baseUrl),[points,setPoints]=useState(0),[earned,setEarned]=useState(0),[redeemed,setRedeemed]=useState(0),[transactions,setTransactions]=useState<Tx[]>([]),[loading,setLoading]=useState(true),[message,setMessage]=useState('');
  useEffect(()=>{let live=true;void(async()=>{if(!supabase){setMessage('Account services are not configured.');setLoading(false);return;}const {data,error}=await supabase.auth.getSession();const user=data.session?.user;if(error||!user){window.location.hash = '#/account/sign-in';return;}
  const [accounts,ledger]=await Promise.all([
@@ -27,6 +28,7 @@ export function CustomerLoyaltyPage({baseUrl}:{baseUrl:string}){
  setTransactions(ledgerRows.map(t=>({...t,restaurantName:names.get(t.tenant_id)??'Restaurant rewards'})));
  setLoading(false);
  })();return()=>{live=false;};},[base]);
+ if(loading||themeLoading)return <CustomerAccountLoading />;
  return <div className={"sf-storefront sf-account-page sf-account-shell"+fontClass} style={storefrontTheme}>
   <StorefrontHeader
    logo={<a href={base} className="sf-logo sf-account-brand" aria-label="Web2Table storefront">
@@ -41,7 +43,7 @@ export function CustomerLoyaltyPage({baseUrl}:{baseUrl:string}){
    </section>
    {message&&<p role="status" className="sf-account-message">{message}</p>}
    <div className="sf-loyalty-stats"><article><span>Lifetime earned</span><strong>{loading?'—':earned.toLocaleString()}</strong></article><article><span>Lifetime redeemed</span><strong>{loading?'—':redeemed.toLocaleString()}</strong></article></div>
-   <section className="sf-address-list"><h2>Points activity</h2>{loading?<p>Loading activity…</p>:transactions.length===0?<p>No points activity yet. When you earn or redeem points, your activity will appear here.</p>:transactions.map(t=><article className="sf-loyalty-transaction" key={t.id}><div><strong>{t.description||t.transaction_type.replace('_',' ')}</strong><small>{t.restaurantName} · {new Date(t.created_at).toLocaleString()}</small></div><strong className={t.points_change>0?'sf-points-positive':'sf-points-negative'}>{t.points_change>0?'+':''}{t.points_change.toLocaleString()} pts</strong></article>)}</section>
+   <section className="sf-address-list"><h2>Points activity</h2>{transactions.length===0?<p>No points activity yet. When you earn or redeem points, your activity will appear here.</p>:transactions.map(t=><article className="sf-loyalty-transaction" key={t.id}><div><strong>{t.description||t.transaction_type.replace('_',' ')}</strong><small>{t.restaurantName} · {new Date(t.created_at).toLocaleString()}</small></div><strong className={t.points_change>0?'sf-points-positive':'sf-points-negative'}>{t.points_change>0?'+':''}{t.points_change.toLocaleString()} pts</strong></article>)}</section>
   </main>
   <StorefrontFooter />
  </div>;
