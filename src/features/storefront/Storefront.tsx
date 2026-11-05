@@ -201,9 +201,10 @@ function CartContents({ cart, customized, menu, change, changeCustomized, onEdit
 
 function MenuCard({ item, customize, notify, checkAvailability }: { item: MenuItem; customize:(item:MenuItem)=>void; notify:(message:string)=>void; checkAvailability:()=>Promise<boolean> }) {
   const soldOut = item.isAvailable === false;
-  const tryAdd = async () => {
+  const tryAdd = () => {
     if (soldOut) { notify(`${item.name} is sold out and can’t be added to your cart.`); return; }
-    if (!(await checkAvailability())) return;
+    // Open customization immediately. Availability is revalidated when the
+    // customer confirms Add to Cart, before the item is saved.
     customize(item);
   };
   return <article className={'sf-menu-card' + (soldOut ? ' is-sold-out' : '')} style={{display:'grid',gridTemplateColumns:'160px minmax(0,1fr)',minHeight:166,borderRadius:15}}>
