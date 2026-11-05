@@ -40,7 +40,8 @@ Deno.serve(async(req:Request)=>{if(req.method==="OPTIONS")return new Response("o
    if(storefrontError)throw storefrontError;
    const cash=storefront?.cash_payment_options as Record<string,unknown>|null;
    const option=type==="delivery"?"cash_on_delivery_enabled":type==="pickup"?"cash_on_pickup_enabled":type==="take_out"?"cash_on_take_out_enabled":null;
-   if(storefront?.status!=="published"||!option||cash?.[option]!==true)
+   const cashEnabled=type==="dine_in"||(option!==null&&cash?.[option]===true);
+   if(storefront?.status!=="published"||!cashEnabled)
      return json({error:"Cash payment is not enabled for this order type at this restaurant. No order was placed."},409);
  }
  if(paymentMethod==="online"){
@@ -52,17 +53,6 @@ Deno.serve(async(req:Request)=>{if(req.method==="OPTIONS")return new Response("o
    const settings=storefront?.online_payments as {enabled?:boolean;methods?:Record<string,boolean>}|null;
    if(storefront?.status!=="published"||!isTenantOnlinePaymentEligible(settings))
      return json({error:"Online payment is not available for this restaurant yet. Choose another enabled payment method. No order was placed."},409);
- }
- const type=String(b.orderType??"");if(!["delivery","take_out","pickup","dine_in"].includes(type))return json({error:"Choose a valid order type."},400);
- const {data:tenantForCash,error:cashTenantError}=await admin.from("tenants").select("id,status").eq("slug",slug).maybeSingle();
- if(cashTenantError)throw cashTenantError;
- if(!tenantForCash||tenantForCash.status!=="active")return json({error:"This restaurant is unavailable. No order was placed."},409);
- if(paymentMethod==="cash"){
-   const {data:cashStore,error:cashStoreError}=await admin.from("tenant_storefronts").select("cash_payment_options").eq("tenant_id",tenantForCash.id).maybeSingle();
-   if(cashStoreError)throw cashStoreError;
-   const options=(cashStore?.cash_payment_options??{}) as Record<string,unknown>;
-   const cashEnabled=type==="dine_in"?true:type==="delivery"?options.cash_on_delivery_enabled===true:type==="pickup"?options.cash_on_pickup_enabled===true:type==="take_out"?options.cash_on_take_out_enabled===true:false;
-   if(!cashEnabled)return json({error:type==="delivery"?"Cash on Delivery is not available for this restaurant. Please choose another payment method.":"Cash payment is not available for this order type. Please choose another payment method.",noOrderPlaced:true},409);
  }
  const loyaltyPointsToRedeem=Number(b.loyaltyPointsToRedeem??0);
  if(!Number.isSafeInteger(loyaltyPointsToRedeem)||loyaltyPointsToRedeem<0||loyaltyPointsToRedeem>2147483647)return json({error:"Choose a valid loyalty points amount."},400);
