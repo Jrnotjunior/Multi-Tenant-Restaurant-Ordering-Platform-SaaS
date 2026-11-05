@@ -3,11 +3,7 @@ import { isStorefrontCartPath, pathFor, routePathFromLocation, storefrontSlugFro
 import { PrivilegedGate } from '../features/auth/PrivilegedGate';
 import { Storefront } from '../features/storefront/Storefront';
 import { AccountAuthPage } from '../features/storefront/AccountAuthPage';
-import { CustomerOrderHistoryPage } from '../features/storefront/CustomerOrderHistoryPage';
-import { CustomerAccountPage } from '../features/storefront/CustomerAccountPage';
-import { CustomerSavedAddressesPage } from '../features/storefront/CustomerSavedAddressesPage';
-import { CustomerLoyaltyPage } from '../features/storefront/CustomerLoyaltyPage';
-import { LegalPoliciesPage } from '../features/storefront/LegalPoliciesPage';
+import { CustomerAccountRouter } from '../features/storefront/CustomerAccountRouter';
 import { RestaurantWorkspace } from '../features/operations/RestaurantWorkspace';
 import { applyAppFavicon, getRememberedStorefrontSlug, rememberActiveStorefrontSlug, restoreAppFavicon, syncAppFaviconForSlug } from '../features/storefront/appFavicon';
 import { loadDefaultPublishedMenu } from '../features/storefront/publishedMenu';
@@ -34,7 +30,7 @@ export function App() {
   useEffect(() => {
     let active = true;
     const syncRouteFavicon = async () => {
-      if (view === 'restaurant' || view === 'admin') return;
+      if (view === 'restaurant' || view === 'admin' || cleanPath.startsWith(cleanBase + '/account')) return;
       try {
         let slug = storefrontSlugFromPath(pathname, baseUrl);
         if (slug) rememberActiveStorefrontSlug(slug);
@@ -50,7 +46,7 @@ export function App() {
     };
     void syncRouteFavicon();
     return () => { active = false; };
-  }, [pathname, view, baseUrl, locationKey]);
+  }, [pathname, view, baseUrl, cleanPath, cleanBase, locationKey]);
 
   useEffect(() => {
     const syncHistory = () => setLocationKey(window.location.pathname + window.location.hash);
@@ -70,22 +66,10 @@ export function App() {
 
   if (authMode) return <AccountAuthPage mode={authMode} baseUrl={baseUrl} restaurantSlug={new URLSearchParams(window.location.search).get('restaurant')} />;
 
-  // Customer legal pages live beneath the account route and use the same
-  // hash router as the rest of the customer account experience.
-  const accountFragment = window.location.hash.replace(/^#\/?/, '').replace(/\/+$/, '');
-  const legalRouteByAccountPath: Record<string, string> = {
-    'account/legal': '#legal',
-    'account/legal/privacy': '#privacy',
-    'account/legal/terms': '#terms',
-    'account/legal/refunds': '#refunds',
-  };
-  const legalRoute = legalRouteByAccountPath[accountFragment];
-  if (legalRoute) return <LegalPoliciesPage route={legalRoute} />;
-
-  if (cleanPath === cleanBase + '/account') return <CustomerAccountPage baseUrl={baseUrl} />;
-  if (cleanPath === cleanBase + '/account/addresses') return <CustomerSavedAddressesPage baseUrl={baseUrl} />;
-  if (cleanPath === cleanBase + '/account/loyalty') return <CustomerLoyaltyPage baseUrl={baseUrl} />;
-  if (cleanPath === cleanBase + '/account/orders') return <CustomerOrderHistoryPage baseUrl={baseUrl} />;
+  // Keep the customer account router mounted at one stable tree position.
+  if (cleanPath === cleanBase + '/account' || cleanPath.startsWith(cleanBase + '/account/')) {
+    return <CustomerAccountRouter baseUrl={baseUrl} />;
+  }
 
   // PayMongo returns directly to the existing restaurant tracking route. Do not render a duplicate payment tracking page here.
 
