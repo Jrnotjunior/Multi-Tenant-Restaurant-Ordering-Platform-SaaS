@@ -5,7 +5,6 @@ import { CustomerAccountBackLink, StorefrontFooter } from './StorefrontChrome';
 import './storefront.css';
 import { useCustomerStorefrontTheme } from './useCustomerStorefrontTheme';
 import { CustomerAccountLoading } from './CustomerAccountLoading';
-import { CustomerAccountLoading } from './CustomerAccountLoading';
 
 type HistoryItem = { name: string; quantity: number; total_centavos: number };
 type HistoryOrder = {
