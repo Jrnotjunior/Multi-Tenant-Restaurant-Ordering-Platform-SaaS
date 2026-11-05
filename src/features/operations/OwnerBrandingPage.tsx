@@ -7,13 +7,13 @@ type Tab = 'identity' | 'social' | 'colors';
 type SocialLinks = { facebook: string; instagram: string; tiktok: string };
 type WebsiteColors = {
   pageBackground:string; headerColor:string; footerBackground:string; footerFont:string;
-  heroColor:string; productCard:string; fontColor:string; headerIcon:string;
+  heroColor:string; heroFontColor:string; productCard:string; fontColor:string; headerIcon:string;
   primaryButton:string; primaryButtonFont:string; secondaryButton:string; secondaryButtonFont:string;
 };
 const colorLabels: {key:keyof WebsiteColors;label:string}[] = [
   {key:'pageBackground',label:'Page background'},
   {key:'footerBackground',label:'Header & Footer color'},{key:'footerFont',label:'Footer font color'},
-  {key:'heroColor',label:'Hero section color'},{key:'productCard',label:'Product card color'},
+  {key:'heroColor',label:'Hero section color'},{key:'heroFontColor',label:'Hero font color'},{key:'productCard',label:'Product card color'},
   {key:'fontColor',label:'Font color'},{key:'headerIcon',label:'Icon color'},
   {key:'primaryButton',label:'Primary button color'},{key:'primaryButtonFont',label:'Primary button font color'},
   {key:'secondaryButton',label:'Secondary button color'},{key:'secondaryButtonFont',label:'Secondary button font color'},
@@ -60,7 +60,7 @@ export function OwnerBrandingPage({tenantId,restaurantName}:Props) {
         setDefaults(sharedThemeColors);
         setBrand(row);setDisplayName(row.display_name??restaurantName??'');setTagline(row.tagline??'');
         setSocial({...{facebook:'',instagram:'',tiktok:''},...(row.social_links??{})});
-        const tenantColors = {...themeColors,...(row.website_colors??{})};
+        const tenantColors = {...themeColors,...(row.website_colors??{}),heroFontColor:row.website_colors?.heroFontColor??row.website_colors?.fontColor??themeColors.fontColor};
         setColors({...tenantColors, headerColor: tenantColors.footerBackground});
         setLogo(publicStorefrontLogo(row.logo_path));
         setFavicon(row.favicon_path ? supabase.storage.from('storefront-logos').getPublicUrl(row.favicon_path).data.publicUrl : null);
