@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.58.0";
+import { isTenantOnlinePaymentEligible } from "../_shared/onlinePayments.ts";
 const corsHeaders = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, apikey, x-client-info, content-type","Access-Control-Allow-Methods":"POST, OPTIONS"};
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {status,headers:{...corsHeaders,"Content-Type":"application/json","Cache-Control":"no-store"}});
 function serviceKey(){try{const v=JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")??"{}");return v.default??Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";}catch{return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";}}
@@ -36,13 +37,8 @@ Deno.serve(async(req:Request)=>{if(req.method==="OPTIONS")return new Response("o
    if(!tenant||tenant.status!=="active")return json({error:"This restaurant is unavailable. No order was placed."},409);
    const {data:storefront,error:storefrontError}=await admin.from("tenant_storefronts").select("status,online_payments").eq("tenant_id",tenant.id).maybeSingle();
    if(storefrontError)throw storefrontError;
-   const settings=storefront?.online_payments as {enabled?:boolean;provider_configured?:boolean;methods?:Record<string,boolean>}|null;
-   const hasEnabledMethod=Object.values(settings?.methods??{}).some(value=>value===true);
-   const {data:merchant,error:merchantError}=await admin.from("tenant_paymongo_accounts")
-     .select("connection_status").eq("tenant_id",tenant.id).eq("environment","live").maybeSingle();
-   if(merchantError)throw merchantError;
-   if(storefront?.status!=="published"||settings?.enabled!==true||settings?.provider_configured!==true||
-      merchant?.connection_status!=="active"||!hasEnabledMethod)
+   const settings=storefront?.online_payments as {enabled?:boolean;methods?:Record<string,boolean>}|null;
+   if(storefront?.status!=="published"||!isTenantOnlinePaymentEligible(settings))
      return json({error:"Online payment is not available for this restaurant yet. Please choose cash. No order was placed."},409);
  }
  const loyaltyPointsToRedeem=Number(b.loyaltyPointsToRedeem??0);

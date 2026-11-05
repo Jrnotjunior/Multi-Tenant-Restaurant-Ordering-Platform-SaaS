@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.58.0";
+import { enabledPayMongoPaymentTypes, hasActivePayMongoAccount } from "../_shared/onlinePayments.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -59,7 +60,7 @@ Deno.serve(async (request) => {
     }
 
     const { data: storefront, error: storefrontError } = await admin.from("tenant_storefronts")
-      .select("online_payments").eq("tenant_id", order.tenant_id).maybeSingle();
+      .select("status,online_payments").eq("tenant_id", order.tenant_id).maybeSingle();
     if (storefrontError) throw storefrontError;
     const onlinePayments = storefront?.online_payments as {
       enabled?: boolean;
@@ -68,27 +69,24 @@ Deno.serve(async (request) => {
     if (onlinePayments?.enabled !== true) {
       return json({ error: "This restaurant is not currently accepting online payments." }, 409);
     }
-    const methodMap: Array<[string, string]> = [
-      ["card", "card"], ["gcash", "gcash"], ["qrph", "qrph"],
-      ["grab_pay", "grab_pay"], ["paymaya", "paymaya"], ["dob", "dob"], ["billease", "billease"],
-    ];
-    const enabledPaymentTypes = methodMap
-      .filter(([key]) => onlinePayments.methods?.[key] === true)
-      .map(([, providerType]) => providerType);
+    const enabledPaymentTypes = enabledPayMongoPaymentTypes(onlinePayments.methods);
     if (!enabledPaymentTypes.length) {
       return json({ error: "This restaurant has not selected any online payment methods yet." }, 409);
     }
 
     const { data: account, error: accountError } = await admin.from("tenant_paymongo_accounts")
-      .select("paymongo_account_id,connection_status").eq("tenant_id", order.tenant_id)
+      .select("paymongo_account_id,connection_status,activation_status").eq("tenant_id", order.tenant_id)
       .eq("environment", environment).maybeSingle();
     if (accountError) throw accountError;
+    if (storefront?.status !== "published") {
+      return json({ error: "This restaurant is not currently accepting online payments." }, 409);
+    }
     // In test mode only, allow checkout through the platform's PayMongo test account.
     // Live mode always requires the tenant's own active connected account.
-    const platformTest = environment === "test" && !!secret &&
-      (!account?.paymongo_account_id || account.connection_status !== "active");
+    const tenantAccountActive = hasActivePayMongoAccount(account, environment);
+    const platformTest = environment === "test" && !!secret && !tenantAccountActive;
     const effectiveAccountId = platformTest ? "platform_test" : account?.paymongo_account_id;
-    if (!effectiveAccountId || (!platformTest && account?.connection_status !== "active")) {
+    if (!effectiveAccountId || (!platformTest && !tenantAccountActive)) {
       return json({ error: "This restaurant has not enabled online payments for " + environment + " mode." }, 409);
     }
 
