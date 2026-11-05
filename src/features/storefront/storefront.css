@@ -753,13 +753,13 @@
 .sf-order-history-row:hover{border-color:var(--sf-primary-button)}
 .sf-order-history-row:focus-visible{outline:2px solid var(--sf-primary-button);outline-offset:2px}
 .sf-order-history-row-number{font-size:var(--sf-font-size-15);font-weight:800;line-height:1.4}
-.sf-order-history-row-date{font-size:var(--sf-font-size-13);color:var(--sf-muted-font-color);line-height:1.45}
-.sf-order-history-row-chevron{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:27px;line-height:1;color:var(--sf-muted-font-color)}
+.sf-order-history-row-date{font-size:var(--sf-font-size-13);color:var(--sf-muted);line-height:1.45}
+.sf-order-history-row-chevron{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:27px;line-height:1;color:var(--sf-muted)}
 .sf-order-history-modal-backdrop{position:fixed;inset:0;z-index:9500;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:20px;background:rgba(15,23,42,.62);box-sizing:border-box}
 .sf-order-history-modal{width:min(100%,560px);max-height:min(90dvh,820px);overflow-y:auto;border:1px solid var(--sf-border);border-radius:18px;background:var(--sf-product-card);box-shadow:0 24px 80px rgba(0,0,0,.26);box-sizing:border-box}
 .sf-order-history-modal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:20px;border-bottom:1px solid var(--sf-border)}
 .sf-order-history-modal-header h2{margin:5px 0;font-size:var(--sf-font-size-20)}
-.sf-order-history-modal-header p{margin:0;color:var(--sf-muted-font-color);font-size:var(--sf-font-size-13);line-height:1.5}
+.sf-order-history-modal-header p{margin:0;color:var(--sf-muted);font-size:var(--sf-font-size-13);line-height:1.5}
 .sf-order-history-modal-close{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border:1px solid var(--sf-border);border-radius:50%;background:var(--sf-page-background);color:var(--sf-font-color);font-size:26px;line-height:1;cursor:pointer}
 .sf-order-history-modal-content{padding:18px 20px}
 .sf-order-history-modal-content>p{margin:0 0 10px;font-size:var(--sf-font-size-14);line-height:1.5}
