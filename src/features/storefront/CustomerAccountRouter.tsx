@@ -8,7 +8,7 @@ import { LegalPoliciesPage } from './LegalPoliciesPage';
 type AccountRoute = 'home' | 'orders' | 'addresses' | 'loyalty' | 'legal' | 'privacy' | 'terms' | 'refunds';
 
 function routeFromLocation(): AccountRoute {
-  const fragment = window.location.hash.replace(/^#\\/?/, '').replace(/\\/+$/, '');
+  const fragment = window.location.hash.replace(/^#\/?/, '').replace(/\/+$/, '');
   if (fragment === 'account/orders') return 'orders';
   if (fragment === 'account/addresses') return 'addresses';
   if (fragment === 'account/loyalty') return 'loyalty';
