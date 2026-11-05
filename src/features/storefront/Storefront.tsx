@@ -685,7 +685,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   const websiteColors = restaurant.websiteColors;
   const storefrontTheme = {
     '--sf-page-background': websiteColors.pageBackground,
-    '--sf-header-color': websiteColors.headerColor,
+    '--sf-header-color': websiteColors.footerBackground,
     '--sf-footer-background': websiteColors.footerBackground,
     '--sf-footer-font': websiteColors.footerFont,
     '--sf-hero-color': websiteColors.heroColor,
