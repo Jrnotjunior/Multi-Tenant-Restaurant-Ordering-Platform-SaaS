@@ -486,6 +486,11 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
 
 
   useEffect(() => {
+    if (!remoteCatalog?.restaurant.name) return;
+    document.title = `${remoteCatalog.restaurant.name} | Web2Table`;
+  }, [remoteCatalog?.restaurant.name]);
+
+  useEffect(() => {
     const faviconUrl = remoteCatalog?.restaurant.faviconUrl;
     if (faviconUrl) applyAppFavicon(faviconUrl);
     else if (remoteCatalog) clearAppFavicon();
