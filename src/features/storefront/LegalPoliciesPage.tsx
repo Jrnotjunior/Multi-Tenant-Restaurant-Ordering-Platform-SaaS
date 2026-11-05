@@ -42,7 +42,8 @@ function PolicyIcon({ type }: { type: (typeof policies)[number]['icon'] }) {
 }
 
 export function LegalPoliciesPage({ route = '#legal' }: { route?: string }) {
-  const accountUrl = normalizeAppBase(import.meta.env.BASE_URL) + '#/account/legal';
+  const accountHomeUrl = normalizeAppBase(import.meta.env.BASE_URL) + '#/account';
+  const legalIndexUrl = normalizeAppBase(import.meta.env.BASE_URL) + '#/account/legal';
   const details = {
     '#privacy': {
       eyebrow: 'Data Privacy', title: 'Privacy Notice',
@@ -81,14 +82,14 @@ export function LegalPoliciesPage({ route = '#legal' }: { route?: string }) {
   } as const;
   const detail = details[route as keyof typeof details];
   if (detail) return <CustomerPageShell><article className="customer-legal-page customer-legal-detail" aria-labelledby="customer-legal-title">
-    <CustomerAccountBackLink href={accountUrl} />
+    <CustomerAccountBackLink href={legalIndexUrl} />
     <p className="customer-legal-eyebrow">{detail.eyebrow}</p>
     <h1 id="customer-legal-title">{detail.title}</h1>
     <p className="customer-legal-intro-copy">{detail.intro}</p>
     {detail.sections.map(([heading, body], index) => <section className="customer-legal-section" key={heading}><h2>{heading}</h2><p>{body}</p></section>)}
   </article></CustomerPageShell>;
   return <CustomerPageShell><section className="customer-legal-page" aria-labelledby="customer-legal-title">
-    <CustomerAccountBackLink href={accountUrl} />
+    <CustomerAccountBackLink href={accountHomeUrl} />
     <section className="customer-legal-intro"><h1 id="customer-legal-title">Legal &amp; Policies</h1></section>
     <nav className="customer-legal-list" aria-label="Legal documents">
       {policies.map((policy) => <a className="customer-legal-link" href={policy.href} key={policy.href}>
