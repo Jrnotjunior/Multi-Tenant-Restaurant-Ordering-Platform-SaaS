@@ -70,9 +70,16 @@ export function App() {
 
   if (authMode) return <AccountAuthPage mode={authMode} baseUrl={baseUrl} restaurantSlug={new URLSearchParams(window.location.search).get('restaurant')} />;
 
-  // Legal hashes must take precedence over account routes so footer/content policy
-  // links actually open the policy page instead of rendering the account dashboard again.
-  const legalRoute = ['#legal', '#privacy', '#terms', '#refunds'].includes(window.location.hash) ? window.location.hash : null;
+  // Customer legal pages live beneath the account route and use the same
+  // hash router as the rest of the customer account experience.
+  const accountFragment = window.location.hash.replace(/^#\/?/, '').replace(/\/+$/, '');
+  const legalRouteByAccountPath: Record<string, string> = {
+    'account/legal': '#legal',
+    'account/legal/privacy': '#privacy',
+    'account/legal/terms': '#terms',
+    'account/legal/refunds': '#refunds',
+  };
+  const legalRoute = legalRouteByAccountPath[accountFragment];
   if (legalRoute) return <LegalPoliciesPage route={legalRoute} />;
 
   if (cleanPath === cleanBase + '/account') return <CustomerAccountPage baseUrl={baseUrl} />;
