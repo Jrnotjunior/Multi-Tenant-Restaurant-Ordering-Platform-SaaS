@@ -1,9 +1,10 @@
+import type { ReactNode } from 'react';
 import { useCustomerStorefrontTheme } from './useCustomerStorefrontTheme';
 import { StorefrontFooter, StorefrontHeader } from './StorefrontChrome';
 import { CustomerAccountLoading } from './CustomerAccountLoading';
 import './storefront.css';
 
-export function CustomerAccountShell({ baseUrl, children }: { baseUrl: string; children: React.ReactNode }) {
+export function CustomerAccountShell({ baseUrl, children }: { baseUrl: string; children: ReactNode }) {
   const { style, fontClass, isLoading, logoUrl, restaurantName, restaurantInitials } = useCustomerStorefrontTheme();
   if (isLoading) return <CustomerAccountLoading />;
   return <div className={"sf-storefront sf-account-page sf-customer-account-shell" + fontClass} style={style}>
