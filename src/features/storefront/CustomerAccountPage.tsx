@@ -73,7 +73,7 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
   const authHref = (mode: 'sign-in' | 'sign-up') => base + '#/account/' + mode;
   const protectedHref = (path: string) => signedIn ? base + '#/' + path : authHref('sign-in');
 
-  if (loading || themeLoading) return <CustomerAccountLoading />;
+  if (themeLoading) return <CustomerAccountLoading />;
 
   return <div className={"sf-storefront sf-account-page" + tenantFontClass} style={storefrontTheme}>
     <a className="sf-skip-link" href="#customer-account-main">Skip to account content</a>
