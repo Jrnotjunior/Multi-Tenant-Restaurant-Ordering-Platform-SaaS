@@ -256,8 +256,8 @@ export function OwnerStoreSettingsPage({ tenantId }: Props) {
       if (activeTab === 'delivery') {
         if (!selectedBranchId) throw new Error('Choose a branch before saving its delivery settings.');
         if (pickupAddress.trim().length < 3 || pickupAddress.trim().length > 500) throw new Error('Enter the exact pickup address customers should use.');
-        const normalizedContactPhone = contactPhone.replace(/[\\s()-]/g, '');
-        if (normalizedContactPhone && !/^(?:09\\d{9}|\\+639\\d{9})$/.test(normalizedContactPhone)) throw new Error('Enter a valid Philippine mobile number (09XXXXXXXXX or +639XXXXXXXXX).');
+        const normalizedContactPhone = contactPhone.replace(/[\s()-]/g, '');
+        if (normalizedContactPhone && !/^(?:09\d{9}|\[+]639\d{9})$/.test(normalizedContactPhone)) throw new Error('Enter a valid Philippine mobile number (09XXXXXXXXX or +639XXXXXXXXX).');
         if (!Number.isFinite(parsedBase) || parsedBase < 0 || !Number.isFinite(parsedDistance) || parsedDistance <= 0 ||
           !Number.isFinite(parsedPerIncrement) || parsedPerIncrement < 0 || !Number.isFinite(parsedMaxDistanceKm) || parsedMaxDistanceKm <= 0) {
           throw new Error('Enter valid delivery pricing values. Fees cannot be negative and distances must be greater than zero.');
