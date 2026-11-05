@@ -780,7 +780,8 @@
 
 
 
-/* Customer account navigation uses one persistent shell; screen-level chrome is intentionally suppressed. */
+/* Customer account screens share one flex column so the shared footer remains after the active page content. */
+.sf-customer-account-content{display:flex;flex:1 0 auto;flex-direction:column;min-width:0}
 .sf-customer-account-content .sf-header,
 .sf-customer-account-content .sf-footer{display:none}
 .sf-customer-account-content .sf-storefront{display:contents;min-height:0;background:transparent}
