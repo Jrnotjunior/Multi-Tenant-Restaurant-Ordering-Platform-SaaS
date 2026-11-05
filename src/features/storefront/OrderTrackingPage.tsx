@@ -6,7 +6,7 @@ const peso = (centavos: number) => new Intl.NumberFormat('en-PH', { style: 'curr
 
 type TrackedItem = { name: string; quantity: number; total_centavos: number; unit_price_centavos?: number; options?: { name?: string }[]; special_instructions?: string };
 type TrackedStatus = { order_status: string; assignment_status?: string | null; rider_name?: string | null; rider_phone?: string | null; payment_status: string; payment_method?: string; refund_status?: 'pending' | 'refunded' | 'failed' | null; order_type?: string; updated_at: string; items?: TrackedItem[]; subtotal_centavos?: number; delivery_fee_centavos?: number | null; total_centavos?: number | null };
-type TrackedBranchLocation = { branchName: string; branchAddress: string };
+type TrackedBranchLocation = { branchName: string; branchAddress: string; branchPhone: string | null };
 
 export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingToken?: string | null }) {
   const [storedTrackingToken] = useState<string | null>(() => {
@@ -54,9 +54,9 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
       setError('');
       setOrderNumber(Number(result.order_number));
       setStatus({ order_status: result.order_status, assignment_status: result.assignment_status, rider_name: result.rider_name, rider_phone: result.rider_phone, payment_status: result.payment_status, payment_method: result.payment_method, refund_status: result.refund_status, order_type: result.order_type, updated_at: result.updated_at, items: result.items ?? [], subtotal_centavos: result.subtotal_centavos, delivery_fee_centavos: result.delivery_fee_centavos, total_centavos: result.total_centavos });
-      const location = locationData as { branchName?: unknown; branchAddress?: unknown } | null;
+      const location = locationData as { branchName?: unknown; branchAddress?: unknown; branchPhone?: unknown } | null;
       setBranchLocation(typeof location?.branchName === 'string' && typeof location.branchAddress === 'string'
-        ? { branchName: location.branchName, branchAddress: location.branchAddress }
+        ? { branchName: location.branchName, branchAddress: location.branchAddress, branchPhone: typeof location.branchPhone === 'string' ? location.branchPhone : null }
         : null);
     };
     void refresh();
@@ -171,9 +171,13 @@ export function OrderTrackingPage(props: { onBackToMenu: () => void; trackingTok
         <h1>ORD-{orderNumText}</h1>
         <p>{isCancelled ? cancellationMessage : dineInCashOrder ? 'Give this order number to the cashier to help them find your order.' : takeOutCashOrder ? 'Give this order number to the cashier to help them find your order.' : deliveryCodUnpaid ? 'Please pay your rider when you receive your order.' : 'Your order status updates automatically.'}</p>
       </header>
-      {!deliveryOrder && branchLocation?.branchAddress && <section className="sf-checkout-selected-address" aria-label="Order branch location">
-        <span className="sf-checkout-selected-address-label">{orderType === 'pickup' ? 'PICKUP LOCATION' : orderType === 'take-out' ? 'TAKE-OUT LOCATION' : 'RESTAURANT LOCATION'}</span>
+      {orderType === 'pickup' && branchLocation?.branchAddress && <section className="sf-checkout-selected-address" aria-label="Pickup branch location">
+        <span className="sf-checkout-selected-address-label">PICKUP LOCATION</span>
         <strong>{branchLocation.branchName} · {branchLocation.branchAddress}</strong>
+        {branchLocation.branchPhone && <div className="sf-tracking-branch-contact">
+          <span>Restaurant contact</span>
+          <a href={'tel:' + branchLocation.branchPhone.replace(/[^+\\d]/g, '')}>Call {branchLocation.branchPhone}</a>
+        </div>}
       </section>}
       {assignedRider && <section className="sf-tracking-rider" aria-label="Your delivery rider">
         <span className="sf-tracking-eyebrow">YOUR RIDER</span>
