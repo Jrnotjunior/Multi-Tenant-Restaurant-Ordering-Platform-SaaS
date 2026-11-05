@@ -443,6 +443,7 @@
 .sf-checkout-fields label{display:grid;gap:5px;font-size:var(--sf-font-size-12);font-weight:700}
 .sf-checkout-fields input,.sf-checkout-fields textarea{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--sf-border);border-radius:10px;background:var(--sf-page-background);color:var(--sf-font-color);padding:11px 12px;font-size:var(--sf-font-size-14);font-weight:400}
 .sf-checkout-fields input{min-height:44px}
+.sf-checkout-fields input::placeholder,.sf-checkout-fields textarea::placeholder{color:var(--sf-muted);opacity:1}
 .sf-checkout-fields textarea{resize:vertical;line-height:1.5}
 .sf-checkout-fields input:focus,.sf-checkout-fields textarea:focus{outline:2px solid var(--sf-primary-button);outline-offset:1px}
 .sf-checkout-optional{font-size:var(--sf-font-size-11);font-weight:400;color:var(--sf-muted)}
