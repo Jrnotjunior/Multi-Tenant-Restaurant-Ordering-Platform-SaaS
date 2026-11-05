@@ -5,6 +5,20 @@ import type { WebsiteColors } from './publishedMenu';
 
 type CustomerTheme = { style: CSSProperties; fontClass: string; isLoading: boolean; logoUrl: string | null; restaurantName: string | null; restaurantInitials: string | null };
 
+const DEFAULT_THEME: CustomerTheme = {
+  style: {},
+  fontClass: ' sf-font-modern',
+  isLoading: false,
+  logoUrl: null,
+  restaurantName: null,
+  restaurantInitials: null,
+};
+
+// Account routes mount different page components. Cache the resolved tenant theme
+// so changing between those hash routes does not reload the shared storefront chrome.
+const themeCache = new Map<string, CustomerTheme>();
+const themeRequests = new Map<string, Promise<CustomerTheme>>();
+
 function toStorefrontStyle(colors: WebsiteColors): CSSProperties {
   return {
     '--sf-page-background': colors.pageBackground,
@@ -25,32 +39,69 @@ function toStorefrontStyle(colors: WebsiteColors): CSSProperties {
   } as CSSProperties;
 }
 
+function themeKey(restaurantSlug?: string | null): string {
+  return restaurantSlug || getRememberedStorefrontSlug() || '__default_storefront__';
+}
+
+async function resolveTheme(key: string, restaurantSlug?: string | null): Promise<CustomerTheme> {
+  const cached = themeCache.get(key);
+  if (cached) return cached;
+  const pending = themeRequests.get(key);
+  if (pending) return pending;
+
+  const request = (async () => {
+    try {
+      const slug = restaurantSlug || (key === '__default_storefront__' ? null : key);
+      const catalog = slug
+        ? await loadPublishedMenu(slug)
+        : (await loadDefaultPublishedMenu())?.catalog ?? null;
+      if (!catalog) return DEFAULT_THEME;
+      const fontClass = catalog.restaurant.fontFamily === 'classic'
+        ? ' sf-font-classic'
+        : catalog.restaurant.fontFamily === 'rounded'
+          ? ' sf-font-rounded'
+          : ' sf-font-modern';
+      return {
+        style: toStorefrontStyle(catalog.restaurant.websiteColors),
+        fontClass,
+        isLoading: false,
+        logoUrl: catalog.restaurant.logoUrl,
+        restaurantName: catalog.restaurant.name,
+        restaurantInitials: catalog.restaurant.initials,
+      };
+    } catch {
+      // Keep the public account usable with storefront defaults if theme lookup fails.
+      return DEFAULT_THEME;
+    }
+  })();
+
+  themeRequests.set(key, request);
+  const resolved = await request;
+  themeCache.set(key, resolved);
+  themeRequests.delete(key);
+  return resolved;
+}
+
 export function useCustomerStorefrontTheme(restaurantSlug?: string | null): CustomerTheme {
-  const [theme, setTheme] = useState<CustomerTheme>({ style: {}, fontClass: ' sf-font-modern', isLoading: true, logoUrl: null, restaurantName: null, restaurantInitials: null });
+  const key = themeKey(restaurantSlug);
+  const [theme, setTheme] = useState<CustomerTheme>(() => themeCache.get(key) ?? {
+    ...DEFAULT_THEME,
+    isLoading: !themeCache.has(key),
+  });
 
   useEffect(() => {
     let active = true;
-    void (async () => {
-      try {
-        const slug = restaurantSlug || getRememberedStorefrontSlug();
-        const catalog = slug
-          ? await loadPublishedMenu(slug)
-          : (await loadDefaultPublishedMenu())?.catalog ?? null;
-        if (!active) return;
-        if (!catalog) { setTheme(current => ({ ...current, isLoading: false })); return; }
-        const fontClass = catalog.restaurant.fontFamily === 'classic'
-          ? ' sf-font-classic'
-          : catalog.restaurant.fontFamily === 'rounded'
-            ? ' sf-font-rounded'
-            : ' sf-font-modern';
-        setTheme({ style: toStorefrontStyle(catalog.restaurant.websiteColors), fontClass, isLoading: false, logoUrl: catalog.restaurant.logoUrl, restaurantName: catalog.restaurant.name, restaurantInitials: catalog.restaurant.initials });
-      } catch {
-        // Keep the public account usable with storefront defaults if theme lookup fails.
-        if (active) setTheme(current => ({ ...current, isLoading: false }));
-      }
-    })();
+    const cached = themeCache.get(key);
+    if (cached) {
+      setTheme(cached);
+      return () => { active = false; };
+    }
+    setTheme(current => ({ ...current, isLoading: true }));
+    void resolveTheme(key, restaurantSlug).then(resolved => {
+      if (active) setTheme(resolved);
+    });
     return () => { active = false; };
-  }, [restaurantSlug]);
+  }, [key, restaurantSlug]);
 
   return theme;
 }
