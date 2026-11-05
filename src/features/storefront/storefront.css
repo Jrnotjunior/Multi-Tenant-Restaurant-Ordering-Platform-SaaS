@@ -436,9 +436,9 @@
 .sf-checkout-section{min-width:0;margin:0;padding:12px 11px 11px;border:1px solid var(--sf-border);border-radius:13px;background:var(--sf-page-background)}
 .sf-checkout-section legend{padding:0 5px;font-size:var(--sf-font-size-13);font-weight:750;color:var(--sf-font-color)}
 .sf-order-type-options{display:grid;gap:8px}
-.sf-order-type-option{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;box-sizing:border-box;padding:10px 12px;border:1px solid var(--sf-border);border-radius:10px;font-size:var(--sf-font-size-13);font-weight:650;cursor:pointer}
-.sf-order-type-option.is-selected{border:1px solid var(--sf-primary-button);padding:10px 12px;background:var(--sf-page-background)}
-.sf-order-type-option input{width:16px;height:16px;margin:0;accent-color:var(--sf-font-color);flex-shrink:0}
+.sf-order-type-option{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;box-sizing:border-box;padding:10px 12px;border:1px solid var(--sf-border);border-radius:10px;background:var(--sf-page-background);color:var(--sf-font-color);font-size:var(--sf-font-size-13);font-weight:650;cursor:pointer}
+.sf-order-type-option.is-selected{border:1px solid var(--sf-secondary-button);padding:10px 12px;background:var(--sf-secondary-button);color:var(--sf-secondary-button-font)}
+.sf-order-type-option input{width:16px;height:16px;margin:0;accent-color:var(--sf-secondary-button-font);flex-shrink:0}
 .sf-checkout-fields{display:grid;gap:11px}
 .sf-checkout-fields label{display:grid;gap:5px;font-size:var(--sf-font-size-12);font-weight:700}
 .sf-checkout-fields input,.sf-checkout-fields textarea{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--sf-border);border-radius:10px;background:var(--sf-page-background);color:var(--sf-font-color);padding:11px 12px;font-size:var(--sf-font-size-14);font-weight:400}
