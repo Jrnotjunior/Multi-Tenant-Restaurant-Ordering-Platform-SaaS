@@ -83,7 +83,7 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
     }
   }
   const base = normalizeAppBase(baseUrl);
-  if (loading || themeLoading) return <CustomerAccountLoading />;
+  if (themeLoading) return <CustomerAccountLoading />;
   return <div className={"sf-storefront sf-account-page sf-account-shell"+fontClass} style={storefrontTheme}>
     <header className="sf-header">
       <div className="sf-header-inner">
@@ -99,6 +99,7 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
       <h1>Order history</h1>
       <p>Your orders are saved to your Web2Table account and loaded from the database.</p>
       {message && <p role="status">{message} <a href={base + '#/account/sign-in'}>Sign in</a></p>}
+      {loading && <p role="status">Loading your orders…</p>}
       {!loading && !message && orders.length === 0 && <p>You haven’t placed any orders while signed in yet.</p>}
       {orders.map(order => <button type="button" className="sf-order-history-row" key={order.order_id} onClick={() => setSelectedOrder(order)} aria-label={`View details for order number ${String(order.order_number).padStart(5, '0')}`}>
         <span className="sf-order-history-row-number">Order #{String(order.order_number).padStart(5, '0')}</span>
