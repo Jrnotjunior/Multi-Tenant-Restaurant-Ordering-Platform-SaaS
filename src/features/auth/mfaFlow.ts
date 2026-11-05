@@ -24,12 +24,17 @@ export function getMfaFlow(client: SupabaseClient): Promise<MfaFlow> {
 }
 
 async function resolve(client: SupabaseClient): Promise<MfaFlow> {
-  const [{ data: assurance, error: assuranceError }, { data: factors, error: factorsError }] =
+  const [{ data: sessionData, error: sessionError }, { data: assurance, error: assuranceError }, { data: factors, error: factorsError }] =
     await Promise.all([
+      client.auth.getSession(),
       client.auth.mfa.getAuthenticatorAssuranceLevel(),
       client.auth.mfa.listFactors(),
     ]);
 
+  if (sessionError) throw sessionError;
+  if (!sessionData.session) {
+    throw new Error('Your sign-in session is no longer active. Sign in again to continue secure account setup.');
+  }
   if (assuranceError) throw assuranceError;
   if (factorsError) throw factorsError;
 
@@ -40,7 +45,10 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
 
   // Inspect every factor type before enrolling. Supabase can reject TOTP
   // enrollment when another factor type (for example, phone MFA) is verified.
-  const allFactors = factors.all ?? [...factors.totp, ...factors.phone];
+  // The aggregate "all" collection can be empty even while the typed
+  // collections contain verified factors. Always inspect both typed lists;
+  // otherwise we may try to enroll over an existing verified factor.
+  const allFactors = [...factors.totp, ...factors.phone];
   const verifiedFactors = allFactors.filter((factor) => factor.status === 'verified');
   const verifiedTotp = verifiedFactors.find((factor) => factor.factor_type === 'totp');
   if (verifiedTotp) {
@@ -89,18 +97,11 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
     const factorLimitError = /mfa_verified_factor_exists|too_many_enrolled_mfa_factors/i.test(String(enrollmentError.code ?? ''))
       || /maximum number of verified factors|max(imum)? number.*verified factors|verified factors reached|verified phone factor already exists|too many enrolled mfa factors/i.test(enrollmentError.message);
     if (factorLimitError) {
-      // The Auth API can have newer factor state than the current access token.
-      // Refresh once, then re-read factors before deciding how the user can proceed.
-      const { error: sessionRefreshError } = await client.auth.refreshSession();
-      if (sessionRefreshError) {
-        throw new Error('Supabase rejected authenticator enrollment due to an existing-factor limit, and the session could not be refreshed. Sign out and sign in again. No verified factor was changed.');
-      }
+      // Re-read the authoritative typed factor collections. Do not refresh the
+      // session or silently unenroll factors as a side effect of enrollment.
       const { data: refreshed, error: refreshError } = await client.auth.mfa.listFactors();
       if (refreshError) throw refreshError;
 
-      // Treat the typed factor lists as the source of truth. The aggregate
-      // "all" field may be empty/stale in some responses while typed lists
-      // still contain factors.
       const refreshedFactors = [...refreshed.totp, ...refreshed.phone];
       const refreshedVerified = refreshedFactors.filter((factor) => factor.status === 'verified');
       const refreshedTotp = refreshedVerified.find((factor) => factor.factor_type === 'totp');
@@ -109,32 +110,15 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
         return { kind: 'challenge', factorId: refreshedTotp.id };
       }
       if (refreshedVerified.length > 0) {
-        throw new Error('Supabase reports an existing verified security factor, but this screen cannot verify that factor type. Sign out and use the account recovery process or ask an administrator for help. No verified factor was changed.');
+        throw new Error('This account already has a verified security factor that this screen cannot verify. No factor was changed. Use the account recovery process or ask an administrator for help.');
       }
 
-      // This account has no verified factor, but abandoned TOTP enrollments
-      // can accumulate across interrupted setup attempts and exhaust the
-      // Auth API limit. Remove only unverified TOTP factors, then verify that
-      // the server has released the slots before retrying enrollment once.
-      for (const factor of refreshed.totp.filter((item) => item.status !== 'verified')) {
-        const { error: unenrollError } = await client.auth.mfa.unenroll({ factorId: factor.id });
-        if (unenrollError) throw unenrollError;
-      }
-      const { data: afterCleanup, error: cleanupReadError } = await client.auth.mfa.listFactors();
-      if (cleanupReadError) throw cleanupReadError;
-      const remainingVerified = [...afterCleanup.totp, ...afterCleanup.phone].filter((factor) => factor.status === 'verified');
-      const remainingTotp = afterCleanup.totp.filter((factor) => factor.status !== 'verified');
-      if (remainingVerified.length > 0) {
-        throw new Error('A verified security factor was found during recovery. No verified factor was changed. Please sign in again or contact your administrator.');
-      }
-      if (remainingTotp.length > 0) {
-        throw new Error('We found incomplete authenticator setups that could not be cleared automatically. Please contact your administrator for help. No verified factor was changed.');
+      const pendingTotp = refreshed.totp.filter((factor) => factor.status !== 'verified');
+      if (pendingTotp.length > 0) {
+        throw new Error('An incomplete authenticator setup is already registered. Use “Restart incomplete authenticator setup” to remove only the unfinished setup, then try again. No verified factor was changed.');
       }
 
-      // Do not automatically enroll again after Supabase returns a factor-limit
-      // error. Some failed enroll requests still leave an unverified row behind;
-      // automatic retries can accumulate abandoned factors and make recovery worse.
-      throw new Error('Supabase rejected authenticator setup because it reports a factor limit. Incomplete authenticator setups were checked, and no verified factor was changed. Use “Restart incomplete authenticator setup” to clear pending setup and try again.');
+      throw new Error('Supabase is still reporting an authenticator factor limit, but no verified factor is visible to this session. No factors were changed. Please ask an administrator to review the account MFA state.');
     }
     if (!/friendly name.*already exists|already exists.*friendly name/i.test(enrollmentError.message)) {
       throw enrollmentError;
@@ -160,6 +144,11 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
 
 export async function verifyMfa(client: SupabaseClient, factorId: string, code: string) {
   if (!/^[0-9]{6}$/.test(code)) throw new Error('Enter the six-digit authenticator code.');
+  const { data: sessionData, error: sessionError } = await client.auth.getSession();
+  if (sessionError) throw sessionError;
+  if (!sessionData.session) {
+    throw new Error('Your sign-in session is no longer active. Sign in again before verifying your authenticator.');
+  }
   const { data, error } = await client.auth.mfa.challenge({ factorId });
   if (error) throw error;
   const { error: verifyError } = await client.auth.mfa.verify({ factorId, challengeId: data.id, code });

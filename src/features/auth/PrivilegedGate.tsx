@@ -295,7 +295,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
       {!isExistingAccountMfa && <span className="auth-eyebrow">{isSetup ? 'STEP 1 OF 3 · ACCOUNT SECURITY' : isMfa ? 'STEP 2 OF 3 · ACCOUNT SECURITY' : 'PRIVILEGED ACCESS · MFA REQUIRED'}</span>}
       <h2>{isSetup ? 'Create your password' : isExistingAccountMfa ? 'Verify your identity' : isMfa ? 'Secure your account' : mode === 'admin' ? 'System administrator sign-in' : 'Restaurant team sign-in'}</h2>
       <p>{isSetup ? 'Set a secure password to activate your restaurant owner account.' : isExistingAccountMfa ? 'Your authenticator is already set up. Enter its current six-digit code to continue to your workspace.' : isMfa ? 'One quick security step, then you’re ready to get started.' : 'Accounts are provisioned by invitation only. Access is based on your verified role and database membership.'}</p>
-      {message && !message.includes("Authenticator setup needs recovery") && <p className="auth-message" role="alert">{message}</p>}
+
 
     {status === 'passwordsetup' && <form onSubmit={(e) => void savePassword(e)} className="auth-form">
       <label>Password<div className="onboarding-password-wrap"><input type={showNewPassword ? 'text' : 'password'} autoComplete="new-password" minLength={8} maxLength={128} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required /><button className="onboarding-password-toggle" type="button" onClick={() => setShowNewPassword(v => !v)} aria-label={showNewPassword ? 'Hide password' : 'Show password'}>{showNewPassword ? 'Hide' : 'Show'}</button></div></label>
@@ -363,5 +363,15 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
     </div>}
     {user && <button className="auth-secondary onboarding-signout" type="button" onClick={() => void logout()}>Sign out</button>}
     </section>
+    {message && !message.includes("Authenticator setup needs recovery") && <div className="auth-message-backdrop" role="presentation">
+      <section className="auth-message-modal" role="alertdialog" aria-modal="true" aria-labelledby="auth-message-title" aria-describedby="auth-message-description">
+        <div className="auth-message-modal-heading">
+          <span className="auth-message-modal-icon" aria-hidden="true">!</span>
+          <h2 id="auth-message-title">Something needs your attention</h2>
+        </div>
+        <p id="auth-message-description">{message}</p>
+        <button type="button" onClick={() => setMessage('')}>Close</button>
+      </section>
+    </div>}
   </main>;
 }

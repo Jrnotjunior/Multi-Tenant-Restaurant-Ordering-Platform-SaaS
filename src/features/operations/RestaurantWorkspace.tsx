@@ -49,6 +49,11 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (!restaurantName) return;
+    document.title = restaurantName;
+  }, [restaurantName]);
+
+  useEffect(() => {
     const syncOwnerPage = () => {
       const nextPage = ownerPageFromHash();
       setOwnerPage(nextPage);

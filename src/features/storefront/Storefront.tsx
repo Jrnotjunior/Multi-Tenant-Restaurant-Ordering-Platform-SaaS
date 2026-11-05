@@ -201,9 +201,10 @@ function CartContents({ cart, customized, menu, change, changeCustomized, onEdit
 
 function MenuCard({ item, customize, notify, checkAvailability }: { item: MenuItem; customize:(item:MenuItem)=>void; notify:(message:string)=>void; checkAvailability:()=>Promise<boolean> }) {
   const soldOut = item.isAvailable === false;
-  const tryAdd = async () => {
+  const tryAdd = () => {
     if (soldOut) { notify(`${item.name} is sold out and can’t be added to your cart.`); return; }
-    if (!(await checkAvailability())) return;
+    // Open customization immediately. Availability is revalidated when the
+    // customer confirms Add to Cart, before the item is saved.
     customize(item);
   };
   return <article className={'sf-menu-card' + (soldOut ? ' is-sold-out' : '')} style={{display:'grid',gridTemplateColumns:'160px minmax(0,1fr)',minHeight:166,borderRadius:15}}>
@@ -249,6 +250,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   );
   const [category, setCategory] = useState<Category>('All');
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const [branchDropdownOpen, setBranchDropdownOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [customerSignedIn, setCustomerSignedIn] = useState(false);
@@ -482,6 +484,11 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   }, [resolvedSlug, requestedSlug, selectedBranch]);
 
 
+
+  useEffect(() => {
+    if (!remoteCatalog?.restaurant.name) return;
+    document.title = remoteCatalog.restaurant.name;
+  }, [remoteCatalog?.restaurant.name]);
 
   useEffect(() => {
     const faviconUrl = remoteCatalog?.restaurant.faviconUrl;
@@ -757,6 +764,9 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           close={() => navigateCart(false)} onCheckout={() => navigateCheckout(true)}/>
       </CartPage> : checkoutPage && !checkoutGateReady ? <div className="sf-no-results" role="status"><h3>Checking store availability…</h3><p>Please wait while we confirm that this restaurant is accepting orders.</p></div> : checkoutPage ? <CheckoutPage
         onlinePaymentsAvailable={restaurant?.onlinePaymentsAvailable === true}
+        cashOnDeliveryEnabled={restaurant?.cashOnDeliveryEnabled === true}
+        cashOnPickupEnabled={restaurant?.cashOnPickupEnabled === true}
+        cashOnTakeOutEnabled={restaurant?.cashOnTakeOutEnabled === true}
         restaurantSlug={resolvedSlug ?? requestedSlug ?? ''}
         branchSlug={restaurant?.branchSlug ?? ''}
         itemCount={count}
@@ -841,12 +851,19 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           <h2>Ordering from {restaurant.branchName}</h2>
           <p>The menu is shared across branches; availability and prices may vary by branch. Switching branches clears your cart.</p>
         </div>
-        <label>Restaurant branch
-          <select aria-label="Restaurant branch" value={restaurant.branchSlug}
-            onChange={(event)=>switchBranch(event.target.value)}>
-            {catalog.branches.map(branch=><option key={branch.slug} value={branch.slug}>{branch.name}</option>)}
-          </select>
-        </label>
+        <div className="sf-branch-picker">
+          <span className="sf-branch-picker-label">Restaurant branch</span>
+          <div className="sf-branch-picker-control">
+            <button type="button" className="sf-branch-picker-trigger" aria-label="Restaurant branch" aria-haspopup="listbox" aria-expanded={branchDropdownOpen} onClick={()=>setBranchDropdownOpen(open=>!open)}>
+              <span>{restaurant.branchName}</span><span className="sf-branch-picker-chevron" aria-hidden="true">⌄</span>
+            </button>
+            {branchDropdownOpen && <div className="sf-branch-picker-options" role="listbox" aria-label="Restaurant branches">
+              {catalog.branches.map(branch=><button type="button" role="option" aria-selected={restaurant.branchSlug===branch.slug} className={'sf-branch-picker-option'+(restaurant.branchSlug===branch.slug?' is-selected':'')} key={branch.slug} onClick={()=>{setBranchDropdownOpen(false);switchBranch(branch.slug);}}>
+                <span>{branch.name}</span>{restaurant.branchSlug===branch.slug&&<span aria-hidden="true">✓</span>}
+              </button>)}
+            </div>}
+          </div>
+        </div>
       </section>}
 
       <div className="sf-layout" id="sf-menu">

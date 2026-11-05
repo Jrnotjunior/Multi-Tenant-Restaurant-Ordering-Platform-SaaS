@@ -41,6 +41,9 @@ type CheckoutPageProps = {
   onPlaceOrder: (submission: CheckoutSubmission) => Promise<{ orderNumber: number; checkoutUrl?: string; trackingToken: string }>;
   trackingOnly?: boolean;
   onlinePaymentsAvailable: boolean;
+  cashOnDeliveryEnabled: boolean;
+  cashOnPickupEnabled: boolean;
+  cashOnTakeOutEnabled: boolean;
 };
 
 function OrderTypeSection({ value, onChange }: {
@@ -140,7 +143,7 @@ function DeliveryAddressSection({ orderType, value, onSelect, streetAddress, onS
 }
 
 /** Standalone checkout screen. It prepares details only; it does not place or charge an order. */
-export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCentavos, orderLines, onBackToMenu, onPlaceOrder, trackingOnly = false, onlinePaymentsAvailable }: CheckoutPageProps) {
+export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCentavos, orderLines, onBackToMenu, onPlaceOrder, trackingOnly = false, onlinePaymentsAvailable, cashOnDeliveryEnabled, cashOnPickupEnabled, cashOnTakeOutEnabled }: CheckoutPageProps) {
   const [orderType, setOrderType] = useState<OrderType>('Delivery');
   const [customerFirstName, setCustomerFirstName] = useState('');
   const [customerLastName, setCustomerLastName] = useState('');
@@ -312,7 +315,7 @@ export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCe
       ? currentCashPaymentOptions?.cash_on_pickup_enabled === true
       : orderType === 'Take-out'
         ? currentCashPaymentOptions?.cash_on_take_out_enabled === true
-        : false;
+        : orderType === 'Dine-in';
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -336,13 +339,12 @@ export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCe
         throw new Error('The branch returned incomplete payment settings.');
       }
       const cash = latest.cashPaymentOptions as Record<string, unknown>;
-      const available = latest.onlinePaymentsAvailable === true;
       setCurrentCashPaymentOptions({
         cash_on_delivery_enabled: cash.cash_on_delivery_enabled === true,
         cash_on_pickup_enabled: cash.cash_on_pickup_enabled === true,
         cash_on_take_out_enabled: cash.cash_on_take_out_enabled === true,
       });
-      setCurrentOnlinePaymentsAvailable(available);
+      setCurrentOnlinePaymentsAvailable(latest.onlinePaymentsAvailable === true);
       setPaymentOptionsLoaded(true);
     } catch {
       setCurrentOnlinePaymentsAvailable(false);
@@ -437,6 +439,8 @@ export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCe
         <div className="sf-payment-modal-actions">
           <button type="button" className="sf-payment-cancel" onClick={() => setPaymentModalOpen(false)}>Cancel</button>
           <button type="button" className="sf-payment-place-order" disabled={!paymentMethod || submitting || checkingPaymentOptions || !paymentOptionsLoaded || Boolean(paymentOptionsError)} onClick={async () => {
+            if (paymentMethod === 'cash' && !cashPaymentAvailable) { setMessage('This cash payment method is not available for this order type. Please choose another enabled method.'); setPaymentMethod(''); return; }
+            if (!paymentMethod) { setMessage('Choose an available payment method.'); return; }
             if (paymentMethod === 'online' && !currentOnlinePaymentsAvailable) { setMessage('Online payments are not currently available for this restaurant. Please choose another enabled method.'); setPaymentMethod(''); return; }
             if (paymentMethod === 'online' && orderType === 'Delivery' && !deliveryQuote) { setMessage('Please wait for the delivery fee to be confirmed before online payment. No order has been placed.'); return; }
             const form = document.querySelector<HTMLFormElement>('.sf-checkout-page-form');

@@ -1,5 +1,4 @@
 import { createClient } from "npm:@supabase/supabase-js@2.58.0";
-import { enabledPayMongoPaymentTypes, hasActivePayMongoAccount } from "../_shared/onlinePayments.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -47,7 +46,7 @@ Deno.serve(async (request) => {
 
     const admin = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
     const { data: order, error: orderError } = await admin.from("customer_orders")
-      .select("id,tenant_id,order_number,order_status,payment_status,total_centavos,currency,idempotency_key")
+      .select("id,tenant_id,branch_id,order_number,order_status,payment_status,total_centavos,currency,idempotency_key")
       .eq("id", orderId).maybeSingle();
     if (orderError) throw orderError;
     if (!order) return json({ error: "Order not found." }, 404);
@@ -60,34 +59,43 @@ Deno.serve(async (request) => {
     }
 
     const { data: storefront, error: storefrontError } = await admin.from("tenant_storefronts")
-      .select("status,online_payments").eq("tenant_id", order.tenant_id).maybeSingle();
+      .select("online_payments").eq("tenant_id", order.tenant_id).maybeSingle();
     if (storefrontError) throw storefrontError;
     const onlinePayments = storefront?.online_payments as {
       enabled?: boolean;
+      provider_configured?: boolean;
       methods?: Record<string, boolean>;
     } | null;
     if (onlinePayments?.enabled !== true) {
       return json({ error: "This restaurant is not currently accepting online payments." }, 409);
     }
-    const enabledPaymentTypes = enabledPayMongoPaymentTypes(onlinePayments.methods);
+    const methodMap: Array<[string, string]> = [
+      ["card", "card"], ["gcash", "gcash"], ["qrph", "qrph"],
+      ["grab_pay", "grab_pay"], ["paymaya", "paymaya"], ["dob", "dob"], ["billease", "billease"],
+    ];
+    const enabledPaymentTypes = methodMap
+      .filter(([key]) => onlinePayments.methods?.[key] === true)
+      .map(([, providerType]) => providerType);
     if (!enabledPaymentTypes.length) {
       return json({ error: "This restaurant has not selected any online payment methods yet." }, 409);
     }
 
+    // PayMongo is connected once per restaurant tenant, never per branch.
+    // Every branch order resolves the same tenant-level merchant account here.
     const { data: account, error: accountError } = await admin.from("tenant_paymongo_accounts")
-      .select("paymongo_account_id,connection_status,activation_status").eq("tenant_id", order.tenant_id)
+      .select("paymongo_account_id,connection_status").eq("tenant_id", order.tenant_id)
       .eq("environment", environment).maybeSingle();
     if (accountError) throw accountError;
-    if (storefront?.status !== "published") {
-      return json({ error: "This restaurant is not currently accepting online payments." }, 409);
-    }
-    // In test mode only, allow checkout through the platform's PayMongo test account.
-    // Live mode always requires the tenant's own active connected account.
-    const tenantAccountActive = hasActivePayMongoAccount(account, environment);
-    const platformTest = environment === "test" && !!secret && !tenantAccountActive;
+    // Test checkouts may use the platform test account. Live checkouts must use
+    // the restaurant's single active merchant account shared by all its branches.
+    const platformTest = environment === "test" && !!secret &&
+      (!account?.paymongo_account_id || account.connection_status !== "active");
     const effectiveAccountId = platformTest ? "platform_test" : account?.paymongo_account_id;
-    if (!effectiveAccountId || (!platformTest && !tenantAccountActive)) {
+    if (!effectiveAccountId || (!platformTest && account?.connection_status !== "active")) {
       return json({ error: "This restaurant has not enabled online payments for " + environment + " mode." }, 409);
+    }
+    if (environment === "live" && onlinePayments?.provider_configured !== true) {
+      return json({ error: "This restaurant's central PayMongo account is not configured for live payments." }, 409);
     }
 
     const { data: existing, error: existingError } = await admin.from("customer_order_payment_sessions")

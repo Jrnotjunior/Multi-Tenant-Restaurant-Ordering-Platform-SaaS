@@ -11,7 +11,7 @@ const pretty=(value:string)=>value.replaceAll('_',' ').replace(/^./,c=>c.toUpper
 
 export function OwnerEmployeesPage({tenantId}:{tenantId:string}){
  const [directory,setDirectory]=useState<Directory>({branches:[],staff:[],invitations:[]});
- const [email,setEmail]=useState('');const [firstName,setFirstName]=useState('');const [lastName,setLastName]=useState('');const [phone,setPhone]=useState('09');const [role,setRole]=useState('cashier');const [branchId,setBranchId]=useState('');
+ const [email,setEmail]=useState('');const [firstName,setFirstName]=useState('');const [lastName,setLastName]=useState('');const [phone,setPhone]=useState('');const [role,setRole]=useState('cashier');const [branchId,setBranchId]=useState('');
  const [editingUser,setEditingUser]=useState<string|null>(null);const [editingFirstName,setEditingFirstName]=useState('');const [editingLastName,setEditingLastName]=useState('');const [editingPhone,setEditingPhone]=useState('');const [editingRole,setEditingRole]=useState('cashier');const [editError,setEditError]=useState('');const [staffBusy,setStaffBusy]=useState<string|null>(null);
  const [loading,setLoading]=useState(true);const [sending,setSending]=useState(false);const [error,setError]=useState('');const [notice,setNotice]=useState('');
  const load=useCallback(async()=>{if(!supabase){setError('Restaurant services are not configured.');setLoading(false);return;}setLoading(true);setError('');
@@ -22,10 +22,10 @@ export function OwnerEmployeesPage({tenantId}:{tenantId:string}){
  },[tenantId]);
  useEffect(()=>{void load();},[load]);
  async function invite(event:React.FormEvent<HTMLFormElement>){event.preventDefault();if(!supabase)return;setError('');setNotice('');
-  if(!/^09\\d{9}$/.test(phone)){setError('Enter a valid 11-digit mobile number starting with 09.');return;}if(!branchId){setError('Create or activate a branch before inviting staff.');return;}setSending(true);
+  if(!/^09\d{9}$/.test(phone)){setError('Enter a valid 11-digit mobile number starting with 09.');return;}if(!branchId){setError('Create or activate a branch before inviting staff.');return;}setSending(true);
   try{const {data,error:invokeError}=await supabase.functions.invoke('restaurant-invite-staff',{body:{tenant_id:tenantId,email:email.trim(),first_name:firstName.trim(),last_name:lastName.trim(),phone,role,branch_id:branchId}});
    if(invokeError)throw invokeError;const response=data as {success?:boolean;message?:string;error?:string};if(!response?.success)throw new Error(response?.error??'The invitation could not be sent.');
-   setNotice('Invitation sent to '+email.trim()+'.');setEmail('');setFirstName('');setLastName('');setPhone('09');await load();
+   setNotice('Invitation sent to '+email.trim()+'.');setEmail('');setFirstName('');setLastName('');setPhone('');await load();
   }catch(reason){setError(reason instanceof Error?reason.message:'Unable to send staff invitation.');}finally{setSending(false);}
  }
  function beginEdit(member:Staff){setEditingUser(member.user_id);setEditingFirstName(member.first_name??'');setEditingLastName(member.last_name??'');setEditingPhone(member.phone??'');setEditingRole(member.role);setEditError('');setError('');setNotice('');}
