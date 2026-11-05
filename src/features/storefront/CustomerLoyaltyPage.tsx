@@ -7,7 +7,7 @@ import { useCustomerStorefrontTheme } from './useCustomerStorefrontTheme';
 import { CustomerAccountLoading } from './CustomerAccountLoading';
 type Tx={id:string;tenant_id:string;points_change:number;transaction_type:string;description:string;created_at:string;restaurantName?:string};
 export function CustomerLoyaltyPage({baseUrl}:{baseUrl:string}){
- const {style:storefrontTheme,fontClass,isLoading:themeLoading}=useCustomerStorefrontTheme();
+ const {style:storefrontTheme,fontClass,isLoading:themeLoading,logoUrl,restaurantName,restaurantInitials}=useCustomerStorefrontTheme();
  const base=normalizeAppBase(baseUrl),[points,setPoints]=useState(0),[earned,setEarned]=useState(0),[redeemed,setRedeemed]=useState(0),[transactions,setTransactions]=useState<Tx[]>([]),[loading,setLoading]=useState(true),[message,setMessage]=useState('');
  useEffect(()=>{let live=true;void(async()=>{if(!supabase){setMessage('Account services are not configured.');setLoading(false);return;}const {data,error}=await supabase.auth.getSession();const user=data.session?.user;if(error||!user){window.location.hash = '#/account/sign-in';return;}
  const [accounts,ledger]=await Promise.all([
@@ -31,9 +31,8 @@ export function CustomerLoyaltyPage({baseUrl}:{baseUrl:string}){
  if(loading||themeLoading)return <CustomerAccountLoading />;
  return <div className={"sf-storefront sf-account-page sf-account-shell"+fontClass} style={storefrontTheme}>
   <StorefrontHeader
-   logo={<a href={base} className="sf-logo sf-account-brand" aria-label="Web2Table storefront">
-    <img className="sf-logo-image" src="https://wvibrchebfwirbgkcnbr.supabase.co/storage/v1/object/public/web2table-assets/web2table.png" alt="Web2Table" width={46} height={46}/>
-    <span>Web2Table</span>
+   logo={<a href={base} className="sf-logo sf-account-brand" aria-label={(restaurantName??"Restaurant")+" storefront"}>
+    {logoUrl?<img className="sf-logo-image" src={logoUrl} alt={(restaurantName??"Restaurant")+" logo"} width={46} height={46}/>:<span className="sf-logo-mark">{restaurantInitials??"R"}</span>}
    </a>}
   />
   <main className="sf-main sf-account-main">
