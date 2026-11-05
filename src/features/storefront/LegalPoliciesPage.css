@@ -10,10 +10,10 @@
   overflow: visible;
   margin: 16px auto;
   padding: clamp(22px, 5vw, 36px);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--sf-border);
   border-radius: 20px;
-  background: var(--color-surface);
-  color: var(--color-text);
+  background: var(--sf-product-card);
+  color: var(--sf-font-color);
   box-shadow: 0 18px 48px rgb(16 27 47 / 7%);
 }
 
@@ -22,8 +22,8 @@
 .customer-legal-intro h1,
 .customer-legal-detail h1 {
   margin: 0 0 8px;
-  color: var(--color-text);
-  font-size: clamp(var(--font-size-26), 4vw, var(--font-size-32));
+  color: var(--sf-font-color);
+  font-size: clamp(var(--sf-font-size-26), 4vw, var(--sf-font-size-32));
   line-height: 1.2;
   letter-spacing: -.025em;
 }
@@ -36,22 +36,22 @@
   gap: 14px;
   min-width: 0;
   padding: 16px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--sf-border);
   border-radius: 12px;
-  background: var(--color-surface);
+  background: var(--sf-product-card);
   color: inherit;
   text-decoration: none;
   transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
 }
 
 .customer-legal-link:hover {
-  border-color: var(--color-active);
-  background: var(--color-page);
+  border-color: var(--sf-primary-button);
+  background: var(--sf-page-background);
   transform: translateY(-1px);
 }
 
 .customer-legal-link:focus-visible {
-  outline: 2px solid var(--color-active);
+  outline: 2px solid var(--sf-primary-button);
   outline-offset: 3px;
 }
 
@@ -62,8 +62,8 @@
   height: 42px;
   place-items: center;
   border-radius: 10px;
-  background: var(--color-page);
-  color: var(--color-text);
+  background: var(--sf-page-background);
+  color: var(--sf-font-color);
 }
 
 .customer-legal-icon svg {
@@ -84,27 +84,27 @@
 }
 
 .customer-legal-copy strong {
-  color: var(--color-text);
-  font-size: var(--font-size-14);
+  color: var(--sf-font-color);
+  font-size: var(--sf-font-size-14);
   line-height: 1.35;
 }
 
 .customer-legal-copy > span {
-  color: var(--color-muted);
-  font-size: var(--font-size-12);
+  color: var(--sf-muted);
+  font-size: var(--sf-font-size-12);
   line-height: 1.5;
 }
 
 .customer-legal-arrow {
-  color: var(--color-muted);
-  font-size: var(--font-size-24);
+  color: var(--sf-muted);
+  font-size: var(--sf-font-size-24);
   line-height: 1;
 }
 
 .customer-legal-eyebrow {
   margin: 0 0 8px;
-  color: var(--color-muted);
-  font-size: var(--font-size-11);
+  color: var(--sf-muted);
+  font-size: var(--sf-font-size-11);
   font-weight: 750;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -112,27 +112,27 @@
 
 .customer-legal-intro-copy {
   margin: 0 0 24px;
-  color: var(--color-muted);
-  font-size: var(--font-size-14);
+  color: var(--sf-muted);
+  font-size: var(--sf-font-size-14);
   line-height: 1.65;
 }
 
 .customer-legal-section {
   padding: 18px 0;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--sf-border);
 }
 
 .customer-legal-section h2 {
   margin: 0 0 8px;
-  color: var(--color-text);
-  font-size: var(--font-size-16);
+  color: var(--sf-font-color);
+  font-size: var(--sf-font-size-16);
   line-height: 1.4;
 }
 
 .customer-legal-section p {
   margin: 0;
-  color: var(--color-muted);
-  font-size: var(--font-size-14);
+  color: var(--sf-muted);
+  font-size: var(--sf-font-size-14);
   line-height: 1.65;
 }
 
@@ -156,8 +156,8 @@
 
   .customer-legal-link { gap: 10px; padding: 13px 11px; }
   .customer-legal-icon { flex-basis: 36px; width: 36px; height: 36px; }
-  .customer-legal-copy strong { font-size: var(--font-size-13); }
-  .customer-legal-copy > span { font-size: var(--font-size-11); }
+  .customer-legal-copy strong { font-size: var(--sf-font-size-13); }
+  .customer-legal-copy > span { font-size: var(--sf-font-size-11); }
 }
 
 @media (prefers-reduced-motion: reduce) {
