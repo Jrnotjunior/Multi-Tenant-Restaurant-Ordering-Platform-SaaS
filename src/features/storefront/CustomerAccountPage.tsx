@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { normalizeAppBase } from '../../app/routes';
 import { useCustomerStorefrontTheme } from './useCustomerStorefrontTheme';
-import { CustomerAccountLoading } from './CustomerAccountLoading';
 import './storefront.css';
 import { StorefrontFooter, StorefrontHeader } from './StorefrontChrome';
 
@@ -18,7 +17,7 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
   const [loading, setLoading] = useState(true);
   const [signedIn, setSignedIn] = useState(false);
   const [message, setMessage] = useState('');
-  const { style: storefrontTheme, fontClass: tenantFontClass, isLoading: themeLoading, logoUrl, restaurantName, restaurantInitials } = useCustomerStorefrontTheme();
+  const { style: storefrontTheme, fontClass: tenantFontClass, logoUrl, restaurantName, restaurantInitials } = useCustomerStorefrontTheme();
   const base = normalizeAppBase(baseUrl);
 
   useEffect(() => {
@@ -73,7 +72,6 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
   const authHref = (mode: 'sign-in' | 'sign-up') => base + '#/account/' + mode;
   const protectedHref = (path: string) => signedIn ? base + '#/' + path : authHref('sign-in');
 
-  if (themeLoading) return <CustomerAccountLoading />;
 
   return <div className={"sf-storefront sf-account-page" + tenantFontClass} style={storefrontTheme}>
     <a className="sf-skip-link" href="#customer-account-main">Skip to account content</a>
