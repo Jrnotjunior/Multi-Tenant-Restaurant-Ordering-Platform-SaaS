@@ -650,7 +650,7 @@
 .sf-checkout-loyalty-control small{color:var(--sf-muted);font-size:var(--sf-font-size-12);font-weight:400}
 
 /* Standalone customer account routes share the storefront shell without tenant-specific styling. */
-.sf-account-shell{--sf-muted:color-mix(in srgb,var(--sf-font-color) 68%,transparent);--sf-page-background:#f4f5fa;--sf-header-color:#101b2f;--sf-footer-background:#101b2f;--sf-footer-font:#fff;--sf-font-color:#101b2f;--sf-product-card:#fff;--sf-border:#dce3ed;--sf-primary-button:#101b2f;--sf-secondary-button:#101b2f;--sf-header-icon:#fff;--sf-soft:#f4f5fa;min-height:100vh}
+.sf-account-shell{min-height:100vh}
 .sf-account-shell .sf-header-inner{width:min(1100px,calc(100% - 2rem))}
 .sf-account-brand{gap:10px;font-weight:750;color:var(--sf-footer-font)}
 .sf-account-brand .sf-logo-image{width:38px;height:38px;object-fit:contain}
