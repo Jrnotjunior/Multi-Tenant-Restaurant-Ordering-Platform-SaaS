@@ -40,6 +40,7 @@ function ownerPageFromHash(): OwnerPage {
 export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
   const [membership, setMembership] = useState<Membership | null>(cachedWorkspace?.membership ?? null);
   const [restaurantName, setRestaurantName] = useState<string | null>(cachedWorkspace?.restaurantName ?? null);
+  const [restaurantLogoUrl, setRestaurantLogoUrl] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState(cachedWorkspace?.displayName ?? 'Store Owner');
   const [ownerPage, setOwnerPage] = useState<OwnerPage>(() => ownerPageFromHash());
   const [visitedOwnerPages, setVisitedOwnerPages] = useState<Set<OwnerPage>>(() => new Set<OwnerPage>([ownerPageFromHash()]));
@@ -78,9 +79,11 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
     let active = true;
     const loadFavicon = async () => {
       const { data, error } = await client.from('tenant_storefronts')
-        .select('favicon_path').eq('tenant_id', membership.tenant_id).maybeSingle();
+        .select('favicon_path,logo_path').eq('tenant_id', membership.tenant_id).maybeSingle();
       if (error) throw error;
       if (!active || !data) return;
+      const logoUrl = data.logo_path ? client.storage.from('storefront-logos').getPublicUrl(data.logo_path).data.publicUrl : null;
+      setRestaurantLogoUrl(logoUrl);
       if (data.favicon_path) {
         const url = client.storage.from('storefront-logos').getPublicUrl(data.favicon_path).data.publicUrl;
         applyAppFavicon(url);
@@ -88,17 +91,23 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
         clearAppFavicon();
       }
     };
+    const handleLogoUpdate = (event: Event) => {
+      const detail = (event as CustomEvent<{ tenantId?: string; url?: string }>).detail;
+      if (detail?.tenantId === membership.tenant_id && detail.url) setRestaurantLogoUrl(detail.url);
+    };
     const handleFaviconUpdate = (event: Event) => {
       const detail = (event as CustomEvent<{ tenantId?: string; url?: string }>).detail;
       if (detail?.tenantId === membership.tenant_id && detail.url) applyAppFavicon(detail.url);
     };
     window.addEventListener('web2table:owner-favicon-updated', handleFaviconUpdate);
+    window.addEventListener('web2table:owner-logo-updated', handleLogoUpdate);
     void loadFavicon().catch(() => {
       // A missing favicon should not prevent the workspace from rendering.
     });
     return () => {
       active = false;
       window.removeEventListener('web2table:owner-favicon-updated', handleFaviconUpdate);
+      window.removeEventListener('web2table:owner-logo-updated', handleLogoUpdate);
     };
   }, [membership]);
 
@@ -221,7 +230,7 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
     return <OwnerSectionPage page={page} tenantId={membership.tenant_id} restaurantName={restaurantName} onNavigate={navigateOwnerPage} />;
   };
 
-  return <OwnerAppShell baseUrl={baseUrl} groups={visibleOwnerNavGroups} page={ownerPage} displayName={displayName} onNavigate={navigateOwnerPage} onSignOut={signOut}>
+  return <OwnerAppShell baseUrl={baseUrl} groups={visibleOwnerNavGroups} page={ownerPage} displayName={displayName} restaurantLogoUrl={restaurantLogoUrl} onNavigate={navigateOwnerPage} onSignOut={signOut}>
     {visibleOwnerNavGroups.flatMap(group => group.items).filter(item => visitedOwnerPages.has(item.key)).map(item => (
       <div key={item.key} style={{ display: ownerPage === item.key ? 'contents' : 'none' }} aria-hidden={ownerPage !== item.key}>
         {renderOwnerPage(item.key)}
