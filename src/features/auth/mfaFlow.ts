@@ -46,7 +46,7 @@ function storeEnrollment(userId: string, enrollment: Extract<MfaFlow, { kind: 'e
       expiresAt: Date.now() + ENROLLMENT_TTL_MS,
     }));
   } catch {
-    throw new Error('Your browser could not securely retain the pending authenticator setup. Keep this page open and do not refresh until setup is verified.');
+    throw new Error('Your browser could not retain the pending authenticator setup. Keep this page open and do not refresh until setup is verified.');
   }
 }
 
