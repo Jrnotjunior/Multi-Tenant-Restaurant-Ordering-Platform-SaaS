@@ -2206,6 +2206,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      owner_cancel_privileged_invitation: {
+        Args: { p_tenant_id: string; p_invitation_id: string }
+        Returns: boolean
+      }
       accept_privileged_invitation: {
         Args: { p_invitation_id: string }
         Returns: string
