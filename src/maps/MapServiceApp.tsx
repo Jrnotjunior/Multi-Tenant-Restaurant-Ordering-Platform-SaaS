@@ -10,7 +10,7 @@ type InitOptions = {
   disabled: boolean;
   initialLatitude: number | null;
   initialLongitude: number | null;
-  theme: { pageBackground: string; primaryButton: string; primaryButtonFont: string };
+  theme: { pageBackground: string; fontColor: string; primaryButton: string; primaryButtonFont: string };
 };
 type MapSession = InitOptions & { parentOrigin: string };
 type PendingConfirmation = { resolve: () => void; reject: (error: Error) => void };
@@ -45,6 +45,7 @@ function parseInit(value: unknown): InitOptions | null {
     initialLongitude: longitude,
     theme: {
       pageBackground: safeColor(themeValue?.pageBackground, '#ffffff'),
+      fontColor: safeColor(themeValue?.fontColor, '#172033'),
       primaryButton: safeColor(themeValue?.primaryButton, '#111827'),
       primaryButtonFont: safeColor(themeValue?.primaryButtonFont, '#ffffff'),
     },
@@ -217,7 +218,7 @@ export function MapServiceApp() {
   const fillLayout = new URLSearchParams(window.location.search).get('layout') === 'fill';
 
   return (
-    <main className={`map-service-page${session.variant === 'restaurant' ? ' map-service-page--restaurant' : ''}${fillLayout ? ' map-service-page--fill' : ''}`} style={{ '--map-page-background': session.theme.pageBackground, '--map-primary-button': session.theme.primaryButton, '--map-primary-button-font': session.theme.primaryButtonFont } as CSSProperties}>
+    <main className={`map-service-page${session.variant === 'restaurant' ? ' map-service-page--restaurant' : ''}${fillLayout ? ' map-service-page--fill' : ''}`} style={{ '--map-page-background': session.theme.pageBackground, '--map-font-color': session.theme.fontColor, '--map-primary-button': session.theme.primaryButton, '--map-primary-button-font': session.theme.primaryButtonFont } as CSSProperties}>
       <MapboxLocationPickerUi
           variant={session.variant}
         disabled={session.disabled}
