@@ -28,7 +28,7 @@ export async function setPosIntegration(
   const { data, error } = await requireClient().rpc('set_tenant_pos_integration', {
     p_tenant_id: tenantId,
     p_action: action,
-    p_reason: reason.trim() || null,
+    p_reason: reason.trim(),
   });
   if (error) throw error;
   const status = (data as { status?: unknown } | null)?.status;
