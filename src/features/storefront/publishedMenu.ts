@@ -214,17 +214,18 @@ export async function loadPublishedMenu(slug:string,branchSlug:string|null=null)
 }
 
 /** Resolve the current verified custom domain, then use the same branch-aware menu RPC. */
-export async function loadDomainPublishedMenu(hostname:string,branchSlug:string|null=null):Promise<{matched:boolean;slug:string|null;catalog:StorefrontCatalog|null}> {
+export async function loadDomainPublishedMenu(hostname:string,branchSlug:string|null=null):Promise<{matched:boolean;slug:string|null;restaurantName:string|null;catalog:StorefrontCatalog|null}> {
   if (!supabase) throw new Error('Menu service is not configured');
   const cleanHostname=hostname.trim().toLowerCase().replace(/\.$/,'');
-  if (!cleanHostname || cleanHostname.length>253) return {matched:false,slug:null,catalog:null};
+  if (!cleanHostname || cleanHostname.length>253) return {matched:false,slug:null,restaurantName:null,catalog:null};
   const {data,error}=await supabase.rpc('resolve_public_storefront_domain',{p_hostname:cleanHostname});
   if(error) throw new Error('Custom domain service unavailable');
   if(!record(data)||typeof data.matched!=='boolean')throw new Error('Invalid custom domain response');
-  if(!data.matched)return {matched:false,slug:null,catalog:null};
-  if(typeof data.slug!=='string'||! /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(data.slug))return {matched:true,slug:null,catalog:null};
+  if(!data.matched)return {matched:false,slug:null,restaurantName:null,catalog:null};
+  const restaurantName=validText(data.restaurantName,160)?data.restaurantName.trim():null;
+  if(typeof data.slug!=='string'||! /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(data.slug))return {matched:true,slug:null,restaurantName,catalog:null};
   const catalog=await loadPublishedMenu(data.slug,branchSlug);
-  return {matched:true,slug:data.slug,catalog};
+  return {matched:true,slug:data.slug,restaurantName,catalog};
 }
 
 /** A custom domain uses /<branch-slug>; its root resolves to the configured default branch. */
