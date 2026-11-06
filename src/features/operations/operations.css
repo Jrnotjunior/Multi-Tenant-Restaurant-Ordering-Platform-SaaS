@@ -736,3 +736,7 @@
 .w2t-branch-store-status-list .w2t-setting-switch-row small{color:var(--owner-muted,var(--color-muted,#64748b));font-size:.82rem}
 
 .owner-sidebar-brand-image{display:block;width:44px;height:44px;max-width:100%;object-fit:contain;border-radius:8px;background:transparent}
+
+.owner-sidebar-heading{gap:11px;min-width:0}
+.owner-sidebar-brand-image{width:40px;height:40px;flex:0 0 40px}
+.owner-sidebar-restaurant-name{min-width:0;overflow:hidden;color:#f4f7fc;font-size:13px;font-weight:750;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}
