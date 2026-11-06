@@ -4,13 +4,16 @@ const FAVICON_STORAGE_KEY = 'web2table:active-favicon';
 const ACTIVE_STOREFRONT_SLUG_KEY = 'web2table:active-storefront-slug';
 
 function getManagedFaviconLink(): HTMLLinkElement {
-  let link = document.querySelector<HTMLLinkElement>('link[data-web2table-favicon="true"]');
+  // Update the document's existing icon link (including index.html's neutral
+  // fallback) instead of appending a second icon that browsers may ignore.
+  let link = document.querySelector<HTMLLinkElement>('link[data-web2table-favicon="true"]')
+    ?? document.querySelector<HTMLLinkElement>('link[rel~="icon"]');
   if (!link) {
     link = document.createElement('link');
     link.rel = 'icon';
-    link.dataset.web2tableFavicon = 'true';
     document.head.appendChild(link);
   }
+  link.dataset.web2tableFavicon = 'true';
   return link;
 }
 
@@ -42,7 +45,9 @@ export function restoreAppFavicon(): void {
 
 /** Clear a previous tenant icon when the newly loaded tenant has no favicon. */
 export function clearAppFavicon(): void {
-  document.querySelector<HTMLLinkElement>('link[data-web2table-favicon="true"]')?.remove();
+  const link = getManagedFaviconLink();
+  link.href = '/globe.svg';
+  link.type = 'image/svg+xml';
   try {
     window.sessionStorage.removeItem(FAVICON_STORAGE_KEY);
   } catch {
