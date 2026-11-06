@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from './database.types';
 import { readPublicConfig } from './config';
 
 const config = readPublicConfig(import.meta.env);
@@ -55,7 +56,7 @@ const tabAuth = getTabAuthStorage();
  * reuses the existing client instead of creating competing GoTrueClient
  * instances against the same storage key.
  */
-type BrowserSupabaseClient = ReturnType<typeof createClient>;
+type BrowserSupabaseClient = ReturnType<typeof createClient<Database>>;
 type SupabaseClientRegistry = typeof globalThis & {
   __web2tableSupabaseClients?: Map<string, unknown>;
 };
@@ -72,7 +73,7 @@ function getOrCreateSupabaseClient(): BrowserSupabaseClient | null {
   const existing = registry.get(registryKey);
   if (existing) return existing as BrowserSupabaseClient;
 
-  const client = createClient(config.url, config.publishableKey, {
+  const client = createClient<Database>(config.url, config.publishableKey, {
     auth: {
       ...(tabAuth ? { storage: tabAuth.storage, storageKey: tabAuth.storageKey } : {}),
       persistSession: true,
