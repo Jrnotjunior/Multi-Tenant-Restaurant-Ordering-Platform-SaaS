@@ -457,8 +457,8 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
 
   function actions(order: Order): StaffOrderActionButton[] {
     if (role === 'cashier' && order.order_status === 'pending_confirmation') return [
-      { action: 'confirm', label: 'Confirm order', primary: true },
       { action: 'cancel', label: 'Cancel order', primary: false },
+      { action: 'confirm', label: 'Confirm order', primary: true },
     ];
     if (role === 'cashier' && order.order_status === 'ready_for_pickup') return [{ action: 'complete_handoff', label: 'Complete handoff', primary: true }];
     if (role === 'kitchen' && order.order_status === 'preparing') return [{ action: 'mark_ready', label: 'Mark ready', primary: true }];
