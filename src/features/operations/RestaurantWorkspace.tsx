@@ -139,10 +139,25 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
         const selected = memberships.find(item => item.role === 'restaurant_owner') ?? memberships[0] ?? null;
         let nextRestaurantName: string | null = null;
         if (selected) {
-          const { data: tenant, error: tenantError } = await supabase.from('tenants')
-            .select('name').eq('id', selected.tenant_id).maybeSingle();
+          const [{ data: tenant, error: tenantError }, { data: tenantDomain, error: domainError }] = await Promise.all([
+            supabase.from('tenants').select('name').eq('id', selected.tenant_id).maybeSingle(),
+            supabase.rpc('get_workspace_tenant_domain', { p_tenant_id: selected.tenant_id }),
+          ]);
           if (tenantError) throw tenantError;
+          if (domainError) throw domainError;
           nextRestaurantName = tenant?.name ?? null;
+          const hostname = tenantDomain && typeof tenantDomain === 'object'
+            && 'hostname' in tenantDomain && typeof (tenantDomain as { hostname?: unknown }).hostname === 'string'
+            ? (tenantDomain as { hostname: string }).hostname.toLowerCase() : null;
+          if (hostname && hostname !== window.location.hostname.toLowerCase()
+            && window.location.hostname.toLowerCase() === 'app.web2table.io') {
+            const target = new URL(window.location.href);
+            target.hostname = hostname;
+            target.protocol = 'https:';
+            target.port = '';
+            window.location.replace(target.toString());
+            return;
+          }
         }
         if (!active) return;
         const nextDisplayName = userDisplayName(authData.user, selected?.role === 'restaurant_owner' ? 'Store Owner' : selected?.role === 'dispatcher' ? 'Dispatcher' : selected?.role === 'rider' ? 'Rider' : selected?.role === 'cashier' ? 'Cashier' : 'Kitchen Staff');
