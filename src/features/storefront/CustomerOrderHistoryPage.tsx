@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { normalizeAppBase } from '../../app/routes';
 import { CustomerAccountBackLink, StorefrontFooter } from './StorefrontChrome';
+import { CustomerAccountLoading } from './CustomerAccountLoading';
 import './storefront.css';
 import { useCustomerStorefrontTheme } from './useCustomerStorefrontTheme';
 
@@ -17,7 +18,7 @@ const titleCaseLabel = (value: string | null | undefined) => (value ?? '').repla
 const peso = (value: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(value / 100);
 
 export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
-  const { style: storefrontTheme, fontClass, logoUrl, restaurantName, restaurantInitials } = useCustomerStorefrontTheme();
+  const { style: storefrontTheme, fontClass, isLoading: themeLoading, logoUrl, restaurantName, restaurantInitials } = useCustomerStorefrontTheme();
   const [orders, setOrders] = useState<HistoryOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
@@ -43,6 +44,7 @@ export function CustomerOrderHistoryPage({ baseUrl }: { baseUrl: string }) {
   }, []);
 
   const base = normalizeAppBase(baseUrl);
+  if (themeLoading) return <CustomerAccountLoading />;
   return <div className={"sf-storefront sf-account-page sf-account-shell"+fontClass} style={storefrontTheme}>
     <header className="sf-header">
       <div className="sf-header-inner">
