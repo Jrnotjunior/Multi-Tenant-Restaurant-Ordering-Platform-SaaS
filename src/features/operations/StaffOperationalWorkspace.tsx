@@ -241,7 +241,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     if (!quiet) setLoading(true);
     setError('');
     try {
-      const { data, error: queryError } = await supabase.rpc('list_staff_orders', { p_tenant_id: tenantId, p_filter: role === 'rider' ? 'all' : filter, p_limit: 100 });
+      const { data, error: queryError } = await supabase.rpc('list_staff_orders', { p_tenant_id: tenantId, p_filter: role === 'rider' || (role === 'cashier' && cashierTab === 'sales') ? 'all' : filter, p_limit: 100 });
       if (queryError) throw queryError;
       const next = ((data as { orders?: Order[] } | null)?.orders ?? []) as Order[];
       setOrders(next);
@@ -256,7 +256,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       }
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to load staff orders.'); }
     finally { if (!quiet) setLoading(false); }
-  }, [tenantId, role, filter]);
+  }, [tenantId, role, filter, cashierTab]);
 
   useEffect(() => {
     void load();
