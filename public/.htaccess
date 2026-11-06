@@ -1,0 +1,13 @@
+# Hostinger / Apache / LiteSpeed SPA fallback.
+# Keep real assets and standalone pages (for example maps.html) untouched;
+# let the React router handle application paths such as /restaurant.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  RewriteRule ^ index.html [L]
+</IfModule>
