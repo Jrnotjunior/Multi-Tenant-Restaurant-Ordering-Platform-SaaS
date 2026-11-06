@@ -2,9 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.58.0";
 
 const APP_URL = Deno.env.get("TENANT_SETUP_URL") ?? "https://app.web2table.io/restaurant";
-const allowedOrigins = new Set(["https://admin.web2table.io","https://app.web2table.io","https://jrnotjunior.github.io"]);
 async function isAllowedOrigin(origin: string, adminClient?: ReturnType<typeof createClient>) {
-  if (allowedOrigins.has(origin)) return true;
   if (!adminClient || !origin) return false;
   try {
     const parsed = new URL(origin);
