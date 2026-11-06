@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { MapboxLocationPickerUi } from '../components/MapboxLocationPickerUi';
 import { normalizeSecureOrigin, type DeliveryLocationAddress } from '../modules/location/mapServiceProtocol';
 import { supabaseGet, supabaseRpc } from './mapServiceSupabase';
@@ -217,7 +217,7 @@ export function MapServiceApp() {
   const fillLayout = new URLSearchParams(window.location.search).get('layout') === 'fill';
 
   return (
-    <main className={`map-service-page${session.variant === 'restaurant' ? ' map-service-page--restaurant' : ''}${fillLayout ? ' map-service-page--fill' : ''}`} style={{ '--map-page-background': session.theme.pageBackground, '--map-primary-button': session.theme.primaryButton, '--map-primary-button-font': session.theme.primaryButtonFont } as React.CSSProperties}>
+    <main className={`map-service-page${session.variant === 'restaurant' ? ' map-service-page--restaurant' : ''}${fillLayout ? ' map-service-page--fill' : ''}`} style={{ '--map-page-background': session.theme.pageBackground, '--map-primary-button': session.theme.primaryButton, '--map-primary-button-font': session.theme.primaryButtonFont } as CSSProperties}>
       <MapboxLocationPickerUi
           variant={session.variant}
         disabled={session.disabled}
