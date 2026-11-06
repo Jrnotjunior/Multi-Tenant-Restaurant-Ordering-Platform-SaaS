@@ -243,6 +243,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     return branchSlugFromDomainPath(relative==='index.html'?'':relative);
   });
   const [customDomainMatched,setCustomDomainMatched]=useState(false);
+  const [customDomainRestaurantName,setCustomDomainRestaurantName]=useState<string|null>(null);
   const [resolvedSlug, setResolvedSlug] = useState<string | null>(requestedSlug);
   // The root storefront can resolve to a tenant slug after loading. Use that same tenant key for the menu and its route-backed cart page.
   const cartStorageKey = 'web2table:cart:' + (resolvedSlug ?? requestedSlug ?? 'default') + ':' + (selectedBranch ?? 'default');
@@ -431,6 +432,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     const load = loadDomainPublishedMenu(window.location.hostname,selectedBranch).then(domain=>{
       if(!active)return null;
       setCustomDomainMatched(domain.matched);
+      setCustomDomainRestaurantName(domain.restaurantName);
       if(domain.matched) {
         if(requestedSlug&&requestedSlug!==domain.slug&&!legacyBranchRoute)return null;
         return domain.slug&&domain.catalog?{slug:domain.slug,catalog:domain.catalog}:null;
@@ -492,9 +494,9 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
 
 
   useEffect(() => {
-    if (!remoteCatalog?.restaurant.name) return;
-    document.title = remoteCatalog.restaurant.name;
-  }, [remoteCatalog?.restaurant.name]);
+    const restaurantName = remoteCatalog?.restaurant.name ?? (customDomainMatched ? customDomainRestaurantName : null);
+    document.title = restaurantName ? restaurantName : 'Restaurant Ordering';
+  }, [remoteCatalog?.restaurant.name, customDomainRestaurantName, customDomainMatched]);
 
   useEffect(() => {
     const faviconUrl = remoteCatalog?.restaurant.faviconUrl;
