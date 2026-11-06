@@ -7,6 +7,52 @@ export type MfaFlow =
 
 const inFlight = new WeakMap<SupabaseClient, Promise<MfaFlow>>();
 const enrollments = new WeakMap<SupabaseClient, Extract<MfaFlow, { kind: 'enroll' }>>();
+const ENROLLMENT_STORAGE_PREFIX = 'web2table.pending-totp.v1:';
+const ENROLLMENT_TTL_MS = 30 * 60 * 1000;
+
+function enrollmentStorageKey(userId: string) {
+  return `${ENROLLMENT_STORAGE_PREFIX}${userId}`;
+}
+
+function readStoredEnrollment(userId: string): Extract<MfaFlow, { kind: 'enroll' }> | null {
+  try {
+    const raw = window.sessionStorage.getItem(enrollmentStorageKey(userId));
+    if (!raw) return null;
+    const value = JSON.parse(raw) as {
+      factorId?: unknown; qrCode?: unknown; uri?: unknown; expiresAt?: unknown;
+    };
+    if (
+      typeof value.factorId !== 'string'
+      || typeof value.qrCode !== 'string'
+      || typeof value.uri !== 'string'
+      || typeof value.expiresAt !== 'number'
+      || value.expiresAt <= Date.now()
+    ) {
+      window.sessionStorage.removeItem(enrollmentStorageKey(userId));
+      return null;
+    }
+    return { kind: 'enroll', factorId: value.factorId, qrCode: value.qrCode, uri: value.uri };
+  } catch {
+    return null;
+  }
+}
+
+function storeEnrollment(userId: string, enrollment: Extract<MfaFlow, { kind: 'enroll' }>) {
+  try {
+    window.sessionStorage.setItem(enrollmentStorageKey(userId), JSON.stringify({
+      factorId: enrollment.factorId,
+      qrCode: enrollment.qrCode,
+      uri: enrollment.uri,
+      expiresAt: Date.now() + ENROLLMENT_TTL_MS,
+    }));
+  } catch {
+    throw new Error('Your browser could not securely retain the pending authenticator setup. Keep this page open and do not refresh until setup is verified.');
+  }
+}
+
+function clearStoredEnrollment(userId: string) {
+  try { window.sessionStorage.removeItem(enrollmentStorageKey(userId)); } catch { /* best effort */ }
+}
 
 export function clearPendingMfa(client: SupabaseClient) {
   inFlight.delete(client);
@@ -38,8 +84,11 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
   if (assuranceError) throw assuranceError;
   if (factorsError) throw factorsError;
 
+  const userId = sessionData.session.user.id;
+
   if (assurance.currentLevel === 'aal2') {
     enrollments.delete(client);
+    clearStoredEnrollment(userId);
     return { kind: 'ready' };
   }
 
@@ -61,8 +110,9 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
   }
 
   const pendingFactors = factors.totp.filter((factor) => factor.status !== 'verified');
-  const cached = enrollments.get(client);
+  const cached = enrollments.get(client) ?? readStoredEnrollment(userId);
   if (cached && pendingFactors.some((factor) => factor.id === cached.factorId)) {
+    enrollments.set(client, cached);
     // Reuse the exact enrollment/QR already shown in this browser session.
     // Clean up only duplicate pending factors, never verified factors.
     for (const factor of pendingFactors) {
@@ -77,6 +127,7 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
   // Remove only unverified factors before starting a fresh enrollment; a
   // verified factor was handled above and is never removed by this recovery.
   enrollments.delete(client);
+  clearStoredEnrollment(userId);
   for (const factor of pendingFactors) {
     const { error } = await client.auth.mfa.unenroll({ factorId: factor.id });
     if (error) throw error;
@@ -139,6 +190,7 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
     uri: enrollment.totp.uri,
   };
   enrollments.set(client, result);
+  storeEnrollment(userId, result);
   return result;
 }
 
@@ -162,6 +214,7 @@ export async function verifyMfa(client: SupabaseClient, factorId: string, code: 
   const { data: assurance, error: assuranceError } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
   if (assuranceError || assurance.currentLevel !== 'aal2') throw new Error('MFA verification did not complete.');
   enrollments.delete(client);
+  clearStoredEnrollment(sessionData.session.user.id);
 }
 
 /** Explicit user recovery action; never removes verified authenticator factors. */
@@ -175,5 +228,7 @@ export async function restartIncompleteMfa(client: SupabaseClient): Promise<void
     const { error: unenrollError } = await client.auth.mfa.unenroll({ factorId: factor.id });
     if (unenrollError) throw unenrollError;
   }
+  const { data: sessionData } = await client.auth.getSession();
+  if (sessionData.session) clearStoredEnrollment(sessionData.session.user.id);
   clearPendingMfa(client);
 }
