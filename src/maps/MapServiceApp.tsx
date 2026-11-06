@@ -10,6 +10,7 @@ type InitOptions = {
   disabled: boolean;
   initialLatitude: number | null;
   initialLongitude: number | null;
+  theme: { pageBackground: string; primaryButton: string; primaryButtonFont: string };
 };
 type MapSession = InitOptions & { parentOrigin: string };
 type PendingConfirmation = { resolve: () => void; reject: (error: Error) => void };
@@ -34,12 +35,19 @@ function parseInit(value: unknown): InitOptions | null {
   const latitude = nullableCoordinate(message.initialLatitude, -90, 90);
   const longitude = nullableCoordinate(message.initialLongitude, -180, 180);
   if ((latitude === null) !== (longitude === null)) return null;
+  const themeValue = record(message.theme);
+  const safeColor = (value: unknown, fallback: string) => typeof value === 'string' && /^#[0-9a-f]{3,8}$/i.test(value) ? value : fallback;
   return {
     restaurantSlug: message.restaurantSlug.toLowerCase(),
     variant: message.variant,
     disabled: message.disabled === true,
     initialLatitude: latitude,
     initialLongitude: longitude,
+    theme: {
+      pageBackground: safeColor(themeValue?.pageBackground, '#ffffff'),
+      primaryButton: safeColor(themeValue?.primaryButton, '#111827'),
+      primaryButtonFont: safeColor(themeValue?.primaryButtonFont, '#ffffff'),
+    },
   };
 }
 
@@ -209,7 +217,7 @@ export function MapServiceApp() {
   const fillLayout = new URLSearchParams(window.location.search).get('layout') === 'fill';
 
   return (
-    <main className={`map-service-page${session.variant === 'restaurant' ? ' map-service-page--restaurant' : ''}${fillLayout ? ' map-service-page--fill' : ''}`}>
+    <main className={`map-service-page${session.variant === 'restaurant' ? ' map-service-page--restaurant' : ''}${fillLayout ? ' map-service-page--fill' : ''}`} style={{ '--map-page-background': session.theme.pageBackground, '--map-primary-button': session.theme.primaryButton, '--map-primary-button-font': session.theme.primaryButtonFont } as React.CSSProperties}>
       <MapboxLocationPickerUi
           variant={session.variant}
         disabled={session.disabled}
