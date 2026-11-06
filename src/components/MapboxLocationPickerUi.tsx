@@ -108,7 +108,7 @@ export function MapboxLocationPickerUi({
         mapboxgl.accessToken = mapboxToken;
         const map = new MapboxMap({
           container: mapContainerRef.current,
-          style: 'mapbox://styles/mapbox/streets-v12',
+          style: 'mapbox://styles/mapbox/light-v11',
           center: defaultCenter,
           zoom: Number.isFinite(initialLatitude) && Number.isFinite(initialLongitude) ? 16 : 15,
           attributionControl: true,
