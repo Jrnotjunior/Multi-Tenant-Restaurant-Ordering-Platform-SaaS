@@ -57,7 +57,7 @@ const tabAuth = getTabAuthStorage();
  */
 type BrowserSupabaseClient = ReturnType<typeof createClient>;
 type SupabaseClientRegistry = typeof globalThis & {
-  __web2tableSupabaseClients?: Map<string, BrowserSupabaseClient>;
+  __web2tableSupabaseClients?: Map<string, unknown>;
 };
 
 function getOrCreateSupabaseClient(): BrowserSupabaseClient | null {
@@ -70,7 +70,7 @@ function getOrCreateSupabaseClient(): BrowserSupabaseClient | null {
   const storageKey = tabAuth?.storageKey ?? 'web2table.auth.memory';
   const registryKey = `${config.url}::${config.publishableKey.slice(0, 12)}::${storageKey}`;
   const existing = registry.get(registryKey);
-  if (existing) return existing;
+  if (existing) return existing as BrowserSupabaseClient;
 
   const client = createClient(config.url, config.publishableKey, {
     auth: {
