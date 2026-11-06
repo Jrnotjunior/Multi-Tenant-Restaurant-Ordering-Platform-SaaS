@@ -209,6 +209,7 @@ export async function loadPublishedMenu(slug:string,branchSlug:string|null=null)
   const {data:assets,error:assetsError} = await supabase.rpc('get_public_storefront_favicon',{p_slug:slug});
   if (assetsError) throw new Error('Published storefront assets service unavailable');
   const assetRow = record(assets) ? assets : {};
+  if(!record(data)||!record(cashOptions))throw new Error('Published storefront response is invalid');
   return parsePublishedMenu({...data,...cashOptions,faviconPath:assetRow.faviconPath ?? null});
 }
 
@@ -247,7 +248,7 @@ export async function loadDefaultPublishedMenu(branchSlug:string|null=null):Prom
   const {data,error}=await supabase.rpc('get_public_storefront_directory');
   if(error) throw new Error('Published storefront directory service unavailable');
   if(!Array.isArray(data)) throw new Error('Invalid published storefront list');
-  const candidates=data.filter((entry:unknown):entry is Record<string,unknown> =>
+  const candidates=(data as unknown[]).filter((entry):entry is Record<string,unknown> =>
     record(entry) && validText(entry.slug,64) && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(entry.slug)
   );
   for(const entry of candidates) {
