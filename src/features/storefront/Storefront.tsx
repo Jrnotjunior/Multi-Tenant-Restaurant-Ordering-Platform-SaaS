@@ -244,6 +244,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   });
   const [customDomainMatched,setCustomDomainMatched]=useState(false);
   const [customDomainRestaurantName,setCustomDomainRestaurantName]=useState<string|null>(null);
+  const [customDomainFaviconUrl,setCustomDomainFaviconUrl]=useState<string|null>(null);
   const [resolvedSlug, setResolvedSlug] = useState<string | null>(requestedSlug);
   // The root storefront can resolve to a tenant slug after loading. Use that same tenant key for the menu and its route-backed cart page.
   const cartStorageKey = 'web2table:cart:' + (resolvedSlug ?? requestedSlug ?? 'default') + ':' + (selectedBranch ?? 'default');
@@ -433,6 +434,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
       if(!active)return null;
       setCustomDomainMatched(domain.matched);
       setCustomDomainRestaurantName(domain.restaurantName);
+      setCustomDomainFaviconUrl(domain.faviconUrl);
       if(domain.matched) {
         if(requestedSlug&&requestedSlug!==domain.slug&&!legacyBranchRoute)return null;
         return domain.slug&&domain.catalog?{slug:domain.slug,catalog:domain.catalog}:null;
@@ -499,10 +501,10 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
   }, [remoteCatalog?.restaurant.name, customDomainRestaurantName, customDomainMatched]);
 
   useEffect(() => {
-    const faviconUrl = remoteCatalog?.restaurant.faviconUrl;
+    const faviconUrl = remoteCatalog?.restaurant.faviconUrl ?? customDomainFaviconUrl;
     if (faviconUrl) applyAppFavicon(faviconUrl);
-    else if (remoteCatalog) clearAppFavicon();
-  }, [remoteCatalog?.restaurant.faviconUrl, remoteCatalog]);
+    else if (remoteCatalog || customDomainMatched) clearAppFavicon();
+  }, [remoteCatalog?.restaurant.faviconUrl, remoteCatalog, customDomainFaviconUrl, customDomainMatched]);
 
   const catalog = remoteCatalog;
   const menu = catalog?.menu ?? [];
