@@ -98,7 +98,7 @@ export function CustomerAccountPage({ baseUrl }: { baseUrl: string }) {
         <p className="sf-account-email">{loading ? 'Checking your account…' : signedIn ? email : 'Sign in or create an account to manage your restaurant orders and rewards.'}</p>
         {!loading && !signedIn && <div className="sf-address-form-actions">
           <a className="sf-account-auth-action" href={authHref('sign-in')}>Sign in</a>
-          <a className="sf-account-auth-action sf-account-auth-secondary" href={authHref('sign-up')}>Create account</a>
+          <a className="sf-account-auth-action sf-account-auth-secondary" href={authHref('sign-up')}>Sign Up</a>
         </div>}
         {message && <p className="sf-account-message" role="status">{message}</p>}
       </section>
