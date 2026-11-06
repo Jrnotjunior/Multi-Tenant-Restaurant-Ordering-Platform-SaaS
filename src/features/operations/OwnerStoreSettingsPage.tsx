@@ -357,11 +357,12 @@ export function OwnerStoreSettingsPage({ tenantId }: Props) {
         if(pickupError)throw pickupError;
         if(pickupSaved!==true)throw new Error('The branch pickup address was not saved.');
         const {data:contactSaved,error:contactError}=await supabase.rpc('update_owner_branch_contact_phone',{
-          p_tenant_id:tenantId,p_branch_id:selectedBranchId,p_contact_phone:contactPhone.trim() || null,
+          p_tenant_id:tenantId,p_branch_id:selectedBranchId,p_contact_phone:contactPhone.trim(),
         });
         if(contactError)throw contactError;
         if(contactSaved!==true)throw new Error('The branch contact number was not saved.');
-        const {data,error}=await supabase.rpc('update_owner_branch_delivery_settings',{
+        if (latitude === null || longitude === null) throw new Error('Choose and confirm a delivery location on the map first.');
+      const {data,error}=await supabase.rpc('update_owner_branch_delivery_settings',{
           p_tenant_id:tenantId,p_branch_id:selectedBranchId,p_store_address:storeAddress.trim(),
           p_latitude:latitude,p_longitude:longitude,p_delivery_pricing:nextDelivery,
         });
