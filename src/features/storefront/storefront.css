@@ -342,7 +342,7 @@
 
 /* Customer account authentication pages */
 .sf-auth-page{min-height:100vh;display:grid;place-items:center;padding:32px 16px;background:var(--sf-page-background);color:var(--sf-font-color);font-family:var(--font-body)}
-.sf-auth-card{position:relative;isolation:isolate;width:min(100%,420px);padding:38px 32px 30px;border:1px solid var(--sf-border);border-radius:22px;background:var(--sf-product-card);box-shadow:0 18px 48px rgba(16,27,47,.09);overflow:hidden}
+.sf-auth-card{position:relative;isolation:isolate;width:min(100%,420px);padding:38px 32px 30px;border:1px solid var(--sf-border);border-radius:22px;background:var(--sf-page-background);box-shadow:0 18px 48px rgba(16,27,47,.09);overflow:hidden}
 .sf-auth-card:before{content:"";position:absolute;z-index:-1;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--sf-primary-button),var(--sf-secondary-button))}
 .sf-auth-back{display:inline-block;margin-bottom:20px;color:var(--sf-muted);font-size:var(--sf-font-size-auth-link);font-weight:650;text-decoration:none}
 .sf-auth-back:hover,.sf-auth-switch a:hover{color:var(--sf-primary-button);text-decoration:underline}
