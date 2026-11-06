@@ -82,7 +82,7 @@ function getOrCreateSupabaseClient(): BrowserSupabaseClient | null {
   });
 
   registry.set(registryKey, client);
-  return client;
+  return client as BrowserSupabaseClient;
 }
 
 /** Public browser client only. Never use secret keys or bypass RLS here. */
