@@ -14,7 +14,7 @@ type Order = {
   id: string; order_number: number; branch_id: string; branch_name: string;
   order_type: 'delivery' | 'take_out' | 'pickup' | 'dine_in'; customer_name: string; customer_phone: string;
   delivery_address: string | null; delivery_latitude: number | null; delivery_longitude: number | null; delivery_notes: string; subtotal_centavos: number; delivery_fee_centavos: number | null;
-  total_centavos: number | null; order_status: string; payment_status: string; payment_channel?: 'online' | 'other'; created_at: string;
+  total_centavos: number | null; order_status: string; payment_status: string; payment_channel?: 'online' | 'other'; payment_collected_at: string | null; created_at: string;
   assigned_rider_user_id: string | null; assignment_status: string | null; items: Item[];
 };
 type Rider = { user_id: string; display_name: string | null };
@@ -45,6 +45,29 @@ const staffRouteFor = (role: StaffWorkspaceRole, page: string) => {
 const staffWorkspaceHref = (role: StaffWorkspaceRole) => normalizeAppBase(import.meta.env.BASE_URL) + staffRouteFor(role, '');
 const label = (value: string) => value.replaceAll('_', ' ').replace(/\b\w/g, character => character.toUpperCase());
 const formatOrderNumber = (value: number | string) => `ORD-${String(value).trim().replace(/^ORD-/i, '').padStart(5, '0')}`;
+type SalesSchedule = { timezone?: string; schedule?: Record<string, { isOpen?: boolean; open?: string; close?: string }> };
+const salesDayKeys = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+function isPaymentWithinBusinessHours(timestamp: string | null, schedule: SalesSchedule | null): boolean {
+  if (!timestamp || !schedule?.schedule) return false;
+  const timezone = schedule.timezone || 'Asia/Manila';
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone, weekday: 'long', year: 'numeric', month: '2-digit',
+    day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  }).formatToParts(new Date(timestamp));
+  const part = (type: string) => parts.find(item => item.type === type)?.value ?? '';
+  const dayKey = part('weekday').toLowerCase();
+  const day = schedule.schedule[dayKey];
+  if (!day?.isOpen || !day.open || !day.close) return false;
+  const minute = Number(part('hour')) * 60 + Number(part('minute'));
+  const [openHour, openMinute] = day.open.split(':').map(Number);
+  const [closeHour, closeMinute] = day.close.split(':').map(Number);
+  const opens = openHour * 60 + openMinute;
+  const closes = closeHour * 60 + closeMinute;
+  if (closes > opens) return minute >= opens && minute < closes;
+  if (closes < opens) return minute >= opens || minute < closes;
+  return false;
+}
+
 const typeLabel = (value: Order['order_type']) => ({ delivery: 'Delivery', take_out: 'Take-out', pickup: 'Pickup', dine_in: 'Dine-in' })[value];
 const roleCopy: Record<StaffWorkspaceRole, { eyebrow: string; title: string; intro: string; queue: string }> = {
   cashier: { eyebrow: 'FRONT OF HOUSE', title: 'Cashier workspace', intro: 'Review incoming orders, finalize delivery fees, and confirm order details.', queue: 'Order desk' },
@@ -55,6 +78,7 @@ const roleCopy: Record<StaffWorkspaceRole, { eyebrow: string; title: string; int
 
 export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Props) {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [salesSchedule, setSalesSchedule] = useState<SalesSchedule | null>(null);
   const [riders, setRiders] = useState<Record<string, Rider[]>>({});
   const [selectedRiders, setSelectedRiders] = useState<Record<string, string>>({});
   const [fees, setFees] = useState<Record<string, string>>({});
@@ -347,8 +371,24 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
 
   const salesOrders = useMemo(() => orders.filter(order =>
     ['paid', 'succeeded', 'completed'].includes(order.payment_status.toLowerCase()) &&
-    !['cancelled', 'canceled', 'rejected', 'refunded'].includes(order.order_status.toLowerCase())
-  ), [orders]);
+    !['cancelled', 'canceled', 'rejected', 'refunded'].includes(order.order_status.toLowerCase()) &&
+    isPaymentWithinBusinessHours(order.payment_collected_at, salesSchedule)
+  ), [orders, salesSchedule]);
+  useEffect(() => {
+    if (role !== 'cashier' || cashierTab !== 'sales' || !supabase) return;
+    let active = true;
+    void supabase.rpc('get_staff_sales_schedule', { p_tenant_id: tenantId }).then(({ data, error: scheduleError }) => {
+      if (!active) return;
+      if (scheduleError) {
+        setError(scheduleError.message || 'Unable to load restaurant operating hours.');
+        setSalesSchedule(null);
+        return;
+      }
+      setSalesSchedule((data ?? null) as SalesSchedule | null);
+    });
+    return () => { active = false; };
+  }, [role, cashierTab, tenantId]);
+
   const salesTotal = useMemo(() => salesOrders.reduce((sum, order) => sum + (order.total_centavos ?? 0), 0), [salesOrders]);
 
   const stats = useMemo(() => ({
@@ -657,15 +697,15 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       <button type="button" role="tab" aria-selected={dispatcherTab === 'dine_in'} aria-label={orderTabCounts.dispatcher.dine_in ? `Dine in, ${orderTabCounts.dispatcher.dine_in} ready for handoff` : undefined} className={dispatcherTab === 'dine_in' ? 'is-active' : ''} onClick={() => setDispatcherTab('dine_in')}>Dine in{orderTabCounts.dispatcher.dine_in > 0 && <span className="staff-tab-count" aria-hidden="true">{orderTabCounts.dispatcher.dine_in}</span>}</button>
     </nav>}
     {role === 'cashier' && cashierTab === 'sales' ? <section className="staff-sales-view">
-      <div className="staff-sales-heading"><div><p className="staff-eyebrow">BUSINESS SUMMARY</p><h2>Sales</h2><p>Paid orders from the order history currently loaded.</p></div><button className="staff-button staff-button-secondary" type="button" onClick={() => void load()} disabled={loading}>Refresh sales</button></div>
+      <div className="staff-sales-heading"><div><p className="staff-eyebrow">BUSINESS SUMMARY</p><h2>Sales</h2><p>Paid orders recorded during today's configured operating hours.</p></div><button className="staff-button staff-button-secondary" type="button" onClick={() => void load()} disabled={loading}>Refresh sales</button></div>
       <div className="staff-sales-metrics">
         <article><span>Recorded paid sales</span><strong>{money(salesTotal)}</strong></article>
         <article><span>Paid orders</span><strong>{salesOrders.length}</strong></article>
-        <article><span>All orders loaded</span><strong>{orders.length}</strong></article>
+        <article><span>Orders loaded</span><strong>{orders.length}</strong></article>
       </div>
       {(error || notice) && <p className={'staff-notice ' + (error ? 'is-error' : 'is-success')} role={error ? 'alert' : 'status'}>{error || notice}</p>}
       {loading ? <p className="staff-empty">Loading sales…</p> : salesOrders.length === 0 ? <div className="staff-empty"><h3>No paid sales found</h3><p>Paid orders will appear here once payment is recorded in the order history.</p></div> :
-        <div className="staff-sales-table-wrap"><table className="staff-sales-table"><thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Payment</th><th>Total</th></tr></thead><tbody>{salesOrders.slice().sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map(order => <tr key={order.id}><td>#{order.order_number}</td><td>{new Intl.DateTimeFormat('en-PH',{dateStyle:'medium',timeStyle:'short'}).format(new Date(order.created_at))}</td><td>{order.customer_name}</td><td><span className="staff-payment-badge payment-paid">{label(order.payment_status)}</span></td><td>{money(order.total_centavos)}</td></tr>)}</tbody></table></div>}
+        <div className="staff-sales-table-wrap"><table className="staff-sales-table"><thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Payment</th><th>Total</th></tr></thead><tbody>{salesOrders.slice().sort((a,b) => new Date(b.payment_collected_at ?? 0).getTime() - new Date(a.payment_collected_at ?? 0).getTime()).map(order => <tr key={order.id}><td>#{order.order_number}</td><td>{new Intl.DateTimeFormat('en-PH',{dateStyle:'medium',timeStyle:'short',timeZone:salesSchedule?.timezone || 'Asia/Manila'}).format(new Date(order.payment_collected_at!))}</td><td>{order.customer_name}</td><td><span className="staff-payment-badge payment-paid">{label(order.payment_status)}</span></td><td>{money(order.total_centavos)}</td></tr>)}</tbody></table></div>}
       <p className="staff-footnote">Sales figures reflect the orders returned by the staff order service; they are not a substitute for a reconciled accounting report.</p>
     </section> : <>
     {!['cashier', 'kitchen', 'dispatcher'].includes(role) && <section className="staff-metrics" aria-label="Order summary">
