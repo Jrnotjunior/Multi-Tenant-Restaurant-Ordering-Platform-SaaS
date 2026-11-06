@@ -540,7 +540,7 @@
 .sf-tracking-rider-actions svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .sf-tracking-details{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding:14px;border:1px solid var(--sf-border);border-radius:11px}
 .sf-tracking-details h2{margin:5px 0 0;font-size:var(--sf-font-size-17)}
-.sf-tracking-details button{min-height:34px;padding:7px 10px;border:1px solid var(--sf-secondary-button);border-radius:8px;background:var(--sf-secondary-button);color:var(--sf-secondary-button-font);font-size:var(--sf-font-size-13);font-weight:650;cursor:pointer;white-space:nowrap}
+.sf-tracking-details button{min-height:34px;padding:7px 0;border:0;border-radius:0;background:transparent;color:var(--sf-secondary-button);font-size:var(--sf-font-size-13);font-weight:650;cursor:pointer;white-space:nowrap}
 .sf-tracking-order-lines{padding:12px 14px;border:1px solid var(--sf-border);border-top:0;font-size:var(--sf-font-size-12)}
 .sf-tracking-order-lines>div,.sf-tracking-order-lines>p{display:flex;justify-content:space-between;gap:12px;margin:7px 0}
 .sf-tracking-timeline{list-style:none;margin:18px 0 0;padding:0}
