@@ -884,7 +884,7 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
           <div className="sf-category-list sf-category-dropdown-wrap" aria-label="Menu categories">
             <span className="sf-category-label">Category</span>
             <div className="sf-category-dropdown">
-              <button type="button" className="sf-category-select" style={{position:'relative',display:'flex',alignItems:'center',justifyContent:'center',gap:12,width:'100%',minHeight:42,boxSizing:'border-box',padding:'0 38px',border:'1px solid var(--sf-primary-button)',borderRadius:10,background:'var(--sf-primary-button)',color:'var(--sf-primary-button-font)',font:'inherit',fontWeight:500,textAlign:'center',cursor:'pointer'}} aria-haspopup="listbox" aria-expanded={categoryDropdownOpen} onClick={() => setCategoryDropdownOpen(open => !open)}>
+              <button type="button" className="sf-category-select" aria-haspopup="listbox" aria-expanded={categoryDropdownOpen} onClick={() => setCategoryDropdownOpen(open => !open)}>
                 <span style={{maxWidth:'100%',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{category === 'All' ? 'All categories' : category}</span><span aria-hidden="true" style={{position:'absolute',right:13,top:'50%',transform:'translateY(-50%)'}}>⌄</span>
               </button>
               {categoryDropdownOpen && <div className="sf-category-options" role="listbox" aria-label="Menu categories">
