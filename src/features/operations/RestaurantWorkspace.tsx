@@ -230,7 +230,7 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
     return <OwnerSectionPage page={page} tenantId={membership.tenant_id} restaurantName={restaurantName} onNavigate={navigateOwnerPage} />;
   };
 
-  return <OwnerAppShell baseUrl={baseUrl} groups={visibleOwnerNavGroups} page={ownerPage} displayName={displayName} restaurantLogoUrl={restaurantLogoUrl} onNavigate={navigateOwnerPage} onSignOut={signOut}>
+  return <OwnerAppShell baseUrl={baseUrl} groups={visibleOwnerNavGroups} page={ownerPage} displayName={displayName} restaurantLogoUrl={restaurantLogoUrl} restaurantName={restaurantName} onNavigate={navigateOwnerPage} onSignOut={signOut}>
     {visibleOwnerNavGroups.flatMap(group => group.items).filter(item => visitedOwnerPages.has(item.key)).map(item => (
       <div key={item.key} style={{ display: ownerPage === item.key ? 'contents' : 'none' }} aria-hidden={ownerPage !== item.key}>
         {renderOwnerPage(item.key)}
