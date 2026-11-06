@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.58.0";
 
 const APP_URL = Deno.env.get("TENANT_SETUP_URL") ?? "https://app.web2table.io/restaurant";
-async function isAllowedOrigin(origin: string, adminClient?: ReturnType<typeof createClient>) {
+async function isAllowedOrigin(origin: string, adminClient?: any) {
   if (!adminClient || !origin) return false;
   try {
     const parsed = new URL(origin);
@@ -13,7 +13,7 @@ async function isAllowedOrigin(origin: string, adminClient?: ReturnType<typeof c
     return Boolean(data);
   } catch { return false; }
 }
-async function headersFor(req: Request, adminClient?: ReturnType<typeof createClient>) {
+async function headersFor(req: Request, adminClient?: any) {
   const origin = req.headers.get("Origin") ?? "";
   const headers: Record<string, string> = {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -24,7 +24,7 @@ async function headersFor(req: Request, adminClient?: ReturnType<typeof createCl
   if (await isAllowedOrigin(origin, adminClient)) headers["Access-Control-Allow-Origin"] = origin;
   return headers;
 }
-async function respond(req: Request, status: number, body: Record<string, unknown>, adminClient?: ReturnType<typeof createClient>) {
+async function respond(req: Request, status: number, body: Record<string, unknown>, adminClient?: any) {
   return new Response(JSON.stringify(body), { status, headers: await headersFor(req, adminClient) });
 }
 Deno.serve(async (req: Request) => {
