@@ -13,7 +13,7 @@ export function OwnerEmployeesPage({tenantId}:{tenantId:string}){
  const [directory,setDirectory]=useState<Directory>({branches:[],staff:[],invitations:[]});
  const [email,setEmail]=useState('');const [firstName,setFirstName]=useState('');const [lastName,setLastName]=useState('');const [phone,setPhone]=useState('');const [role,setRole]=useState('cashier');const [branchId,setBranchId]=useState('');
  const [editingUser,setEditingUser]=useState<string|null>(null);const [editingFirstName,setEditingFirstName]=useState('');const [editingLastName,setEditingLastName]=useState('');const [editingPhone,setEditingPhone]=useState('');const [editingRole,setEditingRole]=useState('cashier');const [editError,setEditError]=useState('');const [staffBusy,setStaffBusy]=useState<string|null>(null);
- const [loading,setLoading]=useState(true);const [sending,setSending]=useState(false);const [error,setError]=useState('');const [notice,setNotice]=useState('');
+ const [loading,setLoading]=useState(true);const [sending,setSending]=useState(false);const [cancelingInvitation,setCancelingInvitation]=useState<string|null>(null);const [error,setError]=useState('');const [notice,setNotice]=useState('');
  const load=useCallback(async()=>{if(!supabase){setError('Restaurant services are not configured.');setLoading(false);return;}setLoading(true);setError('');
   try{const {data,error:queryError}=await supabase.rpc('list_tenant_staff',{p_tenant_id:tenantId});if(queryError)throw queryError;
    const result=(data??{}) as Directory;setDirectory({branches:result.branches??[],staff:result.staff??[],invitations:result.invitations??[]});
@@ -29,6 +29,20 @@ export function OwnerEmployeesPage({tenantId}:{tenantId:string}){
   }catch(reason){setError(reason instanceof Error?reason.message:'Unable to send staff invitation.');}finally{setSending(false);}
  }
  function beginEdit(member:Staff){setEditingUser(member.user_id);setEditingFirstName(member.first_name??'');setEditingLastName(member.last_name??'');setEditingPhone(member.phone??'');setEditingRole(member.role);setEditError('');setError('');setNotice('');}
+ async function cancelInvitation(invitation:Invitation){
+  if(!supabase||cancelingInvitation)return;
+  if(!window.confirm(`Cancel the invitation for ${invitation.email}? The invitation link will no longer grant access to this restaurant.`))return;
+  setError('');setNotice('');setCancelingInvitation(invitation.id);
+  try{
+   const {data,error:cancelError}=await supabase.rpc('owner_cancel_privileged_invitation',{p_tenant_id:tenantId,p_invitation_id:invitation.id});
+   if(cancelError)throw cancelError;
+   if(data!==true)throw new Error('The invitation was not cancelled. Refresh and try again.');
+   setNotice(`Invitation for ${invitation.email} cancelled.`);
+   await load();
+  }catch(reason){setError(reason instanceof Error?reason.message:'Unable to cancel invitation.');}
+  finally{setCancelingInvitation(null);}
+ }
+
  async function saveStaffProfile(event:FormEvent<HTMLFormElement>,member:Staff){event.preventDefault();if(!supabase)return;setEditError('');setNotice('');
   const nextFirstName=editingFirstName.trim();const nextLastName=editingLastName.trim();const nextPhone=editingPhone.trim();
   if(!nextFirstName||!nextLastName){setEditError('Enter the employee’s first and last name.');return;}
@@ -74,7 +88,7 @@ export function OwnerEmployeesPage({tenantId}:{tenantId:string}){
    </form></section></div>})()}
   <section className="employees-panel"><div className="employees-panel-heading"><div><h2>Pending invitations</h2><p>Invitations expire after seven days.</p></div><span className="employees-count">{directory.invitations.length} pending</span></div>
    {loading?<p className="employees-empty">Loading invitations…</p>:directory.invitations.length===0?<p className="employees-empty">No pending invitations.</p>:
-    <div className="employees-table-wrap"><table className="employees-table"><thead><tr><th>Email</th><th>Role</th><th>Branch</th><th>Status</th><th>Expires</th></tr></thead><tbody>{directory.invitations.map(item=><tr key={item.id}><td><strong>{item.email}</strong></td><td>{pretty(item.role)}</td><td>{item.branch_name??'—'}</td><td><span className="employees-status">{pretty(item.status)}</span></td><td>{new Intl.DateTimeFormat('en-PH',{dateStyle:'medium'}).format(new Date(item.expires_at))}</td></tr>)}</tbody></table></div>}
+    <div className="employees-table-wrap"><table className="employees-table"><thead><tr><th>Email</th><th>Role</th><th>Branch</th><th>Status</th><th>Expires</th><th>Actions</th></tr></thead><tbody>{directory.invitations.map(item=><tr key={item.id}><td><strong>{item.email}</strong></td><td>{pretty(item.role)}</td><td>{item.branch_name??'—'}</td><td><span className="employees-status">{pretty(item.status)}</span></td><td>{new Intl.DateTimeFormat('en-PH',{dateStyle:'medium'}).format(new Date(item.expires_at))}</td><td><button className="employees-danger-button" type="button" onClick={()=>void cancelInvitation(item)} disabled={cancelingInvitation!==null}>{cancelingInvitation===item.id?'Cancelling…':'Cancel invitation'}</button></td></tr>)}</tbody></table></div>}
   </section>
  </main>;
 }
