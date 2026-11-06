@@ -7,6 +7,7 @@ type Props = {
   page: OwnerPage;
   displayName: string;
   restaurantLogoUrl: string | null;
+  restaurantName: string | null;
   onNavigate: (page: OwnerPage) => void;
   onSignOut: () => void;
   children: ReactNode;
@@ -42,7 +43,7 @@ function OwnerNavIcon({ name }: { name: string }) {
   }
 }
 
-export function OwnerAppShell({ groups, page, displayName, restaurantLogoUrl, onNavigate, onSignOut, children }: Props) {
+export function OwnerAppShell({ groups, page, displayName, restaurantLogoUrl, restaurantName, onNavigate, onSignOut, children }: Props) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const closeMobileNav = () => setMobileNavOpen(false);
 
@@ -50,7 +51,8 @@ export function OwnerAppShell({ groups, page, displayName, restaurantLogoUrl, on
     <div className="owner-layout">
       <aside id="owner-primary-navigation" className={`owner-sidebar${mobileNavOpen ? ' is-mobile-open' : ''}`} aria-label="Primary navigation">
         <div className="owner-sidebar-heading">
-          {restaurantLogoUrl ? <img className="owner-sidebar-brand-image" src={restaurantLogoUrl} alt="Configured restaurant logo" /> : <span className="owner-sidebar-brand" aria-label="Web2table">W<span>2</span>T</span>}
+          {restaurantLogoUrl ? <img className="owner-sidebar-brand-image" src={restaurantLogoUrl} alt="" /> : <span className="owner-sidebar-brand" aria-hidden="true">W<span>2</span>T</span>}
+          <span className="owner-sidebar-restaurant-name">{restaurantName?.trim() || "Restaurant"}</span>
         </div>
         <nav className="owner-sidebar-nav">
           {groups.map(group => <section className="owner-nav-group" key={group.label}><h2>{group.label}</h2>
