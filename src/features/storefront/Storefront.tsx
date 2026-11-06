@@ -5,6 +5,8 @@ import {addCustom,changeCustom,customCount,customLines,customSubtotal,editCustom
 import {CustomizeDialog} from './CustomizeDialog';
 import { filterMenu, peso, type Category, type MenuItem } from './demoCatalog';
 import { branchSlugFromDomainPath, branchSlugFromSearch, loadDefaultPublishedMenu, loadDomainPublishedMenu, loadPublishedMenu, needsBranchSelection, type StorefrontCatalog } from './publishedMenu';
+import { rememberActiveStorefrontSlug } from './appFavicon';
+import { primeCustomerStorefrontTheme } from './useCustomerStorefrontTheme';
 import { isStorefrontCartPath, isStorefrontCheckoutPath, isStorefrontTrackingPath, normalizeAppBase, restaurantMenuHash, routePathFromLocation, storefrontCartHash, storefrontCheckoutHash, storefrontTrackingHash } from '../../app/routes';
 import { CartPage } from './CartPage';
 import { CheckoutPage, type CheckoutSubmission } from './CheckoutPage';
@@ -449,6 +451,10 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
         url.hash=restaurantMenuHash(result.slug)+(routeMatch?.[1]??'');
         window.history.replaceState({},'',url.pathname+url.search+url.hash);
         window.dispatchEvent(new PopStateEvent('popstate'));
+      }
+      if (result?.slug && result.catalog) {
+        rememberActiveStorefrontSlug(result.slug);
+        primeCustomerStorefrontTheme(result.slug, result.catalog);
       }
       setResolvedSlug(result?.slug ?? requestedSlug);
       setRemoteCatalog(result?.catalog ?? null);
