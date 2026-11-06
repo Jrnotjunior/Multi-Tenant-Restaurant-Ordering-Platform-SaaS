@@ -4,15 +4,19 @@ const FAVICON_STORAGE_KEY = 'web2table:active-favicon';
 const ACTIVE_STOREFRONT_SLUG_KEY = 'web2table:active-storefront-slug';
 
 function getManagedFaviconLink(): HTMLLinkElement {
-  // Update the document's existing icon link (including index.html's neutral
-  // fallback) instead of appending a second icon that browsers may ignore.
-  let link = document.querySelector<HTMLLinkElement>('link[data-web2table-favicon="true"]')
-    ?? document.querySelector<HTMLLinkElement>('link[rel~="icon"]');
+  // Maintain exactly one favicon declaration. Multiple rel=icon links can
+  // cause browsers to keep showing a stale/default icon after SPA updates.
+  const links = Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel~="icon"]'));
+  let link = links.find(candidate => candidate.dataset.web2tableFavicon === 'true')
+    ?? links[0];
   if (!link) {
     link = document.createElement('link');
-    link.rel = 'icon';
     document.head.appendChild(link);
   }
+  for (const duplicate of links) {
+    if (duplicate !== link) duplicate.remove();
+  }
+  link.rel = 'icon';
   link.dataset.web2tableFavicon = 'true';
   return link;
 }
@@ -21,8 +25,21 @@ function getManagedFaviconLink(): HTMLLinkElement {
 export function applyAppFavicon(url: string, persist = true): void {
   if (!url || typeof url !== 'string') return;
   const link = getManagedFaviconLink();
-  link.href = url;
+  // Version the URL by its stored object path so a newly uploaded tenant
+  // favicon cannot be hidden behind a browser's cached previous icon.
+  let resolvedUrl = url;
+  try {
+    const parsed = new URL(url, window.location.origin);
+    const objectName = parsed.pathname.split('/').pop();
+    if (objectName) parsed.searchParams.set('v', objectName);
+    resolvedUrl = parsed.toString();
+  } catch {
+    // Keep the supplied URL if it is not a standard URL.
+  }
+  link.href = resolvedUrl;
   if (/\.ico(?:$|[?#])/i.test(url)) link.type = 'image/x-icon';
+  else if (/\.(?:png|webp)$/i.test(url)) link.type = url.toLowerCase().includes('.png') ? 'image/png' : 'image/webp';
+  else if (/\.(?:jpg|jpeg)$/i.test(url)) link.type = 'image/jpeg';
   else link.removeAttribute('type');
   if (persist) {
     try {
