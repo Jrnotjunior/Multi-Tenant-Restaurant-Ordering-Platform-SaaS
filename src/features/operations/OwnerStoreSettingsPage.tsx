@@ -252,7 +252,9 @@ export function OwnerStoreSettingsPage({ tenantId }: Props) {
       setMessage(previous.name + (accepting ? ' is now open for orders.' : ' is now closed to new orders.'));
     } catch (reason) {
       setBranches(current => current.map(branch => branch.id === branchId ? { ...branch, accepting_orders: previous.accepting_orders } : branch));
-      setError(reason instanceof Error ? reason.message : 'Unable to update this branch store status.');
+      const backendMessage = typeof reason === 'object' && reason !== null && 'message' in reason
+        && typeof reason.message === 'string' ? reason.message : '';
+      setError(backendMessage || (reason instanceof Error ? reason.message : 'Unable to update this branch store status.'));
     } finally {
       setUpdatingBranchId('');
     }
