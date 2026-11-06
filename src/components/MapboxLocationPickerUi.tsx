@@ -6,33 +6,7 @@ import type { DeliveryLocationAddress } from '../modules/location/mapServiceProt
 export type { DeliveryLocationAddress } from '../modules/location/mapServiceProtocol';
 
 type LatLng = { lat: number; lng: number };
-type MapTheme = { pageBackground: string; fontColor: string; primaryButton: string; secondaryButton: string };
-
-function applyRestaurantMapTheme(map: MapboxMap, theme: MapTheme) {
-  for (const layer of map.getStyle().layers ?? []) {
-    const id = layer.id.toLowerCase();
-    try {
-      if (layer.type === 'background') map.setPaintProperty(layer.id, 'background-color', theme.pageBackground);
-      if (layer.type === 'fill') {
-        if (/water|ocean|lake|river/.test(id)) map.setPaintProperty(layer.id, 'fill-color', theme.secondaryButton);
-        else if (/park|landuse|landcover|grass|wood|green/.test(id)) map.setPaintProperty(layer.id, 'fill-color', theme.pageBackground);
-        else if (/building/.test(id)) map.setPaintProperty(layer.id, 'fill-color', theme.secondaryButton);
-      }
-      if (layer.type === 'line' && /road|street|bridge|tunnel/.test(id)) {
-        map.setPaintProperty(layer.id, 'line-color', theme.primaryButton);
-      }
-      if (layer.type === 'symbol' && /label|place|poi|road/.test(id)) {
-        if (map.getLayoutProperty(layer.id, 'text-field') !== undefined) {
-          map.setPaintProperty(layer.id, 'text-color', theme.fontColor);
-          map.setPaintProperty(layer.id, 'text-halo-color', theme.pageBackground);
-        }
-      }
-    } catch {
-      // Some Mapbox layers expose different paint properties; skip those safely.
-    }
-  }
-}
-
+type LatLng = { lat: number; lng: number };
 function coordinatesToAddress(location: LatLng): DeliveryLocationAddress {
   return {
     formattedAddress: '',
@@ -57,7 +31,6 @@ export function MapboxLocationPickerUi({
   variant = 'delivery',
   initialLatitude = null,
   initialLongitude = null,
-  theme = { pageBackground: '#ffffff', fontColor: '#172033', primaryButton: '#2563eb', secondaryButton: '#e5e7eb' },
 }: {
   disabled?: boolean;
   onSelect: (address: DeliveryLocationAddress) => void | Promise<void>;
@@ -65,7 +38,6 @@ export function MapboxLocationPickerUi({
   variant?: 'delivery' | 'restaurant';
   initialLatitude?: number | null;
   initialLongitude?: number | null;
-  theme?: MapTheme;
 }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapboxMap | null>(null);
@@ -158,7 +130,7 @@ export function MapboxLocationPickerUi({
           if (!container?.clientWidth || !container.clientHeight) return;
           map.resize();
         };
-        map.on('load', () => { resizeMap(); applyRestaurantMapTheme(map, theme); });
+        map.on('load', resizeMap);
         if (typeof ResizeObserver !== 'undefined') {
           resizeObserver = new ResizeObserver(resizeMap);
           resizeObserver.observe(mapContainerRef.current);
@@ -215,7 +187,7 @@ export function MapboxLocationPickerUi({
       mapRef.current = null;
       markerRef.current = null;
     };
-  }, [theme.pageBackground, theme.fontColor, theme.primaryButton, theme.secondaryButton]);
+  }, []);
 
   async function runAddressSearch() {
     const query = searchQuery.trim();
