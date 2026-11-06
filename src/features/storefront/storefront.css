@@ -744,10 +744,11 @@
 /* The entire delivery-location card is the map-picker control. */
 .sf-address-location-trigger{appearance:none;-webkit-appearance:none;display:flex;width:100%;min-width:0;min-height:58px;box-sizing:border-box;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--sf-primary-button);border-radius:12px;background:var(--sf-primary-button);text-align:left;cursor:pointer;color:var(--sf-primary-button-font);font:inherit}
 .sf-address-location-trigger .sf-address-location-copy{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.sf-address-location-trigger .sf-address-location-icon{background:transparent;color:var(--sf-primary-button-font)}
 .sf-address-location-trigger .sf-address-location-copy>span:last-child{display:block;min-width:0}
 .sf-address-location-trigger .sf-address-location-title{display:block;font-size:var(--sf-font-size-14);font-weight:700;line-height:1.35;color:var(--sf-primary-button-font)}
 .sf-address-location-trigger .sf-address-location-description{display:block;margin-top:3px;font-size:var(--sf-font-size-12);font-weight:400;line-height:1.4;color:var(--sf-primary-button-font);opacity:.82}
-.sf-address-location-chevron{display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border-radius:8px;background:var(--sf-secondary-button);color:var(--sf-secondary-button-font);font-size:24px;line-height:1;transition:transform .15s ease}
+.sf-address-location-chevron{display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border-radius:8px;background:transparent;color:var(--sf-primary-button-font);font-size:24px;line-height:1;transition:transform .15s ease}
 .sf-address-location-trigger:hover .sf-address-location-chevron{transform:translateX(2px)}
 .sf-address-location-trigger:focus-visible{outline:2px solid var(--sf-primary-button);outline-offset:3px}
 
