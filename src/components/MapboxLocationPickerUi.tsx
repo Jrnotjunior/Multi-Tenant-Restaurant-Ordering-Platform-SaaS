@@ -6,7 +6,6 @@ import type { DeliveryLocationAddress } from '../modules/location/mapServiceProt
 export type { DeliveryLocationAddress } from '../modules/location/mapServiceProtocol';
 
 type LatLng = { lat: number; lng: number };
-type LatLng = { lat: number; lng: number };
 function coordinatesToAddress(location: LatLng): DeliveryLocationAddress {
   return {
     formattedAddress: '',
