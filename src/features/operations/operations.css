@@ -726,3 +726,11 @@
 .owner-tax-policy-item small{color:#657791;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
 .owner-tax-policy-item>span{flex:0 0 auto;padding:5px 8px;border-radius:6px;background:#fff8e8;color:#875d13;font-size:10px;font-weight:800;text-transform:capitalize}
 @media(max-width:760px){.owner-tax-policy-fields,.owner-tax-policy-rule{grid-template-columns:minmax(0,1fr)}.owner-tax-policy-item{flex-direction:column}.owner-tax-policy-checkbox{align-items:flex-start!important}}
+
+
+/* Branch-level ordering controls in shared store settings. */
+.w2t-branch-store-status-list{display:grid;gap:0}
+.w2t-branch-store-status-list .w2t-setting-switch-row{padding:14px 0;border-top:1px solid var(--owner-border,var(--color-border,#DCE3ED))}
+.w2t-branch-store-status-list .w2t-setting-switch-row:first-child{border-top:0}
+.w2t-branch-store-status-list .w2t-setting-switch-row>span{display:grid;gap:4px}
+.w2t-branch-store-status-list .w2t-setting-switch-row small{color:var(--owner-muted,var(--color-muted,#64748b));font-size:.82rem}
