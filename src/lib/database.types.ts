@@ -2413,6 +2413,14 @@ export type Database = {
         Args: { p_tenant_id: string }
         Returns: string
       }
+      get_workspace_storefront_favicon: {
+        Args: { p_tenant_id: string }
+        Returns: Json
+      }
+      get_workspace_tenant_domain: {
+        Args: { p_tenant_id: string }
+        Returns: Json
+      }
       get_pos_cashier_shift: {
         Args: { p_actor_user_id: string; p_branch_id: string }
         Returns: Json
