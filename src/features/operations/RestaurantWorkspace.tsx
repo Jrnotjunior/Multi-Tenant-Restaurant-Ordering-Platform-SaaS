@@ -78,14 +78,20 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
     const client = supabase;
     let active = true;
     const loadFavicon = async () => {
-      const { data, error } = await client.from('tenant_storefronts')
-        .select('favicon_path,logo_path').eq('tenant_id', membership.tenant_id).maybeSingle();
-      if (error) throw error;
-      if (!active || !data) return;
-      const logoUrl = data.logo_path ? client.storage.from('storefront-logos').getPublicUrl(data.logo_path).data.publicUrl : null;
+      const [{ data: assets, error: assetsError }, { data: favicon, error: faviconError }] = await Promise.all([
+        client.from('tenant_storefronts')
+          .select('logo_path').eq('tenant_id', membership.tenant_id).maybeSingle(),
+        client.rpc('get_workspace_storefront_favicon', { p_tenant_id: membership.tenant_id }),
+      ]);
+      if (assetsError) throw assetsError;
+      if (faviconError) throw faviconError;
+      if (!active) return;
+      const logoUrl = assets?.logo_path ? client.storage.from('storefront-logos').getPublicUrl(assets.logo_path).data.publicUrl : null;
       setRestaurantLogoUrl(logoUrl);
-      if (data.favicon_path) {
-        const url = client.storage.from('storefront-logos').getPublicUrl(data.favicon_path).data.publicUrl;
+      const faviconPath = favicon && typeof favicon === 'object' && 'faviconPath' in favicon
+        ? (favicon as { faviconPath?: unknown }).faviconPath : null;
+      if (typeof faviconPath === 'string' && faviconPath) {
+        const url = client.storage.from('storefront-logos').getPublicUrl(faviconPath).data.publicUrl;
         applyAppFavicon(url);
       } else {
         clearAppFavicon();
