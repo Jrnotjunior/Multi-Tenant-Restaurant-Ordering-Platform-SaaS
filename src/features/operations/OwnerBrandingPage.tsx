@@ -85,7 +85,10 @@ export function OwnerBrandingPage({tenantId,restaurantName}:Props) {
       const {error}=await supabase.from('tenant_storefronts').update({[column]:path,updated_at:new Date().toISOString()}).eq('tenant_id',tenantId);
       if(error)throw error;
       const url=supabase.storage.from('storefront-logos').getPublicUrl(path).data.publicUrl;
-      if(kind==='logo')setLogo(url);else {
+      if(kind==='logo'){
+        setLogo(url);
+        window.dispatchEvent(new CustomEvent('web2table:owner-logo-updated',{detail:{tenantId,url}}));
+      }else {
         setFavicon(url);
         applyAppFavicon(url);
         window.dispatchEvent(new CustomEvent('web2table:owner-favicon-updated',{detail:{tenantId,url}}));
