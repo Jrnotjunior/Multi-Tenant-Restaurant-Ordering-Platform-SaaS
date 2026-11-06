@@ -365,9 +365,9 @@
 .sf-auth-success{background:#effaf2;color:#23613a}
 @media(max-width:480px){.sf-menu-card{grid-template-columns:112px minmax(0,1fr);min-height:128px}.sf-card-image{height:128px;min-height:128px}.sf-card-details{padding:10px 11px}.sf-card-details h3{font-size:var(--sf-font-size-17)}.sf-card-details p{font-size:var(--sf-font-size-11);line-height:1.4}.sf-auth-card{padding:34px 22px 26px;border-radius:18px}.sf-auth-intro{margin:18px auto 24px}}
 
-.sf-auth-text-button{justify-self:end;padding:0;border:0;background:transparent;color:var(--sf-primary-button);font:inherit;font-size:var(--sf-font-size-auth-link);font-weight:750;text-align:right;text-decoration:underline;cursor:pointer}.sf-auth-text-button:hover{text-decoration:underline}.sf-auth-switch .sf-auth-text-button{font-size:var(--sf-font-size-auth-switch)}
+.sf-auth-text-button{justify-self:end;padding:0;border:0;background:transparent;color:var(--sf-font-color);font:inherit;font-size:var(--sf-font-size-auth-link);font-weight:750;text-align:right;text-decoration:underline;cursor:pointer}.sf-auth-text-button:hover{text-decoration:underline}.sf-auth-switch .sf-auth-text-button{font-size:var(--sf-font-size-auth-switch)}
 
-.sf-auth-form .sf-auth-text-button{min-height:0;margin:0;padding:0;border:0;border-radius:0;background:transparent;color:var(--sf-primary-button);font:inherit;font-size:var(--sf-font-size-auth-link);font-weight:750;text-align:right;text-decoration:underline;cursor:pointer}.sf-auth-form .sf-auth-text-button:hover:not(:disabled){background:transparent;color:var(--sf-secondary-button)}
+.sf-auth-form .sf-auth-text-button{min-height:0;margin:0;padding:0;border:0;border-radius:0;background:transparent;color:var(--sf-font-color);font:inherit;font-size:var(--sf-font-size-auth-link);font-weight:750;text-align:right;text-decoration:underline;cursor:pointer}.sf-auth-form .sf-auth-text-button:hover:not(:disabled){background:transparent;color:var(--sf-font-color)}
 
 .sf-auth-password-field{position:relative;display:block;width:100%}
 .sf-auth-password-field input{padding-right:46px}
