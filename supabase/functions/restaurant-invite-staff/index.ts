@@ -79,8 +79,11 @@ Deno.serve(async (req: Request) => {
       return respond(req,500,{error:"Restaurant or branch details could not be loaded for the invitation email."},adminClient);
     }
     const roleLabels:Record<string,string>={cashier:"cashier",kitchen:"kitchen team member",dispatcher:"dispatcher",rider:"delivery rider"};
+    const requestOrigin=req.headers.get("Origin")??"";
+    const redirectBase=await isAllowedOrigin(requestOrigin,adminClient)?new URL("/restaurant",requestOrigin):new URL(APP_URL);
+    redirectBase.searchParams.set("type","invite");
     const {data:sent,error:sendError}=await adminClient.auth.admin.inviteUserByEmail(email,{
-      redirectTo:(async()=>{const origin=req.headers.get("Origin")??"";const base=await isAllowedOrigin(origin,adminClient)?new URL("/restaurant",origin):new URL(APP_URL);base.searchParams.set("type","invite");return base.toString();})(),
+      redirectTo:redirectBase.toString(),
       data:{
         first_name:firstName,last_name:lastName,full_name:fullName,name:fullName,phone,phone_number:phone,
         invitation_type:"restaurant_staff",invitation_label:"RESTAURANT TEAM INVITATION",
