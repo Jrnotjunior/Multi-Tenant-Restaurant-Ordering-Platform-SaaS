@@ -241,7 +241,7 @@ export function branchSlugFromDomainPath(pathname:string):string|null {
 
 /** Require a branch choice whenever the entry URL does not identify one. */
 export function needsBranchSelection(selectedBranch:string|null,branches:readonly BranchChoice[]):boolean {
-  return selectedBranch===null&&branches.length>0;
+  return selectedBranch===null&&branches.length>1;
 }
 
 
