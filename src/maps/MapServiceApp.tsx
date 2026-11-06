@@ -10,7 +10,6 @@ type InitOptions = {
   disabled: boolean;
   initialLatitude: number | null;
   initialLongitude: number | null;
-  theme: { pageBackground: string; fontColor: string; primaryButton: string; secondaryButton: string };
 };
 type MapSession = InitOptions & { parentOrigin: string };
 type PendingConfirmation = { resolve: () => void; reject: (error: Error) => void };
@@ -35,20 +34,12 @@ function parseInit(value: unknown): InitOptions | null {
   const latitude = nullableCoordinate(message.initialLatitude, -90, 90);
   const longitude = nullableCoordinate(message.initialLongitude, -180, 180);
   if ((latitude === null) !== (longitude === null)) return null;
-  const themeValue = record(message.theme);
-  const safeColor = (value: unknown, fallback: string) => typeof value === 'string' && /^#[0-9a-f]{3,8}$/i.test(value) ? value : fallback;
   return {
     restaurantSlug: message.restaurantSlug.toLowerCase(),
     variant: message.variant,
     disabled: message.disabled === true,
     initialLatitude: latitude,
     initialLongitude: longitude,
-    theme: {
-      pageBackground: safeColor(themeValue?.pageBackground, '#ffffff'),
-      fontColor: safeColor(themeValue?.fontColor, '#172033'),
-      primaryButton: safeColor(themeValue?.primaryButton, '#2563eb'),
-      secondaryButton: safeColor(themeValue?.secondaryButton, '#e5e7eb'),
-    },
   };
 }
 
@@ -224,7 +215,6 @@ export function MapServiceApp() {
         disabled={session.disabled}
         initialLatitude={session.initialLatitude}
         initialLongitude={session.initialLongitude}
-        theme={session.theme}
         onLocationChange={notifyLocationChanged}
         onSelect={confirmLocation}
       />
