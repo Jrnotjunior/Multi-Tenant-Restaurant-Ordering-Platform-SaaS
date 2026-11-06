@@ -45,14 +45,45 @@ function getTabAuthStorage(): { storage: Storage | { getItem(key: string): strin
 
 const tabAuth = getTabAuthStorage();
 
+/**
+ * Keep one Supabase Auth client per tab storage key, even if this module is
+ * evaluated more than once by separate chunks or during development HMR.
+ *
+ * The registry is deliberately tab-local (globalThis belongs to one JS
+ * browsing context). Different tabs therefore retain independent auth clients
+ * and sessionStorage keys, while repeated initialization in the same tab
+ * reuses the existing client instead of creating competing GoTrueClient
+ * instances against the same storage key.
+ */
+type BrowserSupabaseClient = ReturnType<typeof createClient>;
+type SupabaseClientRegistry = typeof globalThis & {
+  __web2tableSupabaseClients?: Map<string, BrowserSupabaseClient>;
+};
+
+function getOrCreateSupabaseClient(): BrowserSupabaseClient | null {
+  if (!config) return null;
+
+  const registryHost = globalThis as SupabaseClientRegistry;
+  const registry = registryHost.__web2tableSupabaseClients
+    ?? (registryHost.__web2tableSupabaseClients = new Map<string, BrowserSupabaseClient>());
+
+  const storageKey = tabAuth?.storageKey ?? 'web2table.auth.memory';
+  const registryKey = `${config.url}::${config.publishableKey.slice(0, 12)}::${storageKey}`;
+  const existing = registry.get(registryKey);
+  if (existing) return existing;
+
+  const client = createClient(config.url, config.publishableKey, {
+    auth: {
+      ...(tabAuth ? { storage: tabAuth.storage, storageKey: tabAuth.storageKey } : {}),
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  });
+
+  registry.set(registryKey, client);
+  return client;
+}
+
 /** Public browser client only. Never use secret keys or bypass RLS here. */
-export const supabase = config
-  ? createClient(config.url, config.publishableKey, {
-      auth: {
-        ...(tabAuth ? { storage: tabAuth.storage, storageKey: tabAuth.storageKey } : {}),
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
-    })
-  : null;
+export const supabase = getOrCreateSupabaseClient();
