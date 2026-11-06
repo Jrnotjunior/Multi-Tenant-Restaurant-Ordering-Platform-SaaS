@@ -46,7 +46,6 @@ const staffWorkspaceHref = (role: StaffWorkspaceRole) => normalizeAppBase(import
 const label = (value: string) => value.replaceAll('_', ' ').replace(/\b\w/g, character => character.toUpperCase());
 const formatOrderNumber = (value: number | string) => `ORD-${String(value).trim().replace(/^ORD-/i, '').padStart(5, '0')}`;
 type SalesSchedule = { timezone?: string; schedule?: Record<string, { isOpen?: boolean; open?: string; close?: string }> };
-const salesDayKeys = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 function isPaymentWithinBusinessHours(timestamp: string | null, schedule: SalesSchedule | null): boolean {
   if (!timestamp || !schedule?.schedule) return false;
   const timezone = schedule.timezone || 'Asia/Manila';
