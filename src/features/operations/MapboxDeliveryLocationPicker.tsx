@@ -16,6 +16,7 @@ type InitMessage = {
   disabled: boolean;
   initialLatitude: number | null;
   initialLongitude: number | null;
+  theme: { pageBackground: string; fontColor: string; primaryButton: string; secondaryButton: string };
 };
 
 const CENTRAL_MAP_SERVICE_URL = 'https://app.web2table.io/maps.html';
@@ -62,6 +63,12 @@ export function MapboxDeliveryLocationPicker({
     const target = iframeRef.current?.contentWindow;
     if (!target) return;
     const current = callbacksRef.current;
+    const storefront = document.querySelector<HTMLElement>('.sf-storefront');
+    const computed = storefront ? window.getComputedStyle(storefront) : null;
+    const color = (name: string, fallback: string) => {
+      const value = computed?.getPropertyValue(name).trim() || '';
+      return /^#[0-9a-f]{3,8}$/i.test(value) ? value : fallback;
+    };
     const message: InitMessage = {
       source: 'web2table-storefront',
       type: 'init',
@@ -70,6 +77,12 @@ export function MapboxDeliveryLocationPicker({
       disabled: current.disabled,
       initialLatitude: current.initialLatitude,
       initialLongitude: current.initialLongitude,
+      theme: {
+        pageBackground: color('--sf-page-background', '#ffffff'),
+        fontColor: color('--sf-font-color', '#172033'),
+        primaryButton: color('--sf-primary-button', '#2563eb'),
+        secondaryButton: color('--sf-secondary-button', '#e5e7eb'),
+      },
     };
     target.postMessage(message, service.origin);
   }
