@@ -16,7 +16,7 @@ type InitMessage = {
   disabled: boolean;
   initialLatitude: number | null;
   initialLongitude: number | null;
-  theme: { pageBackground: string; primaryButton: string; primaryButtonFont: string };
+  theme: { pageBackground: string; fontColor: string; primaryButton: string; primaryButtonFont: string };
 };
 
 const CENTRAL_MAP_SERVICE_URL = 'https://app.web2table.io/maps.html';
@@ -79,6 +79,7 @@ export function MapboxDeliveryLocationPicker({
       initialLongitude: current.initialLongitude,
       theme: {
         pageBackground: color('--sf-page-background', '#ffffff'),
+        fontColor: color('--sf-font-color', '#172033'),
         primaryButton: color('--sf-primary-button', '#2563eb'),
         primaryButtonFont: color('--sf-primary-button-font', '#ffffff'),
       },
