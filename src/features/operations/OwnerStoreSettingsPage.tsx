@@ -12,7 +12,7 @@ type OperatingHours = Record<DayKey, DayHours>;
 type OnlinePaymentMethods = { card: boolean; gcash: boolean; qrph: boolean; grab_pay: boolean; paymaya: boolean; dob: boolean; billease: boolean };
 type OnlinePayments = { enabled: boolean; methods: OnlinePaymentMethods; provider_configured: boolean; [key: string]: unknown };
 type DeliveryForm = { baseFee: string; distanceIncrementMeters: string; feePerIncrement: string; maxDistanceKm: string };
-type BranchDeliveryRow = { id:string; slug:string; name:string; is_active:boolean; pickup_address:string|null; contact_phone:string|null; store_address:string|null; delivery_location_latitude:number|null; delivery_location_longitude:number|null; delivery_pricing:Obj };
+type BranchDeliveryRow = { id:string; slug:string; name:string; is_active:boolean; accepting_orders:boolean; pickup_address:string|null; contact_phone:string|null; store_address:string|null; delivery_location_latitude:number|null; delivery_location_longitude:number|null; delivery_pricing:Obj };
 type StorefrontRow = {
   tenant_id: string;
   default_branch_id: string;
@@ -173,6 +173,7 @@ export function OwnerStoreSettingsPage({ tenantId }: Props) {
   const [payments, setPayments] = useState<OnlinePayments>({ enabled: false, methods: DEFAULT_METHODS, provider_configured: false });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [updatingBranchId, setUpdatingBranchId] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -196,7 +197,7 @@ export function OwnerStoreSettingsPage({ tenantId }: Props) {
         setAcceptingOrders(settings.accepting_orders !== false);
         setHours(normalizeHours(settings.opening_hours));
         const {data:branchRows,error:branchError}=await supabase.from('branches')
-          .select('id,slug,name,is_active,pickup_address,contact_phone,store_address,delivery_location_latitude,delivery_location_longitude,delivery_pricing')
+          .select('id,slug,name,is_active,accepting_orders,pickup_address,contact_phone,store_address,delivery_location_latitude,delivery_location_longitude,delivery_pricing')
           .eq('tenant_id',tenantId).order('name');
         if(branchError)throw branchError;
         const safeBranches=(branchRows??[]) as BranchDeliveryRow[];
@@ -231,6 +232,31 @@ export function OwnerStoreSettingsPage({ tenantId }: Props) {
     const timeout = window.setTimeout(() => { setMessage(''); setError(''); }, 5000);
     return () => window.clearTimeout(timeout);
   }, [message, error]);
+
+  async function updateBranchStoreStatus(branchId: string, accepting: boolean) {
+    if (!supabase || !branchId || updatingBranchId) return;
+    const previous = branches.find(branch => branch.id === branchId);
+    if (!previous || !previous.is_active) return;
+    setUpdatingBranchId(branchId);
+    setError('');
+    setMessage('');
+    setBranches(current => current.map(branch => branch.id === branchId ? { ...branch, accepting_orders: accepting } : branch));
+    try {
+      const { data, error: updateError } = await supabase.rpc('update_owner_branch_accepting_orders', {
+        p_tenant_id: tenantId,
+        p_branch_id: branchId,
+        p_accepting_orders: accepting,
+      });
+      if (updateError) throw updateError;
+      if (data !== true) throw new Error('Branch store status was not saved.');
+      setMessage(previous.name + (accepting ? ' is now open for orders.' : ' is now closed to new orders.'));
+    } catch (reason) {
+      setBranches(current => current.map(branch => branch.id === branchId ? { ...branch, accepting_orders: previous.accepting_orders } : branch));
+      setError(reason instanceof Error ? reason.message : 'Unable to update this branch store status.');
+    } finally {
+      setUpdatingBranchId('');
+    }
+  }
 
   function updateDay(day: DayKey, patch: Partial<DayHours>) {
     setHours(current => ({ ...current, [day]: { ...current[day], ...patch } }));
@@ -351,9 +377,20 @@ export function OwnerStoreSettingsPage({ tenantId }: Props) {
     <form className="w2t-settings-form" onSubmit={(event: FormEvent) => { event.preventDefault(); if (canSave) setConfirmOpen(true); }}>
       {activeTab === 'hours' && <>
         <section className="w2t-settings-card">
-          <div className="w2t-setting-switch-row"><span><strong>{acceptingOrders ? 'Store is open' : 'Store is manually closed'}</strong><small>Turn off to close ordering immediately. Turn it back on to use your operating hours.</small></span><Toggle label="Store accepting orders" checked={acceptingOrders} disabled={saving} onChange={value => { setAcceptingOrders(value); setMessage(''); setError(''); }} /></div>
+          <h2>Branch store status</h2>
+          <p className="w2t-settings-help">Open or close each active branch independently. Closing a branch stops new orders only for that branch; existing orders remain available to staff.</p>
+          <div className="w2t-branch-store-status-list">
+            {branches.map(branch => <div className="w2t-setting-switch-row" key={branch.id}>
+              <span><strong>{branch.name}</strong><small>{!branch.is_active ? 'Inactive branch' : branch.accepting_orders ? 'Open — accepting new orders' : 'Closed — not accepting new orders'}</small></span>
+              <Toggle label={branch.name + ' accepting orders'} checked={branch.accepting_orders} disabled={saving || updatingBranchId !== '' || !branch.is_active} onChange={value => void updateBranchStoreStatus(branch.id, value)} />
+            </div>)}
+            {branches.length === 0 && <p className="w2t-settings-help">No branches are configured for this restaurant.</p>}
+          </div>
         </section>
-        <section className="w2t-settings-card"><h2>Operating hours</h2><p className="w2t-settings-help">Choose the opening and closing times for each day. Turn a day off when the restaurant is closed.</p>
+        <section className="w2t-settings-card">
+          <div className="w2t-setting-switch-row"><span><strong>{acceptingOrders ? 'All branches enabled' : 'All branches paused'}</strong><small>Restaurant-wide emergency switch. When turned off, no branch can accept new orders, even if its individual switch is on.</small></span><Toggle label="Restaurant-wide ordering enabled" checked={acceptingOrders} disabled={saving} onChange={value => { setAcceptingOrders(value); setMessage(''); setError(''); }} /></div>
+        </section>
+        <section className="w2t-settings-card"><h2>Shared operating hours</h2><p className="w2t-settings-help">These weekly hours are shared by all branches. Each branch can still be closed independently using its store-status switch above.</p>
           <div className="w2t-hours-table"><div className="w2t-hours-head"><span>Day</span><span>Opens</span><span>Closes</span><span>Status</span></div>
             {DAYS.map(({ key, label }) => <div className="w2t-hours-row" key={key}>
               <strong>{label}</strong>
