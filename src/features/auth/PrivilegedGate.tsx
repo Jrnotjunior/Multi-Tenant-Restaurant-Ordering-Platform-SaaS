@@ -125,12 +125,30 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
         // AAL1 preflight only checks whether this identity may attempt privileged access.
         // The backend still requires AAL2 and tenant/branch permissions for all private data.
         const invitationType = new URLSearchParams(window.location.search).get('type');
-      const isInviteSetup = invitationType === 'invite' || user.user_metadata?.invitation_type === 'tenant_owner';
-      if (isInviteSetup && invitationType === 'invite') {
-        if (!active) return;
-        setStatus('passwordsetup');
-        return;
-      }
+        const metadataInvitationType = user.user_metadata?.invitation_type;
+        const invitationIdFromMetadata = user.user_metadata?.tenant_invitation_id;
+        const isInvitationAccount = invitationType === 'invite'
+          || metadataInvitationType === 'tenant_owner'
+          || metadataInvitationType === 'restaurant_staff'
+          || typeof invitationIdFromMetadata === 'string';
+
+        if (isInvitationAccount) {
+          // The email redirect query can be lost by Auth redirect handling.
+          // Use trusted invitation metadata as a fallback, but do not send an
+          // already-onboarded member back through password creation on sign-in.
+          const { data: activeMemberships, error: membershipError } = await client
+            .from('tenant_memberships')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .limit(1);
+          if (membershipError) throw membershipError;
+          if ((activeMemberships?.length ?? 0) === 0) {
+            if (!active) return;
+            setStatus('passwordsetup');
+            return;
+          }
+        }
       const { data: eligible, error: eligibilityError } = await client.rpc('privileged_route_eligible', {
           p_workspace: mode,
         });
