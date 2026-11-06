@@ -731,7 +731,7 @@
 .sf-address-page-actions{display:flex;justify-content:flex-end;margin:16px 0}
 .sf-address-add-trigger{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:46px;padding:11px 16px;border:1px solid var(--sf-primary-button);border-radius:11px;background:var(--sf-primary-button);color:var(--sf-primary-button-font);font:inherit;font-size:var(--sf-font-size-14);font-weight:750}
 .sf-address-form-overlay{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:20px;background:rgba(15,23,42,.58);box-sizing:border-box}
-.sf-address-form.sf-address-form-dialog{width:min(100%,560px);max-height:min(90dvh,820px);overflow-y:auto;box-sizing:border-box;margin:0;padding:20px;border-radius:18px;background:var(--sf-product-card);box-shadow:0 24px 80px rgba(0,0,0,.24)}
+.sf-address-form.sf-address-form-dialog{width:min(100%,560px);max-height:min(90dvh,820px);overflow-y:auto;box-sizing:border-box;margin:0;padding:20px;border-radius:18px;background:var(--sf-page-background);color:var(--sf-font-color);box-shadow:0 24px 80px rgba(0,0,0,.24)}
 .sf-address-form-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--sf-border)}
 .sf-address-form-heading h2{margin:0}
 .sf-address-form-close{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border:1px solid var(--sf-border);border-radius:50%;background:var(--sf-page-background);color:var(--sf-font-color);font-size:26px;line-height:1}
