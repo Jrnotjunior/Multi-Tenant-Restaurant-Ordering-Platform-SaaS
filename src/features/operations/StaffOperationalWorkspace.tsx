@@ -711,7 +711,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       <div className="staff-sales-metrics">
         <article><span>Recorded paid sales</span><strong>{money(salesTotal)}</strong></article>
         <article><span>Paid orders</span><strong>{salesOrders.length}</strong></article>
-        <article><span>Orders loaded</span><strong>{orders.length}</strong></article>
+        <article><span>Orders today</span><strong>{salesOrders.length}</strong></article>
       </div>
       {(error || notice) && <p className={'staff-notice ' + (error ? 'is-error' : 'is-success')} role={error ? 'alert' : 'status'}>{error || notice}</p>}
       {loading ? <p className="staff-empty">Loading sales…</p> : salesOrders.length === 0 ? <div className="staff-empty"><h3>No paid sales found</h3><p>Paid orders will appear here once payment is recorded in the order history.</p></div> :
