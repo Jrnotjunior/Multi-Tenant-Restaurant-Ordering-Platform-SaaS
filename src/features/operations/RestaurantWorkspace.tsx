@@ -137,20 +137,15 @@ export function RestaurantWorkspace({ baseUrl }: { baseUrl: string }) {
         if (membershipError) throw membershipError;
         const memberships = (data ?? []) as Membership[];
         const currentHostname = window.location.hostname.toLowerCase();
-        let domainTenantId: string | null = null;
-        if (currentHostname !== 'app.web2table.io') {
-          const { data: domainMatches, error: domainResolveError } = await supabase.rpc('resolve_restaurant_by_domain', {
-            p_hostname: currentHostname,
-          });
-          if (domainResolveError) throw domainResolveError;
-          const matches = Array.isArray(domainMatches) ? domainMatches : [];
-          domainTenantId = matches.length === 1 && typeof matches[0]?.id === 'string' ? matches[0].id : null;
-          if (!domainTenantId) throw new Error('This restaurant domain is not active or verified.');
-        }
-        const selected = domainTenantId
-          ? memberships.find(item => item.tenant_id === domainTenantId) ?? null
-          : memberships.find(item => item.role === 'restaurant_owner') ?? memberships[0] ?? null;
-        if (domainTenantId && !selected) throw new Error('Your account does not have access to this restaurant workspace.');
+        const { data: domainMatches, error: domainResolveError } = await supabase.rpc('resolve_restaurant_by_domain', {
+          p_hostname: currentHostname,
+        });
+        if (domainResolveError) throw domainResolveError;
+        const matches = Array.isArray(domainMatches) ? domainMatches : [];
+        const domainTenantId = matches.length === 1 && typeof matches[0]?.id === 'string' ? matches[0].id : null;
+        if (!domainTenantId) throw new Error('This restaurant domain is not active or verified.');
+        const selected = memberships.find(item => item.tenant_id === domainTenantId) ?? null;
+        if (!selected) throw new Error('Your account does not have access to this restaurant workspace.');
         let nextRestaurantName: string | null = null;
         if (selected) {
           const [{ data: tenant, error: tenantError }, { data: tenantDomain, error: domainError }] = await Promise.all([
