@@ -43,6 +43,24 @@ function themeKey(restaurantSlug?: string | null): string {
   return restaurantSlug || getRememberedStorefrontSlug() || '__default_storefront__';
 }
 
+/** Prime the account shell with the catalog already loaded by the active storefront. */
+export function primeCustomerStorefrontTheme(restaurantSlug: string, catalog: import('./publishedMenu').StorefrontCatalog): void {
+  if (!restaurantSlug) return;
+  const fontClass = catalog.restaurant.fontFamily === 'classic'
+    ? ' sf-font-classic'
+    : catalog.restaurant.fontFamily === 'rounded'
+      ? ' sf-font-rounded'
+      : ' sf-font-modern';
+  themeCache.set(restaurantSlug, {
+    style: toStorefrontStyle(catalog.restaurant.websiteColors),
+    fontClass,
+    isLoading: false,
+    logoUrl: catalog.restaurant.logoUrl,
+    restaurantName: catalog.restaurant.name,
+    restaurantInitials: catalog.restaurant.initials,
+  });
+}
+
 async function resolveTheme(key: string, restaurantSlug?: string | null): Promise<CustomerTheme> {
   const cached = themeCache.get(key);
   if (cached) return cached;
