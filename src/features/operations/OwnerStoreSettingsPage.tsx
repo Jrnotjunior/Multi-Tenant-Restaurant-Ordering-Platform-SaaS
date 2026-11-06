@@ -260,6 +260,32 @@ export function OwnerStoreSettingsPage({ tenantId }: Props) {
     }
   }
 
+  async function updateRestaurantStoreStatus(accepting: boolean) {
+    if (!supabase || !row || saving || updatingBranchId) return;
+    const previous = acceptingOrders;
+    setAcceptingOrders(accepting);
+    setError('');
+    setMessage('');
+    setSaving(true);
+    try {
+      const { data, error: updateError } = await supabase.rpc('update_owner_storefront_accepting_orders', {
+        p_tenant_id: tenantId,
+        p_accepting_orders: accepting,
+      });
+      if (updateError) throw updateError;
+      if (data !== true) throw new Error('Restaurant-wide store status was not saved.');
+      setRow(current => current ? { ...current, accepting_orders: accepting } as StorefrontRow : current);
+      setMessage(accepting ? 'Restaurant-wide ordering is now enabled.' : 'All branches are now paused.');
+    } catch (reason) {
+      setAcceptingOrders(previous);
+      const backendMessage = typeof reason === 'object' && reason !== null && 'message' in reason
+        && typeof reason.message === 'string' ? reason.message : '';
+      setError(backendMessage || (reason instanceof Error ? reason.message : 'Unable to update restaurant-wide store status.'));
+    } finally {
+      setSaving(false);
+    }
+  }
+
   function updateDay(day: DayKey, patch: Partial<DayHours>) {
     setHours(current => ({ ...current, [day]: { ...current[day], ...patch } }));
     setMessage(''); setError('');
@@ -390,7 +416,7 @@ export function OwnerStoreSettingsPage({ tenantId }: Props) {
           </div>
         </section>
         <section className="w2t-settings-card">
-          <div className="w2t-setting-switch-row"><span><strong>{acceptingOrders ? 'All branches enabled' : 'All branches paused'}</strong><small>Restaurant-wide emergency switch. When turned off, no branch can accept new orders, even if its individual switch is on.</small></span><Toggle label="Restaurant-wide ordering enabled" checked={acceptingOrders} disabled={saving} onChange={value => { setAcceptingOrders(value); setMessage(''); setError(''); }} /></div>
+          <div className="w2t-setting-switch-row"><span><strong>{acceptingOrders ? 'All branches enabled' : 'All branches paused'}</strong><small>Restaurant-wide emergency switch. When turned off, no branch can accept new orders, even if its individual switch is on.</small></span><Toggle label="Restaurant-wide ordering enabled" checked={acceptingOrders} disabled={saving || updatingBranchId !== ''} onChange={value => void updateRestaurantStoreStatus(value)} /></div>
         </section>
         <section className="w2t-settings-card"><h2>Shared operating hours</h2><p className="w2t-settings-help">These weekly hours are shared by all branches. Each branch can still be closed independently using its store-status switch above.</p>
           <div className="w2t-hours-table"><div className="w2t-hours-head"><span>Day</span><span>Opens</span><span>Closes</span><span>Status</span></div>
