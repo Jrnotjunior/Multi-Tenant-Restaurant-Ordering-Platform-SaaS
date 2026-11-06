@@ -238,14 +238,14 @@ export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCe
               const query = [preferred.address_line, preferred.barangay, preferred.city, 'Philippines'].filter(Boolean).join(', ');
               const features = await searchAddresses(query);
               const requestedNumber = requestedHouseNumber(preferred.address_line);
-              const candidates = features
-                .map(feature => ({ feature, address: geocodingFeatureToAddress(feature) }))
-                .filter((item): item is { feature: typeof features[number]; address: DeliveryLocationAddress } => Boolean(item.address))
-                .filter(item => {
-                  const cityMatches = !preferred.city || item.address.city.toLowerCase() === preferred.city.toLowerCase();
-                  const barangayMatches = !preferred.barangay || item.address.barangay.toLowerCase() === preferred.barangay.toLowerCase();
-                  return cityMatches && barangayMatches;
-                });
+              const candidates = features.flatMap(feature => {
+                const address = geocodingFeatureToAddress(feature);
+                return address ? [{ feature, address }] : [];
+              }).filter(item => {
+                const cityMatches = !preferred.city || item.address.city.toLowerCase() === preferred.city.toLowerCase();
+                const barangayMatches = !preferred.barangay || item.address.barangay.toLowerCase() === preferred.barangay.toLowerCase();
+                return cityMatches && barangayMatches;
+              });
               const resolved = requestedNumber
                 ? candidates.find(item => matchesRequestedHouseNumber(preferred.address_line, item.feature.properties?.housenumber))
                 : candidates[0];
