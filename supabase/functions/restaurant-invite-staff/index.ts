@@ -3,27 +3,27 @@ import { createClient } from "npm:@supabase/supabase-js@2.58.0";
 
 const APP_URL = Deno.env.get("TENANT_SETUP_URL") ?? "https://app.web2table.io/restaurant";
 const allowedOrigins = new Set(["https://admin.web2table.io","https://app.web2table.io","https://jrnotjunior.github.io"]);
+async function isAllowedOrigin(origin: string, adminClient?: ReturnType<typeof createClient>) {
+  if (allowedOrigins.has(origin)) return true;
+  if (!adminClient || !origin) return false;
+  try {
+    const parsed = new URL(origin);
+    if (parsed.protocol !== "https:") return false;
+    const { data } = await adminClient.from("tenant_domains").select("id")
+      .eq("hostname", parsed.hostname.toLowerCase()).eq("status", "active")
+      .not("verified_at", "is", null).limit(1).maybeSingle();
+    return Boolean(data);
+  } catch { return false; }
+}
 async function headersFor(req: Request, adminClient?: ReturnType<typeof createClient>) {
   const origin = req.headers.get("Origin") ?? "";
-  let allowed = allowedOrigins.has(origin);
-  if (!allowed && adminClient && origin) {
-    try {
-      const parsed = new URL(origin);
-      if (parsed.protocol === "https:") {
-        const { data } = await adminClient.from("tenant_domains").select("id")
-          .eq("hostname", parsed.hostname.toLowerCase()).eq("status", "active")
-          .not("verified_at", "is", null).limit(1).maybeSingle();
-        allowed = Boolean(data);
-      }
-    } catch { allowed = false; }
-  }
   const headers: Record<string, string> = {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Vary": "Origin",
     "Content-Type": "application/json",
   };
-  if (allowed) headers["Access-Control-Allow-Origin"] = origin;
+  if (await isAllowedOrigin(origin, adminClient)) headers["Access-Control-Allow-Origin"] = origin;
   return headers;
 }
 async function respond(req: Request, status: number, body: Record<string, unknown>, adminClient?: ReturnType<typeof createClient>) {
@@ -80,7 +80,7 @@ Deno.serve(async (req: Request) => {
     }
     const roleLabels:Record<string,string>={cashier:"cashier",kitchen:"kitchen team member",dispatcher:"dispatcher",rider:"delivery rider"};
     const {data:sent,error:sendError}=await adminClient.auth.admin.inviteUserByEmail(email,{
-      redirectTo:(()=>{const target=new URL(APP_URL);target.searchParams.set("type","invite");return target.toString();})(),
+      redirectTo:(async()=>{const origin=req.headers.get("Origin")??"";const base=await isAllowedOrigin(origin,adminClient)?new URL("/restaurant",origin):new URL(APP_URL);base.searchParams.set("type","invite");return base.toString();})(),
       data:{
         first_name:firstName,last_name:lastName,full_name:fullName,name:fullName,phone,phone_number:phone,
         invitation_type:"restaurant_staff",invitation_label:"RESTAURANT TEAM INVITATION",
