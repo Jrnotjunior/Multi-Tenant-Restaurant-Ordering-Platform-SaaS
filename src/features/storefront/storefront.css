@@ -288,7 +288,7 @@
 .sf-custom-choice input{accent-color:var(--sf-red);width:18px;height:18px;flex-shrink:0}
 .sf-custom-choice span{flex:1;min-width:0}.sf-custom-choice strong{white-space:nowrap;font-size:var(--sf-font-size-12)}
 .sf-custom-footer{border-top:1px solid var(--sf-border);padding-top:16px}
-.sf-custom-footer p{font-size:var(--sf-font-size-11);color:var(--sf-primary-button);margin:0 0 10px}
+.sf-custom-footer p{font-size:var(--sf-font-size-11);color:var(--sf-muted);margin:0 0 10px}
 .sf-custom-footer button{width:100%;min-height:51px;border:0;border-radius:11px;background:var(--sf-primary-button);color:var(--sf-primary-button-font);font-size:var(--sf-font-size-14);font-weight:850}
 .sf-custom-footer button:disabled{opacity:.5;cursor:not-allowed}
 .sf-custom-instructions{display:grid;gap:7px;font-size:var(--sf-font-size-13);font-weight:800}
