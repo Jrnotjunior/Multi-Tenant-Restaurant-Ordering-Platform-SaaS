@@ -49,15 +49,26 @@ type SalesSchedule = { timezone?: string; schedule?: Record<string, { isOpen?: b
 function isPaymentWithinBusinessHours(timestamp: string | null, schedule: SalesSchedule | null): boolean {
   if (!timestamp || !schedule?.schedule) return false;
   const timezone = schedule.timezone || 'Asia/Manila';
-  const parts = new Intl.DateTimeFormat('en-CA', {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: timezone, weekday: 'long', year: 'numeric', month: '2-digit',
     day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
-  }).formatToParts(new Date(timestamp));
-  const part = (type: string) => parts.find(item => item.type === type)?.value ?? '';
-  const dayKey = part('weekday').toLowerCase();
+  });
+  const paymentDate = new Date(timestamp);
+  if (Number.isNaN(paymentDate.getTime())) return false;
+  const paymentParts = formatter.formatToParts(paymentDate);
+  const todayParts = formatter.formatToParts(new Date());
+  const part = (parts: Intl.DateTimeFormatPart[], type: string) =>
+    parts.find(item => item.type === type)?.value ?? '';
+  // Sales are for the current local calendar day, not every historical day
+  // whose payment time happens to fall inside the weekly opening-hours window.
+  const paymentDay = ['year', 'month', 'day'].map(type => part(paymentParts, type)).join('-');
+  const today = ['year', 'month', 'day'].map(type => part(todayParts, type)).join('-');
+  if (paymentDay !== today) return false;
+
+  const dayKey = part(paymentParts, 'weekday').toLowerCase();
   const day = schedule.schedule[dayKey];
   if (!day?.isOpen || !day.open || !day.close) return false;
-  const minute = Number(part('hour')) * 60 + Number(part('minute'));
+  const minute = Number(part(paymentParts, 'hour')) * 60 + Number(part(paymentParts, 'minute'));
   const [openHour, openMinute] = day.open.split(':').map(Number);
   const [closeHour, closeMinute] = day.close.split(':').map(Number);
   const opens = openHour * 60 + openMinute;
