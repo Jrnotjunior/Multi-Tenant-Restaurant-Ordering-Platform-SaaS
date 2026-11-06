@@ -231,7 +231,7 @@
 .sf-storefront .sf-logo-mark,.sf-storefront .sf-add,
 .sf-storefront .sf-back-link,
 .sf-storefront .sf-continue{background:var(--sf-primary-button);color:var(--sf-primary-button-font)}
-.sf-storefront .sf-bag-count{background:var(--sf-primary-button);color:var(--sf-font-color)}
+.sf-storefront .sf-bag-count{background:transparent;color:var(--sf-font-color)}
 .sf-storefront .sf-cart-add-more{background:var(--sf-secondary-button);color:var(--sf-secondary-button-font)}
 .sf-storefront .sf-hero{background:var(--sf-hero-color)}
 
