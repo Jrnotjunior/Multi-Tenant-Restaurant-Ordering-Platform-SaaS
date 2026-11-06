@@ -214,18 +214,22 @@ export async function loadPublishedMenu(slug:string,branchSlug:string|null=null)
 }
 
 /** Resolve the current verified custom domain, then use the same branch-aware menu RPC. */
-export async function loadDomainPublishedMenu(hostname:string,branchSlug:string|null=null):Promise<{matched:boolean;slug:string|null;restaurantName:string|null;catalog:StorefrontCatalog|null}> {
+export async function loadDomainPublishedMenu(hostname:string,branchSlug:string|null=null):Promise<{matched:boolean;slug:string|null;restaurantName:string|null;faviconUrl:string|null;catalog:StorefrontCatalog|null}> {
   if (!supabase) throw new Error('Menu service is not configured');
   const cleanHostname=hostname.trim().toLowerCase().replace(/\.$/,'');
-  if (!cleanHostname || cleanHostname.length>253) return {matched:false,slug:null,restaurantName:null,catalog:null};
+  if (!cleanHostname || cleanHostname.length>253) return {matched:false,slug:null,restaurantName:null,faviconUrl:null,catalog:null};
   const {data,error}=await supabase.rpc('resolve_public_storefront_domain',{p_hostname:cleanHostname});
   if(error) throw new Error('Custom domain service unavailable');
   if(!record(data)||typeof data.matched!=='boolean')throw new Error('Invalid custom domain response');
-  if(!data.matched)return {matched:false,slug:null,restaurantName:null,catalog:null};
+  if(!data.matched)return {matched:false,slug:null,restaurantName:null,faviconUrl:null,catalog:null};
   const restaurantName=validText(data.restaurantName,160)?data.restaurantName.trim():null;
-  if(typeof data.slug!=='string'||! /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(data.slug))return {matched:true,slug:null,restaurantName,catalog:null};
+  if(typeof data.slug!=='string'||! /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(data.slug))return {matched:true,slug:null,restaurantName,faviconUrl:null,catalog:null};
+  const {data:assets,error:assetsError}=await supabase.rpc('get_public_storefront_favicon',{p_slug:data.slug});
+  if(assetsError)throw new Error('Custom domain favicon service unavailable');
+  const assetRow=record(assets)?assets:{};
+  const faviconUrl=typeof assetRow.faviconPath==='string'?getFaviconUrl(assetRow.faviconPath):null;
   const catalog=await loadPublishedMenu(data.slug,branchSlug);
-  return {matched:true,slug:data.slug,restaurantName,catalog};
+  return {matched:true,slug:data.slug,restaurantName,faviconUrl,catalog};
 }
 
 /** A custom domain uses /<branch-slug>; its root resolves to the configured default branch. */
