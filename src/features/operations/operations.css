@@ -734,3 +734,5 @@
 .w2t-branch-store-status-list .w2t-setting-switch-row:first-child{border-top:0}
 .w2t-branch-store-status-list .w2t-setting-switch-row>span{display:grid;gap:4px}
 .w2t-branch-store-status-list .w2t-setting-switch-row small{color:var(--owner-muted,var(--color-muted,#64748b));font-size:.82rem}
+
+.owner-sidebar-brand-image{display:block;width:44px;height:44px;max-width:100%;object-fit:contain;border-radius:8px;background:transparent}
