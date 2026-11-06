@@ -678,7 +678,7 @@
 /* Shared guest and signed-in customer account actions. */
 .sf-account-auth-action{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 13px;border:1px solid var(--sf-primary-button);border-radius:9px;background:var(--sf-primary-button);color:var(--sf-primary-button-font);font:inherit;font-size:var(--sf-font-size-13);font-weight:750;text-decoration:none}
 .sf-account-auth-action:hover{opacity:.88}
-.sf-account-auth-action.sf-account-auth-secondary{background:var(--sf-secondary-button);color:var(--sf-secondary-button-font);border-color:var(--sf-secondary-button)}
+.sf-account-auth-action.sf-account-auth-secondary{background:var(--sf-primary-button);color:var(--sf-primary-button-font);border-color:var(--sf-primary-button)}
 
 
 /* Address map opens on demand so the mobile form stays compact. */
