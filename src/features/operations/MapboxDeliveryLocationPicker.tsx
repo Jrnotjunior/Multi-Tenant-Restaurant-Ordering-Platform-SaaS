@@ -79,7 +79,6 @@ export function MapboxDeliveryLocationPicker({
       initialLongitude: current.initialLongitude,
       theme: {
         pageBackground: color('--sf-page-background', '#ffffff'),
-        fontColor: color('--sf-font-color', '#172033'),
         primaryButton: color('--sf-primary-button', '#2563eb'),
         primaryButtonFont: color('--sf-primary-button-font', '#ffffff'),
       },
