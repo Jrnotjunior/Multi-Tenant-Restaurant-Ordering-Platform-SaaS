@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { storefrontTrackingHash } from '../../app/routes';
 import { peso } from './demoCatalog';
 import { MapboxDeliveryLocationPicker, type DeliveryLocationAddress } from '../operations/MapboxDeliveryLocationPicker';
+import { geocodingFeatureToAddress, matchesRequestedHouseNumber, requestedHouseNumber, searchAddresses } from '../../modules/location/locationService';
 import './delivery-address-picker.css';
 
 type OrderType = 'Delivery' | 'Take-out' | 'Pickup' | 'Dine-in';
@@ -219,7 +220,7 @@ export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCe
         setSavedAddresses(validAddresses);
         const preferred = validAddresses.find(address => address.is_default) ?? validAddresses[0];
         if (preferred) {
-          setDeliveryAddress({
+          let selected: DeliveryLocationAddress = {
             formattedAddress: [preferred.address_line, preferred.barangay, preferred.city].filter(Boolean).join(', '),
             address: preferred.address_line,
             city: preferred.city,
@@ -227,7 +228,49 @@ export function CheckoutPage({ restaurantSlug, branchSlug, itemCount, subtotalCe
             placeId: preferred.geocoding_place_id ?? '',
             latitude: preferred.latitude,
             longitude: preferred.longitude,
-          });
+          };
+
+          // Saved addresses created before map coordinates were required can
+          // still be used directly: resolve them through the same Mapbox
+          // geocoder used by the location picker, without opening the map.
+          if (selected.latitude === null || selected.longitude === null) {
+            try {
+              const query = [preferred.address_line, preferred.barangay, preferred.city, 'Philippines'].filter(Boolean).join(', ');
+              const features = await searchAddresses(query);
+              const requestedNumber = requestedHouseNumber(preferred.address_line);
+              const candidates = features
+                .map(feature => ({ feature, address: geocodingFeatureToAddress(feature) }))
+                .filter((item): item is { feature: typeof features[number]; address: DeliveryLocationAddress } => Boolean(item.address))
+                .filter(item => {
+                  const cityMatches = !preferred.city || item.address.city.toLowerCase() === preferred.city.toLowerCase();
+                  const barangayMatches = !preferred.barangay || item.address.barangay.toLowerCase() === preferred.barangay.toLowerCase();
+                  return cityMatches && barangayMatches;
+                });
+              const resolved = requestedNumber
+                ? candidates.find(item => matchesRequestedHouseNumber(preferred.address_line, item.feature.properties?.housenumber))
+                : candidates[0];
+              if (resolved) {
+                selected = resolved.address;
+                const { error: updateError } = await supabase!
+                  .from('customer_saved_addresses')
+                  .update({
+                    latitude: selected.latitude,
+                    longitude: selected.longitude,
+                    geocoding_place_id: selected.placeId,
+                  })
+                  .eq('id', preferred.id)
+                  .eq('user_id', user.id);
+                if (updateError) console.warn('Could not cache resolved saved-address coordinates.', updateError);
+              } else {
+                setMessage('We could not verify the saved address on the map. Please choose its exact location once to continue.');
+              }
+            } catch {
+              setMessage('We could not verify the saved address automatically. Please choose its exact location once to continue.');
+            }
+          }
+
+          if (!active) return;
+          setDeliveryAddress(selected);
           setStreetAddress(preferred.address_line);
         }
       }
