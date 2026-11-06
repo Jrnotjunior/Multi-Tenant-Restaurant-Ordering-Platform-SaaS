@@ -201,10 +201,10 @@ export async function loadPublishedMenu(slug:string,branchSlug:string|null=null)
   if (!supabase) throw new Error('Menu service is not configured');
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return null;
   if(branchSlug!==null && (branchSlug.length<2 || branchSlug.length>64 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(branchSlug))) return null;
-  const {data,error} = await supabase.rpc('get_branch_storefront',{p_slug:slug,p_branch_slug:branchSlug});
+  const {data,error} = await supabase.rpc('get_branch_storefront',branchSlug===null?{p_slug:slug}:{p_slug:slug,p_branch_slug:branchSlug});
   if (error) throw new Error('Published menu service unavailable');
   if (!data) return null;
-  const {data:cashOptions,error:cashOptionsError}=await supabase.rpc('get_public_cash_payment_options',{p_slug:slug,p_branch_slug:branchSlug});
+  const {data:cashOptions,error:cashOptionsError}=await supabase.rpc('get_public_cash_payment_options',branchSlug===null?{p_slug:slug}:{p_slug:slug,p_branch_slug:branchSlug});
   if(cashOptionsError||!record(cashOptions))throw new Error('Published payment options service unavailable');
   const {data:assets,error:assetsError} = await supabase.rpc('get_public_storefront_favicon',{p_slug:slug});
   if (assetsError) throw new Error('Published storefront assets service unavailable');
