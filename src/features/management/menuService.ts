@@ -66,7 +66,7 @@ export type KitchenMenu = {branch_id:string;branches:KitchenBranch[];categories:
 
 export async function loadKitchenMenuForTenant(tenantId:string,branchId?:string):Promise<KitchenMenu> {
   const db=requireClient();
-  const {data,error}=await db.rpc('list_kitchen_menu',{p_tenant_id:tenantId,p_branch_id:branchId??null});
+  const {data,error}=await db.rpc('list_kitchen_menu',branchId ? {p_tenant_id:tenantId,p_branch_id:branchId} : {p_tenant_id:tenantId});
   check(error);
   if(!data||typeof data!=='object'||Array.isArray(data))throw new Error('Invalid kitchen menu response.');
   const value=data as Record<string,unknown>;
@@ -96,7 +96,7 @@ export async function loadOwnerData(tenant:Tenant):Promise<OwnerData> {
   if(!brand.data) throw new Error('Storefront configuration is missing.');
   return {
     tenant,branches:branches.data??[],brand:brand.data as Brand,
-    categories:categories.data??[],items:items.data??[],assignments:assignments.data??[],
+    categories:categories.data??[],items:(items.data??[]) as Product[],assignments:assignments.data??[],
     groups:groups.data??[],options:options.data??[],
   };
 }
