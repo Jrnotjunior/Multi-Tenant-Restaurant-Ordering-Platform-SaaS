@@ -243,10 +243,7 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
     if (!client || busy || !passwordMeetsStandard) { setMessage('Please meet all password requirements before continuing.'); return; }
     setBusy(true); setMessage('');
     try {
-      const { error } = await client.auth.updateUser({
-        password: newPassword,
-        data: { ...user?.user_metadata, password_setup_completed: true },
-      });
+      const { error } = await client.auth.updateUser({ password: newPassword });
       if (error) throw error;
       setNewPassword('');
       const url = new URL(window.location.href);
