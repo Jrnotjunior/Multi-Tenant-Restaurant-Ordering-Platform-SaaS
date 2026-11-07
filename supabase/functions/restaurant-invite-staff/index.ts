@@ -68,18 +68,29 @@ Deno.serve(async (req: Request) => {
       return respond(req,400,{error:msg.includes("pending invitation")?"A pending invitation already exists for this email and restaurant.":msg},adminClient);
     }
     invitationId=newInvite;
-    const [{data:tenant,error:tenantError},{data:branch,error:branchError}]=await Promise.all([
+    const [{data:tenant,error:tenantError},{data:branch,error:branchError},{data:domains,error:domainsError}]=await Promise.all([
       adminClient.from("tenants").select("name,slug").eq("id",tenantId).maybeSingle(),
       adminClient.from("branches").select("name,slug").eq("id",branchId).eq("tenant_id",tenantId).maybeSingle(),
+      adminClient.from("tenant_domains").select("hostname,kind").eq("tenant_id",tenantId)
+        .eq("status","active").not("verified_at","is",null),
     ]);
-    if(tenantError||branchError||!tenant||!branch) {
+    if(tenantError||branchError||domainsError||!tenant||!branch) {
       await adminClient.from("privileged_invitations").update({status:"failed"}).eq("id",invitationId);
-      return respond(req,500,{error:"Restaurant or branch details could not be loaded for the invitation email."},adminClient);
+      return respond(req,500,{error:"Restaurant, branch, or verified restaurant domain could not be loaded for the invitation email."},adminClient);
+    }
+    // Invitation links must use a verified domain belonging to the invited tenant.
+    // Never derive the redirect from the owner's current browser origin.
+    const tenantDomainRows=Array.isArray(domains)?domains:[];
+    const tenantDomain=tenantDomainRows.find((d:any)=>d.kind==="custom")??tenantDomainRows.find((d:any)=>d.kind==="managed");
+    const hostname=typeof tenantDomain?.hostname==="string"?tenantDomain.hostname.toLowerCase():"";
+    if(!hostname||hostname.includes("/")||hostname.includes(":")||hostname.includes("@")) {
+      await adminClient.from("privileged_invitations").update({status:"failed"}).eq("id",invitationId);
+      return respond(req,409,{error:"This restaurant does not have an active, verified invitation domain. Activate its restaurant domain before inviting staff."},adminClient);
     }
     const roleLabels:Record<string,string>={cashier:"cashier",kitchen:"kitchen team member",dispatcher:"dispatcher",rider:"delivery rider"};
-    const requestOrigin=req.headers.get("Origin")??"";
-    const redirectBase=await isAllowedOrigin(requestOrigin,adminClient)?new URL("/restaurant",requestOrigin):new URL(APP_URL);
+    const redirectBase=new URL("/restaurant",`https://${hostname}`);
     redirectBase.searchParams.set("type","invite");
+    redirectBase.searchParams.set("invite_id",invitationId);
     const {data:sent,error:sendError}=await adminClient.auth.admin.inviteUserByEmail(email,{
       redirectTo:redirectBase.toString(),
       data:{
