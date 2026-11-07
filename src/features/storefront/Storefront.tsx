@@ -440,10 +440,14 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
         return domain.slug&&domain.catalog?{slug:domain.slug,catalog:domain.catalog}:null;
       }
       if(requestedSlug) {
+        // Slug-based tenant lookup is reserved for the platform preview host.
+        // A custom/tenant hostname must resolve through its registered domain
+        // record and must never select a tenant by URL slug alone.
+        if (!platformStorefrontHost) return null;
         return loadPublishedMenu(requestedSlug,selectedBranch)
           .then(catalog=>catalog
             ?{slug:requestedSlug,catalog}
-            :legacyBranchRoute&&platformStorefrontHost?loadDefaultPublishedMenu(selectedBranch):null);
+            :legacyBranchRoute?loadDefaultPublishedMenu(selectedBranch):null);
       }
       // Never serve the first published tenant as a fallback on an
       // unrecognized hostname. That can leak one restaurant's storefront
