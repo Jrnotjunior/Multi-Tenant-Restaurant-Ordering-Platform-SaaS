@@ -241,7 +241,9 @@ export function branchSlugFromDomainPath(pathname:string):string|null {
 
 /** Require a branch choice whenever the entry URL does not identify one. */
 export function needsBranchSelection(selectedBranch:string|null,branches:readonly BranchChoice[]):boolean {
-  return selectedBranch===null&&branches.length>0;
+  // A branch picker is only useful when the customer has a real choice.
+  // A single-branch restaurant should open its default menu directly.
+  return selectedBranch===null&&branches.length>1;
 }
 
 
