@@ -84,7 +84,7 @@ Deno.serve(async (req: Request) => {
       redirectTo:redirectBase.toString(),
       data:{
         first_name:firstName,last_name:lastName,full_name:fullName,name:fullName,phone,phone_number:phone,
-        invitation_type:"restaurant_staff",password_setup_completed:false,invitation_label:"RESTAURANT TEAM INVITATION",
+        invitation_type:"restaurant_staff",invitation_label:"RESTAURANT TEAM INVITATION",
         invitation_role:roleLabels[role]??"staff member",account_setup:"your staff account",
         restaurant_name:tenant.name,restaurant_slug:tenant.slug,branch_name:branch.name,branch_slug:branch.slug,
         tenant_id:tenantId,tenant_role:role,tenant_invitation_id:invitationId,branch_id:branchId,
