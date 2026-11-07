@@ -445,7 +445,11 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
             ?{slug:requestedSlug,catalog}
             :legacyBranchRoute&&platformStorefrontHost?loadDefaultPublishedMenu(selectedBranch):null);
       }
-      return loadDefaultPublishedMenu(selectedBranch);
+      // Never serve the first published tenant as a fallback on an
+      // unrecognized hostname. That can leak one restaurant's storefront
+      // onto another tenant's or an unregistered custom subdomain.
+      if (platformStorefrontHost) return loadDefaultPublishedMenu(selectedBranch);
+      return null;
     });
     void load.then((result) => {
       if (!active) return;
