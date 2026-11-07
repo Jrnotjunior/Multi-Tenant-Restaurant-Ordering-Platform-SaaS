@@ -144,9 +144,17 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
             .limit(1);
           if (membershipError) throw membershipError;
           if ((activeMemberships?.length ?? 0) === 0) {
-            if (!active) return;
-            setStatus('passwordsetup');
-            return;
+            // Do not infer password completion from email confirmation or sign-in.
+            // Ask the database whether this exact pending invitation's Auth user
+            // has a password hash. This lets password setup advance to MFA even
+            // when no membership exists yet.
+            const { data: passwordReady, error: passwordReadyError } = await client.rpc('privileged_invitation_password_ready');
+            if (passwordReadyError) throw passwordReadyError;
+            if (!passwordReady) {
+              if (!active) return;
+              setStatus('passwordsetup');
+              return;
+            }
           }
         }
       const { data: eligible, error: eligibilityError } = await client.rpc('privileged_route_eligible', {
