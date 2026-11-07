@@ -2503,6 +2503,7 @@ export type Database = {
         Args: { p_workspace: string }
         Returns: boolean
       }
+      privileged_invitation_password_ready: { Args: never; Returns: boolean }
       request_customer_order_refund: {
         Args: { p_order_id: string; p_reason?: string; p_tenant_id: string }
         Returns: Json
