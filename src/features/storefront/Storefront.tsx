@@ -710,7 +710,9 @@ export function Storefront({ baseUrl, requestedSlug, initialCartPage = false }: 
     '--sf-red': websiteColors.primaryButton,
     '--sf-red-dark': websiteColors.secondaryButton,
   } as CSSProperties;
-  if(needsBranchSelection(selectedBranch,catalog.branches)) {
+  // A payment return or direct tracking link must never be intercepted by the branch picker.
+  // The order token identifies the order and the tracking RPC resolves its actual branch.
+  if(!trackingPage && needsBranchSelection(selectedBranch,catalog.branches)) {
     // Keep account navigation on the current storefront document. The hash router
     // handles this route without a document navigation or page refresh.
     const accountHref='#/account';
