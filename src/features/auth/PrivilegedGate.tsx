@@ -132,11 +132,11 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
           || metadataInvitationType === 'restaurant_staff'
           || typeof invitationIdFromMetadata === 'string';
 
+        let invitationMfaRequired = false;
         if (isInvitationAccount) {
-          // Resolve the onboarding state from the exact pending invitation.
-          // Do not use tenant membership existence as a proxy: an employee may
-          // already belong to another tenant and still need this invitation's
-          // password/MFA onboarding completed.
+          // Resolve onboarding state from the exact pending invitation. An invite
+          // must reach MFA setup before it has a tenant membership; do not let the
+          // ordinary workspace eligibility gate hide the required MFA screen.
           const { data: onboardingState, error: onboardingStateError } = await client.rpc('privileged_invitation_onboarding_state');
           if (onboardingStateError) throw onboardingStateError;
           if (onboardingState === 'password_required') {
@@ -144,15 +144,16 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
             setStatus('passwordsetup');
             return;
           }
-          // 'mfa_required' continues into MFA enrollment below.
-          // 'completed' continues through normal existing-account MFA checks.
+          invitationMfaRequired = onboardingState === 'mfa_required';
         }
-      const { data: eligible, error: eligibilityError } = await client.rpc('privileged_route_eligible', {
-          p_workspace: mode,
-        });
-        if (eligibilityError) throw eligibilityError;
-        if (!active) return;
-        if (eligible !== true) { setStatus('denied'); return; }
+        if (!invitationMfaRequired) {
+          const { data: eligible, error: eligibilityError } = await client.rpc('privileged_route_eligible', {
+            p_workspace: mode,
+          });
+          if (eligibilityError) throw eligibilityError;
+          if (!active) return;
+          if (eligible !== true) { setStatus('denied'); return; }
+        }
         const next = await getMfaFlow(client);
         if (!active) return;
         if (next.kind !== 'ready') { setFlow(next); setStatus('mfa'); return; }
