@@ -240,10 +240,19 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
         if (!invitationId || !uuid.test(invitationId)) {
           throw new Error('The staff invitation reference is missing. Please reopen the latest invitation email.');
         }
-        const { error } = await client.functions.invoke('complete-staff-invitation-password', {
+        const { data, error } = await client.functions.invoke('complete-staff-invitation-password', {
           body: { invitation_id: invitationId, password: newPassword },
         });
         if (error) throw error;
+        const session = data?.session;
+        if (!session?.access_token || !session?.refresh_token) {
+          throw new Error('Your password was saved, but a secure session could not be started. Please sign in and continue MFA setup.');
+        }
+        const { error: sessionError } = await client.auth.setSession({
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+        });
+        if (sessionError) throw sessionError;
       } else {
         const { error } = await client.auth.updateUser({ password: newPassword });
         if (error) throw error;
