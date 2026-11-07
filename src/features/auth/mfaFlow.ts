@@ -86,20 +86,18 @@ async function resolve(client: SupabaseClient): Promise<MfaFlow> {
 
   const userId = sessionData.session.user.id;
 
-  if (assurance.currentLevel === 'aal2') {
+  // Factor records are authoritative for enrollment. A session can retain an
+  // AAL2 assurance claim after an invitation/password transition even when the
+  // account has no verified factor. Never let that stale claim skip required MFA.
+  const allFactors = [...factors.totp, ...factors.phone];
+  const verifiedFactors = allFactors.filter((factor) => factor.status === 'verified');
+  const verifiedTotp = verifiedFactors.find((factor) => factor.factor_type === 'totp');
+
+  if (assurance.currentLevel === 'aal2' && verifiedFactors.length > 0) {
     enrollments.delete(client);
     clearStoredEnrollment(userId);
     return { kind: 'ready' };
   }
-
-  // Inspect every factor type before enrolling. Supabase can reject TOTP
-  // enrollment when another factor type (for example, phone MFA) is verified.
-  // The aggregate "all" collection can be empty even while the typed
-  // collections contain verified factors. Always inspect both typed lists;
-  // otherwise we may try to enroll over an existing verified factor.
-  const allFactors = [...factors.totp, ...factors.phone];
-  const verifiedFactors = allFactors.filter((factor) => factor.status === 'verified');
-  const verifiedTotp = verifiedFactors.find((factor) => factor.factor_type === 'totp');
   if (verifiedTotp) {
     enrollments.delete(client);
     return { kind: 'challenge', factorId: verifiedTotp.id };
