@@ -2504,6 +2504,7 @@ export type Database = {
         Returns: boolean
       }
       privileged_invitation_password_ready: { Args: never; Returns: boolean }
+      privileged_invitation_onboarding_state: { Args: never; Returns: string }
       request_customer_order_refund: {
         Args: { p_order_id: string; p_reason?: string; p_tenant_id: string }
         Returns: Json
