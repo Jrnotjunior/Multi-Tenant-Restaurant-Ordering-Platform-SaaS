@@ -133,29 +133,19 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
           || typeof invitationIdFromMetadata === 'string';
 
         if (isInvitationAccount) {
-          // The email redirect query can be lost by Auth redirect handling.
-          // Use trusted invitation metadata as a fallback, but do not send an
-          // already-onboarded member back through password creation on sign-in.
-          const { data: activeMemberships, error: membershipError } = await client
-            .from('tenant_memberships')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('status', 'active')
-            .limit(1);
-          if (membershipError) throw membershipError;
-          if ((activeMemberships?.length ?? 0) === 0) {
-            // Do not infer password completion from email confirmation or sign-in.
-            // Ask the database whether this exact pending invitation's Auth user
-            // has a password hash. This lets password setup advance to MFA even
-            // when no membership exists yet.
-            const { data: passwordReady, error: passwordReadyError } = await client.rpc('privileged_invitation_password_ready');
-            if (passwordReadyError) throw passwordReadyError;
-            if (!passwordReady) {
-              if (!active) return;
-              setStatus('passwordsetup');
-              return;
-            }
+          // Resolve the onboarding state from the exact pending invitation.
+          // Do not use tenant membership existence as a proxy: an employee may
+          // already belong to another tenant and still need this invitation's
+          // password/MFA onboarding completed.
+          const { data: onboardingState, error: onboardingStateError } = await client.rpc('privileged_invitation_onboarding_state');
+          if (onboardingStateError) throw onboardingStateError;
+          if (onboardingState === 'password_required') {
+            if (!active) return;
+            setStatus('passwordsetup');
+            return;
           }
+          // 'mfa_required' continues into MFA enrollment below.
+          // 'completed' continues through normal existing-account MFA checks.
         }
       const { data: eligible, error: eligibilityError } = await client.rpc('privileged_route_eligible', {
           p_workspace: mode,
