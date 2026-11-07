@@ -233,8 +233,20 @@ export function PrivilegedGate({ mode, children }: { mode: Mode; children: React
     if (!client || busy || !passwordMeetsStandard) { setMessage('Please meet all password requirements before continuing.'); return; }
     setBusy(true); setMessage('');
     try {
-      const { error } = await client.auth.updateUser({ password: newPassword });
-      if (error) throw error;
+      if (user?.user_metadata?.invitation_type === 'restaurant_staff') {
+        const invitationId = new URLSearchParams(window.location.search).get('invite_id')
+          ?? (typeof user.user_metadata?.tenant_invitation_id === 'string' ? user.user_metadata.tenant_invitation_id : null);
+        if (!invitationId || !uuid.test(invitationId)) {
+          throw new Error('The staff invitation reference is missing. Please reopen the latest invitation email.');
+        }
+        const { error } = await client.functions.invoke('complete-staff-invitation-password', {
+          body: { invitation_id: invitationId, password: newPassword },
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await client.auth.updateUser({ password: newPassword });
+        if (error) throw error;
+      }
       setNewPassword('');
       const url = new URL(window.location.href);
       url.searchParams.delete('type');
