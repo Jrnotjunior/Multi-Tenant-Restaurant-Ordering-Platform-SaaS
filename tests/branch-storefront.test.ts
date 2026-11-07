@@ -39,11 +39,11 @@ describe('branch-specific customer menus',()=>{
    expect(branchSlugFromDomainPath('/branch-a/cart')).toBe('');
    expect(branchSlugFromDomainPath('/../admin')).toBe('');
  });
- it('requires a branch choice before showing a menu when the URL does not identify one',()=>{
+ it('requires a branch choice only when multiple branches are available',()=>{
    const branches=[{slug:'main',name:'Main'},{slug:'makati',name:'Makati'}];
    expect(needsBranchSelection(null,branches)).toBe(true);
    expect(needsBranchSelection('main',branches)).toBe(false);
-   expect(needsBranchSelection(null,branches.slice(0,1))).toBe(true);
+   expect(needsBranchSelection(null,branches.slice(0,1))).toBe(false);
    expect(needsBranchSelection(null,[])).toBe(false);
  });
 ;
