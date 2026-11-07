@@ -112,6 +112,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
   const [dispatcherTab, setDispatcherTab] = useState<Order['order_type']>('delivery');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState('');
+  const [busyAction, setBusyAction] = useState<StaffOrderAction | ''>('');
   const [selectedCashierOrderId, setSelectedCashierOrderId] = useState<string | null>(null);
   const [latestKitchenTicket, setLatestKitchenTicket] = useState<Order | null>(null);
   const [kitchenTicketPreviewOpen, setKitchenTicketPreviewOpen] = useState(false);
@@ -416,7 +417,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
     if ((action === 'cancel' || (action === 'deliver' && role !== 'rider')) && !window.confirm(
       action === 'deliver' ? `Confirm order #${order.order_number} has been delivered?` : `Cancel order #${order.order_number} before it enters the kitchen?`,
     )) return;
-    setBusy(order.id); setError(''); setNotice('');
+    setBusy(order.id); setBusyAction(action); setError(''); setNotice('');
     try {
       if (action === 'cancel') {
         const { data, error: cancelFunctionError } = await supabase.functions.invoke('cancel-customer-order', {
@@ -449,7 +450,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
       if ((role === 'kitchen' && action === 'mark_ready') || (role === 'dispatcher' && ['dispatch', 'complete_handoff'].includes(action))) setSelectedCashierOrderId(null);
       await load(true);
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to update this order.'); }
-    finally { setBusy(''); }
+    finally { setBusy(''); setBusyAction(''); }
   }
 
   async function saveFee(order: Order) {
@@ -781,7 +782,7 @@ export function StaffOperationalWorkspace({ tenantId, role, restaurantName }: Pr
             <div className="staff-cashier-modal-total"><strong>Total</strong><strong>{money(order.total_centavos)}</strong></div>
           </>}
           {role === 'dispatcher' && order.order_type === 'delivery' && order.order_status === 'ready_for_dispatch' && order.assignment_status !== 'dispatched' && <div className="staff-inline-control"><label htmlFor={'staff-rider-modal-' + order.id}>Assign branch rider</label><select id={'staff-rider-modal-' + order.id} value={selectedRiders[order.id] ?? order.assigned_rider_user_id ?? ''} onChange={event => setSelectedRiders(current => ({ ...current, [order.id]: event.target.value }))}><option value="">Choose a rider</option>{(riders[order.branch_id] ?? []).filter(rider => rider.display_name?.trim()).map(rider => <option key={rider.user_id} value={rider.user_id}>{rider.display_name!.trim()}</option>)}</select><button className="staff-button staff-button-secondary" type="button" disabled={busy === order.id || !(riders[order.branch_id] ?? []).some(rider => rider.display_name?.trim())} onClick={() => void assign(order)}>Assign rider</button>{!(riders[order.branch_id] ?? []).some(rider => rider.display_name?.trim()) && <small>No eligible rider with a complete name is available for this branch. Update the rider profile to enable assignment.</small>}</div>}{needsFee && <div className="staff-inline-control"><label htmlFor={'staff-fee-modal-' + order.id}>Delivery fee (PHP)</label><input id={'staff-fee-modal-' + order.id} type="number" min="0" max="10000000" step="0.01" inputMode="decimal" value={fees[order.id] ?? ''} onChange={event => setFees(current => ({ ...current, [order.id]: event.target.value }))} placeholder="e.g. 50.00" /><button className="staff-button staff-button-secondary" type="button" disabled={busy === order.id} onClick={() => void saveFee(order)}>Save fee</button></div>}
-          {buttons.length > 0 && <footer className="staff-cashier-modal-actions">{buttons.map(button => <button key={button.action} type="button" disabled={busy === order.id || (button.action === 'confirm' && !mayCashierConfirmOrder(order))} className={'staff-button ' + (button.primary ? 'staff-button-primary' : 'staff-button-secondary')} onClick={() => void act(order, button.action, button.label.toLowerCase())}>{busy === order.id ? 'Saving…' : button.label}</button>)}</footer>}
+          {buttons.length > 0 && <footer className="staff-cashier-modal-actions">{buttons.map(button => <button key={button.action} type="button" disabled={busy === order.id || (button.action === 'confirm' && !mayCashierConfirmOrder(order))} className={'staff-button ' + (button.primary ? 'staff-button-primary' : 'staff-button-secondary')} onClick={() => void act(order, button.action, button.label.toLowerCase())}>{busy === order.id && busyAction === button.action ? 'Saving…' : button.label}</button>)}</footer>}
         </section>
       </div>;
     })()}
