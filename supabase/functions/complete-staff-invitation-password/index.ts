@@ -94,7 +94,30 @@ Deno.serve(async (req: Request) => {
       console.error("Invitation password completion marker failed", recordError?.message ?? "no matching invitation");
       return new Response(JSON.stringify({ error: "Your password was saved, but account setup could not be advanced. Please retry this step." }), { status: 503, headers });
     }
-    return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+    // Create a fresh session after the password update. The admin update itself
+    // does not issue browser session tokens; the isolated anon client does.
+    const sessionClient = createClient(supabaseUrl, anonKey, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    });
+    const { data: signInData, error: signInError } = await sessionClient.auth.signInWithPassword({
+      email: invitation.email,
+      password,
+    });
+    if (signInError || !signInData.session) {
+      console.error("Invitation password saved but session creation failed", signInError?.message ?? "missing session");
+      return new Response(JSON.stringify({ error: "Your password was saved, but we could not start your secure session. Please sign in and continue MFA setup." }), { status: 503, headers });
+    }
+
+    // Return only the short-lived access token and single-use refresh token
+    // needed by the browser Supabase client. Never log or persist these tokens.
+    const { access_token, refresh_token } = signInData.session;
+    return new Response(JSON.stringify({
+      success: true,
+      session: { access_token, refresh_token },
+    }), {
+      status: 200,
+      headers: { ...headers, "Cache-Control": "no-store" },
+    });
   } catch (error) {
     console.error("Staff invitation password setup failed", error instanceof Error ? error.message : "unknown error");
     return new Response(JSON.stringify({ error: "Password setup could not be completed. Please try again." }), { status: 500, headers });
